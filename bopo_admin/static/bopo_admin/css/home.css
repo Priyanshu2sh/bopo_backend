@@ -1,0 +1,135 @@
+/* Dashboard Container */
+.dashboard-container {
+    font-family: 'Poppins', sans-serif;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+/* Card Container - Force all cards in one line */
+.card-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 20px;
+    padding: 20px;
+    flex-wrap: nowrap; /* Prevent wrapping */
+    overflow-x: auto; /* Enable horizontal scrolling if needed */
+}
+
+/* Individual Card */
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+    width: 250px; /* Fixed width for all cards */
+    min-width: 250px; /* Ensures cards don’t shrink too much */
+    text-align: center;
+    padding: 20px;
+    transition: transform 0.3s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+
+/* Card Header */
+.card-header {
+    background: linear-gradient(135deg, #712D1E, #A14C39);
+    color: white;
+    padding: 15px;
+    font-weight: bold;
+    font-size: 18px;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Card Content */
+.card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Value Display */
+.value {
+    font-size: 26px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Progress Bar */
+.progress-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.progress-text {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 10px;
+    background: #ddd;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.progress-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 10px;
+}
+
+/* Custom Colors for Cards */
+.card:nth-child(1) .progress-text { background: #28a745; } /* Green */
+.card:nth-child(1) .progress-bar span { background: linear-gradient(90deg, #28a745, #5DD39E); width: 30%; }
+
+.card:nth-child(2) .progress-text { background: #dc3545; } /* Red */
+.card:nth-child(2) .progress-bar span { background: linear-gradient(90deg, #dc3545, #E05A5A); width: 15%; }
+
+.card:nth-child(3) .progress-text { background: #007bff; } /* Blue */
+.card:nth-child(3) .progress-bar span { background: linear-gradient(90deg, #007bff, #5A9CEC); width: 50%; }
+
+.card:nth-child(4) .progress-text { background: #6f42c1; } /* Purple */
+.card:nth-child(4) .progress-bar span { background: linear-gradient(90deg, #6f42c1, #9D6ED6); width: 80%; }
+
+/* Analysis Section */
+.analysis-section {
+    background: #ffffff;
+    padding: 30px;
+    margin-top: 30px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* Graph Container */
+.graph-container {
+    width: 100%;
+    max-width: 800px;
+    height: 300px;
+    margin: auto;
+}
+
+.footer {
+    text-align: center;
+    padding: 10px;
+    background-color:rgb(225, 162, 227);
+    font-size: 15px;
+    font-weight: bold;
+    color: white;
+    bottom: 0;
+    width: 100%;
+    box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
+}

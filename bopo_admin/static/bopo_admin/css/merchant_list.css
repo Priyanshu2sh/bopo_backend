@@ -1,0 +1,61 @@
+/* Merchant Page Container */
+.merchant-container {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 1300px;
+    margin: auto;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Section */
+.merchant-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* background: linear-gradient(90deg, #6e190e, #b14c35); */
+    color: black;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Add Merchant Button */
+.add-merchant-btn {
+    background-color: #803a2f;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.add-merchant-btn:hover {
+    background-color: #a14a3f;
+}
+
+/* Merchant List */
+.merchant-list {
+    margin-top: 20px;
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Merchant Items */
+.merchant-item {
+    background: #f8f9fa;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.merchant-item:hover {
+    background-color: #e0e0e0;
+}
+
+

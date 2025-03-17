@@ -1,0 +1,24 @@
+{% extends "bopo_admin/base.html" %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_list.css' %}">
+
+<div class="merchant-container">
+    <div class="merchant-header">
+        <h2>Merchants List</h2>
+        <button class="add-merchant-btn">+ Add Merchant</button>
+    </div>
+
+    <div class="merchant-list">
+        <div class="merchant-item corporate">
+            <span class="merchant-icon">🏢</span>
+            <span>Corporate Merchants List</span>
+        </div>
+        <div class="merchant-item individual">
+            <span class="merchant-icon">👤</span>
+            <span>Individual Merchants List</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
