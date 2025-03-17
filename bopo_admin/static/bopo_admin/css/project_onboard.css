@@ -1,0 +1,188 @@
+/* General form styling */
+.project-onboarding-container {
+    max-width: 900px;
+    margin: -10px auto;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Form title */
+.form-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 40px;
+    color: #0c0d0d;
+}
+
+/* ✅ Updated: Label & Input Side-by-Side */
+.form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    width: 20%; /* Adjust label width */
+    font-weight: bold;
+    color: #333;
+    margin-left: 5%;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 80%; /* Adjust input width */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-left: 8%;
+}
+
+
+
+
+/* Fix for radio buttons */
+.radio-group {
+    display: flex;
+    justify-content: center;
+    width: 60%;
+    gap: 90px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #444;
+    cursor: pointer;
+    gap: 5px; /* Space between radio button and label */
+}
+
+.radio-group input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #7a161c;
+    cursor: pointer;
+}
+/* Center Button Group */
+.button-group {
+    display: flex;
+    justify-content: center; /* Centers buttons */
+    gap: 15px; /* Space between buttons */
+    margin-top: 20px;
+}
+
+/* General Button Styling */
+.reset-btn,
+.cancel-btn,
+.submit-btn {
+    width: 10%; /* Decrease width */
+    min-width: 120px; /* Ensures buttons don't get too small */
+    padding: 8px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Reset Button */
+.reset-btn {
+    background: #dd8c11;
+    color: white;
+}
+
+.reset-btn:hover {
+    background: #e8d485;
+}
+
+/* Cancel Button */
+.cancel-btn {
+    background: #dc0f0f;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #b71c1c;
+}
+
+/* Submit Button */
+.submit-btn {
+    background:#173d46;
+    color: white;
+}
+
+.submit-btn:hover {
+    background:#95dfc6;
+}
+
+
+
+/* Ensure State & City are in the same row, but wrap on smaller screens */
+.state-city-container {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    flex-wrap: wrap; /* ✅ Wrap on small screens */
+}
+
+/* Each field takes equal space */
+.state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+/* Labels remain aligned */
+.state label {
+    width: 40%;
+    font-weight: bold;
+    color: #333;
+     margin-right: 35px;
+}
+
+/* Inputs and select fields */
+.state select {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    background: #fff;
+    cursor: pointer;
+}
+
+
+/* Each field takes equal space */
+.state-city {
+    flex: 1;
+    display: flex;
+    align-items: center;
+
+}
+
+/* Labels remain aligned */
+.state-city label {
+    width: 60%;
+    font-weight: bold;
+    color: #333;
+   margin-left: 10%;
+}
+
+/* Inputs and select fields */
+.state-city select {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    background: #fff;
+    cursor: pointer;
+    margin-left: -20%;
+}
