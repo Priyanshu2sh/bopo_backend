@@ -12,8 +12,8 @@ class MerchantSerializer(serializers.ModelSerializer):
         model = Merchant
         fields = '__all__'
 
-    # def validate_mobile_number(self, value):
-    #     """Ensure mobile number has 10 digits"""
-    #     if len(value) != 10 or not value.isdigit():
-    #         raise serializers.ValidationError("Mobile number must be 10 digits")
-    #     return value
+    def validate_mobile_number(self, value):
+        """Ensure mobile number has 10 digits"""
+        if len(value) != 10 or not value.isdigit():
+            raise serializers.ValidationError("Mobile number must be 10 digits")
+        return value

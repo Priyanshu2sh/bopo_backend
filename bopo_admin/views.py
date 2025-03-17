@@ -1,7 +1,7 @@
 from django.shortcuts import render
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
-from .models import BopoAdmin, Project
+from .models import BopoAdmin, Project, Merchant
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response 
@@ -50,14 +50,12 @@ def login(request):
 
 # add project
 class ProjectCreate(APIView):
-    #get API for project
-    # def get(self, request):
-    #     projects = Project.objects.all()
-    #     serializer = ProjectSerializer(projects, many=True)
-    #     return Response(serializer.data)
+    # get API for project
+    def get(self, request):
+        projects = Project.objects.all()
+        serializer = ProjectSerializer(projects, many=True)
+        return Response(serializer.data)
     
-    
-
     #post API for project 
     def post(self, request):
         serializer = ProjectSerializer(data=request.data)
@@ -72,8 +70,14 @@ class ProjectCreate(APIView):
 
 
 # add merchant
-class MerchantCreate(APIView):
-    #post API for merchant
+class MerchantAPI(APIView):
+    # GET API to fetch all merchants
+    def get(self, request):
+        merchants = Merchant.objects.all()
+        serializer = MerchantSerializer(merchants, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # POST API to create a new merchant
     def post(self, request):
         serializer = MerchantSerializer(data=request.data)
         if serializer.is_valid():
