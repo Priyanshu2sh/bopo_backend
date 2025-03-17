@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,135 +6,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        body {
-            display: flex;
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
-        
-        /* Sidebar Styles */
-        .sidebar {
-            width: 250px;
-            height: 100vh;
-            background-color: #343a40;
-            color: white;
-            padding: 20px;
-            position: fixed;
-        }
-        
-        .sidebar a {
-            display: block;
-            color: white;
-            padding: 10px;
-            text-decoration: none;
-        }
-        
-        .sidebar a:hover {
-            background-color: #495057;
-        }
-        
-        /* Dropdown Styling */
-        .dropdown {
-            position: relative;
-        }
-        
-        .dropdown-toggle {
-            cursor: pointer;
-            display: block;
-            padding: 10px;
-            color: white;
-            text-decoration: none;
-        }
-        
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            left: 0;
-            top: 100%;
-            background-color: #343a40;
-            width: 100%;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-        }
-        
-        .dropdown-menu a {
-            display: block;
-            padding: 10px;
-            color: white;
-            text-decoration: none;
-        }
-        
-        .dropdown-menu a:hover {
-            background-color: #495057;
-        }
-        
-        /* Show dropdown on hover */
-        .dropdown:hover .dropdown-menu {
-            display: block;
-        }
-        
-        /* Main Content Wrapper */
-        .main-content {
-            margin-left: 250px;
-            width: calc(100% - 250px);
-        }
-        
-        /* Navbar Styles */
-        .navbar {
-            width: 100%;
-            background-color: rgb(225, 162, 227);
-            color: white;
-            padding: 10px;
-            position: fixed;
-            top: 0;
-            left: 250px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 1000;
-        }
-        
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            padding: 10px;
-        }
-        
-        .navbar a:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        .content {
-            margin-top: 70px;
-            padding: 20px;
-        }
-        
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'bopo_admin/css/base.css' %}">  
 </head>
 <body>
 
-    <!-- Sidebar -->
     <div class="sidebar">
-        <h4>Dashboard</h4>
-        <a href="{% url 'home' %}">Home</a>
-        <a href="{% url 'project_list' %}">Project Onboarding</a> 
+        <h4 style="margin-bottom: 50px;">Dashboard</h4>
         
-          <!-- Merchant Dropdown -->
-
-<div class="dropdown">
-    <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">Merchant</a>
-    <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="{% url 'merchant_list' %}">Merchant List</a></li>
-        <li><a class="dropdown-item" href="{% url 'add_merchant' %}">Add Merchant</a></li> <!-- ✅ Fix applied -->
-    </ul>
-</div>
-
-
-        <a href="{% url 'customer' %}">Customer</a>
-
+         
+        <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">
+            <i class="fas fa-home"></i> Home
+        </a>
+        
+        <a href="{% url 'project_list' %}" class="{% if request.path == '/project_list/' %}active{% endif %}">
+            <i class="fas fa-tasks"></i> Project Onboarding
+        </a>
     
+        <!-- Merchant Dropdown -->
+        <div class="dropdown" id="merchantDropdown">
+            <a href="#" class="{% if request.path == '/merchant_list/' or request.path == '/add_merchant/' %}active{% endif %}">
+                <i class="fas fa-store"></i> Merchant
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item {% if request.path == '/merchant_list/' %}active{% endif %}" 
+                       href="{% url 'merchant_list' %}">
+                       <i class="fas fa-list"></i> Merchant List
+                    </a>
+                </li>
+                <li><a class="dropdown-item {% if request.path == '/add_merchant/' %}active{% endif %}" 
+                       href="{% url 'add_merchant' %}">
+                       <i class="fas fa-user-plus"></i> Add Merchant
+                    </a>
+                </li>
+            </ul>
+        </div>
+    
+        <!-- Customer -->
+        <a href="{% url 'customer' %}" class="{% if request.path == '/customer/' %}active{% endif %}">
+            <i class="fas fa-users"></i> Customer
+        </a>
     </div>
+    
 
     <!-- Main Content Wrapper -->
     <div class="main-content">
@@ -153,6 +67,36 @@
         </div>
 
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const merchantDropdown = document.getElementById("merchantDropdown");
+            const dropdownMenu = merchantDropdown.querySelector(".dropdown-menu");
+            const belowMerchant = document.getElementById("belowMerchant");
+        
+            merchantDropdown.addEventListener("click", function (event) {
+                event.preventDefault();
+                
+                // Toggle dropdown visibility
+                const isVisible = dropdownMenu.style.display === "block";
+                dropdownMenu.style.display = isVisible ? "none" : "block";
+        
+                // Adjust margin for elements below dropdown
+                belowMerchant.style.marginTop = isVisible ? "0px" : `${dropdownMenu.scrollHeight}px`;
+            });
+        
+            // Close dropdown when clicking outside
+            document.addEventListener("click", function (event) {
+                if (!merchantDropdown.contains(event.target)) {
+                    dropdownMenu.style.display = "none";
+                    belowMerchant.style.marginTop = "0px";
+                }
+            });
+        });
+        
+    </script>
+    
+    
 
 </body>
 </html>
