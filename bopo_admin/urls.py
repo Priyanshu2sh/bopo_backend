@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.login, name='login'),
+    path('/login', views.login, name='login'),        
 ]
 from .views import home, about, merchant, customer, project_onboarding,merchant_list
 
