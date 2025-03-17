@@ -120,13 +120,16 @@
         <a href="{% url 'project_onboarding' %}">Project Onboarding</a> 
         
           <!-- Merchant Dropdown -->
-    <div class="dropdown">
-        <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">Merchant</a>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'merchant_list' %}">Merchant List</a></li>
-            {% comment %} <li><a class="dropdown-item" href="{% url 'add_merchant' %}">Add Merchant</a></li> {% endcomment %}
-        </ul>
-    </div>
+
+<div class="dropdown">
+    <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">Merchant</a>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="{% url 'merchant_list' %}">Merchant List</a></li>
+        <li><a class="dropdown-item" href="{% url 'add_merchant' %}">Add Merchant</a></li> <!-- ✅ Fix applied -->
+    </ul>
+</div>
+
+
         <a href="{% url 'customer' %}">Customer</a>
 
     

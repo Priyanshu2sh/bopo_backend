@@ -10,14 +10,17 @@ def about(request):
      return render(request, 'bopo_admin/about.html')
 
 def merchant(request):
-    return render(request, 'bopo_admin/merchant.html')
+    return render(request, 'bopo_admin/Merchant/merchant.html')
 
 def customer(request):
     return render(request, 'bopo_admin/customer.html')
 
 def merchant_list(request):
-    return render(request, 'bopo_admin/merchant_list.html')
- 
+    return render(request, "bopo_admin/Merchant/merchant_list.html")
+
+def add_merchant(request):
+    return render(request, "bopo_admin/Merchant/add_merchant.html")
+
 def project_onboarding(request):
     return render(request, 'bopo_admin/project_onboarding.html')
 
