@@ -29,7 +29,9 @@ SECRET_KEY = 'django-insecure-5+1e)3&p(_v%xx@oaugfu&f51l=7l*=^#r0@*p*4%^vbilr0po
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '*',
+]
 
 
 # Application definition
@@ -43,10 +45,22 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'bopo_admin',
-
+    
+    'rest_framework',
     'accounts',
-    'rest_framework', 
 ]
+
+TWILIO_ACCOUNT_SID = "ACe251c2593dcf301348462ad5ae819117"
+TWILIO_AUTH_TOKEN = "4de15e024307908945f9a3cf98e23962"
+TWILIO_PHONE_NUMBER = "+17657034202"
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
