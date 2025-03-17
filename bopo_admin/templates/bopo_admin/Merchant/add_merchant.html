@@ -14,7 +14,16 @@
 <body>
 
 <div class="container">
-    <h2 class="heading">Add Merchant</h2>
+
+    <div class="back-to-list-btn">
+        <a href="{% url 'merchant_list' %}" class="btn btn-secondary">
+            <i class="fa fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+    
+
+
+       <h2 class="heading">Add Merchant</h2>
     <form method="POST">
         {% csrf_token %}
 

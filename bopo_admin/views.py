@@ -24,5 +24,6 @@ def add_merchant(request):
 def project_onboarding(request):
     return render(request, 'bopo_admin/project_onboarding.html')
 
- 
+def project_list(request):
+    return render(request, 'bopo_admin/project_list.html')
  

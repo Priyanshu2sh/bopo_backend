@@ -7,7 +7,10 @@
 <div class="merchant-container">
     <div class="merchant-header">
         <h2>Merchants List</h2>
-        <button class="add-merchant-btn">+ Add Merchant</button>
+        <button class="add-merchant-btn" onclick="window.location.href='{% url 'add_merchant' %}'">
+            + Add Merchant
+        </button>
+        
     </div>
 
     <div class="merchant-list">

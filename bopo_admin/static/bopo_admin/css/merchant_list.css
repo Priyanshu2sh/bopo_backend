@@ -1,6 +1,11 @@
-/* Merchant Page Container */
-.merchant-container {
+body {
+    font-family: Arial, sans-serif;
     background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+.merchant-container {
+    background-color: #fff;
     padding: 20px;
     border-radius: 10px;
     max-width: 1300px;
@@ -29,6 +34,8 @@
     padding: 8px 15px;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 26;
+    font-weight: bold;
 }
 
 .add-merchant-btn:hover {
