@@ -1,49 +1,50 @@
-from django.shortcuts import render
-
-# Create your views here.
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.utils.timezone import now
 from .models import User
-from .serializers import RegisterSerializer, OTPVerifySerializer
-from twilio.rest import Client
-import os
+from .serializers import UserSerializer
+from .utils import send_otp_to_mobile
 
-# Twilio Configuration
-TWILIO_SID = os.getenv("TWILIO_ACCOUNT_SID")
-TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
-TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
-
-def send_otp_via_twilio(mobile_number, otp):
-    """Function to send OTP via Twilio"""
-    if TWILIO_SID and TWILIO_AUTH_TOKEN and TWILIO_PHONE_NUMBER:
-        client = Client(TWILIO_SID, TWILIO_AUTH_TOKEN)
-        message = client.messages.create(
-            body=f"Your OTP is {otp}",
-            from_=TWILIO_PHONE_NUMBER,
-            to=mobile_number
-        )
-        print(f"Twilio Message SID: {message.sid}")  # Debugging info
-
-class RegisterAPIView(APIView):
+class RegisterUser(APIView):
     def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
+        data = request.data
+        mobile_number = data.get("mobile_number")
 
+        # Check if user already exists
+        user = User.objects.filter(mobile_number=mobile_number).first()
+
+        if user:
+            user.generate_otp()
+            send_otp_to_mobile(user.mobile_number, user.otp)
+            request.session["mobile_number"] = user.mobile_number  # Store mobile number in session
+            return Response({"message": "User already registered. OTP resent to mobile."}, status=status.HTTP_200_OK)
+
+        # If user does not exist, create a new one
+        serializer = UserSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
-
-            # Send OTP via Twilio
-            send_otp_via_twilio(user.mobile_number, user.otp)
-
+            user.generate_otp()
+            send_otp_to_mobile(user.mobile_number, user.otp)
+            request.session["mobile_number"] = user.mobile_number  # Store mobile number in session
             return Response({"message": "User registered successfully. OTP sent to mobile."}, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class OTPVerifyAPIView(APIView):
+
+class VerifyOTP(APIView):
     def post(self, request):
-        serializer = OTPVerifySerializer(data=request.data)
+        mobile_number = request.session.get("mobile_number")  # Retrieve from session
+        otp = request.data.get("otp")
 
-        if serializer.is_valid():
-            return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        if not mobile_number:
+            return Response({"error": "No mobile number found. Please register first."}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(mobile_number=mobile_number, otp=otp)
+            user.verified_at = now()
+            user.otp = None  # Clear OTP after verification
+            user.save()
+            return Response({"message": "OTP verified successfully."}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
