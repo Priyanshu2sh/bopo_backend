@@ -7,117 +7,106 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Merchant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'bopo_admin/css/add_merchant.css' %}">
 </head>
 
 <body>
 
 <div class="container">
-    <h2 class="text-center">Add Merchant</h2>
+
+    <div class="back-to-list-btn">
+        <a href="{% url 'merchant_list' %}" class="btn btn-secondary">
+            <i class="fa fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+    
+
+
+       <h2 class="heading">Add Merchant</h2>
     <form method="POST">
         {% csrf_token %}
 
-        <!-- Select Project -->
-        <select class="form-select" name="project">
+        <select class="form-select" name="project" style="width: 50%; min-width: 200px; margin-left:23%;">
             <option value="">Select One Project</option>
             <option value="Project1">Project 1</option>
             <option value="Project2">Project 2</option>
         </select>
-
+       
         <!-- Contact Person & Mobile Number -->
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-6 input-group">
+                <i class="fa fa-user icon"></i>
                 <input type="text" class="form-control" name="contact_person" placeholder="Contact Person" required>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 input-group">
+                <i class="fa fa-phone icon"></i>
                 <input type="text" class="form-control" name="mobile_number" placeholder="Mobile Number" required>
             </div>
         </div>
 
         <!-- Email & GST Number -->
         <div class="row mt-2">
-            <div class="col-md-6">
+            <div class="col-md-6 input-group">
+                <i class="fa fa-envelope icon"></i>
                 <input type="email" class="form-control" name="email" placeholder="Email ID" required>
             </div>
-            <div class="col-md-6">
-                <input type="text" class="form-control" name="gst_number" placeholder="GST Number" required>
-            </div>
-        </div>
-
-        <!-- Aadhaar & PAN Number -->
-        <div class="row mt-2">
-            <div class="col-md-6">
-                <input type="text" class="form-control" name="aadhaar_number" placeholder="Aadhaar Number" required>
-            </div>
-            <div class="col-md-6">
-                <input type="text" class="form-control" name="pan_number" placeholder="PAN Number" required>
+            <div class="col-md-6 input-group">
+                <i class="fa fa-file-invoice icon"></i>
+                <input type="text" class="form-control" name="gst_number" placeholder="GST Number">
             </div>
         </div>
 
         <!-- Shop Name & Legal Name -->
         <div class="row mt-2">
-            <div class="col-md-6">
+            <div class="col-md-6 input-group">
+                <i class="fa fa-store icon"></i>
                 <input type="text" class="form-control" name="shop_name" placeholder="Shop Name" required>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 input-group">
+                <i class="fa fa-building icon"></i>
                 <input type="text" class="form-control" name="legal_name" placeholder="Legal Name" required>
             </div>
         </div>
 
-        <!-- Address Fields -->
-        <div class="row mt-2">
-            <div class="col-md-4">
-                <input type="text" class="form-control" name="shop_no" placeholder="Shop No">
-            </div>
-            <div class="col-md-4">
-                <input type="text" class="form-control" name="lane_no" placeholder="Lane No">
-            </div>
-            <div class="col-md-4">
-                <input type="text" class="form-control" name="lane_name" placeholder="Lane Name">
-            </div>
+        <!-- Address Field -->
+        <div class="mt-2 input-group">
+            <i class="fa fa-map-marker-alt icon address-icon"></i>
+            <textarea class="form-control" name="address" placeholder="Address" rows="3" required></textarea>
         </div>
 
+        <!-- State & City -->
         <div class="row mt-2">
-            <div class="col-md-6">
-                <input type="text" class="form-control" name="area_name" placeholder="Area Name">
-            </div>
-            <div class="col-md-6">
-                <input type="text" class="form-control" name="landmark" placeholder="Landmark">
-            </div>
-        </div>
-
-        <!-- State, City, and Pincode -->
-        <div class="row mt-2">
-            <div class="col-md-4">
+            <div class="col-md-4 input-group">
+                <i class="fa fa-flag icon"></i>
                 <select class="form-select" name="state">
                     <option value="">Select State</option>
                     <option value="Maharashtra">Maharashtra</option>
                     <option value="Karnataka">Karnataka</option>
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 input-group">
+                <i class="fa fa-city icon"></i>
                 <select class="form-select" name="city">
                     <option value="">Select City</option>
                     <option value="Mumbai">Mumbai</option>
                     <option value="Pune">Pune</option>
                 </select>
             </div>
-            <div class="col-md-4">
+        </div>
+
+        <!-- Pincode -->
+        <div class="row mt-2">
+            <div class="col-md-12 input-group">
+                <i class="fa fa-map-pin icon"></i>
                 <input type="text" class="form-control" name="pincode" placeholder="Pincode">
             </div>
         </div>
 
-        <!-- Fixed Input Field (Country) -->
-        <div class="mt-3">
-            <input type="text" class="form-control" value="India" disabled>
-        </div>
-
-     
-
         <!-- Buttons -->
         <div class="mt-4">
-            <button type="submit" class="btn btn-primary">Submit</button>
             <button type="reset" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
         </div>
 
     </form>

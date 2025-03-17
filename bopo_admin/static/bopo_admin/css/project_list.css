@@ -1,0 +1,77 @@
+/* Styling the project list table */
+.project-list table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+.project-list th, .project-list td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.project-list th {
+    background-color: #f8f8f8;
+}
+
+.project-list-header {
+    display: flex;
+    justify-content: space-between; /* Distribute space between the buttons */
+    align-items: center; /* Align buttons vertically in the center */
+    margin-bottom: 20px; /* Optional: Adds some spacing below the header */
+}
+
+.project-list-header .btn {
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+.project-list-header .btn-sm {
+    font-size: 12px;
+}
+
+/* Custom styles for the "Back to Dashboard" button */
+.btn-secondary-custom {
+    background-color: #5d605d; /* Green background */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 5px; /* Rounded corners */
+    text-decoration: none; /* Remove underline */
+    width: 120px;
+    height: 40px;
+    text-align: center;
+
+}
+
+.btn-secondary-custom:hover {
+    background-color: #939993; /* Darker green on hover */
+    color: white; /* White text on hover */
+}
+
+/* Custom styles for the "Add Project" button */
+.btn-primary-custom {
+    background-color: #173d46; /* Orange background */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 5px; /* Rounded corners */
+    text-decoration: none; /* Remove underline */
+    width: 120px;
+    height: 40px;
+    text-align: center;
+
+}
+
+.btn-primary-custom:hover {
+    background-color: #275b67; /* Darker orange on hover */
+    color: white; /* White text on hover */
+}
+

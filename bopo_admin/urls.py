@@ -14,5 +14,6 @@ urlpatterns = [
     path('project_onboarding/', project_onboarding, name='project_onboarding'),
     path('merchant/list/', merchant_list, name='merchant_list'),
     path('merchant/add/', add_merchant, name='add_merchant'),
+    path('project/list', project_list, name='project_list'),
   
 ]
