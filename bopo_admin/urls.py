@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import home, about, merchant, customer, project_onboarding,merchant_list,add_merchant,project_list
+from .views import home, about, merchant, customer, project_onboarding,merchant_list,add_merchant,project_list,merchant_credentials
 
 urlpatterns = [
     path('', home, name='home'),
@@ -10,5 +10,7 @@ urlpatterns = [
     path('merchant/list/', merchant_list, name='merchant_list'),
     path('merchant/add/', add_merchant, name='add_merchant'),
     path('project/list', project_list, name='project_list'),
+    path('merchant_credentials/', merchant_credentials, name='merchant_credentials'),
+
   
 ]

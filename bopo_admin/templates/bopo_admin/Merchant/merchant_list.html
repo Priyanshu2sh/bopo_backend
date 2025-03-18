@@ -10,18 +10,94 @@
         <button class="add-merchant-btn" onclick="window.location.href='{% url 'add_merchant' %}'">
             + Add Merchant
         </button>
-        
     </div>
 
     <div class="merchant-list">
-        <div class="merchant-item corporate">
-            <span class="merchant-icon">🏢</span>
-            <span>Corporate Merchants List</span>
+        <!-- Corporate Merchants Section -->
+        <div class="merchant-item">
+            <input type="checkbox" id="toggle-corporate" class="toggle-checkbox">
+            <label for="toggle-corporate" class="merchant-label">
+                <span class="merchant-icon">🏢</span>
+                <span>Corporate Merchants List</span>
+            </label>
+            <div class="merchant-table">
+                <input type="text" class="search-box" placeholder="Search corporate merchants...">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Project ID</th>
+                            <th>Merchant ID</th>
+                            <th>Contact Person</th>
+                            <th>Mobile Number</th>
+                            <th>Shop Name</th>
+                            <th>City</th>
+                            <th>Verified</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>1</td>
+                            <td>1</td>
+                            <td>Demo contact</td>
+                            <td>9090909090</td>
+                            <td>DEMO</td>
+                            <td>Pune</td>
+                            <td>true</td>
+                            <td>
+                                <button>✏️</button>
+                                <button>🗑️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="merchant-item individual">
-            <span class="merchant-icon">👤</span>
-            <span>Individual Merchants List</span>
+
+        <!-- Individual Merchants Section -->
+        <div class="merchant-item">
+            <input type="checkbox" id="toggle-individual" class="toggle-checkbox">
+            <label for="toggle-individual" class="merchant-label">
+                <span class="merchant-icon">👤</span>
+                <span>Individual Merchants List</span>
+            </label>
+            <div class="merchant-table">
+                <input type="text" class="search-box" placeholder="Search individual merchants...">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Merchant Type</th>
+                            <th>Contact Person</th>
+                            <th>Mobile Number</th>
+                            <th>Shop Name</th>
+                            <th>City</th>
+                            <th>Verified</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Demo Type</td>
+                            <td>Demo contact</td>
+                            <td>8080808080</td>
+                            <td>IND Shop</td>
+                            <td>Mumbai</td>
+                            <td>false</td>
+                            <td>
+                                <button>✏️</button>
+                                <button>🗑️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
+
     </div>
 </div>
+
 {% endblock %}

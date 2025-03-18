@@ -26,4 +26,7 @@ def project_onboarding(request):
 
 def project_list(request):
     return render(request, 'bopo_admin/project_list.html')
- 
+
+
+def merchant_credentials(request):
+    return render(request, 'bopo_admin/Merchant/merchant_credentials.html')

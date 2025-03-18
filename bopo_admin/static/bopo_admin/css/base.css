@@ -43,8 +43,6 @@ body {
 }
 
 
-
-
 /* Dropdown Styling */
 .dropdown {
     position: relative;
@@ -62,27 +60,34 @@ body {
 .dropdown:hover .dropdown-menu {
     display: block;
 }
+/* Fix dropdown positioning */
+.dropdown-container {
+    position: relative;
+}
 
 .dropdown-menu {
     display: none;
-    position: absolute;
+    position: absolute; /* Prevent shifting other elements */
+    top: 100%; /* Show dropdown below the button */
     left: 0;
-    top: 100%;
-    background-color: #343a40;
-    width: 100%;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-    padding: 0;
+    background-color: white;
+    border-radius: 5px;
+    padding: 5px 0;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    list-style: none;
+    width: 180px;
+    z-index: 1000; /* Ensure dropdown is above other elements */
 }
 
 .dropdown-menu a {
     display: block;
     padding: 10px;
-    color: white;
+    color: black;
     text-decoration: none;
 }
 
 .dropdown-menu a:hover {
-    background-color: rgb(225, 162, 227);
+    background-color: #f1f1f1;
 }
 
 
@@ -94,6 +99,12 @@ body {
     font-weight: bold;
 }
 
+#belowMerchant {
+    transition: margin-top 0.3s ease-in-out;
+}
+.dropdown-container.show #merchantToggle {
+    background-color: rgb(200, 120, 210); /* Slightly darker when open */
+}
 
 /* Main Content Wrapper */
 .main-content {
