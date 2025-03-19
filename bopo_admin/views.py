@@ -1,8 +1,5 @@
 from django.shortcuts import render
 
-# Create your views here.
-from django.shortcuts import render
-
 def home(request):
    return render(request, 'bopo_admin/home.html')
 
@@ -13,7 +10,7 @@ def merchant(request):
     return render(request, 'bopo_admin/Merchant/merchant.html')
 
 def customer(request):
-    return render(request, 'bopo_admin/customer.html')
+    return render(request, 'bopo_admin/Customer/customer.html')
 
 def merchant_list(request):
     return render(request, "bopo_admin/Merchant/merchant_list.html")
@@ -47,3 +44,24 @@ def merchant_status(request):
 
 def login_page_info(request):
     return render(request, 'bopo_admin/Merchant/login_page_info.html')
+
+def send_notifications(request):
+    return render(request, 'bopo_admin/Merchant/send_notifications.html')
+
+def received_offers(request):
+    return render(request, 'bopo_admin/Merchant/received_offers.html')
+
+def  uploads(request):
+    return render(request, 'bopo_admin/Merchant/uploads.html')
+
+def  modify_customer_details(request):
+    return render(request, 'bopo_admin/Customer/modify_customer_details.html')
+
+def  send_customer_notifications(request):
+    return render(request, 'bopo_admin/Customer/send_customer_notifications.html')
+
+def  customer_uploads(request):
+    return render(request, 'bopo_admin/Customer/customer_uploads.html')
+
+def  add_customer(request):
+    return render(request, 'bopo_admin/Customer/add_customer.html')

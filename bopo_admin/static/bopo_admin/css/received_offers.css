@@ -1,40 +1,51 @@
-.limit-container {
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+.merchant-container {
     background-color: #fff;
     padding: 20px;
     border-radius: 10px;
-    max-width: 1200px;
+    max-width: 1300px;
     margin: auto;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     margin-top: 5%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.limit-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* Header */
+.merchant-header {
+    color: black;
     padding: 15px;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: bold;
 }
 
-.limit-list {
+/* Offer List */
+.offer-list {
     margin-top: 20px;
     background: #e3f2fd;
     padding: 15px;
     border-radius: 8px;
 }
 
-.limit-item {
-    background: #f8f9fa;
+/* Offer Items */
+.offer-item {
+    background: #ffffff;
     padding: 12px;
     margin-bottom: 10px;
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
 }
 
-.limit-label {
+/* Offer Labels */
+.offer-label {
     display: flex;
     align-items: center;
     padding: 10px;
@@ -44,30 +55,39 @@
     transition: background 0.3s ease-in-out;
 }
 
-.limit-label:hover {
-    background: #dedede;
+.offer-label:hover {
+    background: #e0e0e0;
 }
 
-.limit-icon {
+/* Offer Icons */
+.offer-icon {
     margin-right: 10px;
     font-size: 20px;
 }
 
-
-
-.limit-table {
-    background-color: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-    display: block; /* Ensure the table is always visible */
+/* Hide checkboxes */
+.toggle-checkbox {
+    display: none;
 }
 
-.toggle-checkbox:checked + .limit-label + .limit-table {
+/* Initially Hide Offer Table */
+.offer-table {
+    background-color: white;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, padding 0.3s ease-in-out;
+}
+
+/* Show Offer Table when Checkbox is Checked */
+.toggle-checkbox:checked + .offer-label + .offer-table {
     max-height: 500px;
     padding: 15px;
 }
 
+/* Tables */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -84,6 +104,7 @@ th {
     background-color: #f4f4f4;
 }
 
+/* Search box */
 .search-box {
     width: 20%;
     padding: 8px;
@@ -93,6 +114,7 @@ th {
     margin-bottom: 10px;
 }
 
+/* Action buttons */
 button {
     border: none;
     background: none;

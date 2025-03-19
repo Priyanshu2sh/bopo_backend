@@ -1,0 +1,154 @@
+h1.heading {
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    margin-top: 8%;
+    margin-left: -75%;
+}
+
+.merchant_status {
+    width: 100%;
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    margin-top: 3%;
+}
+
+.merchant_status .dropdown-container {
+    display: flex;
+    flex-direction: column; /* Ensures labels and fields are in separate lines */
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 10px;
+    width: 50%;
+    margin-left: 10%;
+}
+
+.merchant_status .dropdown-container .form-group {
+    display: flex;
+    flex-direction: column; /* Stack label and input field vertically */
+    width: 100%;
+}
+.merchant_status .dropdown-container label {
+    font-weight: bold;
+    margin-bottom: 5px; /* Adds space below the label */
+    text-align: left; /* Aligns the text to the left */
+}
+
+.merchant_status .dropdown-container select,
+.merchant_status input {
+    width: 100%; /* Full width */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background: #f9f9f9;
+}
+
+/* Input Group Styling */
+.send-merchant-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 33%;
+    margin-left: 26%;
+}
+
+/* Icon Styling */
+.send-merchant-icon {
+    position: absolute;
+    left: 12px;
+    font-size: 16px;
+    color: #555;
+}
+
+/* Input Field Styling */
+.send-merchant-input {
+    width: 100%;
+    padding: 10px 10px 10px 40px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background: #f9f9f9;
+    outline: none;
+}
+
+/* Styling for the Terminal ID container */
+.terminal-id-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 50%;
+    margin-left: 10%;
+    margin-top: 3%;
+}
+
+.terminal-id-container label {
+    font-weight: bold;
+    min-width: 150px;
+    text-align: right;
+}
+
+.terminal-id-container select {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background: #f9f9f9;
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    margin-left: 31%;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* General Button Styles */
+.button-container button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* Cancel Button */
+.cancel-btn {
+    background-color: #ccc;
+    color: black;
+}
+
+.cancel-btn:hover {
+    background-color: #999;
+}
+
+/* Submit Button */
+.submit-btn {
+    background-color: #004080;
+    color: white;
+}
+
+.submit-btn:hover {
+    background-color: #002d5b;
+}
+
+/* Edit Button */
+.edit-btn {
+    background-color: #ffa500;
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #cc8400;
+}

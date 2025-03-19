@@ -1,0 +1,175 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+  
+}
+
+/* Container */
+.container {
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-top: 2%;
+}
+
+/* Heading Styles */
+h2.heading {
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    margin-top: 2.5%;
+    margin-left: -80%;
+}
+
+
+/* Form Styles */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 40px;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #007bff;
+}
+
+/* Grid Layout */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.row .col-md-6,
+.row .col-md-4 {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.row .col-md-6:last-child,
+.row .col-md-4:last-child {
+    margin-right: 0;
+}
+
+/* Buttons Container */
+.mt-4 {
+    display: flex;
+    margin-left: 37%;
+    gap: 10px;                /* Optional: Adds space between the buttons */
+}
+
+/* Button Styling */
+button {
+    padding: 10px 20px;   /* Adjust button padding */
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background:#173d46;
+    color: white;
+}
+
+.btn-primary:hover {
+    background:#173d46;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+}
+
+/* Input Group */
+.input-group {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Icon Styling */
+.input-group .icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #555;
+    z-index: 10;
+}
+
+/* Adjust Input Fields */
+.input-group input,
+.input-group select,
+.input-group textarea {
+    padding-left: 50px;
+    height: 40px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    outline: none;
+}
+
+/* Special Case: Address Field */
+.input-group textarea {
+    min-height: 90px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+/* Move Address Icon Slightly Up */
+.input-group .address-icon {
+    top: 25px;  /* Adjust this value to move it up/down */
+}
+
+/* Styling the Back to List Button */
+.back-to-list-btn {
+  margin-left: 84%; 
+    margin-top: 6%;
+}
+
+.back-to-list-btn .btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+
+.back-to-list-btn .fa {
+    margin-right: 8px;
+    font-size: 18px; 
+}

@@ -1,6 +1,65 @@
 {% extends "bopo_admin/base.html" %}
+{% load static %}  <!-- Load static for CSS file -->
 
 {% block content %}
-<h2>Merchant Page</h2>
-<p>Welcome to the Merchant Management Section.</p>
+<link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_status.css' %}">
+<h1 class="heading">Merchant Login</h1>
+
+<div class="merchant_status">
+    <!-- Sales Contact Details -->
+    <div class="dropdown-container">
+        <div class="form-group">
+            <label for="sales_name">Sales Contact Name:</label>
+            <input type="text" id="sales_name" name="sales_name" placeholder="Enter Sales Contact Name" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="sales_number">Sales Contact Number:</label>
+            <input type="tel" id="sales_number" name="sales_number" placeholder="Enter Sales Contact Number" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="sales_email">Sales Email ID:</label>
+            <input type="email" id="sales_email" name="sales_email" placeholder="Enter Sales Email ID" disabled>
+        </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="button-container">
+        <button type="button" class="edit-btn" onclick="enableEditing()">Edit</button>
+        <button type="button" class="cancel-btn" onclick="resetForm()" disabled id="cancel-btn">Cancel</button>
+        <button type="submit" class="submit-btn" onclick="showAlert()" disabled id="submit-btn">Submit</button>
+    </div>
+</div>
+
+<script>
+    function enableEditing() {
+        document.getElementById("sales_name").disabled = false;
+        document.getElementById("sales_number").disabled = false;
+        document.getElementById("sales_email").disabled = false;
+
+        // Enable the Cancel and Submit buttons
+        document.getElementById("cancel-btn").disabled = false;
+        document.getElementById("submit-btn").disabled = false;
+    }
+
+    function resetForm() {
+        document.getElementById("sales_name").value = "";
+        document.getElementById("sales_number").value = "";
+        document.getElementById("sales_email").value = "";
+
+        document.getElementById("sales_name").disabled = true;
+        document.getElementById("sales_number").disabled = true;
+        document.getElementById("sales_email").disabled = true;
+
+        // Disable the Cancel and Submit buttons again
+        document.getElementById("cancel-btn").disabled = true;
+        document.getElementById("submit-btn").disabled = true;
+    }
+
+    function showAlert() {
+        alert("Form Submitted!");
+    }
+</script>
+
 {% endblock %}

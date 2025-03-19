@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'bopo_admin',
-
+    # 'bopo_customer',
     'accounts',
     'rest_framework', 
 ]

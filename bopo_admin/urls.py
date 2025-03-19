@@ -1,5 +1,5 @@
-from django.urls import path
-from .views import home, about, merchant, customer, project_onboarding,merchant_list,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info
+from django.urls import path, include
+from .views import home, about, merchant,customer, project_onboarding,merchant_list,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,add_customer
 
 urlpatterns = [
     path('', home, name='home'),
@@ -18,6 +18,19 @@ urlpatterns = [
     path('reduce_limit/', reduce_limit, name='reduce_limit'),
     path('merchant_status/', merchant_status, name='merchant_status'),
     path('login_page_info/', login_page_info, name='login_page_info'),
+    path('send-notifications/', send_notifications, name='send_notifications'),
+    path('received-offers/', received_offers, name='received_offers'),
+    path('uploads/', uploads, name='uploads'),
+    
+    path('modify_customer_details/',modify_customer_details, name='modify_customer_details'),
+    path('send_customer_notifications/',send_customer_notifications, name='send_customer_notifications'),
+    path('customer_uploads/',customer_uploads, name='customer_uploads'),
+    path('add_customer/',add_customer, name='add_customer'),
+    
+    
+    
+   
+
 
   
 ]
