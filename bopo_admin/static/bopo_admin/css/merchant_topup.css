@@ -1,0 +1,128 @@
+h1.heading {
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    margin-top: 8%;
+    margin-left: -75%;
+}
+
+
+
+.merchant_topup {
+    width: 100%;
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    margin-top: 3%;
+}
+
+/* Dropdown Container */
+.merchant_topup .dropdown-container {
+    display: flex;
+    align-items: center; /* Align items vertically */
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 10px;
+}
+
+.merchant_topup .dropdown-container .form-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1; /* Make both dropdowns take equal space */
+}
+
+.merchant_topup .dropdown-container label {
+    font-weight: bold;
+    white-space: nowrap; /* Prevent label from breaking into multiple lines */
+}
+
+
+
+.merchant_topup .dropdown-container select {
+    flex: 1; /* Make dropdown expand to fill available space */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background: #f9f9f9;
+}
+
+/* Form Container - Two Sections */
+.merchant_topup .form-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+/* Left Form Wrapper */
+.merchant_topup .form-wrapper {
+    width: 50%;
+    height: 400px; /* Fixed height */
+    text-align: left;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    background: #f9f9f9;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    
+
+}
+
+/* Right Box - Extra Inputs */
+.merchant_topup .right-box {
+    width: 50%;
+    height: 400px; /* Fixed height */
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    background: #f9f9f9;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    overflow-x: hidden;
+;
+}
+
+
+
+/* Hide Payment Fields by Default */
+.payment-fields {
+    display: none;
+}
+
+/* Form Styling */
+.merchant_topup .topup-form {
+    padding: 20px;
+    width: 100%;
+}
+
+/* Form Groups */
+.merchant_topup .form-group {
+    margin-bottom: 15px;
+}
+
+/* Labels */
+.merchant_topup label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Input Fields and Dropdowns */
+.merchant_topup input,
+.merchant_topup select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background: #f9f9f9;
+}

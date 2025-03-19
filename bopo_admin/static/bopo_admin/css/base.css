@@ -2,6 +2,7 @@ body {
     display: flex;
     margin: 0;
     font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
 }
 
 /* Sidebar Styles */
@@ -12,7 +13,13 @@ body {
     color: white;
     padding: 20px;
     position: fixed;
+    overflow-y: auto;
 }
+/* Hide Scrollbar for WebKit Browsers (Chrome, Safari) */
+.sidebar::-webkit-scrollbar {
+    display: none;
+}
+
 
 .sidebar a {
     display: block;
@@ -66,17 +73,17 @@ body {
 }
 
 .dropdown-menu {
-    display: none;
-    position: absolute; /* Prevent shifting other elements */
-    top: 100%; /* Show dropdown below the button */
-    left: 0;
+    display: none; /* Initially hidden */
+    position: relative; 
+    max-height: 300px; /* Limit height for scrolling */
+    overflow-y: auto; /* Enables vertical scrolling */
     background-color: white;
     border-radius: 5px;
     padding: 5px 0;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     list-style: none;
-    width: 180px;
-    z-index: 1000; /* Ensure dropdown is above other elements */
+    width: 210px;
+    z-index: 1000;
 }
 
 .dropdown-menu a {
@@ -86,10 +93,27 @@ body {
     text-decoration: none;
 }
 
-.dropdown-menu a:hover {
-    background-color: #f1f1f1;
+.sidebar .dropdown-menu a:hover {
+    background-color: #fff9f9 !important;
+ 
 }
 
+
+
+/* Hide Scrollbar in WebKit Browsers (Chrome, Safari) */
+.dropdown-menu::-webkit-scrollbar {
+    width: 0px;
+    display: none;
+}
+.dropdown-menu::-webkit-scrollbar-thumb {
+    /* background: #ccc; */
+    border-radius: 5px;
+ 
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
 
 
 /* Ensure dropdown items also show active effect */
@@ -99,9 +123,7 @@ body {
     font-weight: bold;
 }
 
-#belowMerchant {
-    transition: margin-top 0.3s ease-in-out;
-}
+
 .dropdown-container.show #merchantToggle {
     background-color: rgb(200, 120, 210); /* Slightly darker when open */
 }
@@ -138,23 +160,6 @@ body {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-.content {
-    margin-top: 70px;
-    padding: 20px;
-}
 
-/* Shifting content below Merchant */
-.content-shift {
-    transition: margin-top 0.3s ease-in-out;
-    margin-top: 40px; /* Adjust spacing */
-}
 
-/* Smooth transition for shifting content below dropdown */
-#belowMerchant {
-    transition: margin-top 0.1s ease-in-out;
-}
-
-.sidebar a i {
-    margin-right: 11px;
-    font-size: 16px;
-}
+       

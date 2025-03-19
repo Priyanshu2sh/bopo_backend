@@ -1,4 +1,17 @@
-/* Project List Table */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 90%;
+    margin: auto;
+    padding: 20px;
+    margin-top: 5%;
+}
+
 .project-list table {
     width: 100%;
     margin-top: 20px;
@@ -6,7 +19,8 @@
     background-color: white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
     border-radius: 8px;
-    overflow: hidden; /* Ensures rounded corners apply to the table */
+    overflow: hidden; 
+
 }
 
 .project-list th, .project-list td {

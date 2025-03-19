@@ -27,6 +27,23 @@ def project_onboarding(request):
 def project_list(request):
     return render(request, 'bopo_admin/project_list.html')
 
-
 def merchant_credentials(request):
     return render(request, 'bopo_admin/Merchant/merchant_credentials.html')
+
+def merchant_topup(request):
+    return render(request, 'bopo_admin/Merchant/merchant_topup.html')
+
+def map_bonus_points(request):
+    return render(request, 'bopo_admin/Merchant/map_bonus_points.html')
+
+def merchant_limit_list(request):
+    return render(request, 'bopo_admin/Merchant/merchant_limit_list.html')
+
+def reduce_limit(request):
+    return render(request, 'bopo_admin/Merchant/reduce_limit.html')
+
+def merchant_status(request):
+    return render(request, 'bopo_admin/Merchant/merchant_status.html')
+
+def login_page_info(request):
+    return render(request, 'bopo_admin/Merchant/login_page_info.html')
