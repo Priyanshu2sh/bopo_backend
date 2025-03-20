@@ -33,7 +33,7 @@
                 <li><a href="{% url 'add_merchant' %}"><i class="fas fa-user-plus"></i> Add Merchant</a></li>
                 <li><a href="{% url 'merchant_credentials' %}"><i class="fas fa-key"></i> Merchant Credentials</a></li>
                 <li><a href="{% url 'merchant_topup' %}"><i class="fas fa-wallet"></i> Top-Up Limit</a></li>
-                <li><a href="{% url 'map_bonus_points' %}"><i class="fas fa-gift"></i> Map Bonus Points</a></li>
+                {% comment %} <li><a href="{% url 'map_bonus_points' %}"><i class="fas fa-gift"></i> Map Bonus Points</a></li> {% endcomment %}
                 <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li>
                 <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Reduce Limit</a></li>
                 <li><a href="{% url 'merchant_status' %}"><i class="fas fa-toggle-on"></i> Merchant Status</a></li>
@@ -45,10 +45,17 @@
         </div>
       
          <div id="belowMerchant">
-            <a href="{% url 'customer' %}" class="{% if request.path == '/customer/' %}active{% endif %}">
+            <a href="{% url 'add_customer' %}" class="{% if request.path == 'add_customer/' %}active{% endif %}">
                 <i class="fas fa-users"></i> Customer
             </a>
         </div>  
+
+        <!-- Employee Section -->
+        <div id="belowCustomer">
+            <a href="{% url 'employee_list' %}" class="{% if request.path == 'employee_list/' %}active{% endif %}">
+                <i class="fas fa-user-tie"></i> Employee
+            </a>
+        </div>
 
         <!-- Customer Dropdown -->
 {% comment %} <div class="dropdown">

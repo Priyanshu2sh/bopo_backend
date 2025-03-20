@@ -1,175 +1,216 @@
-/* General Styles */
 body {
     font-family: Arial, sans-serif;
     background-color: #f8f9fa;
     margin: 0;
     padding: 0;
-  
 }
 
-/* Container */
-.container {
-    max-width: 700px;
-    margin: 40px auto;
-    padding: 20px;
+
+/* Main Customer Container */
+.customer-container {
     background-color: #fff;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    margin-top: 2%;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 1300px;
+    margin: auto;
+    margin-top: 5%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Heading Styles */
-h2.heading {
-    text-align: center;
-    color: #004080;
-    font-size: 26px;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    margin-top: 2.5%;
-    margin-left: -80%;
-}
-
-
-/* Form Styles */
-form {
+/* Header */
+.customer-header {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 40px;
-}
-
-input,
-select,
-textarea {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-    outline: none;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    border-color: #007bff;
-}
-
-/* Grid Layout */
-.row {
-    display: flex;
-    flex-wrap: wrap;
     justify-content: space-between;
-}
-
-.row .col-md-6,
-.row .col-md-4 {
-    flex: 1;
-    margin-right: 10px;
-}
-
-.row .col-md-6:last-child,
-.row .col-md-4:last-child {
-    margin-right: 0;
-}
-
-/* Buttons Container */
-.mt-4 {
-    display: flex;
-    margin-left: 37%;
-    gap: 10px;                /* Optional: Adds space between the buttons */
-}
-
-/* Button Styling */
-button {
-    padding: 10px 20px;   /* Adjust button padding */
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+    align-items: center;
+    color: black;
+    padding: 15px;
+    font-size: 18px;
     font-weight: bold;
+}
+
+/* Buttons */
+.add-customer-btn, .send-customer-btn {
+    height: 50px; /* Increased size */
+    width: 180px; /* Increased width */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.add-customer-btn { background-color: #803a2f; }
+.add-customer-btn:hover { background-color: #b26a60; }
+
+.send-customer-btn { background-color: #1c3a72; }
+.send-customer-btn:hover { background-color: #7486b7; }
+
+/* Pop-up Form */
+.popup-form-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-form {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 500px; /* Increased width */
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Input Fields */
+.popup-form input,
+.popup-form select,
+.popup-form textarea {
+    width: 100%;
+    padding: 12px; /* Increased padding */
+    margin-top: 10px;
+    border: 1px solid #aaa;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Buttons */
+.form-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
 }
 
 .btn-primary {
-    background:#173d46;
+    background: #173d46;
     color: white;
 }
 
 .btn-primary:hover {
-    background:#173d46;
+    background: #0d2b33;
 }
 
 .btn-secondary {
-    background-color: #6c757d;
+    background: #6c757d;
     color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #545b62;
+    background: #565e64;
 }
 
-/* Input Group */
-.input-group {
-    position: relative;
-    width: 100%;
-    display: flex;
-    align-items: center;
-}
-
-/* Icon Styling */
-.input-group .icon {
+/* Close Button */
+.close-btn {
     position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    color: #555;
-    z-index: 10;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.3s ease-in-out;
 }
 
-/* Adjust Input Fields */
-.input-group input,
-.input-group select,
-.input-group textarea {
-    padding-left: 50px;
-    height: 40px;
+.close-btn:hover {
+    color: #ff4d4d;
+}
+
+/* Customer List */
+.customer-list {
+    margin-top: 20px;
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Customer Table */
+.customer-table {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+}
+.customer-buttons {
+    display: flex;
+    gap: 10px; /* Adds space between buttons */
+    align-items: center; /* Aligns buttons in the center */
+}
+
+.add-customer-btn, .send-customer-btn {
+    height: 50px; /* Increased height */
+    width: 200px; /* Increased width */
+    color: white;
+    border: none;
+    padding: 12px 20px; /* Adjusted padding */
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.send-customer-btn {
+    background-color: #1c3a72;
+    font-size: 18px; /* Increased font size */
+    width: 220px; /* Increased button width */
+}
+
+.send-customer-btn:hover { 
+    background-color: #7486b7;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
+/* Search box */
+.search-box {
+    width: 20%;
+    padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 14px;
-    outline: none;
+    margin-bottom: 10px;
 }
 
-/* Special Case: Address Field */
-.input-group textarea {
-    min-height: 90px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-
-/* Move Address Icon Slightly Up */
-.input-group .address-icon {
-    top: 25px;  /* Adjust this value to move it up/down */
-}
-
-/* Styling the Back to List Button */
-.back-to-list-btn {
-  margin-left: 84%; 
-    margin-top: 6%;
-}
-
-.back-to-list-btn .btn {
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-
-.back-to-list-btn .fa {
-    margin-right: 8px;
-    font-size: 18px; 
+/* Action buttons */
+button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 12px;
 }

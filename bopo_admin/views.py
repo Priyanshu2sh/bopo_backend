@@ -54,6 +54,8 @@ def received_offers(request):
 def  uploads(request):
     return render(request, 'bopo_admin/Merchant/uploads.html')
 
+
+
 def  modify_customer_details(request):
     return render(request, 'bopo_admin/Customer/modify_customer_details.html')
 
@@ -65,3 +67,11 @@ def  customer_uploads(request):
 
 def  add_customer(request):
     return render(request, 'bopo_admin/Customer/add_customer.html')
+
+
+
+def employee_list(request):
+    return render(request, 'bopo_admin/Employee/employee_list.html')
+
+def add_employee(request):
+    return render(request, 'bopo_admin/Employee/add_employee.html')

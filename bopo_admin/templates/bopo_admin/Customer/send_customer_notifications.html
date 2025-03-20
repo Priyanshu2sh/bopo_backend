@@ -10,104 +10,88 @@
     </div>
 
     <div class="send-notification-list">
-        <!-- To Single Merchants Section -->
-    
-        <div class="send-notification-item">
-            <input type="checkbox" id="toggle-single" class="toggle-checkbox">
-                <label for="toggle-single" class="send-notification-label">
-                    <span class="send-notification-icon">🏢</span>
-                    <span>To All Customers</span>
-                    </label>
-
-            </label><br>
-
-         
-            <div class="send-notification-form">         
-                <!-- Notification Type -->
-                <div class="form-group">
-                    <label for="notification-type">Notification Type:</label>
-                    <input type="text" id="notification-type" class="form-control" placeholder="Enter notification type">
-                </div>
-            
-                <!-- Title -->
-                <div class="form-group">
-                    <label for="notification-title">Title:</label>
-                    <input type="text" id="notification-title" class="form-control" placeholder="Enter title">
-                </div>
-            
-                <!-- Description -->
-                <div class="form-group">
-                    <label for="notification-description">Description:</label>
-                    <textarea id="notification-description" class="form-control" rows="4" placeholder="Enter description"></textarea>
-                </div>
-            
-        <!-- Button Container -->
-        <div class="button-container">
-            <button class="cancel-btn">Cancel</button>
-            <button class="send-btn" onclick="showAlert()">Send Notification</button>
-        </div><br><br><br>
-            </div>
-        </div>
-            
-
+        
+        <!-- To All Customers -->
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
             <label for="toggle-all-customers" class="send-notification-label">
+                <span class="send-notification-icon">🏢</span>
+                <span>To All Customers</span>
+            </label>
+
+            <div class="send-notification-form"><br>
+                <div class="form-group">
+                    <label for="notification-type-all">Notification Type:</label>
+                    <input type="text" id="notification-type-all" class="form-control" placeholder="Enter notification type">
+                </div>
+
+                <div class="form-group">
+                    <label for="notification-title-all">Title:</label>
+                    <input type="text" id="notification-title-all" class="form-control" placeholder="Enter title">
+                </div>
+
+                <div class="form-group">
+                    <label for="notification-description-all">Description:</label>
+                    <textarea id="notification-description-all" class="form-control" rows="4" placeholder="Enter description"></textarea>
+                </div>
+
+                <div class="button-container">
+                    <button class="cancel-btn">Cancel</button>
+                    <button class="send-btn" onclick="showAlert()">Send Notification</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- To Single Customer -->
+        <div class="send-notification-item">
+            <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
+            <label for="toggle-single-customer" class="send-notification-label">
                 <span class="send-notification-icon">👤</span>
                 <span>To Single Customer</span>
             </label>
-            
 
-            <div class="send-notification-form">
-            <div class="form-group">
-                <label for="select-merchant">Select Customer ID:</label>
-                <select id="select-merchant" class="form-control">
-                    <option value="">-- Select Customer --</option>
-                    <option value="merchant1">Customer 1</option>
-                    <option value="merchant2">Customer 2</option>
-                    <option value="merchant3">Customer 3</option>
-                </select>
+            <div class="send-notification-form"><br>
+                <div class="form-group">
+                    <label for="select-customer">Select Customer ID:</label>
+                    <select id="select-customer" class="form-control">
+                        <option value="">-- Select Customer --</option>
+                        <option value="customer1">Customer 1</option>
+                        <option value="customer2">Customer 2</option>
+                        <option value="customer3">Customer 3</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="notification-type-single">Notification Type:</label>
+                    <input type="text" id="notification-type-single" class="form-control" placeholder="Enter notification type">
+                </div>
+
+                <div class="form-group">
+                    <label for="notification-title-single">Title:</label>
+                    <input type="text" id="notification-title-single" class="form-control" placeholder="Enter title">
+                </div>
+
+                <div class="form-group">
+                    <label for="notification-description-single">Description:</label>
+                    <textarea id="notification-description-single" class="form-control" rows="4" placeholder="Enter description"></textarea>
+                </div>
+
+                <div class="button-container">
+                    <button class="cancel-btn">Cancel</button>
+                    <button class="send-btn" onclick="showAlert()">Send Notification</button>
+                </div>
             </div>
-
-                <!-- Notification Type -->
-                <div class="form-group">
-                    <label for="notification-type">Notification Type:</label>
-                    <input type="text" id="notification-type" class="form-control" placeholder="Enter notification type">
-                </div>
-        
-                <!-- Title -->
-                <div class="form-group">
-                    <label for="notification-title">Title:</label>
-                    <input type="text" id="notification-title" class="form-control" placeholder="Enter title">
-                </div>
-        
-                <!-- Description -->
-                <div class="form-group">
-                    <label for="notification-description">Description:</label>
-                    <textarea id="notification-description" class="form-control" rows="4" placeholder="Enter description"></textarea>
-                </div>
-                
-          <!-- Button Container -->
-          <div class="button-container">
-            <button class="cancel-btn">Cancel</button>
-            <button class="send-btn" onclick="showAlert()">Send Notification</button>
-        </div><br><br><br>
         </div>
-    </div>
 
-
-
+        <!-- To Corporate Customers -->
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-corporate" class="toggle-checkbox">
-            <label for="toggle-all" class="send-notification-label">
-                <span class="send-notification-icon">👤</span>
+            <label for="toggle-corporate" class="send-notification-label">
+                <span class="send-notification-icon">🏢</span>
                 <span>To Corporate Customers</span>
-            </label><br>
+            </label>
 
-            
-
-            <div class="send-notification-form">
-                <!-- Select Project -->
+            <div class="send-notification-form"><br>
                 <div class="form-group">
                     <label for="select-project">Select Project:</label>
                     <select id="select-project" class="form-control">
@@ -117,120 +101,94 @@
                         <option value="project3">Project 3</option>
                     </select>
                 </div>
-        
 
-                <!-- Notification Type -->
                 <div class="form-group">
-                    <label for="notification-type">Notification Type:</label>
-                    <input type="text" id="notification-type" class="form-control" placeholder="Enter notification type">
+                    <label for="notification-type-corporate">Notification Type:</label>
+                    <input type="text" id="notification-type-corporate" class="form-control" placeholder="Enter notification type">
                 </div>
-        
-                <!-- Title -->
+
                 <div class="form-group">
-                    <label for="notification-title">Title:</label>
-                    <input type="text" id="notification-title" class="form-control" placeholder="Enter title">
+                    <label for="notification-title-corporate">Title:</label>
+                    <input type="text" id="notification-title-corporate" class="form-control" placeholder="Enter title">
                 </div>
-        
-                <!-- Description -->
+
                 <div class="form-group">
-                    <label for="notification-description">Description:</label>
-                    <textarea id="notification-description" class="form-control" rows="4" placeholder="Enter description"></textarea>
+                    <label for="notification-description-corporate">Description:</label>
+                    <textarea id="notification-description-corporate" class="form-control" rows="4" placeholder="Enter description"></textarea>
                 </div>
-                
-          <!-- Button Container -->
-          <div class="button-container">
-            <button class="cancel-btn">Cancel</button>
-            <button class="send-btn" onclick="showAlert()">Send Notification</button>
-        </div><br><br><br>
-        </div>   </div>
 
+                <div class="button-container">
+                    <button class="cancel-btn">Cancel</button>
+                    <button class="send-btn" onclick="showAlert()">Send Notification</button>
+                </div>
+            </div>
+        </div>
 
-
+        <!-- Merchant Wise -->
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-merchant-wise" class="toggle-checkbox">
-            <label for="toggle-all" class="send-notification-label">
-                <span class="send-notification-icon">👤</span>
+            <label for="toggle-merchant-wise" class="send-notification-label">
+                <span class="send-notification-icon">🛒</span>
                 <span>Merchant Wise</span>
-            </label><br>
+            </label>
 
-            
-            <div class="send-notification-form">
-                <!-- Select Project -->
-                <div class="form-group">
-                    <label for="select-project">Select Project:</label>
-                    <select id="select-project" class="form-control">
-                        <option value="">-- Select Project --</option>
-                        <option value="project1">Project 1</option>
-                        <option value="project2">Project 2</option>
-                        <option value="project3">Project 3</option>
-                    </select>
-                </div>
-            
-                <!-- Select Merchant ID -->
+            <div class="send-notification-form"><br>
                 <div class="form-group">
                     <label for="select-merchant">Select Merchant ID:</label>
                     <select id="select-merchant" class="form-control">
-                        <option value="">-- Select Merchant ID --</option>
+                        <option value="">-- Select Merchant --</option>
                         <option value="merchant1">Merchant 1</option>
                         <option value="merchant2">Merchant 2</option>
                         <option value="merchant3">Merchant 3</option>
                     </select>
                 </div>
 
-                <!-- Notification Type -->
                 <div class="form-group">
-                    <label for="notification-type">Notification Type:</label>
-                    <input type="text" id="notification-type" class="form-control" placeholder="Enter notification type">
+                    <label for="notification-type-merchant">Notification Type:</label>
+                    <input type="text" id="notification-type-merchant" class="form-control" placeholder="Enter notification type">
                 </div>
-        
-                <!-- Title -->
+
                 <div class="form-group">
-                    <label for="notification-title">Title:</label>
-                    <input type="text" id="notification-title" class="form-control" placeholder="Enter title">
+                    <label for="notification-title-merchant">Title:</label>
+                    <input type="text" id="notification-title-merchant" class="form-control" placeholder="Enter title">
                 </div>
-        
-                <!-- Description -->
+
                 <div class="form-group">
-                    <label for="notification-description">Description:</label>
-                    <textarea id="notification-description" class="form-control" rows="4" placeholder="Enter description"></textarea>
+                    <label for="notification-description-merchant">Description:</label>
+                    <textarea id="notification-description-merchant" class="form-control" rows="4" placeholder="Enter description"></textarea>
                 </div>
-                
-          <!-- Button Container -->
-          <div class="button-container">
-            <button class="cancel-btn">Cancel</button>
-            <button class="send-btn" onclick="showAlert()">Send Notification</button>
-        </div><br><br><br>
+
+                <div class="button-container">
+                    <button class="cancel-btn">Cancel</button>
+                    <button class="send-btn" onclick="showAlert()">Send Notification</button>
+                </div>
+            </div>
         </div>
+
     </div>
 </div>
-</div>
-<!-- JavaScript for Search Filtering -->
+
+<!-- JavaScript for Toggle Functionality -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Get all toggle checkboxes
         const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
-    
+
         toggleCheckboxes.forEach((checkbox) => {
             checkbox.addEventListener("change", function () {
-                // Find the associated form
-                const form = this.parentElement.nextElementSibling;
-    
-                if (form && form.classList.contains("send-notification-form")) {
+                const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
+
+                if (form) {
                     form.style.display = this.checked ? "block" : "none";
                 }
             });
         });
-    
+
         // Initially hide all forms
         document.querySelectorAll(".send-notification-form").forEach((form) => {
             form.style.display = "none";
         });
     });
-    
 
-</script>
-
-<script>
     function showAlert() {
         alert("Notification Sent!");
     }

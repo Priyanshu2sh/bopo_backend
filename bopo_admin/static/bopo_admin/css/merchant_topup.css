@@ -38,22 +38,25 @@ h1.heading {
     align-items: center;
     gap: 10px;
     flex: 1; /* Make both dropdowns take equal space */
+    margin-left: 29%;
 }
 
 .merchant_topup .dropdown-container label {
     font-weight: bold;
-    white-space: nowrap; /* Prevent label from breaking into multiple lines */
+    white-space: nowrap; 
 }
 
 
 
 .merchant_topup .dropdown-container select {
-    flex: 1; /* Make dropdown expand to fill available space */
-    padding: 10px;
+    width: 60%; /* Adjust this value as needed */
+    max-width: 250px; /* Set a max width */
+    padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 16px;
     background: #f9f9f9;
+   
 }
 
 /* Form Container - Two Sections */

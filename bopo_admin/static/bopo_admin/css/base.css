@@ -94,7 +94,8 @@ body {
 }
 
 .sidebar .dropdown-menu a:hover {
-    background-color: #fff9f9 !important;
+    background-color: rgb(225, 162, 227);
+    color:white;
  
 }
 

@@ -18,7 +18,7 @@
 
         <!-- Dropdowns for Project and Merchant -->
         <div class="dropdown-container">
-            <div class="form-group">
+            {% comment %} <div class="form-group">
                 <label for="project">Select Project:</label>
                 <select id="project" name="project" required>
                     <option value="">-- Select a Project --</option>
@@ -26,7 +26,7 @@
                     <option value="project2">Project 2</option>
                     <option value="project3">Project 3</option>
                 </select>
-            </div>
+            </div> {% endcomment %}
 
             <div class="form-group">
                 <label for="merchant">Select Merchant:</label>
@@ -46,10 +46,10 @@
                 <form method="post" class="topup-form">
                     {% csrf_token %}
 
-                    <div class="form-group">
+                    {% comment %} <div class="form-group">
                         <label for="merchant_id">Merchant ID:</label>
                         <input type="text" id="merchant_id" name="merchant_id" required>
-                    </div>
+                    </div> {% endcomment %}
 
                     <div class="form-group">
                         <label for="topup_amount">Top-Up Paid Amount:</label>
@@ -60,19 +60,20 @@
                         <label for="transaction_id">Transaction ID:</label>
                         <input type="text" id="transaction_id" name="transaction_id" required>
                     </div>
+                    <div class="form-group">
+                        <label for="topup_points">Top-Up Points:</label>
+                        <input type="number" id="topup_points" name="topup_points" required>
+                    </div>
                 </form>
             </div>
 
             <!-- Right Box for Extra Inputs -->
             <div class="right-box">
-                <div class="form-group">
-                    <label for="topup_points">Top-Up Points:</label>
-                    <input type="number" id="topup_points" name="topup_points" required>
-                </div>
+                
 
                 <div class="form-group">
-                    <label for="bank_details">Bank Details:</label>
-                    <select id="bank_details" name="bank_details" required onchange="showPaymentFields()">
+                    <label for="payment_mode">Payment Mode:</label>
+                    <select id="payment_mode" name="payment_mode" required onchange="showPaymentFields()">
                         <option value="">-- Select Payment Method --</option>
                         <option value="upi">UPI</option>
                         <option value="net_banking">Net Banking</option>
@@ -88,7 +89,7 @@
                         <input type="text" id="upi_id" name="upi_id">
                     </div>
                 </div>
-
+{% comment %} 
                 <div id="net_banking_fields" class="payment-fields">
                     <div class="form-group">
                         <label for="bank_name">Bank Name:</label>
@@ -108,7 +109,7 @@
                     <div class="form-group">
                         <label for="card_expiry">Expiry Date:</label>
                         <input type="month" id="card_expiry" name="card_expiry">
-                    </div>
+                    </div> {% endcomment %}
                    
                 </div>
             </div>
@@ -119,20 +120,20 @@
     <!-- JavaScript -->
     <script>
         function showPaymentFields() {
-            let paymentMethod = document.getElementById("bank_details").value;
+            let paymentMethod = document.getElementById("payment_mode").value;
             
             // Hide all payment-specific fields initially
             document.getElementById("upi_fields").style.display = "none";
-            document.getElementById("net_banking_fields").style.display = "none";
-            document.getElementById("card_fields").style.display = "none";
+           // document.getElementById("net_banking_fields").style.display = "none";
+           // document.getElementById("card_fields").style.display = "none";
 
             // Show fields based on selection
             if (paymentMethod === "upi") {
                 document.getElementById("upi_fields").style.display = "block";
-            } else if (paymentMethod === "net_banking") {
-                document.getElementById("net_banking_fields").style.display = "block";
-            } else if (paymentMethod === "credit_card" || paymentMethod === "debit_card") {
-                document.getElementById("card_fields").style.display = "block";
+            //} else if (paymentMethod === "net_banking") {
+            //    document.getElementById("net_banking_fields").style.display = "block";
+           // } else if (paymentMethod === "credit_card" || paymentMethod === "debit_card") {
+            //    document.getElementById("card_fields").style.display = "block";
             }
         }
     </script>
