@@ -75,3 +75,15 @@ def employee_list(request):
 
 def add_employee(request):
     return render(request, 'bopo_admin/Employee/add_employee.html')
+
+def employee_role(request):
+    return render(request, 'bopo_admin/Employee/employee_role.html') 
+
+
+def payment_details(request):
+    return render(request, 'bopo_admin/Payment/payment_details.html')
+
+
+def account_info(request):
+    return render(request, 'bopo_admin/Payment/account_info.html') 
+

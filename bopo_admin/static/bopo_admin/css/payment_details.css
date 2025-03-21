@@ -1,0 +1,159 @@
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f7fc;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header Styling */
+h2 {
+    text-align: center;
+    color: #004085;
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10%;
+    margin-left: -80%;
+}
+
+/* Search Bar */
+.search-container {
+    text-align: right;
+    margin-bottom: 20px;
+    margin-right: 5%;
+}
+
+#searchInput {
+    padding: 10px;
+    width: 350px;
+    border: 2px solid #004085;
+    border-radius: 6px;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease-in-out;
+}
+
+#searchInput:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+}
+
+/* Table Container */
+.table-container {
+    width: 98%;
+    margin: auto;
+    overflow-x: auto;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+/* Merchant Table */
+.merchant-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    text-align: left;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Table Header */
+.merchant-table thead {
+    background: linear-gradient(135deg, #004085, #007bff);
+    color: #ffffff;
+}
+
+.merchant-table th {
+    padding: 14px;
+    border: 1px solid #ddd;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Table Rows */
+.merchant-table tr {
+    border-bottom: 1px solid #ddd;
+    transition: all 0.3s ease-in-out;
+}
+
+.merchant-table tr:hover {
+    background-color: #f1f1f1;
+    transform: scale(1.01);
+}
+
+/* Table Data Cells */
+.merchant-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    color: #333;
+}
+
+/* Alternate Row Colors */
+.merchant-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* No Data Row */
+.no-data {
+    text-align: center;
+    font-weight: bold;
+    color: #777;
+    padding: 20px;
+}
+
+/* Action Buttons */
+.edit-btn, .delete-btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+    display: inline-block;
+}
+
+.edit-btn {
+    background: linear-gradient(135deg, #28a745, #218838);
+    color: white;
+    box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3);
+}
+
+.delete-btn {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    box-shadow: 0 4px 6px rgba(220, 53, 69, 0.3);
+}
+
+/* Button Hover Effects */
+.edit-btn:hover {
+    background: linear-gradient(135deg, #218838, #1e7e34);
+    box-shadow: 0 6px 10px rgba(40, 167, 69, 0.4);
+    transform: translateY(-2px);
+}
+
+.delete-btn:hover {
+    background: linear-gradient(135deg, #c82333, #a71d2a);
+    box-shadow: 0 6px 10px rgba(220, 53, 69, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .merchant-table th, 
+    .merchant-table td {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    #searchInput {
+        width: 100%;
+        font-size: 14px;
+    }
+}

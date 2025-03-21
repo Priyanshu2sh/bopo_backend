@@ -51,23 +51,39 @@
         </div>  
 
         <!-- Employee Section -->
-        <div id="belowCustomer">
+        {% comment %} <div id="belowCustomer">
             <a href="{% url 'employee_list' %}" class="{% if request.path == 'employee_list/' %}active{% endif %}">
                 <i class="fas fa-user-tie"></i> Employee
             </a>
+        </div> {% endcomment %}
+
+        <!-- Employee Dropdown -->
+        <div class="dropdown">
+            <a class="dropdown-link" id="employeeDropdownToggle">
+                <i class="fas fa-user-tie"></i> Employee
+            </a>
+            <ul class="dropdown-menu" id="employeeDropdownMenu">
+                <li><a href="{% url 'employee_list' %}"><i class="fas fa-list"></i> Employee List</a></li>
+                <li><a href="{% url 'employee_role' %}"><i class="fas fa-user-tag"></i> Employee Role</a></li>
+            </ul>
         </div>
 
-        <!-- Customer Dropdown -->
-{% comment %} <div class="dropdown">
-    <a class="dropdown-link" id="customerDropdownToggle">
-        <i class="fas fa-users"></i> Customer
-    </a>
-    <ul class="dropdown-menu" id="customerDropdownMenu">
-        <li><a href="{% url 'modify_customer_details' %}"><i class="fas fa-edit"></i> Modify Customer Details</a></li>
-        <li><a href="{% url 'send_customer_notifications' %}"><i class="fas fa-bell"></i> Send Notifications</a></li>
-        <li><a href="{% url 'customer_uploads' %}"><i class="fas fa-upload"></i> Uploads</a></li>
-    </ul>
-</div> {% endcomment %}
+
+
+        <!-- Payment Details Section -->
+        <div id="belowEmployee">
+            <a href="{% url 'payment_details' %}" class="{% if request.path == 'payment_details/' %}active{% endif %}">
+                <i class="fas fa-credit-card"></i> Payment Details
+            </a>
+        </div>
+
+        <!-- Account Info Section -->
+        <div id="accountInfo">
+            <a href="{% url 'account_info' %}" class="{% if request.path == '/account_info/' %}active{% endif %}">
+                <i class="fas fa-user-circle"></i> Account Info
+            </a>
+        </div>  
+
 
 
     </div>

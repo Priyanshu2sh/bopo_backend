@@ -6,7 +6,7 @@
 
 <div class="employee-container">
     <div class="employee-header">
-        <h2>Employees List</h2>
+        <h2>Employee's List</h2>
      <button class="add-employee-btn" onclick="window.location.href='{% url 'add_employee' %}'">
             + Add Employee
         </button>
@@ -17,7 +17,7 @@
         <div class="employee-item">
             <label class="employee-label" onclick="toggleTable('corporate-table')">
                 <span class="employee-icon">🏢</span>
-                <span>Corporate Employees List</span>
+                <span> Employee's List</span>
             </label>
             <div class="employee-table" id="corporate-table">
                 <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table-content', 'search-corporate')" placeholder="Search corporate employees...">

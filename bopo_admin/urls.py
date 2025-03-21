@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import home, about, merchant,customer, project_onboarding,merchant_list,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,add_customer,employee_list,add_employee
+from .views import home, about, merchant,customer, project_onboarding,merchant_list,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,add_customer,employee_list,add_employee,payment_details,employee_role,account_info
 
 urlpatterns = [
     path('', home, name='home'),
@@ -29,7 +29,10 @@ urlpatterns = [
     
     path('employee_list/',employee_list, name='employee_list'),
     path('employees/add/', add_employee, name='add_employee'),
+    path('employee-role/',employee_role, name='employee_role'),
     
+    path('payment_details/', payment_details, name='payment_details'),
+    path('account_info/', account_info, name='account_info'),
     
     
    

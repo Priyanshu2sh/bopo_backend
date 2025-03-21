@@ -1,0 +1,109 @@
+{% extends "bopo_admin/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/account_info.css' %}">
+
+
+<h2 class="title">Bonus Point Account</h2>
+<div class="container account-container mt-4">
+  
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Account Number</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-university"></i></span>
+                    <input type="text" class="form-control" id="accountNumber" placeholder="Click Edit And Enter Account Number" disabled>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <label>Payable To</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" class="form-control" id="payableTo" placeholder="Click Edit And Enter Payable To" disabled>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <label>Bank Name</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-building"></i></span>
+                    <input type="text" class="form-control" id="bankName" placeholder="Click Edit And Enter Bank Name" disabled>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <label>City</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-city"></i></span>
+                    <input type="text" class="form-control" id="city" placeholder="Click Edit And Enter City" disabled>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Account Type</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-wallet"></i></span>
+                    <input type="text" class="form-control" id="accountType" placeholder="Click Edit And Enter Account Type" disabled>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <label>IFSC Code</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                    <input type="text" class="form-control" id="ifscCode" placeholder="Click Edit And Enter IFSC Code" disabled>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <label>Branch Name</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                    <input type="text" class="form-control" id="branchName" placeholder="Click Edit And Enter Branch Name" disabled>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <label>Pin Code</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
+                    <input type="text" class="form-control" id="pinCode" placeholder="Click Edit And Enter Pin Code" disabled>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="button-container">
+        <button class="btn btn-danger" id="cancelBtn">Cancel</button>
+        <button class="btn btn-primary" id="editBtn">Edit</button>
+        <button class="btn btn-success" id="saveBtn" disabled>Save</button>
+    </div>
+</div>
+
+<script>
+    document.getElementById("editBtn").addEventListener("click", function () {
+        let inputs = document.querySelectorAll(".form-control");
+        inputs.forEach(input => input.removeAttribute("disabled"));
+        document.getElementById("saveBtn").removeAttribute("disabled");
+    });
+
+    document.getElementById("cancelBtn").addEventListener("click", function () {
+        let inputs = document.querySelectorAll(".form-control");
+        inputs.forEach(input => {
+            input.value = ""; 
+            input.setAttribute("disabled", "true");
+        });
+        document.getElementById("saveBtn").setAttribute("disabled", "true");
+    });
+</script>
+
+{% endblock %}
