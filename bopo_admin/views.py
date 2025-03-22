@@ -87,3 +87,5 @@ def payment_details(request):
 def account_info(request):
     return render(request, 'bopo_admin/Payment/account_info.html') 
 
+def reports(request):
+    return render(request, 'bopo_admin/Payment/reports.html')

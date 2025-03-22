@@ -1,0 +1,145 @@
+{% extends 'bopo_admin/base.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/reports.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<h2 class="title">Reports</h2>
+<div class="container">
+    <div class="reports-grid">
+
+        <!-- Projects Report -->
+        <div class="report-card">
+            <div class="card-header">
+                <i class="fas fa-chart-line icon"></i>
+                <h3>Projects</h3>
+            </div>
+            <p>List Of Project ID's With Onboarding Data</p>
+            <p class="description">This report contains details of all projects with their onboarding data.</p>
+            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
+                <button class="download-btn">
+                    <i class="fas fa-download"></i> Download
+                </button>
+            </a>
+        </div>
+
+        <!-- Merchants Report -->
+        <div class="report-card">
+            <div class="card-header">
+                <i class="fas fa-store icon"></i>
+                <h3>Merchants</h3>
+            </div>
+            <p>List Of Merchant ID's With Onboarding Data</p>
+            <p class="description">This report contains all merchant details with onboarding data.</p>
+            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
+                <button class="download-btn"><i class="fas fa-download"></i> Download</button>
+            </a>
+        </div>
+
+        <!-- Merchant Disabled List -->
+        <div class="report-card">
+            <div class="card-header">
+                <i class="fas fa-user-slash icon"></i>
+                <h3>Merchant Disabled List</h3>
+            </div>
+            <p>List Of Disabled Merchants</p>
+            <p class="description">This report contains a list of all disabled merchants.</p>
+            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
+                <button class="download-btn"><i class="fas fa-download"></i> Download</button>
+            </a>
+        </div>
+
+        <!-- Project-Wise Balance Table -->
+        <div class="report-card">
+            <div class="card-header">
+                <i class="fas fa-balance-scale icon"></i>
+                <h3>Project-Wise Balance</h3>
+            </div>
+            <p>Balance Tables</p>
+            <p class="description">This report contains project-wise balance tables.</p>
+            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
+                <button class="download-btn"><i class="fas fa-download"></i> Download</button>
+            </a>
+        </div>
+
+        <!-- Merchant-Wise Balance Table -->
+        <div class="report-card">
+            <div class="card-header">
+                <i class="fas fa-hand-holding-usd icon"></i>
+                <h3>Merchant-Wise Balance</h3>
+            </div>
+            <p>Balance Tables</p>
+            <p class="description">This report contains merchant-wise balance tables.</p>
+            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
+                <button class="download-btn"><i class="fas fa-download"></i> Download</button>
+            </a>
+        </div>
+
+        <!-- Customer-Wise Balance Table -->
+        <div class="report-card">
+            <div class="card-header">
+                <i class="fas fa-users icon"></i>
+                <h3>Customer-Wise Balance</h3>
+            </div>
+            <p>Balance Tables</p>
+            <p class="description">This report contains customer-wise balance tables.</p>
+            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
+                <button class="download-btn"><i class="fas fa-download"></i> Download</button>
+            </a>
+        </div>
+
+        <!-- Customer Transactions -->
+        <div class="report-card">
+            <div class="card-header">
+                <i class="fas fa-users icon"></i>
+                <h3>Customer Transactions</h3>
+            </div>
+            <p>Customer-Wise Transactions</p>
+            <p class="description">This report contains a record of all customer transactions.</p>
+            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
+                <button class="download-btn"><i class="fas fa-download"></i> Download</button>
+            </a>
+        </div>
+
+        <!-- Payment Dues -->
+        <div class="report-card">
+            <div class="card-header">
+                <i class="fas fa-money-check icon"></i>
+                <h3>Payment Dues</h3>
+            </div>
+            <p>Last 7 Days</p>
+            <p class="description">This report contains merchant details whose due date is in the last 7 days.</p>
+            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
+                <button class="download-btn"><i class="fas fa-download"></i> Download</button>
+            </a>
+        </div>
+
+        <!-- Award Transactions -->
+        <div class="report-card">
+            <div class="card-header">
+                <i class="fas fa-gift icon"></i>
+                <h3>Award Transactions</h3>
+            </div>
+            <p>Project Wise</p>
+            <p class="description">This report contains all award transactions project-wise.</p>
+            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
+                <button class="download-btn"><i class="fas fa-download"></i> Download</button>
+            </a>
+        </div>
+
+        <!-- Corporate Merchant ReCon Report -->
+        <div class="report-card">
+            <div class="card-header">
+                <i class="fas fa-sync-alt icon"></i>
+                <h3>Corporate Merchant ReCon</h3>
+            </div>
+            <p>ReCon Report</p>
+            <p class="description">This report contains the ReCon report for selected corporate projects.</p>
+            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
+                <button class="download-btn"><i class="fas fa-download"></i> Download</button>
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
