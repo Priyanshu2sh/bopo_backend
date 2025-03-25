@@ -5,7 +5,7 @@ body {
     padding: 0;
 }
 .addmerchant-container {
-    max-width: 900px;
+    max-width: 800px;
     margin: 40 auto;
     margin-top: 2%;
     background: #fff;
@@ -13,7 +13,7 @@ body {
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
     margin-left: 13%;
-    height: 95vh;
+    min-height: 95vh;
 }
 .heading {
     text-align: center;
@@ -21,7 +21,7 @@ body {
     font-size: 26px;
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    margin-top: -4%;
+    margin-top: 1%;
     margin-left: -80%;
 }
 .addmerchant-form-container {
@@ -66,7 +66,7 @@ body {
 .addmerchant-btn-submit {
     display: inline-block;
     padding: 10px 20px;
-    margin-top: 3%;
+    margin-top: 7%;
     width: 20%;
     font-size: 16px;
     color: white;
@@ -185,4 +185,43 @@ body {
 .toast-container i {
     font-size: 20px;
     color: white;
+}
+
+
+/* 🟢 Responsive Design */
+@media (max-width: 768px) {
+    .addmerchant-container {
+        width: 90%;
+        padding: 15px;
+        height: 170vh;
+        margin-left: 5%;
+        
+    }
+
+    .addmerchant-form-container {
+        flex-direction: column;
+    }
+
+    .addmerchant-form-group {
+        width: 100%;
+    }
+
+    .addmerchant-btn-submit {
+        max-width: 30%;
+        width: 90%;
+        margin-top: -10%;
+        margin-left: 34%;
+    }
+
+    .back-to-list-btn a {
+        max-width: 30%;
+        width: 90%;
+        margin-top: 20%;
+        margin-left: 70%;
+    }
+    .heading {
+        font-size: 22px;
+        margin-top: 5%; /* Move heading down */
+       margin-left: -60%;
+    }
 }

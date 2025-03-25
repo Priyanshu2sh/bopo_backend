@@ -2,17 +2,18 @@
 
 {% block content %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_list.css' %}">
+<link rel="stylesheet" href="{% static 'bopo_admin/css/corporate_merchant_list.css' %}">
 
 <div class="merchant-container">
     <div class="merchant-header">
-        <h2>Corporate Merchants List</h2>
+
         <button class="add-merchant-btn" onclick="window.location.href='{% url 'add_merchant' %}'">
             + Add Merchant
         </button>
     </div>
 
     <div class="merchant-list">
+        {% comment %} <h2>Corporate Merchants List</h2> {% endcomment %}
         <div class="merchant-item">
             <!-- Set checkbox as checked by default to keep it open -->
             <input type="checkbox" id="toggle-corporate" class="toggle-checkbox" checked>
