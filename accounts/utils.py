@@ -2,6 +2,9 @@ import os
 from dotenv import load_dotenv
 from twilio.rest import Client
 
+from django.core.exceptions import ObjectDoesNotExist
+# from bopo.models import CustomerToCustomer
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -18,3 +21,12 @@ def send_otp_to_mobile(mobile_number, otp):
         to=mobile_number
     )
     return message.sid
+
+
+
+# def get_or_create_customer_points(customer_id):
+#     try:
+#         return CustomerToCustomer.objects.get(customer_id=customer_id)
+#     except ObjectDoesNotExist:
+#         return CustomerToCustomer.objects.create(customer_id=customer_id, customer_balance=0)
+
