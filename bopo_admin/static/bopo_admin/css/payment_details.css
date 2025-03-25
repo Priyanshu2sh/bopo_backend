@@ -59,7 +59,7 @@ h2 {
 
 /* Table Header */
 .merchant-table thead {
-    background: linear-gradient(135deg, #004085, #007bff);
+    background: linear-gradient(135deg, #004085, #004085);
     color: #ffffff;
 }
 

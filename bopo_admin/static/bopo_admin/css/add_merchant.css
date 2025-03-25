@@ -1,202 +1,151 @@
-/* General Styles */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
+    background-color: #fff;
     margin: 0;
     padding: 0;
 }
-
-/* Container */
-.container {
-    max-width: 700px;
-    margin: 40px auto;
+.addmerchant-container {
+    max-width: 900px;
+    margin: 40 auto;
+    margin-top: 2%;
+    background: #fff;
     padding: 20px;
-    background-color: #fff;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    margin-top: 3%;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
+    margin-left: 13%;
+    height: 95vh;
 }
-
-/* Heading Styles */
-h2.heading {
+.heading {
     text-align: center;
     color: #004080;
     font-size: 26px;
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    margin-top: 2.5%;
+    margin-top: -4%;
     margin-left: -80%;
 }
-
-
-/* Form Styles */
-form {
+.addmerchant-form-container {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 40px;
+    justify-content: space-between;
+    gap: 20px;
 }
-
-input,
-select,
-textarea {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
+.addmerchant-form-group {
+    width: 48%;
+    height:70vh;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+}
+.addmerchant-form-group label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #555;
+}
+.addmerchant-input-container {
+    display: flex;
+    align-items: center;
+    background: #fff;
     border: 1px solid #ccc;
     border-radius: 5px;
-    font-size: 14px;
-    outline: none;
+    padding: 8px;
+    margin-bottom: 10px;
 }
-
-input:focus,
-select:focus,
-textarea:focus {
-    border-color: #007bff;
-}
-
-/* Grid Layout */
-.row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-}
-
-.row .col-md-6,
-.row .col-md-4 {
-    flex: 1;
+.addmerchant-input-container i {
+    color: #555;
     margin-right: 10px;
 }
-
-.row .col-md-6:last-child,
-.row .col-md-4:last-child {
-    margin-right: 0;
+.addmerchant-input-container input, select {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 14px;
 }
 
-/* Buttons Container */
-.mt-4 {
-    display: flex;
-    margin-left: 37%;
-    gap: 10px;                /* Optional: Adds space between the buttons */
-}
 
-/* Button Styling */
-button {
-    padding: 10px 20px;   /* Adjust button padding */
+.addmerchant-btn-submit {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 3%;
+    width: 20%;
     font-size: 16px;
+    color: white;
+    background-color: #004080; /* Primary Blue */
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 40%;
 }
 
-.btn-primary {
-    background:#173d46;
-    color: white;
+.addmerchant-btn-submit:hover {
+    background-color: #002b55; /* Darker Blue */
 }
 
-.btn-primary:hover {
-    background:#173d46;
-}
-
-.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: #545b62;
-}
-
-/* Input Group */
-.input-group {
-    position: relative;
-    width: 100%;
-    display: flex;
-    align-items: center;
-}
-
-/* Icon Styling */
-.input-group .icon {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    color: #555;
-    z-index: 10;
-}
-
-/* Adjust Input Fields */
-.input-group input,
-.input-group select,
-.input-group textarea {
-    padding-left: 50px;
-    height: 40px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-    outline: none;
-}
-
-/* Special Case: Address Field */
-.input-group textarea {
-    min-height: 90px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-
-/* Move Address Icon Slightly Up */
-.input-group .address-icon {
-    top: 25px;  /* Adjust this value to move it up/down */
-}
-
-/* Styling the Back to List Button */
-.back-to-list-btn {
-    text-align: right; 
-    margin-bottom: 20px; 
-}
-
-.back-to-list-btn .btn {
+.back-to-list-btn a {
+    display: inline-block;
     padding: 10px 20px;
     font-size: 16px;
+    color: white;
+    background-color: #777; /* Grey */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 80%;
+    width: 15%;
+    margin-top: 6%;
+}
+
+.back-to-list-btn a:hover {
+    background-color: #555; /* Darker Grey */
+}
+
+.addmerchant-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+
+/* Centered Project Type Section */
+.project-type-container {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 16px;
     font-weight: bold;
+    color: #004080;
 }
 
-
-.back-to-list-btn .fa {
-    margin-right: 8px;
-    font-size: 18px; 
-}
-
-/* Fix for radio buttons */
-.radio-group {
+/* Inline Radio Buttons */
+.addmerchant-radio-group {
     display: flex;
     justify-content: center;
-    width: 60%;
-    gap: 90px;
-    margin-left: 20%;
+    gap: 20px;
 }
 
-.radio-group label {
+.addmerchant-radio-group label {
     display: flex;
     align-items: center;
     font-size: 14px;
-    color: #444;
+    color: #555;
     cursor: pointer;
-    gap: 5px; /* Space between radio button and label */
+    gap: 5px; /* Space between radio and label text */
 }
 
-.radio-group input[type="radio"] {
-    width: 16px;
-    height: 16px;
-    accent-color: #7a161c;
-    cursor: pointer;
+.addmerchant-radio-group input[type="radio"] {
+    accent-color: #004080; /* Blue color */
+    transform: scale(1.2); /* Slightly bigger radio buttons */
+    margin-right: 5px;
 }
+
+
+
+
 /* Toast Notification Styling */
 .toast-container {
     visibility: hidden;

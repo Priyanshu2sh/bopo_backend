@@ -88,6 +88,7 @@
     </div>
 </div>
 
+
 <!-- JavaScript for Search Filtering and Modal -->
 <script>
 function filterTable(tableId, searchBoxId) {
@@ -116,5 +117,39 @@ function closeForm() {
     document.getElementById("customerForm").style.display = "none";
 }
 </script>
+
+
+
+
+
+ <!-- Toast Notification -->
+ <div id="toast" class="toast-container">
+    <i class="fa fa-check-circle"></i>
+    <span class="toast-message">Customer added successfully!</span>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent actual form submission
+
+            let toast = document.getElementById("toast");
+            toast.classList.add("toast-show");
+
+            setTimeout(function () {
+                toast.classList.add("toast-hide");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show", "toast-hide");
+                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
+                }, 500);
+            }, 3000); // Hide after 3 seconds
+        });
+    });
+</script>
+
+
+
+
+
 
 {% endblock %}

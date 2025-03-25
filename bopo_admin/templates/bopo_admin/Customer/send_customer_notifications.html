@@ -172,26 +172,34 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
-
+    
         toggleCheckboxes.forEach((checkbox) => {
             checkbox.addEventListener("change", function () {
                 const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
-
+    
+                // Close all other forms before opening the selected one
+                const allForms = document.querySelectorAll(".send-notification-form");
+                allForms.forEach((otherForm) => {
+                    if (otherForm !== form) {
+                        otherForm.style.display = "none";
+                        // Uncheck the other checkboxes to keep them hidden
+                        otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
+                    }
+                });
+    
+                // Toggle the visibility of the selected form
                 if (form) {
                     form.style.display = this.checked ? "block" : "none";
                 }
             });
         });
-
+    
         // Initially hide all forms
         document.querySelectorAll(".send-notification-form").forEach((form) => {
             form.style.display = "none";
         });
     });
-
-    function showAlert() {
-        alert("Notification Sent!");
-    }
+    
 </script>
 
 {% endblock %}

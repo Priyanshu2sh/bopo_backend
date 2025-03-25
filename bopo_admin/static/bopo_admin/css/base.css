@@ -50,83 +50,85 @@ body {
 }
 
 
-/* Dropdown Styling */
-.dropdown {
-    position: relative;
-}
 
-.dropdown-toggle {
-    cursor: pointer;
-    display: block;
-    padding: 10px;
-    color: white;
-    text-decoration: none;
-}
-
-/* Show dropdown on hover */
-.dropdown:hover .dropdown-menu {
-    display: block;
-}
 /* Fix dropdown positioning */
 .dropdown-container {
     position: relative;
+    display: block;
 }
 
 .dropdown-menu {
-    display: none; /* Initially hidden */
-    position: relative; 
-    max-height: 300px; /* Limit height for scrolling */
-    overflow-y: auto; /* Enables vertical scrolling */
-    background-color: white;
+    display: none;
+    position: absolute;
+    left: 0;
+    background-color: rgb(240, 240, 240);
     border-radius: 5px;
     padding: 5px 0;
+    border: 2px solid whitesmoke;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     list-style: none;
     width: 210px;
     z-index: 1000;
+    max-height: 250px; /* Limit height */
+    overflow-y: auto;  /* Enable scrollbar */
 }
 
-.dropdown-menu a {
+/* Show dropdown when 'show' class is added */
+.dropdown-menu.show {
     display: block;
-    padding: 10px;
+}
+
+#belowMerchant,
+#belowEmployee {
+    transition: margin-top 0.3s ease-in-out;
+}
+
+#belowMerchant.dropdown-open{
+   margin-top: 200px; /* Adjust this value as per dropdown height */
+}
+
+#belowEmployee.dropdown-open {
+    margin-top: 120px; /* Adjust this value as per dropdown height */
+}
+
+.sidebar .dropdown-menu a {
     color: black;
+    display: block;
+    padding: 8px 10px;
     text-decoration: none;
 }
-
 .sidebar .dropdown-menu a:hover {
     background-color: rgb(225, 162, 227);
-    color:white;
- 
-}
-
-
-
-/* Hide Scrollbar in WebKit Browsers (Chrome, Safari) */
-.dropdown-menu::-webkit-scrollbar {
-    width: 0px;
-    display: none;
-}
-.dropdown-menu::-webkit-scrollbar-thumb {
-    /* background: #ccc; */
-    border-radius: 5px;
- 
-}
-
-.dropdown-menu::-webkit-scrollbar-thumb:hover {
-    background: #999;
+    color: rgb(17, 16, 16);
 }
 
 
 /* Ensure dropdown items also show active effect */
 .dropdown-menu .dropdown-item.active {
     background-color: rgb(225, 162, 227);
-    color: white !important;
+    color: rgb(17, 16, 16) !important;
     font-weight: bold;
 }
 
 
 .dropdown-container.show #merchantToggle {
     background-color: rgb(200, 120, 210); /* Slightly darker when open */
+}
+
+
+
+/* Scrollbar styling */
+.dropdown-menu::-webkit-scrollbar {
+    width: 2px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+    background: #f1f1f1;
 }
 
 /* Main Content Wrapper */

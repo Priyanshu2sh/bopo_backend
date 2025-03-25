@@ -63,7 +63,7 @@
         <div class="button-container">
             <button class="cancel-btn">Cancel</button>
             <button class="send-btn" onclick="showAlert()">Send Notification</button>
-        </div><br><br><br>
+        </div>
             </div>
             
 
@@ -127,12 +127,17 @@
         const singleForm = singleToggle.closest(".send-notification-item").querySelector(".send-notification-form");
         const allForm = allToggle.closest(".send-notification-item").querySelector(".send-notification-form");
     
-        // Function to toggle visibility
+        // Function to toggle visibility and close others
         function toggleForm(toggle, form) {
-            if (toggle.checked) {
-                form.style.display = "block";
-            } else {
+            // If the form is already open, hide it
+            if (form.style.display === "block") {
                 form.style.display = "none";
+            } else {
+                // Close other forms first
+                singleForm.style.display = "none";
+                allForm.style.display = "none";
+                // Open the selected form
+                form.style.display = "block";
             }
         }
     
@@ -149,8 +154,8 @@
         singleForm.style.display = "none";
         allForm.style.display = "none";
     });
-    
 </script>
+
 
 <script>
     function showAlert() {

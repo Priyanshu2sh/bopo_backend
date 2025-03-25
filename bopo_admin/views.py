@@ -15,8 +15,21 @@ def customer(request):
 def merchant_list(request):
     return render(request, "bopo_admin/Merchant/merchant_list.html")
 
+def corporate_list(request):
+    return render(request, 'bopo_admin/Merchant/corporate_list.html')
+
+def individual_list(request):
+    return render(request, 'bopo_admin/Merchant/individual_list.html')
+
 def add_merchant(request):
     return render(request, "bopo_admin/Merchant/add_merchant.html")
+
+
+def add_individual_merchant(request):
+    return render(request, "bopo_admin/Merchant/add_individual_merchant.html")
+
+
+
 
 def project_onboarding(request):
     return render(request, 'bopo_admin/project_onboarding.html')

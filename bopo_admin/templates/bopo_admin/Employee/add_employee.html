@@ -6,129 +6,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Employee</title>
+    <title>Create Employee</title>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'bopo_admin/css/add_merchant.css' %}">
+    <link rel="stylesheet" href="{% static 'bopo_admin/css/add_employee.css' %}">
 </head>
-
 <body>
+
     <div class="back-to-list-btn">
-        <a href="{% url 'merchant_list' %}" class="btn btn-secondary">
+        <a href="{% url 'employee_list' %}" class="addemployee-btn-submit">
             <i class="fa fa-arrow-left"></i> Back to List
         </a>
     </div>
 
     
     <h2 class="heading">Add Employee</h2>
+    <div class="addemployee-container">
 
-<div class="container">
+ <form>
+            {% csrf_token %}
+            <div class="addemployee-form-container">
+                <!-- Left Column -->
+                <div class="addemployee-form-group">
+                    <label>Employee Name</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="employee_name" required>
+                    </div>
 
-    <form method="POST">
-        {% csrf_token %}
+                    <label>Email ID</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" required>
+                    </div>
 
-        {% comment %} <select class="form-select" name="project" style="width: 50%; min-width: 200px; margin-left:23%;">
-            <option value="">Select One Project</option>
-            <option value="Project1">Project 1</option>
-            <option value="Project2">Project 2</option>
-        </select> {% endcomment %}
+                    <label>Aadhaar Number</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="aadhaar" required>
+                    </div>
 
+                    <label>Address</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" name="address" required>
+                    </div>
 
-       
-        <!-- Contact Person & Mobile Number -->
-        <div class="row">
-            <div class="col-md-6 input-group">
-                <i class="fa fa-user icon"></i>
-                <input type="text" class="form-control" name="contact_person" placeholder="Contact Person" required>
+                    <label>Select State</label>
+                    <div class="addemployee-input-container">
+                        <select name="state">
+                            <option value="">Select State</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Gujarat">Gujarat</option>
+                        </select>
+                    </div>
+
+                    <label>Select City</label>
+                    <div class="addemployee-input-container">
+                        <select name="city">
+                            <option value="">Select City</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Pune">Pune</option>
+                        </select>
+                    </div>
+
+                    <label>Country</label>
+                    <div class="addemployee-input-container">
+                        <input type="text" name="country" value="India" disabled>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="addemployee-form-group">
+                    <label>User Name</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" required>
+                    </div>
+
+                    <label>Password</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" required class="password-field">
+                        <input type="text" id="passwordText" name="passwordText" required class="password-field show-password">
+                        <input type="checkbox" id="togglePassword" class="password-checkbox">
+                        <label for="togglePassword" class="password-toggle">
+                            <i class="fas fa-eye"></i>
+                        </label>
+                    </div>
+                    
+                    <label>Confirm Password</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="confirmPassword" name="confirm_password" required class="password-field">
+                        <input type="text" id="confirmPasswordText" name="confirm_passwordText" required class="password-field show-password">
+                        <input type="checkbox" id="toggleConfirmPassword" class="password-checkbox">
+                        <label for="toggleConfirmPassword" class="password-toggle">
+                            <i class="fas fa-eye"></i>
+                        </label>
+                    </div>
+           
+
+                    <label>Mobile Number</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-mobile-alt"></i>
+                        <input type="text" name="mobile" required>
+                    </div>
+
+                    <label>Pan Number</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="pan">
+                    </div>
+
+                    <label>Pincode</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-home"></i>
+                        <input type="text" name="pincode">
+                    </div>
+
+                  
+                </div>
             </div>
-            <div class="col-md-6 input-group">
-                <i class="fa fa-phone icon"></i>
-                <input type="text" class="form-control" name="mobile_number" placeholder="Mobile Number" required>
-            </div>
-        </div>
 
-        <!-- Email & GST Number -->
-        <div class="row mt-2">
-            <div class="col-md-6 input-group">
-                <i class="fa fa-envelope icon"></i>
-                <input type="email" class="form-control" name="email" placeholder="Email ID" required>
-            </div>
-            <div class="col-md-6 input-group">
-                <i class="fa fa-file-invoice icon"></i>
-                <input type="text" class="form-control" name="gst_number" placeholder="GST Number">
-            </div>
-        </div>
-
-        <!-- Aadhar Number & Pan Number -->
-<div class="row mt-2">
-    <div class="col-md-6 input-group">
-        <i class="fa fa-id-card icon"></i>
-        <input type="text" class="form-control" name="aadhar_number" placeholder="Aadhar Number">
+            <button type="submit" class="addemployee-btn-submit">Submit</button>
+           
+        </form>
     </div>
-    <div class="col-md-6 input-group">
-        <i class="fa fa-id-card-alt icon"></i>
-        <input type="text" class="form-control" name="pan_number" placeholder="Pan Number">
-    </div>
-</div>
 
-        <!-- Shop Name & Legal Name -->
-        <div class="row mt-2">
-            <div class="col-md-6 input-group">
-                <i class="fa fa-store icon"></i>
-                <input type="text" class="form-control" name="shop_name" placeholder="Shop Name" required>
-            </div>
-            <div class="col-md-6 input-group">
-                <i class="fa fa-building icon"></i>
-                <input type="text" class="form-control" name="legal_name" placeholder="Legal Name" required>
-            </div>
-        </div>
-
-        <!-- Address Field -->
-        <div class="mt-2 input-group">
-            <i class="fa fa-map-marker-alt icon address-icon"></i>
-            <textarea class="form-control" name="address" placeholder="Address" rows="3" required></textarea>
-        </div>
-
-        <!-- State & City -->
-        <div class="row mt-2">
-            <div class="col-md-4 input-group">
-                <i class="fa fa-flag icon"></i>
-                <select class="form-select" name="state">
-                    <option value="">Select State</option>
-                    <option value="Maharashtra">Maharashtra</option>
-                    <option value="Karnataka">Karnataka</option>
-                </select>
-            </div>
-            <div class="col-md-4 input-group">
-                <i class="fa fa-city icon"></i>
-                <select class="form-select" name="city">
-                    <option value="">Select City</option>
-                    <option value="Mumbai">Mumbai</option>
-                    <option value="Pune">Pune</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Pincode -->
-        <div class="row mt-2">
-            <div class="col-md-12 input-group">
-                <i class="fa fa-map-pin icon"></i>
-                <input type="text" class="form-control" name="pincode" placeholder="Pincode">
-            </div>
-        </div>
-
-        <!-- Buttons -->
-        <div class="mt-4">
-            <button type="reset" class="btn btn-secondary">Cancel</button>
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </div>
-
-    </form>
-</div>
-
+  
  <!-- Toast Notification -->
  <div id="toast" class="toast-container">
     <i class="fa fa-check-circle"></i>
-    <span class="toast-message">Merchant added successfully!</span>
+    <span class="toast-message">Employee added successfully!</span>
 </div>
 
 <script>
@@ -152,8 +162,7 @@
 
 
 
-
-
+    
 
 </body>
 </html>

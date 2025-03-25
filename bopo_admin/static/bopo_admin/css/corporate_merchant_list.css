@@ -1,0 +1,139 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+.merchant-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 1300px;
+    margin: auto;
+    margin-top: 5%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.merchant-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: black;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.add-merchant-btn {
+    background-color: #803a2f;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.add-merchant-btn:hover {
+    background-color: #a14a3f;
+}
+
+.merchant-list {
+    margin-top: 20px;
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.merchant-item {
+    background: #f8f9fa;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.merchant-label {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    background: #edeeef;
+    border-radius: 5px;
+    transition: background 0.3s ease-in-out;
+}
+
+.merchant-label:hover {
+    background: #edeeef;
+}
+
+.merchant-icon {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.toggle-checkbox {
+    display: none;
+}
+
+.merchant-table {
+    background-color: white;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, padding 0.3s ease-in-out;
+}
+
+/* Keep the first table open by default */
+.merchant-table.open {
+    max-height: 500px;
+    padding: 15px;
+}
+
+/* Ensure the checkbox remains checked by default */
+.toggle-checkbox:checked + .merchant-label + .merchant-table {
+    max-height: 500px;
+    padding: 15px;
+}
+
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
+.search-box {
+    width: 20%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+}

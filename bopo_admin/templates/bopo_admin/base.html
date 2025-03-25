@@ -21,28 +21,33 @@
             <i class="fas fa-home"></i> Home
         </a>
         
-        <a href="{% url 'project_list' %}" class="{% if request.path == '/project_list/' %}active{% endif %}">
+        {% comment %} <a href="{% url 'project_list' %}" class="{% if request.path == '/project_list/' %}active{% endif %}">
             <i class="fas fa-tasks"></i> Project Onboarding
-        </a>
+        </a> {% endcomment %}
 
-           <!-- Merchant Dropdown (CSS-Only Hover Effect) -->
-           <div class="dropdown">
-            <a class="dropdown-link"><i class="fas fa-store"></i> Merchant</a>
-            <ul class="dropdown-menu">
-                <li><a href="{% url 'merchant_list' %}"><i class="fas fa-list"></i> Merchant List</a></li>
-                <li><a href="{% url 'add_merchant' %}"><i class="fas fa-user-plus"></i> Add Merchant</a></li>
-                <li><a href="{% url 'merchant_credentials' %}"><i class="fas fa-key"></i> Merchant Credentials</a></li>
-                <li><a href="{% url 'merchant_topup' %}"><i class="fas fa-wallet"></i> Top-Up Limit</a></li>
-                {% comment %} <li><a href="{% url 'map_bonus_points' %}"><i class="fas fa-gift"></i> Map Bonus Points</a></li> {% endcomment %}
-                <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li>
-                <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Reduce Limit</a></li>
-                <li><a href="{% url 'merchant_status' %}"><i class="fas fa-toggle-on"></i> Merchant Status</a></li>
-                <li><a href="{% url 'login_page_info' %}"><i class="fas fa-info-circle"></i> Login Page Info</a></li>
-                <li><a href="{% url 'send_notifications' %}"><i class="fas fa-bell"></i> Send Notifications</a></li>
-                <li><a href="{% url 'received_offers' %}"><i class="fas fa-gift"></i> Received Offers</a></li>
-                <li><a href="{% url 'uploads' %}"><i class="fas fa-upload"></i> Uploads</a></li>
-            </ul>
-        </div>
+           
+         <!-- Merchant Dropdown -->
+<div class="dropdown">
+    <a class="dropdown-link" id="merchantDropdownToggle">
+        <i class="fas fa-store"></i> Merchant
+    </a>
+    <ul class="dropdown-menu" id="merchantDropdownMenu">
+        {% comment %} <li><a href="{% url 'merchant_list' %}"><i class="fas fa-list"></i> Merchant List</a></li> {% endcomment %}
+        <li><a href="{% url 'corporate_list' %}"><i class="fas fa-building"></i> Corporate Merchant List</a></li>
+        <li><a href="{% url 'individual_list' %}"><i class="fas fa-user"></i> Individual Merchant List</a></li>
+        {% comment %} <li><a href="{% url 'add_merchant' %}"><i class="fas fa-user-plus"></i> Add Merchant</a></li> {% endcomment %}
+        <li><a href="{% url 'merchant_credentials' %}"><i class="fas fa-key"></i> Merchant Credentials</a></li>
+        <li><a href="{% url 'merchant_topup' %}"><i class="fas fa-wallet"></i> Top-Up Limit</a></li>
+        <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li>
+        <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Reduce Limit</a></li>
+        <li><a href="{% url 'merchant_status' %}"><i class="fas fa-toggle-on"></i> Merchant Status</a></li>
+        <li><a href="{% url 'login_page_info' %}"><i class="fas fa-info-circle"></i> Login Page Info</a></li>
+        <li><a href="{% url 'send_notifications' %}"><i class="fas fa-bell"></i> Send Notifications</a></li>
+        <li><a href="{% url 'received_offers' %}"><i class="fas fa-gift"></i> Received Offers</a></li>
+        <li><a href="{% url 'uploads' %}"><i class="fas fa-upload"></i> Uploads</a></li>
+    </ul>
+</div>
+
       
          <div id="belowMerchant">
             <a href="{% url 'add_customer' %}" class="{% if request.path == 'add_customer/' %}active{% endif %}">
@@ -58,11 +63,11 @@
         </div> {% endcomment %}
 
         <!-- Employee Dropdown -->
-        <div class="dropdown">
+        <div class="dropdown" >
             <a class="dropdown-link" id="employeeDropdownToggle">
                 <i class="fas fa-user-tie"></i> Employee
             </a>
-            <ul class="dropdown-menu" id="employeeDropdownMenu">
+            <ul class="dropdown-menu"  id="employeeDropdownMenu">
                 <li><a href="{% url 'employee_list' %}"><i class="fas fa-list"></i> Employee List</a></li>
                 <li><a href="{% url 'employee_role' %}"><i class="fas fa-user-tag"></i> Employee Role</a></li>
             </ul>
@@ -121,36 +126,46 @@
 
    
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const merchantDropdown = document.querySelector(".dropdown-link");
-            const dropdownMenu = document.querySelector(".dropdown-menu");
-            const belowMerchant = document.getElementById("belowMerchant");
+  
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function setupDropdown(toggleId, menuId, belowElementId) {
+            const toggle = document.getElementById(toggleId);
+            const menu = document.getElementById(menuId);
+            const belowElement = document.getElementById(belowElementId);
     
-            merchantDropdown.addEventListener("click", function (event) {
-                event.preventDefault();
-                
-                // Toggle dropdown visibility
-                dropdownMenu.classList.toggle("show");
+            if (toggle && menu && belowElement) {
+                toggle.addEventListener("click", function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    menu.classList.toggle("show");
     
-                // Adjust margin of belowMerchant to push content down
-                if (dropdownMenu.classList.contains("show")) {
-                    belowMerchant.style.marginTop = dropdownMenu.scrollHeight + "px"; // Move it down
-                } else {
-                    belowMerchant.style.marginTop = "0px"; // Reset position
-                }
-            });
+                    if (menu.classList.contains("show")) {
+                        belowElement.classList.add("dropdown-open");
+                    } else {
+                        belowElement.classList.remove("dropdown-open");
+                    }
+                });
     
-            // Close dropdown when clicking outside
-            document.addEventListener("click", function (event) {
-                if (!merchantDropdown.contains(event.target) && !dropdownMenu.contains(event.target)) {
-                    dropdownMenu.classList.remove("show");
-                    belowMerchant.style.marginTop = "0px"; // Reset margin when closing
-                }
-            });
-        });
-    </script>
+                document.addEventListener("click", function (event) {
+                    if (!toggle.contains(event.target) && !menu.contains(event.target)) {
+                        menu.classList.remove("show");
+                        belowElement.classList.remove("dropdown-open");
+                    }
+                });
+            }
+        }
     
+        setupDropdown("merchantDropdownToggle", "merchantDropdownMenu", "belowMerchant");
+        setupDropdown("employeeDropdownToggle", "employeeDropdownMenu", "belowEmployee");
+    });
+    
+    
+</script>
+
+    
+        
+
 
 </body>
 </html>
