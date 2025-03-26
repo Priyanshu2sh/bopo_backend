@@ -1,0 +1,71 @@
+<!-- myadmin/templates/login.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <!-- <title>PLEASE LOGIN TO Bigbonuspoints ADMIN</title> -->
+    <!-- Link to your separate CSS file -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'bopo_admin/css/login.css' %}">
+</head>
+<body>
+    <div class="colorful-line"></div>
+
+    <div style="margin-top: 30px;">
+        <h2>PLEASE LOGIN TO  Bigbonuspoints <br/>ADMIN</h2>
+
+    <div class="login-container">
+        
+        {% if error_message %}
+            <div class="error">{{ error_message }}</div>
+        {% endif %}
+        
+        <form method="post" action="">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    placeholder="Username" 
+                    required
+                >
+                <div style="font-size: 11px; margin-top: 3px; color: rgb(139, 138, 138);">
+                    Your unique username to app
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="*******" 
+                    required
+                >
+                <div style="font-size: 11px; margin-top: 3px; color: rgb(139, 138, 138);">
+                    Your strong password
+                </div>
+            </div>
+            <div class="form-group remember-me">
+                <input type="checkbox" name="remember_me" id="remember_me">
+                <label for="remember_me" style="margin-left:5px; font-size: 13px;">Remember me</label>
+            </div>
+            <div style="color: rgb(139, 138, 138) ;font-size: 12px; margin-bottom: 6px; ">
+                (if this is a private computer)
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        
+        
+    </div>
+    <div style="font-size: 13px; " class="footer-text">
+        A Trademark Product of <span style="text-decoration: none; "><a 
+            style="text-decoration: none; color: rgb(50, 130, 170);"
+        href="">Miraasiv Onpay Technologies Pvt Ltd.</a> </span>  All rights reserved.
+    </div>
+    </div>
+</body>
+</html>

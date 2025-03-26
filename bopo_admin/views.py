@@ -1,4 +1,10 @@
 from django.shortcuts import render
+# from django.contrib.auth import authenticate 
+# from django.shortcuts import redirect
+from .models import BopoAdmin
+
+# Create your views here.
+from django.shortcuts import render
 
 def home(request):
    return render(request, 'bopo_admin/home.html')
@@ -102,3 +108,18 @@ def account_info(request):
 
 def reports(request):
     return render(request, 'bopo_admin/Payment/reports.html')
+
+def login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = BopoAdmin.objects.get(username=username)
+        if user.password != password:
+            error_message = "Incorrect password"
+            return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+        
+        return render(request, 'bopo_admin/login.html')
+    # return redirect()
+    else:
+        return render(request, 'bopo_admin/login.html')
