@@ -23,5 +23,5 @@ urlpatterns = [
 
     path('api/', include('accounts.urls')),
     path('', include('bopo_admin.urls')),
-
+   
 ]

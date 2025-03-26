@@ -23,37 +23,11 @@
             </div>
             
             <div class="card">
-                <div class="card-header">POT. PROJECTS</div>
-                <div class="card-body">
-                    <span class="value">0</span>
-                    <div class="progress-container">
-                        <span class="progress-text">15% ⬇</span>
-                    </div>
-                    <div class="progress-bar">
-                        <span></span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
                 <div class="card-header">MERCHANTS</div>
                 <div class="card-body">
                     <span class="value">1</span>
                     <div class="progress-container">
                         <span class="progress-text">50% ⬆</span>
-                    </div>
-                    <div class="progress-bar">
-                        <span></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">POT. MERCHANTS</div>
-                <div class="card-body">
-                    <span class="value">0</span>
-                    <div class="progress-container">
-                        <span class="progress-text">80% ⬇</span>
                     </div>
                     <div class="progress-bar">
                         <span></span>
@@ -77,30 +51,30 @@
     <script>
         var ctx = document.getElementById('dashboardChart').getContext('2d');
         var dashboardChart = new Chart(ctx, {
-            type: 'line', // Line chart for smooth area graph
+            type: 'line',
             data: {
-                labels: ['2012', '2013', '2014', '2015', '2016', '2017', '2018'],
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                 datasets: [
                     {
                         label: 'Projects',
-                        data: [20, 50, 60, 70, 40, 80, 120], 
-                        backgroundColor: 'rgba(52, 152, 219, 0.5)', // Blue
+                        data: [5, 8, 12, 10, 15, 20, 25, 22, 30, 28, 35, 40], 
+                        backgroundColor: 'rgba(52, 152, 219, 0.5)',
                         borderColor: 'rgba(52, 152, 219, 1)',
                         borderWidth: 2,
                         fill: true
                     },
                     {
                         label: 'Merchants',
-                        data: [30, 80, 100, 200, 150, 220, 300],
-                        backgroundColor: 'rgba(46, 204, 113, 0.5)', // Green
+                        data: [10, 15, 18, 20, 25, 30, 35, 40, 45, 50, 55, 60],
+                        backgroundColor: 'rgba(46, 204, 113, 0.5)',
                         borderColor: 'rgba(46, 204, 113, 1)',
                         borderWidth: 2,
                         fill: true
                     },
                     {
                         label: 'Customers',
-                        data: [50, 90, 120, 160, 140, 180, 250], 
-                        backgroundColor: 'rgba(231, 76, 60, 0.5)', // Red
+                        data: [50, 55, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150], 
+                        backgroundColor: 'rgba(231, 76, 60, 0.5)',
                         borderColor: 'rgba(231, 76, 60, 1)',
                         borderWidth: 2,
                         fill: true
@@ -109,18 +83,29 @@
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // Allows custom width & height
+                maintainAspectRatio: false,
                 scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Months'
+                        }
+                    },
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        }
                     }
                 }
             }
         });
     </script>
+    
 
-       <!-- Footer Section -->
-       <footer class="footer">
+    <!-- Footer Section -->
+    <footer class="footer">
         <p>A Trademark Product Of Miraasiv Onpay Technologies Pvt Ltd. All rights reserved.</p>
     </footer>
 {% endblock %}

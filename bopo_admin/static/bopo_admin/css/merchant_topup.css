@@ -129,3 +129,25 @@ h1.heading {
     font-size: 16px;
     background: #f9f9f9;
 }
+
+.topup-btn-submit {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 3%;
+    width: 20%;
+    font-size: 16px;
+    color: white;
+    background-color: #004080; /* Primary Blue */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 40%;
+    font-size: bold;
+}
+
+.topup-btn-submit:hover {
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
+}

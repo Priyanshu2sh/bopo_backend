@@ -5,23 +5,33 @@ body {
     padding: 0;
 }
 
-.merchant-header {
+/* .merchant-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap; /* Allows elements to wrap on smaller screens */
-    gap: 15px; /* Adds spacing when wrapped */
+    flex-wrap: wrap; 
+    gap: 15px; 
     padding: 15px;
     font-size: 20px;
     font-weight: bold;
     margin-top: 4%;
-}
+} */
 
+.merchant-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 1300px;
+    margin: auto;
+    margin-top: 5%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
 
 
 /* 🟢 Responsive Add Merchant Button */
 .add-merchant-btn {
-    background-color: #803a2f;
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
     color: white;
     border: none;
     padding: 10px 15px;
@@ -30,7 +40,7 @@ body {
     font-size: 16px;
     font-weight: bold;
     margin-left: 85%;
-    margin-top: 1%;
+    margin-top: 3%;
     transition: background 0.3s ease-in-out;
 }
 .add-merchant-btn:hover {

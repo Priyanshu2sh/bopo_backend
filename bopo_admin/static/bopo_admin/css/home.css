@@ -7,9 +7,9 @@
 /* Card Container - Force all cards in one line */
 .card-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;  /* Aligns cards to the center */
     align-items: stretch;
-    gap: 20px;
+    gap: 80px;
     padding: 20px;
     flex-wrap: wrap; /* Allow cards to wrap */
 }
@@ -45,7 +45,10 @@
 
 /* Card Header */
 .card-header {
-    background: linear-gradient(135deg, #712D1E, #A14C39);
+    /* background: linear-gradient(135deg, #712D1E, #A14C39);
+    color: white; */
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
     color: white;
     padding: 15px;
     font-weight: bold;
@@ -146,7 +149,9 @@
 .footer {
     text-align: center;
     padding: 10px;
-    background-color: rgb(225, 162, 227);
+    /* background-color: rgb(225, 162, 227); */
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
     font-size: 15px;
     font-weight: bold;
     color: white;

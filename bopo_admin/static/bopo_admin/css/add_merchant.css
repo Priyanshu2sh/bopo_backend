@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #fff;
+    background-color: #f8f9fa;
     margin: 0;
     padding: 0;
 }
@@ -81,7 +81,7 @@ body {
 }
 
 .addmerchant-btn-submit:hover {
-    background-color: #002b55; /* Darker Blue */
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
 }
 
 .back-to-list-btn a {
@@ -89,20 +89,22 @@ body {
     padding: 10px 20px;
     font-size: 16px;
     color: white;
-    background-color: #777; /* Grey */
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
     border: none;
     border-radius: 5px;
     cursor: pointer;
     text-align: center;
     text-decoration: none;
     transition: background 0.3s ease;
-    margin-left: 80%;
+    margin-left: 83%;
     width: 15%;
-    margin-top: 6%;
+    font-weight: bold;
+    margin-top: 8%;
 }
 
 .back-to-list-btn a:hover {
-    background-color: #555; /* Darker Grey */
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
 }
 
 .addmerchant-buttons {

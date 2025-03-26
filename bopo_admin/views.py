@@ -32,6 +32,10 @@ def add_merchant(request):
 
 
 def add_individual_merchant(request):
+    if request.method == "POST":
+        merchant_name = request.POST.get("merchant_name")
+        print(merchant_name)  # Debugging purpose to check if data is received
+        
     return render(request, "bopo_admin/Merchant/add_individual_merchant.html")
 
 

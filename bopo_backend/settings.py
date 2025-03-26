@@ -46,8 +46,8 @@ INSTALLED_APPS = [
     # 'bopo_customer',
     'accounts',
     'rest_framework', 
-    
-    'corsheaders'
+    'corsheaders',
+
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

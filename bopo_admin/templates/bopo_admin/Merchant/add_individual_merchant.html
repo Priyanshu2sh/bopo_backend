@@ -21,7 +21,7 @@
 
     <h2 class="heading">Add Individual Merchant</h2>
     <div class="add_individual_merchant-container">
-        <form>
+        <form method='POST'>
             {% csrf_token %}
 
             <!-- Form Fields (Left & Right Columns) -->
@@ -32,7 +32,7 @@
                     <label>Contact Person</label>
                     <div class="add_individual_merchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="employee_name" required>
+                        <input type="text" name="merchant_name" required>
                     </div>
     
                     <label>Email ID</label>

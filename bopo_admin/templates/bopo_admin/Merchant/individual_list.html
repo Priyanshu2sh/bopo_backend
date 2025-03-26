@@ -2,11 +2,11 @@
 
 {% block content %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_list.css' %}">
+<link rel="stylesheet" href="{% static 'bopo_admin/css/individual_merchant_list.css' %}">
 
 <div class="merchant-container">
     <div class="merchant-header">
-        <h2>Individual Merchants List</h2>
+
         <button class="add-merchant-btn" onclick="window.location.href='{% url 'add_individual_merchant' %}'">
             + Add Merchant
         </button>

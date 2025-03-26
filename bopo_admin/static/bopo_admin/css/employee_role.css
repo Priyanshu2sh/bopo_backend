@@ -1,6 +1,6 @@
 /* General Page Styling */
 body {
-    background-color: #f0f4f8;
+    background-color: #f4f4f4;
     font-family: 'Poppins', sans-serif;
     margin: 0;
     padding: 0;
@@ -107,7 +107,7 @@ input[type="checkbox"] + label::before {
     content: "";
     width: 18px;
     height: 18px;
-    background: #ecf0f1;
+    /* background: #ecf0f1; */
     border: 2px solid #3498db;
     border-radius: 4px;
     position: absolute;
@@ -141,12 +141,13 @@ input[type="checkbox"]:checked + label::before {
 }
 
 .btn-danger {
-    background-color: #803a2f;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
     color: white;
 }
 
 .btn-danger:hover {
-    background-color: #b26a60; 
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
 }
 
 .btn-primary {

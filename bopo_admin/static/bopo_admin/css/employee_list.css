@@ -29,18 +29,25 @@ body {
 
 /* Add Employee Button */
 .add-employee-btn {
-    background-color: #803a2f;
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
     color: white;
     border: none;
     padding: 8px 15px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 20px;
+    width: 15%;
     font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 16px;
+    text-decoration: none;
+    transition: background 0.3s ease;
 }
 
 .add-employee-btn:hover {
-    background-color: #a14a3f;
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
 }
 
 /* Employee List */
