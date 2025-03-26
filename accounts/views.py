@@ -7,12 +7,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
 from django.shortcuts import get_object_or_404
-
 from rest_framework import status
 from django.utils.timezone import now
 from bopo_backend import settings
-from .models import Corporate, Customer, Merchant
-from .serializers import CorporateSerializer,  CustomerSerializer, MerchantSerializer
+from .models import  Customer, Merchant
+from .serializers import   CustomerSerializer, MerchantSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -36,55 +35,61 @@ class OTPService:
             return False
 
 
-class RegisterCorporateAPIView(APIView):
-    """ API to register a Corporate account and send OTP """
+# class RegisterCorporateAPIView(APIView):
+#     """API to register a Corporate account and send OTP"""
 
-    def post(self, request):
-        mobile = request.data.get("mobile")
+#     def post(self, request):
+#         mobile = request.data.get("mobile")
 
-        if not mobile:
-            return Response({"error": "Mobile number is required."}, status=status.HTTP_400_BAD_REQUEST)
+#         if not mobile:
+#             return Response({"error": "Mobile number is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        otp = random.randint(100000, 999999)
+#         otp = random.randint(100000, 999999)
 
-        try:
-            corporate = Corporate.objects.get(mobile=mobile)
+#         try:
+#             corporate = Corporate.objects.get(mobile=mobile)
 
-            if corporate.verified_at:
-                return Response({"message": "Corporate is already registered and verified.", "corporate_id": corporate.corporate_id}, 
-                                status=status.HTTP_400_BAD_REQUEST)
+#             if corporate.verified_at:
+#                 return Response(
+#                     {"message": "Corporate is already registered and verified.", "corporate_id": corporate.corporate_id},
+#                     status=status.HTTP_400_BAD_REQUEST
+#                 )
 
-            corporate.otp = otp
-            corporate.save()
-            message = "Corporate exists but not verified. OTP resent successfully."
+#             corporate.otp = otp
+#             corporate.save()
+#             message = "Corporate exists but not verified. OTP resent successfully."
 
-        except Corporate.DoesNotExist:
-            # ✅ Generate sequential corporate_id
-            last_corporate = Corporate.objects.order_by("-corporate_id").first()
-            if last_corporate and last_corporate.corporate_id.startswith("CORP"):
-                new_id = int(last_corporate.corporate_id[4:]) + 1  # Extract number and increment
-            else:
-                new_id = 1  # First corporate account
-            
-            corporate_id = f"CORP{new_id:06d}"  # Format: CORP000001, CORP000002, etc.
+#         except Corporate.DoesNotExist:
+#             # ✅ Generate unique corporate_id
+#             last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
 
-            # ✅ Store new corporate data
-            corporate_data = request.data.copy()
-            corporate_data["corporate_id"] = corporate_id
-            corporate_data["otp"] = otp
+#             if last_corporate and last_corporate.corporate_id:
+#                 try:
+#                     new_id = int(last_corporate.corporate_id[4:]) + 1  # Extract number and increment
+#                 except ValueError:
+#                     new_id = 1  # In case corporate_id is corrupted
+#             else:
+#                 new_id = 1  # First corporate account
 
-            serializer = CorporateSerializer(data=corporate_data)
-            if serializer.is_valid():
-                corporate = serializer.save()
-                message = "Corporate registered & OTP sent successfully."
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#             corporate_id = f"CORP{new_id:06d}"  # Format: CORP000001, CORP000002, etc.
 
-        # ✅ Send OTP
-        if OTPService.send_sms_otp(mobile, otp):
-            return Response({"message": message, "corporate_id": corporate.corporate_id}, status=status.HTTP_200_OK)
+#             # ✅ Store new corporate data
+#             corporate_data = request.data.copy()
+#             corporate_data["corporate_id"] = corporate_id
+#             corporate_data["otp"] = otp
 
-        return Response({"error": "OTP sending failed."}, status=status.HTTP_400_BAD_REQUEST)
+#             serializer = CorporateSerializer(data=corporate_data)
+#             if serializer.is_valid():
+#                 corporate = serializer.save()
+#                 message = "Corporate registered & OTP sent successfully."
+#             else:
+#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#         # ✅ Send OTP
+#         if OTPService.send_sms_otp(mobile, otp):
+#             return Response({"message": message, "corporate_id": corporate.corporate_id}, status=status.HTTP_200_OK)
+
+#         return Response({"error": "OTP sending failed."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RegisterUserAPIView(APIView):
@@ -262,7 +267,6 @@ class RegisterUserAPIView(APIView):
         return Response({"message": "Merchant deleted successfully."}, status=status.HTTP_200_OK)
 
 
-
 class LoginAPIView(APIView):
     """API for Customer, Merchant, and Corporate Login"""
 
@@ -320,22 +324,22 @@ class LoginAPIView(APIView):
                         logger.warning("Invalid PIN for customer")
 
             # ✅ Check if user is a Corporate
-            if mobile and not user:  # Prevents checking corporate if customer is already found
-                corporate = Corporate.objects.filter(mobile=mobile).first()
-                if corporate:
-                    logger.info(f"Corporate user found: {corporate.id}")
+            # if mobile and not user:  # Prevents checking corporate if customer is already found
+            #     corporate = Corporate.objects.filter(mobile=mobile).first()
+            #     if corporate:
+            #         logger.info(f"Corporate user found: {corporate.id}")
 
-                    # 🔹 Ensure PIN comparison is correct
-                    if isinstance(corporate.pin, int):
-                        stored_pin = corporate.pin
-                    else:
-                        stored_pin = int(corporate.pin)  
+            #         # 🔹 Ensure PIN comparison is correct
+            #         if isinstance(corporate.pin, int):
+            #             stored_pin = corporate.pin
+            #         else:
+            #             stored_pin = int(corporate.pin)  
 
-                    if stored_pin == int(pin):  # ✅ Compare integer values
-                        user = corporate
-                        user_category = "corporate"
-                    else:
-                        logger.warning("Invalid PIN for corporate")
+            #         if stored_pin == int(pin):  # ✅ Compare integer values
+            #             user = corporate
+            #             user_category = "corporate"
+            #         else:
+            #             logger.warning("Invalid PIN for corporate")
 
             # ❌ If no valid user found
             if not user:
@@ -353,8 +357,8 @@ class LoginAPIView(APIView):
                 response_data["merchant_id"] = user.merchant_id
             elif user_category == "customer":
                 response_data["customer_id"] = user.customer_id
-            elif user_category == "corporate":
-                response_data["corporate_id"] = user.id
+            # elif user_category == "corporate":
+            #     response_data["corporate_id"] = user.id
 
             logger.info("Login successful")
             return Response(response_data, status=status.HTTP_200_OK)
@@ -367,15 +371,14 @@ class LoginAPIView(APIView):
 
 
 class VerifyOTPAPIView(APIView):
-    """API to verify OTP for Customer, Merchant, or Corporate"""
+    """API to verify OTP for Customer or Merchant"""
 
     def post(self, request):
         try:
             otp = request.data.get("otp")
             customer_id = request.data.get("customer_id")
             merchant_id = request.data.get("merchant_id")
-            mobile = request.data.get("mobile")  # Corporate verification uses mobile
-            user_category = request.data.get("user_category", "").strip().lower()  # Ensure lowercase
+            user_category = request.data.get("user_category", "").strip().lower()
 
             logger.info(f"Received OTP verification request: {request.data}")
 
@@ -385,46 +388,44 @@ class VerifyOTPAPIView(APIView):
             if not user_category:
                 return Response({"error": "User category is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Validate user category and required fields
             if user_category == "customer" and not customer_id:
                 return Response({"error": "Customer ID is required."}, status=status.HTTP_400_BAD_REQUEST)
             elif user_category == "merchant" and not merchant_id:
                 return Response({"error": "Merchant ID is required."}, status=status.HTTP_400_BAD_REQUEST)
-            elif user_category == "corporate" and not mobile:
-                return Response({"error": "Mobile number is required for corporate users."}, status=status.HTTP_400_BAD_REQUEST)
-            elif user_category not in ["customer", "merchant", "corporate"]:
-                return Response({"error": "Invalid user category."}, status=status.HTTP_400_BAD_REQUEST)
 
             user = None
-
-            # Fetch user based on category
             if user_category == "customer":
                 user = Customer.objects.filter(customer_id=customer_id).first()
             elif user_category == "merchant":
                 user = Merchant.objects.filter(merchant_id=merchant_id).first()
-            elif user_category == "corporate":
-                user = Corporate.objects.filter(mobile=mobile).first()
 
             if not user:
                 return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Ensure default status remains "inactive" until verification
-            if not user.status:
-                user.status = "inactive"
-                user.save()
+            # Log stored OTP for debugging
+            logger.info(f"Stored OTP for {user_category} ({customer_id or merchant_id}): {user.otp}")
+            logger.info(f"Received OTP: {otp}")
+
+            # Check if OTP is already verified
+            if user.otp is None:
+                return Response({
+                    "error": "OTP already verified.",
+                    "status": user.status,
+                    "message": "Your account is already active."
+                }, status=status.HTTP_400_BAD_REQUEST)
 
             # Validate OTP
             if str(user.otp) != str(otp):
                 return Response({
-                    "error": "Allready OTP verifyed",
-                    "status": user.status,  # Keep the existing status (should be inactive)
-                    "message": "Your status is inactive. Please contact Big Bonus Point."
+                    "error": "Invalid OTP.",
+                    "status": user.status,
+                    "message": "Please request a new OTP."
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             # ✅ OTP is correct: Activate user
             user.verified_at = now()
             user.otp = None  # Clear OTP after successful verification
-            user.status = "Active"  # Mark user as active
+            user.status = "Active"
             user.save()
 
             response_data = {
@@ -433,21 +434,16 @@ class VerifyOTPAPIView(APIView):
                 "status": "Active",
             }
 
-            # Include appropriate ID field in the response
             if user_category == "merchant":
                 response_data["merchant_id"] = user.merchant_id
             elif user_category == "customer":
                 response_data["customer_id"] = user.customer_id
-            elif user_category == "corporate":
-                response_data["mobile"] = user.mobile  # Use mobile for corporate users
 
             return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}", exc_info=True)
-            return Response({"error": "Internal Server Error. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
+            return Response({"error": f"Internal Server Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 from rest_framework import status
 from rest_framework.response import Response
