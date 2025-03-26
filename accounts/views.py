@@ -368,8 +368,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils.timezone import now
-from .models import User
-from .serializers import UserSerializer
+# from .models import User
+# from .serializers import UserSerializer
 from .utils import send_otp_to_mobile
 
 class RegisterUser(APIView):

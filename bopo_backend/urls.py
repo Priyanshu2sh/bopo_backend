@@ -19,10 +19,9 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-<<<<<<< HEAD
     path("api/", include('accounts.urls')),
-=======
+
     path('api/', include('accounts.urls')),
-     path('', include('bopo_admin.urls')),
->>>>>>> origin/gayatri
+    path('', include('bopo_admin.urls')),
+
 ]

@@ -31,10 +31,10 @@ class TerminalSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"merchant_admin": "Corporate does not exist."})
 
         return data
-from .models import User
+# from .models import User
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'email', 'mobile_number', 'pin', 'otp', 'created_at', 'verified_at']
-        read_only_fields = ['otp', 'created_at', 'verified_at']
+# class UserSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = ['id', 'email', 'mobile_number', 'pin', 'otp', 'created_at', 'verified_at']
+#         read_only_fields = ['otp', 'created_at', 'verified_at']
