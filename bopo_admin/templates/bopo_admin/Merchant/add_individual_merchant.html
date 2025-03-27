@@ -29,12 +29,13 @@
                 
                 <!-- Left Column -->
                 <div class="add_individual_merchant-form-group">
-                    <label>Contact Person</label>
+                    <label>First Name</label>
                     <div class="add_individual_merchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="merchant_name" required>
+                        <input type="text" name="first_name" required>
                     </div>
-    
+
+                                      
                     <label>Email ID</label>
                     <div class="add_individual_merchant-input-container">
                         <i class="fas fa-envelope"></i>
@@ -44,7 +45,7 @@
                     <label>Aadhaar Number</label>
                     <div class="add_individual_merchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar" required>
+                        <input type="text" name="aadhaar_number" required>
                     </div>
     
                     <label>Shop Name</label>
@@ -76,6 +77,13 @@
     
                 <!-- Right Column -->
                 <div class="add_individual_merchant-form-group">
+
+                    <label>Last Name</label>
+                    <div class="add_individual_merchant-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="last_name" required>
+                    </div>
+
                     <label>Mobile Number</label>
                     <div class="add_individual_merchant-input-container">
                         <i class="fas fa-mobile-alt"></i>
@@ -85,13 +93,13 @@
                     <label>GST Number</label>
                     <div class="add_individual_merchant-input-container">
                         <i class="fas fa-file-invoice"></i>
-                        <input type="text" name="gst_number" required>
+                        <input type="text" name="gst_number" >
                     </div>
     
                     <label>Pan Number</label>
                     <div class="add_individual_merchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan">
+                        <input type="text" name="pan_number">
                     </div>
     
                     <label>Legal Name</label>
@@ -144,6 +152,10 @@
                 }, 3000); // Hide after 3 seconds
             });
         });
+
+
+
+        
     </script>
     
 </body>

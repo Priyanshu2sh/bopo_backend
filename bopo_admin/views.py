@@ -1,4 +1,6 @@
 from django.shortcuts import render
+
+from accounts.models import Merchant
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
 from .models import BopoAdmin
@@ -25,21 +27,53 @@ def corporate_list(request):
     return render(request, 'bopo_admin/Merchant/corporate_list.html')
 
 def individual_list(request):
-    return render(request, 'bopo_admin/Merchant/individual_list.html')
+    merchants = Merchant.objects.all()
+    return render(request, "bopo_admin/Merchant/individual_list.html", {"merchants": merchants})
+
 
 def add_merchant(request):
     return render(request, "bopo_admin/Merchant/add_merchant.html")
 
-
 def add_individual_merchant(request):
     if request.method == "POST":
-        merchant_name = request.POST.get("merchant_name")
-        print(merchant_name)  # Debugging purpose to check if data is received
+        merchant_id = request.POST.get("merchant_id")
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        email = request.POST.get("email")
+        mobile = request.POST.get("mobile")
+        aadhaar_number = request.POST.get("aadhaar_number")
+        gst_number = request.POST.get("gst_number")
+        pan_number = request.POST.get("pan_number")
+        shop_name = request.POST.get("shop_name")
+        legal_name = request.POST.get("legal_name")
+        address = request.POST.get("address")
+        pincode = request.POST.get("pincode")
+        state = request.POST.get("state")
+        city = request.POST.get("city")
+        country = request.POST.get("country", "India")  # Default to 'India' if empty
+
+             
+
+        # Save to database
+        Merchant.objects.create(
+            merchant_id=merchant_id,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            mobile=mobile,
+            aadhaar_number=aadhaar_number,
+            gst_number=gst_number,
+            pan_number=pan_number,
+            shop_name=shop_name,
+            legal_name=legal_name,
+            address=address,
+            pincode=pincode,
+            state=state,
+            city=city,
+            country=country
+        )
         
     return render(request, "bopo_admin/Merchant/add_individual_merchant.html")
-
-
-
 
 def project_onboarding(request):
     return render(request, 'bopo_admin/project_onboarding.html')

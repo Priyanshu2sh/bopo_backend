@@ -9,7 +9,7 @@
     display: flex;
     justify-content: center;  /* Aligns cards to the center */
     align-items: stretch;
-    gap: 80px;
+    gap: 10px;
     padding: 20px;
     flex-wrap: wrap; /* Allow cards to wrap */
 }

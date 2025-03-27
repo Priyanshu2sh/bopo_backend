@@ -12,10 +12,23 @@ from .models import User
 class MerchantSerializer(serializers.ModelSerializer):
 
     merchant_id = serializers.CharField()
-    email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_null=True, allow_blank=True) 
     class Meta:
         model = Merchant
         fields = '__all__'
+        extra_kwargs = {
+            'contact_person': {'required': False},
+            'aadhaar_number': {'required': False},
+            'gst_number': {'required': False},
+            'pan_number': {'required': False},
+            'shop_name': {'required': False},
+            'address': {'required': False},
+            'legal_name': {'required': False},
+            'state': {'required': False},
+            'city': {'required': False},
+            'country': {'required': False},
+            'pincode': {'required': False},
+        }
 
 class CustomerSerializer(serializers.ModelSerializer):
    
