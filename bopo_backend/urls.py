@@ -19,9 +19,14 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("api/", include('accounts.urls')),
-
     path('api/', include('accounts.urls')),
     path('', include('bopo_admin.urls')),
-   
+    path('point/', include('bopo.urls')),
+    path('redeemAwardPoints/', include('bopo_award.urls')),
+    path('transactionHistory/', include('transaction_history.urls')),
+    path('qr/', include('qr_store.urls')),
+    path('transfer/', include('transfer.urls')),
+
+
+
 ]

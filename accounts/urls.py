@@ -1,11 +1,10 @@
 from django.urls import path
-from .views import RegisterCorporateAPIView, RegisterMerchantAPIView, RegisterTerminalAPIView, UserLoginAPIView, VerifyOTPAPIView
+from .views import  RegisterUserAPIView, LoginAPIView, VerifyOTPAPIView
 
 urlpatterns = [
-    path('register-corporate/', RegisterCorporateAPIView.as_view(), name="register_corporate"),
-    path('register-merchant/', RegisterMerchantAPIView.as_view(), name="register_merchant"),
-    path('register-terminal/', RegisterTerminalAPIView.as_view(), name='register-terminal'),
-    path('login/', UserLoginAPIView.as_view(), name='user-login'),
-   
+    # path('register-corporate/', RegisterCorporateAPIView.as_view(), name="register_corporate"),
+    path('register-user/', RegisterUserAPIView.as_view(), name="register_merchant"),  
+    path('login-user/', LoginAPIView.as_view(), name='login-user'),
     path('verify-otp/', VerifyOTPAPIView.as_view(), name="verify_otp"),
+
 ]
