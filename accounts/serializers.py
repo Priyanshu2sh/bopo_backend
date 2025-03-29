@@ -16,17 +16,20 @@ class MerchantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Merchant
         fields = '__all__'
+        extra_kwargs = {'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 'legal_name': {'required':False},
+                        'pincode': {'required':False}, 'address': {'required':False}, 'select_state': {'required':False}, 'country': {'required':False},
+                        'shop_name':{'required':False},'register_shop_name':{'required':False}, 'gst':{'required':False}}
 
 class CustomerSerializer(serializers.ModelSerializer):
    
-   customer_id = serializers.CharField()
-   email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
-   class Meta:
-       model = Customer
-       fields = '__all__'
-       extra_kwargs = {'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 'gst': {'required':False},
-                       'legal_name': {'required':False}, 'pincode': {'required':False}, 'address': {'required':False}, 'select_state': {'required':False}, 'country': {'required':False},
-                       'shop_name': {'required':False},}
+    customer_id = serializers.CharField()
+    email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
+    age = serializers.IntegerField(required=False, allow_null=True)
+    class Meta:
+        model = Customer
+        fields = '__all__'
+        extra_kwargs = {'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 
+                        'pincode': {'required':False}, 'address': {'required':False}, 'select_state': {'required':False}, 'country': {'required':False},}
 
 
 

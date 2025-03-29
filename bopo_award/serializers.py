@@ -1,12 +1,35 @@
+# from rest_framework import serializers
+# from .models import TransferPoint
+
+# class TransferPointSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = TransferPoint
+#         fields = ['customer_id', 'merchant_id', 'points', 'transaction_type', 'created_at']
+
+#     def validate(self, data):
+#         if data['transaction_type'] not in ['redeem', 'award']:
+#             raise serializers.ValidationError("Invalid transaction type.")
+#         return data
+
 from rest_framework import serializers
-from .models import TransferPoint
+from .models import CustomerPoints, MerchantPoints, History
 
-class TransferPointSerializer(serializers.ModelSerializer):
+
+class CustomerPointsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = TransferPoint
-        fields = ['customer_id', 'merchant_id', 'points', 'transaction_type', 'created_at']
+        model = CustomerPoints
+        fields = '__all__'
 
-    def validate(self, data):
-        if data['transaction_type'] not in ['redeem', 'award']:
-            raise serializers.ValidationError("Invalid transaction type.")
-        return data
+class MerchantPointsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MerchantPoints
+        fields = '__all__'
+
+class HistorySerializer(serializers.ModelSerializer):
+    """
+    Serializer for Transaction History API
+    """
+
+    class Meta:
+        model = History
+        fields = ['customer_id', 'merchant_id', 'points', 'transaction_type', 'created_at']

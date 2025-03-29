@@ -170,6 +170,9 @@ class RegisterUserAPIView(APIView):
 
             serializer = CustomerSerializer(data={**request.data, "customer_id": customer_id, "otp": otp})
             if serializer.is_valid():
+                age = request.data.get("age")
+                if age is None:
+                    request.data["age"] = None 
                 customer = serializer.save()
                 message = "Customer registered & OTP sent successfully."
             else:
