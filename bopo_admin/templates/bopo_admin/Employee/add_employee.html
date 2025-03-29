@@ -1,0 +1,169 @@
+{% extends "bopo_admin/base.html" %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Employee</title>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'bopo_admin/css/add_employee.css' %}">
+</head>
+<body>
+
+    <div class="back-to-list-btn">
+        <a href="{% url 'employee_list' %}" class="addemployee-btn-submit">
+            <i class="fa fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    
+    <h2 class="heading">Add Employee</h2>
+    <div class="addemployee-container">
+
+ <form>
+            {% csrf_token %}
+            <div class="addemployee-form-container">
+                <!-- Left Column -->
+                <div class="addemployee-form-group">
+                    <label>Employee Name</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="employee_name" required>
+                    </div>
+
+                    <label>Email ID</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" required>
+                    </div>
+
+                    <label>Aadhaar Number</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="aadhaar" required>
+                    </div>
+
+                    <label>Address</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" name="address" required>
+                    </div>
+
+                    <label>Select State</label>
+                    <div class="addemployee-input-container">
+                        <select name="state">
+                            <option value="">Select State</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Gujarat">Gujarat</option>
+                        </select>
+                    </div>
+
+                    <label>Select City</label>
+                    <div class="addemployee-input-container">
+                        <select name="city">
+                            <option value="">Select City</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Pune">Pune</option>
+                        </select>
+                    </div>
+
+                    <label>Country</label>
+                    <div class="addemployee-input-container">
+                        <input type="text" name="country" value="India" disabled>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="addemployee-form-group">
+                    <label>User Name</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" required>
+                    </div>
+
+                    <label>Password</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" required class="password-field">
+                        <input type="text" id="passwordText" name="passwordText" required class="password-field show-password">
+                        <input type="checkbox" id="togglePassword" class="password-checkbox">
+                        <label for="togglePassword" class="password-toggle">
+                            <i class="fas fa-eye"></i>
+                        </label>
+                    </div>
+                    
+                    <label>Confirm Password</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="confirmPassword" name="confirm_password" required class="password-field">
+                        <input type="text" id="confirmPasswordText" name="confirm_passwordText" required class="password-field show-password">
+                        <input type="checkbox" id="toggleConfirmPassword" class="password-checkbox">
+                        <label for="toggleConfirmPassword" class="password-toggle">
+                            <i class="fas fa-eye"></i>
+                        </label>
+                    </div>
+           
+
+                    <label>Mobile Number</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-mobile-alt"></i>
+                        <input type="text" name="mobile" required>
+                    </div>
+
+                    <label>Pan Number</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="pan">
+                    </div>
+
+                    <label>Pincode</label>
+                    <div class="addemployee-input-container">
+                        <i class="fas fa-home"></i>
+                        <input type="text" name="pincode">
+                    </div>
+
+                  
+                </div>
+            </div>
+
+            <button type="submit" class="addemployee-btn-submit">Submit</button>
+           
+        </form>
+    </div>
+
+  
+ <!-- Toast Notification -->
+ <div id="toast" class="toast-container">
+    <i class="fa fa-check-circle"></i>
+    <span class="toast-message">Employee added successfully!</span>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent actual form submission
+
+            let toast = document.getElementById("toast");
+            toast.classList.add("toast-show");
+
+            setTimeout(function () {
+                toast.classList.add("toast-hide");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show", "toast-hide");
+                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
+                }, 500);
+            }, 3000); // Hide after 3 seconds
+        });
+    });
+</script>
+
+
+
+    
+
+</body>
+</html>
+{% endblock %}

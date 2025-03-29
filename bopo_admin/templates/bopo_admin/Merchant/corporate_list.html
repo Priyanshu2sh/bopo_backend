@@ -2,25 +2,26 @@
 
 {% block content %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_list.css' %}">
+<link rel="stylesheet" href="{% static 'bopo_admin/css/corporate_merchant_list.css' %}">
 
 <div class="merchant-container">
     <div class="merchant-header">
-        <h2>Merchants List</h2>
+
         <button class="add-merchant-btn" onclick="window.location.href='{% url 'add_merchant' %}'">
             + Add Merchant
         </button>
     </div>
 
     <div class="merchant-list">
-        <!-- Corporate Merchants Section -->
+        {% comment %} <h2>Corporate Merchants List</h2> {% endcomment %}
         <div class="merchant-item">
-            <input type="checkbox" id="toggle-corporate" class="toggle-checkbox">
+            <!-- Set checkbox as checked by default to keep it open -->
+            <input type="checkbox" id="toggle-corporate" class="toggle-checkbox" checked>
             <label for="toggle-corporate" class="merchant-label">
                 <span class="merchant-icon">🏢</span>
                 <span>Corporate Merchants List</span>
             </label>
-            <div class="merchant-table">
+            <div class="merchant-table open">  <!-- Add 'open' class here -->
                 <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table', 'search-corporate')" placeholder="Search corporate merchants...">
                 <table id="corporate-table">
                     <thead>
@@ -41,7 +42,7 @@
                             <td>1</td>
                             <td>1</td>
                             <td>1</td>
-                            <td>Demo contact</td>
+                            <td>Demo Contact</td>
                             <td>9090909090</td>
                             <td>DEMO</td>
                             <td>Pune</td>
@@ -55,48 +56,6 @@
                 </table>
             </div>
         </div>
-
-        <!-- Individual Merchants Section -->
-        <div class="merchant-item">
-            <input type="checkbox" id="toggle-individual" class="toggle-checkbox">
-            <label for="toggle-individual" class="merchant-label">
-                <span class="merchant-icon">👤</span>
-                <span>Individual Merchants List</span>
-            </label>
-            <div class="merchant-table">
-                <input type="text" class="search-box" id="search-individual" onkeyup="filterTable('individual-table', 'search-individual')" placeholder="Search individual merchants...">
-                <table id="individual-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Merchant Type</th>
-                            <th>Contact Person</th>
-                            <th>Mobile Number</th>
-                            <th>Shop Name</th>
-                            <th>City</th>
-                            <th>Verified</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>Demo Type</td>
-                            <td>Demo contact</td>
-                            <td>8080808080</td>
-                            <td>IND Shop</td>
-                            <td>Mumbai</td>
-                            <td>false</td>
-                            <td>
-                                <button>✏️</button>
-                                <button>🗑️</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
     </div>
 </div>
 

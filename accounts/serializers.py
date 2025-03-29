@@ -12,7 +12,7 @@ from .models import User
 class MerchantSerializer(serializers.ModelSerializer):
 
     merchant_id = serializers.CharField()
-    email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_null=True, allow_blank=True) 
     class Meta:
         model = Merchant
         fields = '__all__'

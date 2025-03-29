@@ -1,71 +1,40 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
-    margin: 0;
-    padding: 0;
-}
-
-.merchant-container {
+.limit-container {
     background-color: #fff;
     padding: 20px;
     border-radius: 10px;
-    max-width: 1300px;
+    max-width: 1200px;
     margin: auto;
-    margin-top: 5%;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 5%;
 }
 
-/* Header */
-.merchant-header {
+.limit-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: black;
     padding: 15px;
-    border-radius: 5px;
     font-size: 20px;
     font-weight: bold;
 }
 
-/* Add Merchant Button */
-.add-merchant-btn {
-    background-color: #803a2f;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.add-merchant-btn:hover {
-    background-color: #a14a3f;
-}
-
-/* Merchant List */
-.merchant-list {
+.limit-list {
     margin-top: 20px;
     background: #e3f2fd;
     padding: 15px;
     border-radius: 8px;
 }
 
-/* Merchant Items */
-.merchant-item {
+.limit-item {
     background: #f8f9fa;
     padding: 12px;
     margin-bottom: 10px;
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    font-weight: bold;
-    cursor: pointer;
     display: flex;
     flex-direction: column;
 }
 
-/* Merchant Labels */
-.merchant-label {
+.limit-label {
     display: flex;
     align-items: center;
     padding: 10px;
@@ -75,39 +44,30 @@ body {
     transition: background 0.3s ease-in-out;
 }
 
-.merchant-label:hover {
-    background: #edeeef;
+.limit-label:hover {
+    background: #dedede;
 }
 
-/* Merchant Icons */
-.merchant-icon {
+.limit-icon {
     margin-right: 10px;
     font-size: 20px;
 }
 
-/* Hide checkboxes */
-.toggle-checkbox {
-    display: none;
-}
 
-/* Initially Hide Merchant Table */
-.merchant-table {
+
+.limit-table {
     background-color: white;
-    padding: 0;
+    padding: 15px;
     border-radius: 8px;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease-in-out, padding 0.3s ease-in-out;
+    display: block; /* Ensure the table is always visible */
 }
 
-/* Show Merchant Table when Checkbox is Checked */
-.toggle-checkbox:checked + .merchant-label + .merchant-table {
+.toggle-checkbox:checked + .limit-label + .limit-table {
     max-height: 500px;
     padding: 15px;
 }
 
-/* Tables */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -124,7 +84,6 @@ th {
     background-color: #f4f4f4;
 }
 
-/* Search box */
 .search-box {
     width: 20%;
     padding: 8px;
@@ -134,7 +93,6 @@ th {
     margin-bottom: 10px;
 }
 
-/* Action buttons */
 button {
     border: none;
     background: none;

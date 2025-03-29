@@ -17,43 +17,23 @@ body {
 
 /* Header */
 .merchant-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     color: black;
     padding: 15px;
-    border-radius: 5px;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: bold;
 }
 
-/* Add Merchant Button */
-.add-merchant-btn {
-    background-color: #803a2f;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.add-merchant-btn:hover {
-    background-color: #a14a3f;
-}
-
-/* Merchant List */
-.merchant-list {
+/* Offer List */
+.offer-list {
     margin-top: 20px;
     background: #e3f2fd;
     padding: 15px;
     border-radius: 8px;
 }
 
-/* Merchant Items */
-.merchant-item {
-    background: #f8f9fa;
+/* Offer Items */
+.offer-item {
+    background: #ffffff;
     padding: 12px;
     margin-bottom: 10px;
     border-radius: 5px;
@@ -64,8 +44,8 @@ body {
     flex-direction: column;
 }
 
-/* Merchant Labels */
-.merchant-label {
+/* Offer Labels */
+.offer-label {
     display: flex;
     align-items: center;
     padding: 10px;
@@ -75,12 +55,12 @@ body {
     transition: background 0.3s ease-in-out;
 }
 
-.merchant-label:hover {
-    background: #edeeef;
+.offer-label:hover {
+    background: #e0e0e0;
 }
 
-/* Merchant Icons */
-.merchant-icon {
+/* Offer Icons */
+.offer-icon {
     margin-right: 10px;
     font-size: 20px;
 }
@@ -90,8 +70,8 @@ body {
     display: none;
 }
 
-/* Initially Hide Merchant Table */
-.merchant-table {
+/* Initially Hide Offer Table */
+.offer-table {
     background-color: white;
     padding: 0;
     border-radius: 8px;
@@ -101,8 +81,8 @@ body {
     transition: max-height 0.4s ease-in-out, padding 0.3s ease-in-out;
 }
 
-/* Show Merchant Table when Checkbox is Checked */
-.toggle-checkbox:checked + .merchant-label + .merchant-table {
+/* Show Offer Table when Checkbox is Checked */
+.toggle-checkbox:checked + .offer-label + .offer-table {
     max-height: 500px;
     padding: 15px;
 }

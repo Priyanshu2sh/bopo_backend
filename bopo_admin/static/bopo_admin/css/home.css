@@ -2,18 +2,16 @@
 .dashboard-container {
     font-family: 'Poppins', sans-serif;
     padding: 20px;
-    background-color: #f4f4f4;
+    background-color: #f8f9fa;
 }
-
 /* Card Container - Force all cards in one line */
 .card-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;  /* Aligns cards to the center */
     align-items: stretch;
-    gap: 20px;
+    gap: 10px;
     padding: 20px;
-    flex-wrap: nowrap; /* Prevent wrapping */
-    overflow-x: auto; /* Enable horizontal scrolling if needed */
+    flex-wrap: wrap; /* Allow cards to wrap */
 }
 
 /* Individual Card */
@@ -31,11 +29,26 @@
 .card:hover {
     transform: translateY(-5px);
 }
+/* Responsive Cards */
+@media (max-width: 1024px) {
+    .card-container {
+        justify-content: center; /* Center cards */
+    }
+}
 
+@media (max-width: 768px) {
+    .card {
+        width: 100%; /* Cards take full width */
+        max-width: 300px;
+    }
+}
 
 /* Card Header */
 .card-header {
-    background: linear-gradient(135deg, #712D1E, #A14C39);
+    /* background: linear-gradient(135deg, #712D1E, #A14C39);
+    color: white; */
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
     color: white;
     padding: 15px;
     font-weight: bold;
@@ -121,15 +134,33 @@
     height: 300px;
     margin: auto;
 }
+@media (max-width: 768px) {
+    .graph-container {
+        height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .graph-container {
+        height: 200px;
+    }
+}
 
 .footer {
     text-align: center;
     padding: 10px;
-    background-color:rgb(225, 162, 227);
+    /* background-color: rgb(225, 162, 227); */
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
     font-size: 15px;
     font-weight: bold;
     color: white;
-    bottom: 0;
+    position: relative;
     width: 100%;
     box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
+}
+@media (max-width: 480px) {
+    .footer {
+        font-size: 12px;
+    }
 }

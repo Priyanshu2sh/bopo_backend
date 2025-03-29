@@ -1,0 +1,66 @@
+{% extends "bopo_admin/base.html" %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/reduce_limit.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<div class="reduce-limit-container">
+    <h2>Merchant Reduce Limit</h2>
+
+    <form method="POST" action="{% url 'reduce_limit' %}">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <!-- Project Selection -->
+            <label for="project">Select Project</label>
+            <select id="project" name="project">
+                <option value="Demographic Project">Demographic Project</option>
+                <option value="Tech Initiative">Tech Initiative</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <!-- Merchant Selection -->
+            <label for="merchant">Select Merchant</label>
+            <select id="merchant" name="merchant">
+                <option value="DEMO000000000001">DEMO000000000001</option>
+                <option value="DEMO000000000002">DEMO000000000002</option>
+            </select>
+        </div>
+
+        <div class="form-group limit-section">
+            <label>Current Limit</label>
+            <div class="input-icon">
+                <span class="icon"><i class="fas fa-money-bill-wave"></i></span>
+                <input type="text" id="current-limit" value="Limit Not Found" readonly>
+             
+            </div>
+        </div>
+
+        <div class="form-group">
+            <!-- Reduce Amount -->
+            <label for="reduce-amount">Reduce Amount</label>
+            <div class="input-icon">
+                <span class="icon"><i class="fas fa-coins"></i></span>
+                <input type="number" id="reduce-amount" name="reduce_amount" placeholder="Enter amount">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <!-- Transaction ID -->
+            <label for="transaction-id">Transaction ID</label>
+            <div class="input-icon">
+                <span class="icon"><i class="fas fa-university"></i></span>
+                <input type="text" id="transaction-id" name="transaction_id" placeholder="Enter Transaction ID">
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button type="button" class="cancel-btn">Cancel</button>
+            <button type="submit" class="submit-btn">Submit</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

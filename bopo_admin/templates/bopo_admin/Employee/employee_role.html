@@ -1,0 +1,97 @@
+{% extends "bopo_admin/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'bopo_admin/css/employee_role.css' %}">
+
+<h2 class="page-title">Assign Employee Roles</h2>
+<div class="container">
+     <form method="POST">
+        {% csrf_token %}
+        
+   <!-- Employee Dropdown -->
+   <div class="dropdown-container">
+    <label for="employee">Select Employee:</label>
+    <select id="employee" name="employee" required>
+        <option value="">Select One Employee</option>
+      
+        <option >Employee 1</option>
+        <option >Employee 2</option>
+      
+    </select>
+</div><br>
+
+
+   <div class="roles-container">
+       <!-- Column 1 -->
+       <div class="role-group">
+           <input type="checkbox" id="project_onboarding" name="roles" value="Project OnBoarding">
+           <label for="project_onboarding">Project OnBoarding</label>
+
+           <input type="checkbox" id="merchant_onboarding" name="roles" value="Merchant OnBoarding">
+           <label for="merchant_onboarding">Merchant OnBoarding</label>
+
+           <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
+           <label for="merchant_send_credentials">Merchant Send Credentials</label>
+
+           <input type="checkbox" id="merchant_map_bonus" name="roles" value="Merchant Map Bonus Points">
+           <label for="merchant_map_bonus">Merchant Map Bonus Points</label>
+
+           <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
+           <label for="merchant_limit">Merchant Limit</label>
+
+           <input type="checkbox" id="merchant_status" name="roles" value="Merchant Status">
+           <label for="merchant_status">Merchant Status</label>
+       </div>
+
+       <!-- Column 2 -->
+       <div class="role-group">
+           <input type="checkbox" id="merchant_login" name="roles" value="Merchant Login Page-Info">
+           <label for="merchant_login">Merchant Login Page-Info</label>
+
+           <input type="checkbox" id="merchant_notification" name="roles" value="Merchant Send Notification">
+           <label for="merchant_notification">Merchant Send Notification</label>
+
+           <input type="checkbox" id="merchant_offers" name="roles" value="Merchant Received Offers">
+           <label for="merchant_offers">Merchant Received Offers</label>
+
+           <input type="checkbox" id="modify_customer" name="roles" value="Modify Customer Details">
+           <label for="modify_customer">Modify Customer Details</label>
+
+           <input type="checkbox" id="customer_notification" name="roles" value="Customer Send Notification">
+           <label for="customer_notification">Customer Send Notification</label>
+
+           <input type="checkbox" id="create_employee" name="roles" value="Create Employee">
+           <label for="create_employee">Create Employee</label>
+       </div>
+
+       <!-- Column 3 -->
+       <div class="role-group">
+           <input type="checkbox" id="assign_roles" name="roles" value="Assign Employee Roles">
+           <label for="assign_roles">Assign Employee Roles</label>
+
+           <input type="checkbox" id="payment_details" name="roles" value="Payment Details">
+           <label for="payment_details">Payment Details</label>
+
+           <input type="checkbox" id="account_info" name="roles" value="Account-Info">
+           <label for="account_info">Account-Info</label>
+
+           <input type="checkbox" id="reports" name="roles" value="Reports">
+           <label for="reports">Reports</label>
+
+           <input type="checkbox" id="helpdesk_action" name="roles" value="HelpDesk Action">
+           <label for="helpdesk_action">HelpDesk Action</label>
+
+           <input type="checkbox" id="email_settings" name="roles" value="Email Settings">
+           <label for="email_settings">Email Settings</label>
+       </div>
+   </div>
+
+   <!-- Buttons -->
+   <div class="buttons">
+       <button type="reset" class="btn btn-danger">Cancel</button>
+       <button type="submit" class="btn btn-primary">Save</button>
+   </div>
+</form>
+</div>
+{% endblock %}

@@ -1,0 +1,225 @@
+body {
+    display: flex;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color:  #FFFFFF;
+    color: black;
+    padding: 20px;
+    position: fixed;
+    overflow-y: auto;
+    transition: transform 0.3s ease-in-out;
+}
+/* Hide Scrollbar for WebKit Browsers (Chrome, Safari) */
+.sidebar::-webkit-scrollbar {
+    display: none;
+}
+
+
+.sidebar a {
+    display: block;
+    color: rgb(20, 19, 19);
+    padding: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 10px; /* Space between each item */
+}
+
+.sidebar a:hover {
+    /* background-color: rgb(225, 162, 227); */
+    background: -webkit-linear-gradient(178deg, #ed3237 0%, #85060c 100%);
+    background: linear-gradient(178deg, #ed3237 0%, #85060c 100%);
+    color: rgb(255, 255, 255);
+}
+
+
+/* Sidebar Active Effect */
+.sidebar a.active { 
+    /* background-color: rgb(225, 162, 227); */
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color: white !important;
+    font-weight: bold;
+    padding-left: 15px; /* Adjust spacing for better visibility */
+}
+
+/* Hover effect (remains the same) */
+.sidebar a:hover {
+    /* background-color: rgb(225, 162, 227); */
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color: white;
+}
+.sidebar {
+    transition: width 0.3s ease-in-out;
+}
+
+
+
+/* Fix dropdown positioning */
+.dropdown-container {
+    position: relative;
+    display: block;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    left: 0;
+    background-color: #f4f4f4;
+    color: #212529;
+    border-radius: 5px;
+    padding: 5px 0;
+    border: 2px solid whitesmoke;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    list-style: none;
+    width: 210px;
+    z-index: 1000;
+    max-height: 250px; /* Limit height */
+    overflow-y: auto;  /* Enable scrollbar */
+}
+
+/* Show dropdown when 'show' class is added */
+.dropdown-menu.show {
+    display: block;
+}
+.dropdown-link {
+    cursor: pointer;
+}
+#belowMerchant,
+#belowEmployee {
+    transition: margin-top 0.3s ease-in-out;
+}
+
+#belowMerchant.dropdown-open{
+   margin-top: 200px; /* Adjust this value as per dropdown height */
+}
+
+#belowEmployee.dropdown-open {
+    margin-top: 120px; /* Adjust this value as per dropdown height */
+}
+
+.sidebar .dropdown-menu a {
+    color: black;
+    display: block;
+    padding: 8px 10px;
+    text-decoration: none;
+}
+.sidebar .dropdown-menu a:hover {
+    /* background-color: rgb(225, 162, 227); */
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color: white;
+}
+
+
+/* Ensure dropdown items also show active effect */
+.dropdown-menu .dropdown-item.active {
+    /* background-color: rgb(225, 162, 227); */
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color: white !important;
+    font-weight: bold;
+}
+
+
+.dropdown-container.show #merchantToggle {
+    /* background-color: rgb(200, 120, 210);  */
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+}
+
+
+
+/* Scrollbar styling */
+.dropdown-menu::-webkit-scrollbar {
+    width: 2px;
+    
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+    background-color: #71777c;
+    color: #9aa9b8;
+    border-radius: 4px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Main Content Wrapper */
+.main-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+}
+
+/* Navbar Styles */
+.navbar {
+    width: 100%;
+    /* background-color: #7F171F; */
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color: white;
+    padding: 10px;
+    position: fixed;
+    top: 0;
+    left: 250px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+    font-weight: bold;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    padding: 10px;
+}
+
+.navbar a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive Sidebar */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+        top: 7%;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+        background-color:  #FFFFFF;
+        transition: transform 0.3s ease-in-out;
+        z-index: 1000;
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0; /* Remove extra margin on mobile */
+        width: 100%;
+    }
+
+    .navbar {
+        left: 0;
+    }
+}
+
+/* Menu icon styling */
+.menu-icon {
+    cursor: pointer;
+    font-size: 24px;
+    color: white;
+    padding: 10px;
+}

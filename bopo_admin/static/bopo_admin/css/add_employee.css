@@ -4,8 +4,8 @@ body {
     margin: 0;
     padding: 0;
 }
-.addmerchant-container {
-    max-width: 800px;
+.addemployee-container {
+    max-width: 900px;
     margin: 40 auto;
     margin-top: 2%;
     background: #fff;
@@ -13,7 +13,7 @@ body {
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
     margin-left: 13%;
-    min-height: 95vh;
+    height: 82.5vh;
 }
 .heading {
     text-align: center;
@@ -24,25 +24,25 @@ body {
     margin-top: 1%;
     margin-left: -80%;
 }
-.addmerchant-form-container {
+.addemployee-form-container {
     display: flex;
     justify-content: space-between;
     gap: 20px;
 }
-.addmerchant-form-group {
+.addemployee-form-group {
     width: 48%;
     height:70vh;
     background-color: #f8f9fa;
     padding: 15px;
     border-radius: 10px;
 }
-.addmerchant-form-group label {
+.addemployee-form-group label {
     display: block;
     font-size: 14px;
     margin-bottom: 5px;
     color: #555;
 }
-.addmerchant-input-container {
+.addemployee-input-container {
     display: flex;
     align-items: center;
     background: #fff;
@@ -51,11 +51,11 @@ body {
     padding: 8px;
     margin-bottom: 10px;
 }
-.addmerchant-input-container i {
+.addemployee-input-container i {
     color: #555;
     margin-right: 10px;
 }
-.addmerchant-input-container input, select {
+.addemployee-input-container input, select {
     border: none;
     outline: none;
     flex: 1;
@@ -63,10 +63,10 @@ body {
 }
 
 
-.addmerchant-btn-submit {
+.addemployee-btn-submit {
     display: inline-block;
     padding: 10px 20px;
-    margin-top: 7%;
+    margin-top: 3%;
     width: 20%;
     font-size: 16px;
     color: white;
@@ -80,8 +80,8 @@ body {
     margin-left: 40%;
 }
 
-.addmerchant-btn-submit:hover {
-    background: linear-gradient(178deg, red 0%, #85060c 100%);
+.addemployee-btn-submit:hover {
+    background-color: #002b55; /* Darker Blue */
 }
 
 .back-to-list-btn a {
@@ -107,43 +107,42 @@ body {
     background: linear-gradient(178deg, red 0%, #85060c 100%);
 }
 
-.addmerchant-buttons {
+.addemployee-buttons {
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
 }
 
-
-/* Centered Project Type Section */
-.project-type-container {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #004080;
+.password-checkbox {
+    display: none;
 }
 
-/* Inline Radio Buttons */
-.addmerchant-radio-group {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
+/* Hide text version by default */
+.show-password {
+    display: none;
 }
 
-.addmerchant-radio-group label {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    color: #555;
+/* Toggle between password and text input */
+.password-checkbox:checked + .password-toggle + .password-field {
+    display: none;
+}
+
+.password-checkbox:checked + .password-toggle + .password-field + .show-password {
+    display: inline-block;
+}
+
+/* Position eye icon */
+.password-toggle {
     cursor: pointer;
-    gap: 5px; /* Space between radio and label text */
+    margin-left: 10px;
+    color: #555;
 }
 
-.addmerchant-radio-group input[type="radio"] {
-    accent-color: #004080; /* Blue color */
-    transform: scale(1.2); /* Slightly bigger radio buttons */
-    margin-right: 5px;
+/* Change eye icon when checked */
+.password-checkbox:checked + .password-toggle i::before {
+    content: "\f070"; /* FontAwesome eye-slash */
 }
+
 
 
 
@@ -187,43 +186,4 @@ body {
 .toast-container i {
     font-size: 20px;
     color: white;
-}
-
-
-/* 🟢 Responsive Design */
-@media (max-width: 768px) {
-    .addmerchant-container {
-        width: 90%;
-        padding: 15px;
-        height: 170vh;
-        margin-left: 5%;
-        
-    }
-
-    .addmerchant-form-container {
-        flex-direction: column;
-    }
-
-    .addmerchant-form-group {
-        width: 100%;
-    }
-
-    .addmerchant-btn-submit {
-        max-width: 30%;
-        width: 90%;
-        margin-top: -10%;
-        margin-left: 34%;
-    }
-
-    .back-to-list-btn a {
-        max-width: 30%;
-        width: 90%;
-        margin-top: 20%;
-        margin-left: 70%;
-    }
-    .heading {
-        font-size: 22px;
-        margin-top: 5%; /* Move heading down */
-       margin-left: -60%;
-    }
 }

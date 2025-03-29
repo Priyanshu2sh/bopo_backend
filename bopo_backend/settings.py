@@ -46,15 +46,21 @@ INSTALLED_APPS = [
 
     'bopo_admin',
     'bopo_award',
-    'bopo',
+    'bopo',    # 'bopo_customer',
     'accounts',
     'transaction_history',
     'rest_framework',
+    'corsheaders',
+
     'qr_store', 
     'transfer',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -63,6 +69,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'access-control-allow-origin',
+]
+
+ALLOWED_HOSTS = ['*']
 
 ROOT_URLCONF = 'bopo_backend.urls'
 

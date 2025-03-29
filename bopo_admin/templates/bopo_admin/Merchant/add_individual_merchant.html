@@ -9,98 +9,59 @@
     <title>Create Employee</title>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'bopo_admin/css/add_merchant.css' %}">
+    <link rel="stylesheet" href="{% static 'bopo_admin/css/add_individual_merchant.css' %}">
 </head>
 <body>
 
     <div class="back-to-list-btn">
-        <a href="{% url 'corporate_list' %}" class="addmerchant-btn-submit">
+        <a href="{% url 'individual_list' %}" class="add_individual_merchant-btn-submit">
             <i class="fa fa-arrow-left"></i> Back to List
         </a>
     </div>
 
-    <h2 class="heading">Add Merchant</h2>
-    <div class="addmerchant-container">
-        <form>
+    <h2 class="heading">Add Individual Merchant</h2>
+    <div class="add_individual_merchant-container">
+        <form method='POST'>
             {% csrf_token %}
-            
-        
-<!-- Project Type Selection (Centered and Inline) -->
-<div class="project-type-container">
-    <label>Select Project Type:</label>
-    <div class="addmerchant-radio-group">
-        <label for="existing_project">
-            <input type="radio" id="existing_project" name="project_type" value="Existing Project" required onclick="toggleProjectDropdown()">
-            Existing Project
-        </label>
 
-        <label for="new_project">
-            <input type="radio" id="new_project" name="project_type" value="New Project" required onclick="toggleProjectDropdown()">
-            New Project
-        </label>
-    </div>
-</div>
-
-<!-- Select Project Dropdown (Hidden Initially) -->
-<div id="select-project-container" class="hidden">
-    <label for="select_project">Select Project:</label>
-    <div class="addmerchant-input-container">
-        <select id="select_project" name="select_project">
-            <option value="">Select a project</option>
-            <option value="Project 1">Project 1</option>
-            <option value="Project 2">Project 2</option>
-            <option value="Project 3">Project 3</option>
-        </select>
-    </div>
-</div>
-
-<!-- Project Name Input Field (Initially Hidden) -->
-<div id="project-name-container" class="hidden">
-    <label for="project_name">Project Name:</label>
-    <div class="addmerchant-input-container">
-        <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name">
-    </div>
-</div>
-    
             <!-- Form Fields (Left & Right Columns) -->
-            <div class="addmerchant-form-container">
+            <div class="add_individual_merchant-form-container">
                 
                 <!-- Left Column -->
-                <div class="addmerchant-form-group">
-                
+                <div class="add_individual_merchant-form-group">
                     <label>First Name</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <i class="fas fa-user"></i>
                         <input type="text" name="first_name" required>
                     </div>
 
-                                          
+                                      
                     <label>Email ID</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <i class="fas fa-envelope"></i>
                         <input type="email" name="email" required>
                     </div>
     
                     <label>Aadhaar Number</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar" required>
+                        <input type="text" name="aadhaar_number" required>
                     </div>
     
                     <label>Shop Name</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <i class="fas fa-store"></i>
                         <input type="text" name="shop_name" required>
                     </div>
     
                     <label>Address</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <i class="fas fa-map-marker-alt"></i>
                         <input type="text" name="address" required>
                     </div>
     
                     <label>Select State</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <select name="state">
                             <option value="">Select State</option>
                             <option value="Maharashtra">Maharashtra</option>
@@ -109,65 +70,64 @@
                     </div>
     
                     <label>Country</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <input type="text" name="country" value="India" disabled>
                     </div>
                 </div>
     
                 <!-- Right Column -->
-                <div class="addmerchant-form-group">
+                <div class="add_individual_merchant-form-group">
 
-  <label>Last Name</label>
-                    <div class="addmerchant-input-container">
+                    <label>Last Name</label>
+                    <div class="add_individual_merchant-input-container">
                         <i class="fas fa-user"></i>
                         <input type="text" name="last_name" required>
                     </div>
 
                     <label>Mobile Number</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <i class="fas fa-mobile-alt"></i>
                         <input type="text" name="mobile" required>
                     </div>
     
                     <label>GST Number</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <i class="fas fa-file-invoice"></i>
-                        <input type="text" name="gst_number" required>
+                        <input type="text" name="gst_number" >
                     </div>
     
                     <label>Pan Number</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan">
+                        <input type="text" name="pan_number">
                     </div>
     
                     <label>Legal Name</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <i class="fas fa-building"></i>
                         <input type="text" name="legal_name" required>
                     </div>
     
                     <label>Pincode</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <i class="fas fa-home"></i>
                         <input type="text" name="pincode">
                     </div>
     
                     <label>Select City</label>
-                    <div class="addmerchant-input-container">
+                    <div class="add_individual_merchant-input-container">
                         <select name="city">
                             <option value="">Select City</option>
                             <option value="Mumbai">Mumbai</option>
                             <option value="Pune">Pune</option>
                         </select>
                     </div>
-                    </div>
-                  
+                </div>
             </div>
-            <button type="submit" class="addmerchant-btn-submit">Submit</button>
+    
+            <button type="submit" class="add_individual_merchant-btn-submit">Submit</button>
         </form>
     </div>
-    
 
     <!-- Toast Notification -->
     <div id="toast" class="toast-container">
@@ -192,35 +152,9 @@
                 }, 3000); // Hide after 3 seconds
             });
         });
-    </script>
 
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const existingProjectRadio = document.getElementById("existing_project");
-            const newProjectRadio = document.getElementById("new_project");
-            const selectProjectContainer = document.getElementById("select-project-container");
-            const projectNameContainer = document.getElementById("project-name-container");
-        
-            function toggleProjectFields() {
-                if (existingProjectRadio.checked) {
-                    selectProjectContainer.style.display = "block";
-                    projectNameContainer.style.display = "none"; // Hide project name input
-                } else if (newProjectRadio.checked) {
-                    selectProjectContainer.style.display = "none"; // Hide select project dropdown
-                    projectNameContainer.style.display = "block"; // Show project name input
-                } else {
-                    selectProjectContainer.style.display = "none";
-                    projectNameContainer.style.display = "none";
-                }
-            }
-        
-            existingProjectRadio.addEventListener("change", toggleProjectFields);
-            newProjectRadio.addEventListener("change", toggleProjectFields);
-        
-            // Initial check
-            toggleProjectFields();
-        });
+
         
     </script>
     

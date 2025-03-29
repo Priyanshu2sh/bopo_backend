@@ -5,7 +5,7 @@ body {
     padding: 0;
 }
 
-.merchant-container {
+.employee-container {
     background-color: #fff;
     padding: 20px;
     border-radius: 10px;
@@ -16,7 +16,7 @@ body {
 }
 
 /* Header */
-.merchant-header {
+.employee-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -27,32 +27,39 @@ body {
     font-weight: bold;
 }
 
-/* Add Merchant Button */
-.add-merchant-btn {
-    background-color: #803a2f;
+/* Add Employee Button */
+.add-employee-btn {
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
     color: white;
     border: none;
     padding: 8px 15px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 20px;
+    width: 15%;
     font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 16px;
+    text-decoration: none;
+    transition: background 0.3s ease;
 }
 
-.add-merchant-btn:hover {
-    background-color: #a14a3f;
+.add-employee-btn:hover {
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
 }
 
-/* Merchant List */
-.merchant-list {
+/* Employee List */
+.employee-list {
     margin-top: 20px;
     background: #e3f2fd;
     padding: 15px;
     border-radius: 8px;
 }
 
-/* Merchant Items */
-.merchant-item {
+/* Employee Items */
+.employee-item {
     background: #f8f9fa;
     padding: 12px;
     margin-bottom: 10px;
@@ -64,8 +71,8 @@ body {
     flex-direction: column;
 }
 
-/* Merchant Labels */
-.merchant-label {
+/* Employee Labels */
+.employee-label {
     display: flex;
     align-items: center;
     padding: 10px;
@@ -75,12 +82,12 @@ body {
     transition: background 0.3s ease-in-out;
 }
 
-.merchant-label:hover {
+.employee-label:hover {
     background: #edeeef;
 }
 
-/* Merchant Icons */
-.merchant-icon {
+/* Employee Icons */
+.employee-icon {
     margin-right: 10px;
     font-size: 20px;
 }
@@ -90,8 +97,8 @@ body {
     display: none;
 }
 
-/* Initially Hide Merchant Table */
-.merchant-table {
+/* Initially Hide Employee Table */
+.employee-table {
     background-color: white;
     padding: 0;
     border-radius: 8px;
@@ -101,8 +108,8 @@ body {
     transition: max-height 0.4s ease-in-out, padding 0.3s ease-in-out;
 }
 
-/* Show Merchant Table when Checkbox is Checked */
-.toggle-checkbox:checked + .merchant-label + .merchant-table {
+/* Show Employee Table when Checkbox is Checked */
+.toggle-checkbox:checked + .employee-label + .employee-table {
     max-height: 500px;
     padding: 15px;
 }

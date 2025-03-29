@@ -1,0 +1,99 @@
+{% extends "bopo_admin/base.html" %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/employee_list.css' %}">
+
+<div class="employee-container">
+    <div class="employee-header">
+        <h2>Employee's List</h2>
+     <button class="add-employee-btn" onclick="window.location.href='{% url 'add_employee' %}'">
+            + Add Employee
+        </button>
+    </div>
+
+    <div class="employee-list">
+        <!-- Corporate Employees Section -->
+        <div class="employee-item">
+            <label class="employee-label" onclick="toggleTable('corporate-table')">
+                <span class="employee-icon">🏢</span>
+                <span> Employee's List</span>
+            </label>
+            <div class="employee-table" id="corporate-table">
+                <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table-content', 'search-corporate')" placeholder="Search corporate employees...">
+                <table id="corporate-table-content">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
+                            <th>Email ID</th>
+                            <th>Mobile Number</th>
+                            <th>Username</th>
+                            <th>Password</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                           
+                            <td>1</td>
+                            <td>1</td>
+                            <td>Prushal Tech</td>
+                            <td>prushaltech12@gmail.com</td>
+                            <td>9090909090</td>
+                            <td>Prushal@21</td>
+                            <td>prushal@123</td>
+                            <td>true</td>
+                            <td>
+                                <button>✏️</button>
+                                <button>🗑️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- JavaScript for Search and Toggle Functionality -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Ensure the first table is open by default
+    document.getElementById("corporate-table").style.maxHeight = "500px";
+    document.getElementById("corporate-table").style.padding = "15px";
+});
+
+function toggleTable(tableId) {
+    let tableDiv = document.getElementById(tableId);
+    
+    if (tableDiv.style.maxHeight === "0px" || tableDiv.style.maxHeight === "") {
+        tableDiv.style.maxHeight = "500px";
+        tableDiv.style.padding = "15px";
+    } else {
+        tableDiv.style.maxHeight = "0px";
+        tableDiv.style.padding = "0px";
+    }
+}
+
+function filterTable(tableId, searchBoxId) {
+    let input = document.getElementById(searchBoxId);
+    let filter = input.value.toLowerCase();
+    let table = document.getElementById(tableId);
+    let rows = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < rows.length; i++) { // Skip header row
+        let rowText = rows[i].innerText.toLowerCase();
+        if (rowText.includes(filter)) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+</script>
+
+{% endblock %}

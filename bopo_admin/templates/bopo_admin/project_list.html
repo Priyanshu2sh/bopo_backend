@@ -1,0 +1,61 @@
+{% extends "bopo_admin/base.html" %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'bopo_admin/css/project_list.css' %}">
+</head>
+
+<body>
+
+<div class="container">
+    <div class="project-list-header">
+        <!-- Back to Dashboard Button -->
+        <div class="back-to-dashboard-btn">
+            <a href="{% url 'home' %}" class="btn btn-secondary-custom">
+                <i class="fa fa-arrow-left"></i> Back 
+            </a>
+        </div>
+    
+        <!-- Add Project Button (Aligned to the right) -->
+        <div class="add-project-btn">
+            <a href="{% url 'project_onboarding' %}" class="btn btn-primary-custom">+ Add Project</a>
+        </div>
+    </div>
+    
+
+    <!-- Project Table -->
+    <div class="project-list">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Project Name</th>
+                    <th>Project Manager</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ project.name }}</td>
+                        <td>{{ project.manager }}</td>
+                        <td>{{ project.status }}</td>
+                       
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>
+{% endblock %}

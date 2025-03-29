@@ -36,10 +36,10 @@ class Merchant(models.Model):
         ('customer', 'Customer'),
     ]
 
-    STATUS_CHOICES = [
-        ('Active', 'Active'),
-        ('Inactive', 'Inactive'),
-    ]
+    # STATUS_CHOICES = [
+    #     ('Active', 'Active'),
+    #     ('Inactive', 'Inactive'),
+    # ]
     
     # merchant_admin = models.ForeignKey(
     #     Corporate,
@@ -54,7 +54,7 @@ class Merchant(models.Model):
         choices=USER_TYPE_CHOICES,
         default='individual'
     )
-    merchant_id = models.CharField(max_length=25, primary_key=True)
+    merchant_id = models.CharField(max_length=255, null=True, blank=True)
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(unique=True, null=True, blank=True)
@@ -76,6 +76,19 @@ class Merchant(models.Model):
     country = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     verified_at = models.DateTimeField(null=True, blank=True)
+    
+     
+    # New fields added
+    aadhaar_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    gst_number = models.CharField(max_length=15, blank=True, null=True, unique=False) 
+    pan_number = models.CharField(max_length=10, unique=True, null=True, blank=True)
+    shop_name = models.CharField(max_length=255, null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
+    legal_name = models.CharField(max_length=255, null=True, blank=True)
+    state = models.CharField(max_length=100, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
+    pincode = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.first_name if self.first_name else "Merchant"

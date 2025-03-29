@@ -1,0 +1,97 @@
+{% extends "bopo_admin/base.html" %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_limit_list.css' %}">
+
+<div class="limit-container">
+    <div class="limit-header">
+        <h2> Merchant Limit List</h2>
+ 
+    </div>
+
+    <div class="limit-list">
+        <!-- Limit List Section -->
+        <div class="limit-item">
+            <div class="limit-table">
+                <input type="text" class="search-box" id="search-limit" onkeyup="filterTable('limit-table', 'search-limit')" placeholder="Search limits...">
+        
+                <table id="limit-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Merchant ID</th>
+                            <th>Merchant Limit</th>
+                            <th>Due Date</th>
+                            <th>Created At</th>
+                            <th>Updated At</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>111</td>
+                            <td>50000</td>
+                            <td>21-09-2027</td>
+                            <td>2025-03-19 10:15:45</td>  
+                            <td>2025-03-19 14:30:20</td> 
+                            <td>Active</td>
+                            <td>
+                                <button>✏️</button>
+                                <button>🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>222</td>
+                            <td>170000</td>
+                            <td>12-02-2027</td>
+                            <td>2025-04-19 11:12:40</td>  
+                            <td>2025-04-19 07:20:20</td> 
+                            <td>Active</td>
+                            <td>
+                                <button>✏️</button>
+                                <button>🗑️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+
+        
+<script>
+    function filterTable() {
+        var input, filter, table, tr, td, i, j, txtValue;
+        input = document.getElementById("search-limit");
+        filter = input.value.toLowerCase();
+        table = document.getElementById("limit-table");
+        tr = table.getElementsByTagName("tr");
+    
+        for (i = 1; i < tr.length; i++) { // Start from 1 to skip the header row
+            tr[i].style.display = "none"; // Hide the row initially
+            td = tr[i].getElementsByTagName("td");
+    
+            for (j = 0; j < td.length; j++) {
+                if (td[j]) {
+                    txtValue = td[j].textContent || td[j].innerText;
+                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                        tr[i].style.display = ""; // Show the row if match found
+                        break; // Break to avoid unnecessary checks
+                    }
+                }
+            }
+        }
+    }
+    </script>
+        
+    </div>
+</div>
+
+
+
+{% endblock %}

@@ -1,0 +1,264 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* Main Customer Container */
+.customer-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 1300px;
+    margin: auto;
+    margin-top: 5%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+.customer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: black;
+    padding: 15px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Buttons */
+.add-customer-btn, .send-customer-btn {
+    height: 50px; /* Increased size */
+    width: 180px; /* Increased width */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.add-customer-btn {
+
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%)
+    
+    }
+.add-customer-btn:hover {     background: linear-gradient(178deg, red 0%, #85060c 100%);}
+
+.send-customer-btn { background-color: #1c3a72; }
+.send-customer-btn:hover { background-color: #7486b7; }
+
+/* Pop-up Form */
+.popup-form-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-form {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 500px; /* Increased width */
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Input Fields */
+.popup-form input,
+.popup-form select,
+.popup-form textarea {
+    width: 100%;
+    padding: 12px; /* Increased padding */
+    margin-top: 10px;
+    border: 1px solid #aaa;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Buttons */
+.form-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+.btn-primary {
+    background-color: #1c3a72;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #7486b7;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #565e64;
+}
+
+/* Close Button */
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.3s ease-in-out;
+}
+
+.close-btn:hover {
+    color: #ff4d4d;
+}
+
+/* Customer List */
+.customer-list {
+    margin-top: 20px;
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Customer Table */
+.customer-table {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+}
+.customer-buttons {
+    display: flex;
+    gap: 10px; /* Adds space between buttons */
+    align-items: center; /* Aligns buttons in the center */
+}
+
+.add-customer-btn, .send-customer-btn {
+    height: 50px; /* Increased height */
+    width: 200px; /* Increased width */
+    color: white;
+    border: none;
+    padding: 12px 20px; /* Adjusted padding */
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.send-customer-btn {
+    background-color: #1c3a72;
+    font-size: 18px; /* Increased font size */
+    width: 220px; /* Increased button width */
+}
+
+.send-customer-btn:hover { 
+    background-color: #7486b7;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
+/* Search box */
+.search-box {
+    width: 20%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* Action buttons */
+button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+
+
+/* Toast Notification Styling */
+.toast-container {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #28a745; /* Green Color */
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    padding: 16px;
+    position: fixed;
+    top: 20px; /* Move to top */
+    left: 50%; /* Align to right */
+    font-size: 17px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(-50%); /* Initial hidden position */
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+/* Show Toast */
+.toast-show {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Fade Out Animation */
+.toast-hide {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+/* Toast Icon */
+.toast-container i {
+    font-size: 20px;
+    color: white;
+}

@@ -1,0 +1,76 @@
+{% extends "bopo_admin/base.html" %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/payment_details.css' %}">
+
+<div class="payment_details-container">
+    <div class="payment_details-header">
+        <h2>Payment Details</h2>
+    </div>
+
+    <div class="payment_details-list">
+        <div class="payment_details-table">
+            <input type="text" class="search-box" id="search-payment-details" onkeyup="filterTable('payment-table', 'search-payment-details')" placeholder="Search by MID,Project Name,Contact Person,Mobile Number,Paid Amount,Top-Up,Date,Payment Method...">
+            <table id="payment-table">
+                <thead>
+                    <tr>
+                        <th>MID</th>
+                        <th>Project Name</th>
+                        <th>Contact Person</th>
+                        <th>Mobile Number</th>
+                        <th>Paid Amount</th>
+                        <th>Top-Up</th>
+                        <th>Date</th>
+                        <th>Payment Method</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>111</td>
+                        <td>McDonald's</td>
+                        <td>Reyansh Desai</td>
+                        <td>9090909090</td>
+                        <td>$100</td>
+                        <td>$80</td>
+                        <td>2025-03-25</td>
+                        <td>Credit Card</td>
+                        <td>
+                            <button>✏️</button>
+                            <button>🗑️</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- JavaScript for Search Filtering and Modal -->
+<script>
+    function filterTable(tableId, searchBoxId) {
+        let input = document.getElementById(searchBoxId);
+        let filter = input.value.toLowerCase();
+        let table = document.getElementById(tableId);
+        let rows = table.getElementsByTagName("tr");
+    
+        for (let i = 1; i < rows.length; i++) {
+            let cells = rows[i].getElementsByTagName("td");
+            let rowMatch = false;
+    
+            for (let j = 0; j < cells.length; j++) {
+                let cellText = cells[j].innerText.toLowerCase();
+                if (cellText.includes(filter)) {
+                    rowMatch = true;
+                    break;
+                }
+            }
+    
+            rows[i].style.display = rowMatch ? "" : "none";
+        }
+    }
+</script>
+
+{% endblock %}

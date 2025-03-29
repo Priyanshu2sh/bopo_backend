@@ -1,0 +1,153 @@
+{% extends "bopo_admin/base.html" %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/customer.css' %}">
+
+<div class="customer-container">
+    <div class="customer-header">
+        <h2>Customer List</h2>
+        <div class="customer-buttons">
+            <button class="add-customer-btn" onclick="openForm()">+ Add Customer</button>
+            <button class="send-customer-btn" onclick="window.location.href='{% url 'send_customer_notifications' %}'">
+                + Send Notifications
+            </button>
+        </div>
+    </div>
+
+    <div class="customer-list">
+        <div class="customer-table">
+            <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table', 'search-corporate')" placeholder="Search corporate customers...">
+            <table id="corporate-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Customer ID</th>
+                        <th>Contact Person</th>
+                        <th>Mobile Number</th>
+                        <th>City</th>
+                        <th>Verified</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>Demo Contact</td>
+                        <td>9090909090</td>
+                        <td>Pune</td>
+                        <td>true</td>
+                        <td>
+                            <button>✏️</button>
+                            <button>🗑️</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Customer Form (Modal) -->
+<div id="customerForm" class="popup-form-container">
+    <div class="popup-form">
+        <span class="close-btn" onclick="closeForm()">&times;</span>
+        <h2>Add Customer</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <select class="form-select" name="project" required>
+                <option value="">Select One Project</option>
+                <option value="Project1">Project 1</option>
+                <option value="Project2">Project 2</option>
+            </select>
+
+            <input type="text" name="contact_person" placeholder="Contact Person" required>
+            <input type="text" name="mobile_number" placeholder="Mobile Number" required>
+            <textarea name="address" placeholder="Address" rows="3" required></textarea>
+
+            <select name="state">
+                <option value="">Select State</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Karnataka">Karnataka</option>
+            </select>
+
+            <select name="city">
+                <option value="">Select City</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Pune">Pune</option>
+            </select>
+
+            <input type="text" name="pincode" placeholder="Pincode">
+            <div class="form-buttons">
+                <button type="reset" class="btn-secondary">Cancel</button>
+                <button type="submit" class="btn-primary">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- JavaScript for Search Filtering and Modal -->
+<script>
+function filterTable(tableId, searchBoxId) {
+    let input = document.getElementById(searchBoxId);
+    let filter = input.value.toLowerCase();
+    let table = document.getElementById(tableId);
+    let rows = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < rows.length; i++) {
+        let rowText = rows[i].innerText.toLowerCase();
+        if (rowText.includes(filter)) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+
+// Open the form popup
+function openForm() {
+    document.getElementById("customerForm").style.display = "flex";
+}
+
+// Close the form popup
+function closeForm() {
+    document.getElementById("customerForm").style.display = "none";
+}
+</script>
+
+
+
+
+
+ <!-- Toast Notification -->
+ <div id="toast" class="toast-container">
+    <i class="fa fa-check-circle"></i>
+    <span class="toast-message">Customer added successfully!</span>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent actual form submission
+
+            let toast = document.getElementById("toast");
+            toast.classList.add("toast-show");
+
+            setTimeout(function () {
+                toast.classList.add("toast-hide");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show", "toast-hide");
+                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
+                }, 500);
+            }, 3000); // Hide after 3 seconds
+        });
+    });
+</script>
+
+
+
+
+
+
+{% endblock %}
