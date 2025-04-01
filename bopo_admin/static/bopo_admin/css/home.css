@@ -7,11 +7,12 @@
 /* Card Container - Force all cards in one line */
 .card-container {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;  /* Aligns cards to the center */
     align-items: stretch;
     gap: 10px;
     padding: 20px;
-    flex-wrap: wrap; /* Allow cards to wrap */
+    
 }
 
 /* Individual Card */
@@ -29,17 +30,43 @@
 .card:hover {
     transform: translateY(-5px);
 }
-/* Responsive Cards */
-@media (max-width: 1024px) {
-    .card-container {
-        justify-content: center; /* Center cards */
+/* Responsive Cards for Mobile */
+@media (max-width: 768px) {
+    .card {
+        width: 48%; /* Each card takes 48% width to fit 2 per row */
+        margin: 1%;  /* Small margin to prevent overlap */
+        box-sizing: border-box;
     }
 }
 
-@media (max-width: 768px) {
+/* For very small screens like 480px */
+@media (max-width: 480px) {
     .card {
-        width: 100%; /* Cards take full width */
-        max-width: 300px;
+        width: 18%; /* Ensures two cards in one row */
+        padding: 10px; /* Reduce padding */
+        font-size: 10px;
+       
+    }
+
+    .card-header {
+        font-size: 10px; /* Reduce header font size */
+        padding: 5px;
+    }
+
+    .card-body {
+        padding: 1px;
+    }
+
+    .value {
+        font-size: 18px; /* Reduce value size */
+    }
+
+    .progress-container {
+        font-size: 12px;
+    }
+
+    .progress-bar {
+        height: 6px; /* Reduce progress bar height */
     }
 }
 

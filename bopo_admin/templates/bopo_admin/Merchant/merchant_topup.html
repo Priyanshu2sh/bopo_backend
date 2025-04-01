@@ -12,6 +12,11 @@
 </head>
 
 <body>
+    <div class="topup-back-btn">
+        <a href="{% url 'merchant_credentials' %}" class="limit-list-back-btn-submit">
+            <i class="fa fa-arrow-left"></i> Back 
+        </a>
+    </div>
     <h1 class="heading">Merchant Top-Up Limit</h1>
     <div class="merchant_topup">
      
@@ -140,6 +145,36 @@
             }
         }
     </script>
+
+    
+ <!-- Toast Notification -->
+ <div id="toast" class="toast-container">
+    <i class="fa fa-check-circle"></i>
+    <span class="toast-message">Credentials send successfully!</span>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent actual form submission
+
+            let toast = document.getElementById("toast");
+            toast.classList.add("toast-show");
+
+            setTimeout(function () {
+                toast.classList.add("toast-hide");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show", "toast-hide");
+                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
+                }, 500);
+            }, 3000); // Hide after 3 seconds
+        });
+    });
+
+
+
+    
+</script>
 
 </body>
 </html>

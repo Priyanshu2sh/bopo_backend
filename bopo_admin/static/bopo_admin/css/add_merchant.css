@@ -195,7 +195,7 @@ body {
     .addmerchant-container {
         width: 90%;
         padding: 15px;
-        height: 170vh;
+        height: 175vh;
         margin-left: 5%;
         
     }
@@ -211,7 +211,7 @@ body {
     .addmerchant-btn-submit {
         max-width: 30%;
         width: 90%;
-        margin-top: -10%;
+        margin-top: 5%;
         margin-left: 34%;
     }
 

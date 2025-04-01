@@ -144,3 +144,39 @@ body {
     font-size: 20px;
     color: white;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .col-md-6 {
+        width: 100%;
+    }
+
+    .input-group {
+        flex-direction: row;
+        width: 100%;
+    
+      
+    }
+
+    .title {
+        font-size: 20px;
+        margin-top: 20%;
+        margin-left: 5%;
+    }
+
+    .account-container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+}
