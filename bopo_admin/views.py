@@ -32,6 +32,45 @@ def individual_list(request):
 
 
 def add_merchant(request):
+    if request.method == "POST":
+        merchant_id = request.POST.get("merchant_id")
+        project_name = request.POST.get("project_name")
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        email = request.POST.get("email")
+        mobile = request.POST.get("mobile")
+        aadhaar = request.POST.get("aadhaar")
+        gst_number = request.POST.get("gst_number")
+        shop_name = request.POST.get("shop_name")
+        pan = request.POST.get("pan")
+        address = request.POST.get("address")
+        legal_name = request.POST.get("legal_name")
+        pincode = request.POST.get("pincode")
+        city = request.POST.get("city")
+        state = request.POST.get("state")
+        country = request.POST.get("country", "India")
+
+        Merchant.objects.create(
+            merchant_id=merchant_id,
+            project_name=project_name,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            mobile=mobile,
+            aadhaar=aadhaar,
+            gst_number=gst_number,
+            pan=pan,
+            shop_name=shop_name,
+            legal_name=legal_name,
+            address=address,
+            pincode=pincode,
+            state=state,
+            city=city,
+            country=country
+        )
+
+        
+        
     return render(request, "bopo_admin/Merchant/add_merchant.html")
 
 def add_individual_merchant(request):

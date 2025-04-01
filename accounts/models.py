@@ -36,10 +36,10 @@ class Merchant(models.Model):
         ('customer', 'Customer'),
     ]
 
-    # STATUS_CHOICES = [
-    #     ('Active', 'Active'),
-    #     ('Inactive', 'Inactive'),
-    # ]
+    STATUS_CHOICES = [
+        ('Active', 'Active'),
+        ('Inactive', 'Inactive'),
+    ]
     
     # merchant_admin = models.ForeignKey(
     #     Corporate,

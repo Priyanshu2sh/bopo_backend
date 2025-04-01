@@ -10,8 +10,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.utils.timezone import now
 from bopo_backend import settings
-from .models import  Customer, Merchant
-from .serializers import   CustomerSerializer, MerchantSerializer
+
+from .models import  Customer, Merchant, User
+from .serializers import   CustomerSerializer, MerchantSerializer, UserSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,8 @@ class OTPService:
 
 class RegisterUserAPIView(APIView):
     """API to register, update, and delete a Merchant or Customer"""
+
+     
 
     def post(self, request):
         """Handles customer or merchant registration"""
@@ -181,6 +184,8 @@ class RegisterUserAPIView(APIView):
 
         return Response({"message": message, "user_type": "customer", "customer_id": customer.customer_id},
                         status=status.HTTP_200_OK)
+    
+    
 
     def update_customer(self, request, mobile):
         """Update customer details"""
@@ -205,6 +210,12 @@ class RegisterUserAPIView(APIView):
 
         customer.delete()
         return Response({"message": "Customer deleted successfully."}, status=status.HTTP_200_OK)
+    
+    def get(self, request):
+        """Fetch all registered customers"""
+        customers = Customer.objects.all()
+        serializer = CustomerSerializer(customers, many=True)
+        return Response({"customers": serializer.data}, status=status.HTTP_200_OK)
 
     def register_merchant(self, request, mobile, user_type, project_name):
         """Handles merchant registration"""
@@ -275,91 +286,50 @@ class LoginAPIView(APIView):
 
     def post(self, request):
         try:
-            mobile = request.data.get("mobile")  # Used for Customers & Corporate
-            merchant_id = request.data.get("merchant_id")  # Used for Merchants
-            pin = request.data.get("pin")  # 🔹 Keep it as an integer
+            mobile = request.data.get("mobile")
+            pin = request.data.get("pin")
+            user_category = request.data.get("user_category")  # 🔹 Added user category
 
-            logger.info(f"Login attempt - Mobile: {mobile}, Merchant ID: {merchant_id}")
+            logger.info(f"Login attempt - Mobile: {mobile}, User Category: {user_category}")
 
-            if pin is None:
-                return Response({"error": "PIN is required."}, status=status.HTTP_400_BAD_REQUEST)
-
-            if not mobile and not merchant_id:
-                return Response({"error": "Either mobile or merchant_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+            if not mobile or not pin or not user_category:
+                return Response({"error": "Mobile, PIN, and user_category are required."}, status=status.HTTP_400_BAD_REQUEST)
 
             user = None
-            user_category = None
 
-            # ✅ Check if user is a Merchant
-            if merchant_id:
-                merchant = Merchant.objects.filter(merchant_id=merchant_id).first()
-                if merchant:
-                    logger.info(f"Merchant found: {merchant.merchant_id}")
+            # ✅ Determine user type based on `user_category`
+            if user_category == "customer":
+                user = Customer.objects.filter(mobile=mobile).first()
+            elif user_category == "merchant":
+                user = Merchant.objects.filter(mobile=mobile).first()
+            # elif user_category == "corporate":
+            #     user = Corporate.objects.filter(mobile=mobile).first()
+            else:
+                return Response({"error": "Invalid user category."}, status=status.HTTP_400_BAD_REQUEST)
 
-                    # 🔹 Ensure PIN comparison is correct
-                    if isinstance(merchant.pin, int):  # If PIN is stored as an integer
-                        stored_pin = merchant.pin
-                    else:
-                        stored_pin = int(merchant.pin)  # Convert to integer if needed
-
-                    if stored_pin == int(pin):  # ✅ Compare integer values
-                        user = merchant
-                        user_category = "merchant"
-                    else:
-                        logger.warning("Invalid PIN for merchant")
-
-            # ✅ Check if user is a Customer
-            if mobile and not user:  # Prevents checking customer if merchant is already found
-                customer = Customer.objects.filter(mobile=mobile).first()
-                if customer:
-                    logger.info(f"Customer found: {customer.customer_id}")
-
-                    # 🔹 Ensure PIN comparison is correct
-                    if isinstance(customer.pin, int):
-                        stored_pin = customer.pin
-                    else:
-                        stored_pin = int(customer.pin)  
-
-                    if stored_pin == int(pin):  # ✅ Compare integer values
-                        user = customer
-                        user_category = "customer"
-                    else:
-                        logger.warning("Invalid PIN for customer")
-
-            # ✅ Check if user is a Corporate
-            # if mobile and not user:  # Prevents checking corporate if customer is already found
-            #     corporate = Corporate.objects.filter(mobile=mobile).first()
-            #     if corporate:
-            #         logger.info(f"Corporate user found: {corporate.id}")
-
-            #         # 🔹 Ensure PIN comparison is correct
-            #         if isinstance(corporate.pin, int):
-            #             stored_pin = corporate.pin
-            #         else:
-            #             stored_pin = int(corporate.pin)  
-
-            #         if stored_pin == int(pin):  # ✅ Compare integer values
-            #             user = corporate
-            #             user_category = "corporate"
-            #         else:
-            #             logger.warning("Invalid PIN for corporate")
-
-            # ❌ If no valid user found
+            #  If user does not exist
             if not user:
-                logger.warning("Invalid credentials")
+                logger.warning("User not found")
                 return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # ✅ Prepare successful response
+            # Ensure PIN is stored as an integer before comparison
+            stored_pin = int(user.pin) if not isinstance(user.pin, int) else user.pin
+
+            if stored_pin != int(pin):  # Compare integer values
+                logger.warning("Invalid PIN")
+                return Response({"error": "Invalid PIN ."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # ✅ Prepare success response
             response_data = {
                 "message": "Login successful",
                 "user_category": user_category,
             }
 
             # Include appropriate ID field
-            if user_category == "merchant":
-                response_data["merchant_id"] = user.merchant_id
-            elif user_category == "customer":
+            if user_category == "customer":
                 response_data["customer_id"] = user.customer_id
+            elif user_category == "merchant":
+                response_data["merchant_id"] = user.merchant_id
             # elif user_category == "corporate":
             #     response_data["corporate_id"] = user.id
 
@@ -369,6 +339,7 @@ class LoginAPIView(APIView):
         except Exception as e:
             logger.error(f"Login error: {str(e)}", exc_info=True)
             return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 
