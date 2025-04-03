@@ -4,13 +4,14 @@ h1.heading {
     font-size: 26px;
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    margin-top: 8%;
+    margin-top: 1%;
     margin-left: -75%;
 }
 
 .merchant_status {
     width: 100%;
     max-width: 1100px;
+    height: 50vh;
     margin: 20px auto;
     padding: 20px;
     background: #ffffff;
@@ -36,19 +37,20 @@ h1.heading {
     flex-direction: column; /* Stack label and input field vertically */
     width: 100%;
 }
+
 .merchant_status .dropdown-container label {
     font-weight: bold;
-    margin-bottom: 5px; /* Adds space below the label */
-    text-align: left; /* Aligns the text to the left */
+    margin-bottom: 5px;
+    text-align: left;
 }
 
 .merchant_status .dropdown-container select,
 .merchant_status input {
-    width: 100%; /* Full width */
-    padding: 10px;
+    width: 100%;
+    padding: 8px; /* Reduced padding to decrease size */
     border: 1px solid #ccc;
     border-radius: 5px;
-    font-size: 16px;
+    font-size: 14px; /* Reduced font size */
     background: #f9f9f9;
 }
 
@@ -72,10 +74,10 @@ h1.heading {
 /* Input Field Styling */
 .send-merchant-input {
     width: 100%;
-    padding: 10px 10px 10px 40px;
+    padding: 8px 8px 8px 30px; /* Reduced padding */
     border: 1px solid #ccc;
     border-radius: 5px;
-    font-size: 16px;
+    font-size: 14px;
     background: #f9f9f9;
     outline: none;
 }
@@ -98,10 +100,10 @@ h1.heading {
 
 .terminal-id-container select {
     flex: 1;
-    padding: 10px;
+    padding: 8px; /* Reduced padding */
     border: 1px solid #ccc;
     border-radius: 5px;
-    font-size: 16px;
+    font-size: 14px;
     background: #f9f9f9;
 }
 
@@ -115,18 +117,22 @@ h1.heading {
 
 /* General Button Styles */
 .button-container button {
-    padding: 10px 20px;
-    font-size: 16px;
+    padding: 10px 20px; /* Reduced padding */
+    font-size: 14px; /* Reduced font size */
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: 0.3s;
+    width: 20%;
+    font-size: 16px;
+   
 }
 
 /* Cancel Button */
 .cancel-btn {
     background-color: #ccc;
     color: black;
+    margin-left: -16%;
 }
 
 .cancel-btn:hover {
@@ -142,13 +148,52 @@ h1.heading {
 .submit-btn:hover {
     background-color: #002d5b;
 }
-
-/* Edit Button */
-.edit-btn {
-    background-color: #ffa500;
+.login-info-back-btn a {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
     color: white;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 87%;
+    width: 10%;
+    font-weight: bold;
+    margin-top: 7%;
 }
 
-.edit-btn:hover {
-    background-color: #cc8400;
+.login-info-back-btn a:hover {
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
+
+/* Toast Notification Styling */
+.toast-container {
+    position: fixed;
+    top: 30px;
+    left: 58%;
+    transform: translateX(-50%);
+    background-color: #28a745;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: none; /* Hidden by default */
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast-show {
+    display: block;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-hide {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
 }

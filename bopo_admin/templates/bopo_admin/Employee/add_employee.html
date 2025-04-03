@@ -88,23 +88,20 @@
                     <div class="addemployee-input-container">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="password" name="password" required class="password-field">
-                        <input type="text" id="passwordText" name="passwordText" required class="password-field show-password">
-                        <input type="checkbox" id="togglePassword" class="password-checkbox">
-                        <label for="togglePassword" class="password-toggle">
+                        <span class="password-toggle" onclick="togglePassword('password')">
                             <i class="fas fa-eye"></i>
-                        </label>
+                        </span>
                     </div>
                     
                     <label>Confirm Password</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="confirmPassword" name="confirm_password" required class="password-field">
-                        <input type="text" id="confirmPasswordText" name="confirm_passwordText" required class="password-field show-password">
-                        <input type="checkbox" id="toggleConfirmPassword" class="password-checkbox">
-                        <label for="toggleConfirmPassword" class="password-toggle">
+                        <span class="password-toggle" onclick="togglePassword('confirmPassword')">
                             <i class="fas fa-eye"></i>
-                        </label>
+                        </span>
                     </div>
+                    
            
 
                     <label>Mobile Number</label>
@@ -145,19 +142,66 @@
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelector("form").addEventListener("submit", function (event) {
             event.preventDefault(); // Prevent actual form submission
-
+    
+            // Select all input values properly
+            let employeeData = {
+                employee_name: document.querySelector("input[name='employee_name']")?.value || "",
+                email: document.querySelector("input[name='email']")?.value || "",
+                aadhaar: document.querySelector("input[name='aadhaar']")?.value || "",
+                address: document.querySelector("input[name='address']")?.value || "",
+                state: document.querySelector("select[name='state']")?.value || "",
+                city: document.querySelector("select[name='city']")?.value || "",
+                country: document.querySelector("input[name='country']")?.value || "India", // Since it's disabled
+                username: document.querySelector("input[name='username']")?.value || "",
+                password: document.querySelector("input[name='password']")?.value || "",
+                mobile: document.querySelector("input[name='mobile']")?.value || "",
+                pan: document.querySelector("input[name='pan']")?.value || "N/A", // Set default if empty
+                pincode: document.querySelector("input[name='pincode']")?.value || ""
+            };
+    
+            // Debugging: Check if all values are being captured
+            console.log("Captured Employee Data:", employeeData);
+    
+            // Save data to localStorage
+            localStorage.setItem("employeeData", JSON.stringify(employeeData));
+    
+            // Debugging: Verify in localStorage
+            console.log("Stored in localStorage:", localStorage.getItem("employeeData"));
+    
+            // Show toast notification
             let toast = document.getElementById("toast");
             toast.classList.add("toast-show");
-
+    
             setTimeout(function () {
                 toast.classList.add("toast-hide");
                 setTimeout(() => {
                     toast.classList.remove("toast-show", "toast-hide");
-                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
+    
+                    // Clear the form
+                    document.querySelector("form").reset();
                 }, 500);
-            }, 3000); // Hide after 3 seconds
+            }, 3000);
         });
     });
+    
+    
+</script>
+<script>
+    function togglePassword(id) {
+        let passwordInput = document.getElementById(id);
+        let icon = passwordInput.nextElementSibling.querySelector("i");
+    
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        } else {
+            passwordInput.type = "password";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        }
+    }
+    
 </script>
 
 

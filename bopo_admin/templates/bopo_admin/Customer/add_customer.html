@@ -1,0 +1,91 @@
+{% extends "bopo_admin/base.html" %}
+{% load static %} 
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'bopo_admin/css/add_customer.css' %}">
+<div class="container">
+    <h2 class="form-title">Add Customer</h2>
+    
+    <form action="#" method="POST" class="customer-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="first_name">First Name:</label>
+            <input type="text" id="first_name" name="first_name" placeholder="Enter First Name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="last_name">Last Name:</label>
+            <input type="text" id="last_name" name="last_name" placeholder="Enter Last Name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" placeholder="Enter Age" required>
+        </div>
+
+        <div class="form-group">
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender" required>
+                <option value="" disabled selected>Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="address">Address:</label>
+            <textarea id="address" name="address" placeholder="Enter Address" rows="3" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email ID:</label>
+            <input type="email" id="email" name="email" placeholder="Enter Email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="pincode">Pincode:</label>
+            <input type="text" id="pincode" name="pincode" placeholder="Enter Pincode" required>
+        </div>
+
+        <div class="form-group">
+            <label for="country">Country:</label>
+            <select id="country" name="country" required>
+                <option value="" disabled selected>Select Country</option>
+                <option value="India">India</option>
+                <option value="USA">USA</option>
+                <option value="UK">UK</option>
+                <option value="Canada">Canada</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="state">State:</label>
+            <select id="state" name="state" required>
+                <option value="" disabled selected>Select State</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="California">California</option>
+                <option value="Texas">Texas</option>
+                <option value="New York">New York</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="city">City:</label>
+            <select id="city" name="city" required>
+                <option value="" disabled selected>Select City</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Los Angeles">Los Angeles</option>
+                <option value="Houston">Houston</option>
+                <option value="New York City">New York City</option>
+            </select>
+        </div>
+
+        <div class="form-buttons">
+            <button type="submit" class="submit-btn">Submit</button>
+            <button type="reset" class="reset-btn">Reset</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

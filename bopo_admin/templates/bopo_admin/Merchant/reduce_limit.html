@@ -5,8 +5,16 @@
 <link rel="stylesheet" href="{% static 'bopo_admin/css/reduce_limit.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+
+<div class="login-info-back-btn">
+    <a href="{% url 'reduce_limit' %}" class="login-info-back-btn-submit">
+        <i class="fa fa-arrow-left"></i> Back 
+    </a>
+</div>
+<h2>Merchant Reduce Limit</h2>
 <div class="reduce-limit-container">
-    <h2>Merchant Reduce Limit</h2>
+   
+
 
     <form method="POST" action="{% url 'reduce_limit' %}">
         {% csrf_token %}
@@ -62,5 +70,34 @@
         </div>
     </form>
 </div>
+
+ <!-- Toast Notification -->
+ <div id="toast" class="toast-container">
+    <i class="fa fa-check-circle"></i>
+    <span class="toast-message">Credentials send successfully!</span>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent actual form submission
+
+            let toast = document.getElementById("toast");
+            toast.classList.add("toast-show");
+
+            setTimeout(function () {
+                toast.classList.add("toast-hide");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show", "toast-hide");
+                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
+                }, 500);
+            }, 3000); // Hide after 3 seconds
+        });
+    });
+
+
+
+    
+</script>
 
 {% endblock %}

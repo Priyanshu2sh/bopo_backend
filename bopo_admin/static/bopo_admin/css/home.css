@@ -30,45 +30,6 @@
 .card:hover {
     transform: translateY(-5px);
 }
-/* Responsive Cards for Mobile */
-@media (max-width: 768px) {
-    .card {
-        width: 48%; /* Each card takes 48% width to fit 2 per row */
-        margin: 1%;  /* Small margin to prevent overlap */
-        box-sizing: border-box;
-    }
-}
-
-/* For very small screens like 480px */
-@media (max-width: 480px) {
-    .card {
-        width: 18%; /* Ensures two cards in one row */
-        padding: 10px; /* Reduce padding */
-        font-size: 10px;
-       
-    }
-
-    .card-header {
-        font-size: 10px; /* Reduce header font size */
-        padding: 5px;
-    }
-
-    .card-body {
-        padding: 1px;
-    }
-
-    .value {
-        font-size: 18px; /* Reduce value size */
-    }
-
-    .progress-container {
-        font-size: 12px;
-    }
-
-    .progress-bar {
-        height: 6px; /* Reduce progress bar height */
-    }
-}
 
 /* Card Header */
 .card-header {
@@ -186,8 +147,70 @@
     width: 100%;
     box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
 }
+
+/* For screens smaller than 768px */
+@media (max-width: 768px) {
+    .footer {
+        position: relative; /* Move below the content */
+        margin-top: 1%; /* Add spacing from the content */
+    }
+}
+
+/* For screens smaller than 480px */
 @media (max-width: 480px) {
     .footer {
+        position: relative;
+        margin-top: 1%;
+    }
+}
+/* Responsive Cards for Mobile */
+@media (max-width: 768px) {
+    .card-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 2 cards per row */
+        gap: 10px; /* Space between cards */
+        margin-top: 10%;
+    }
+
+    .card {
+        width: 45%; /* Adjust width to take 2 cards in a row */
+        min-width: 180px; /* Ensure the cards do not shrink too much */
+        margin: 5px;
+    }
+}
+
+/* For very small screens like 480px */
+@media (max-width: 480px) {
+    .card-container {
+        grid-template-columns: repeat(2, 1fr); /* 2 cards per row */
+        gap: 10px; /* Space between cards */
+   
+    }
+    .card {
+        width: 48%; /* Ensure two cards in one row */
+        min-width: 150px; /* Adjust width to fit smaller screens */
+        padding: 10px; /* Reduce padding */
         font-size: 12px;
+    }
+
+    .card-header {
+        font-size: 10px; /* Reduce header font size */
+        padding: 5px;
+    }
+
+    .card-body {
+        padding: 1px;
+    }
+
+    .value {
+        font-size: 18px; /* Reduce value size */
+    }
+
+    .progress-container {
+        font-size: 12px;
+    }
+
+    .progress-bar {
+        height: 6px; /* Reduce progress bar height */
     }
 }

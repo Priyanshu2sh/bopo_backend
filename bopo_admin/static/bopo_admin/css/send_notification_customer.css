@@ -19,12 +19,13 @@ body {
 .send-notification-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    color: black;
     padding: 15px;
     border-radius: 5px;
-    font-size: 20px;
+    color: #004080;
+    font-size: 26px;
     font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    
 }
 
 /* Notification List */
@@ -169,11 +170,64 @@ body {
     background-color: #002d5b;
 }
 
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .form-group .form-control,
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .send-notification-container {
+        width: 90%; 
+        margin: 10px ; 
+        padding: 15px; 
+        margin-top: 20%;
+    }
+
+    .send-notification-header {
+        font-size: 18px; /* Reduce header font size */
+        text-align: center; /* Center align for better UI */
+     
+    }
+
+    .send-notification-list {
+        padding: 10px; /* Reduce padding */
+    }
+
+    .send-notification-item {
+        padding: 8px; /* Reduce padding for compact design */
+    }
+
+    .form-group {
+        flex-direction: column; /* Stack labels and inputs */
+        align-items: flex-start; /* Align properly */
+        margin-left: 0; /* Remove left margin */
+        width: 100%; /* Full width */
+    }
+
+    .form-group label {
+        width: 100%; /* Full width */
+        font-size: 14px; /* Adjust font size */
+    }
+
+    .form-group input,
+    .form-group select,
     .form-group textarea {
-        width: 100% !important;
-        max-width: 100% !important;
+        width: 100%; /* Full width for mobile */
+        max-width: 100%;
+    }
+
+    .button-container {
+        display: flex;
+        flex-direction: column; /* Stack buttons */
+        align-items: center; /* Center align */
+    }
+
+    .button-container button {
+        width: 100%; /* Full width buttons */
+        margin-bottom: 10px; /* Space between buttons */
+    }
+
+    .send-notification-label {
+        font-size: 16px; /* Adjust font size */
+    }
+
+    .send-notification-icon {
+        font-size: 18px; /* Adjust icon size */
     }
 }

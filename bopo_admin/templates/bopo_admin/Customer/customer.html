@@ -2,12 +2,14 @@
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/customer.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 
 <div class="customer-container">
     <div class="customer-header">
         <h2>Customer List</h2>
         <div class="customer-buttons">
-            <button class="add-customer-btn" onclick="openForm()">+ Add Customer</button>
+            <button class="add-customer-btn" onclick="openModal()">+ Add Customer</button>
             <button class="send-customer-btn" onclick="window.location.href='{% url 'send_customer_notifications' %}'">
                 + Send Notifications
             </button>
@@ -48,43 +50,165 @@
     </div>
 </div>
 
-<!-- Add Customer Form (Modal) -->
-<div id="customerForm" class="popup-form-container">
-    <div class="popup-form">
-        <span class="close-btn" onclick="closeForm()">&times;</span>
+
+<!-- Modal Structure -->
+<div id="customerModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
         <h2>Add Customer</h2>
-        <form method="POST">
-            {% csrf_token %}
-            <select class="form-select" name="project" required>
-                <option value="">Select One Project</option>
-                <option value="Project1">Project 1</option>
-                <option value="Project2">Project 2</option>
-            </select>
+        <form id="customerForm" class="form-container">
+            <div class="form-group">
+                <label for="firstName">First Name:</label>
+                <div class="input-container">
+                <i class="fas fa-user"></i>
+                <input type="text" id="firstName" name="firstName" required>
+                </div>
+            </div>
+        
+            <div class="form-group">
+                <label for="lastName">Last Name:</label>
+                <div class="input-container">
+                <i class="fas fa-user"></i>
+                <input type="text" id="lastName" name="lastName" required>
+                </div>
+            </div>
 
-            <input type="text" name="contact_person" placeholder="Contact Person" required>
-            <input type="text" name="mobile_number" placeholder="Mobile Number" required>
-            <textarea name="address" placeholder="Address" rows="3" required></textarea>
+            
+            <div class="form-group">
+                <label for="email">Email ID:</label>
+                <div class="input-container">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="email" name="email" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="mobile">Mobile Number:</label>
+                <div class="input-container">
+                <i class="fas fa-mobile-alt"></i>
+                <input type="tel" id="mobile" name="mobile" pattern="[0-9]{10}" required placeholder="Enter 10-digit Mobile Number">
+            </div>
+        </div>
+        
+        
+            <div class="form-group">
+                <label for="age">Age:</label>
+                <div class="input-container">
+                <i class="fa fa-calendar"></i>
+                <input type="number" id="age" name="age" required>
+            </div>
+        </div>
+        
+            <div class="form-group">
+                <label for="gender">Gender:</label>
+                <div class="input-container">
+                 <select id="gender" name="gender" required>
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            </div>
 
-            <select name="state">
-                <option value="">Select State</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Karnataka">Karnataka</option>
-            </select>
-
-            <select name="city">
-                <option value="">Select City</option>
-                <option value="Mumbai">Mumbai</option>
-                <option value="Pune">Pune</option>
-            </select>
-
-            <input type="text" name="pincode" placeholder="Pincode">
-            <div class="form-buttons">
-                <button type="reset" class="btn-secondary">Cancel</button>
-                <button type="submit" class="btn-primary">Submit</button>
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="address">Address:</label>
+                <div class="input-container">
+                <i class="fas fa-map-marker-alt"></i>
+                <textarea id="address" name="address" required></textarea>
+            </div>
+        </div>
+            
+        
+            
+        
+            <div class="form-group">
+                <label for="country">Country:</label>
+                <div class="input-container">
+                <input type="text" id="country" name="country" placeholder="India" disabled>
+            </div>
+        </div>
+        
+            <div class="form-group">
+                <label for="state">State:</label>
+                <div class="input-container">
+                <select id="state" name="state" onchange="updateCities()" required>
+                    <option value="" disabled selected>Select State</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Delhi">Delhi</option>
+                </select>
+            </div>
+            </div>
+        
+            <div class="form-group">
+                <label for="city">City:</label>
+                <div class="input-container">
+                <select id="city" name="city" required>
+                    <option value="" disabled selected>Select City</option>
+                </select>
+            </div>
+            </div>
+        
+            <div class="form-group">
+                <label for="pincode">Pincode:</label>
+                <div class="input-container">
+                <i class="fas fa-home"></i>
+                <input type="text" id="pincode" name="pincode" required>
+            </div>
+        </div>
+        
+            <div class="form-actions">
+                <button type="submit">Submit</button>
             </div>
         </form>
+        
+        
     </div>
 </div>
+
+<!-- JavaScript for Modal and Dynamic City Dropdown -->
+<script>
+function openModal() {
+    document.getElementById("customerModal").style.display = "block";
+}
+
+function closeModal() {
+    document.getElementById("customerModal").style.display = "none";
+}
+
+// Dynamic State and City Data
+const citiesByState = {
+    "Maharashtra": ["Mumbai", "Pune", "Nagpur"],
+    "Karnataka": ["Bangalore", "Mysore", "Hubli"],
+    "Delhi": ["New Delhi", "Old Delhi"]
+};
+
+function updateCities() {
+    let state = document.getElementById("state").value;
+    let cityDropdown = document.getElementById("city");
+
+    cityDropdown.innerHTML = '<option value="" disabled selected>Select City</option>'; // Reset dropdown
+
+    if (state in citiesByState) {
+        citiesByState[state].forEach(city => {
+            let option = document.createElement("option");
+            option.value = city;
+            option.textContent = city;
+            cityDropdown.appendChild(option);
+        });
+    }
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    let modal = document.getElementById("customerModal");
+    if (event.target == modal) {
+        closeModal();
+    }
+};
+</script>
+
 
 
 <!-- JavaScript for Search Filtering and Modal -->
@@ -105,16 +229,6 @@ function filterTable(tableId, searchBoxId) {
     }
 }
 
-// Open the form popup
-function openForm() {
-    document.getElementById("customerForm").style.display = "flex";
-}
-
-// Close the form popup
-function closeForm() {
-    document.getElementById("customerForm").style.display = "none";
-}
-</script>
 
 
 

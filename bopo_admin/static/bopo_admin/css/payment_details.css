@@ -21,10 +21,12 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: black;
+    color: #004080;
+    font-size: 26px;
     padding: 15px;
     font-size: 18px;
     font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* Payment Details List */
@@ -78,3 +80,55 @@ button {
     font-size: 12px;
 }
 
+
+/* Responsive Styles */
+@media screen and (max-width: 768px) {
+    .payment_details-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .payment_details-table {
+        overflow-x: auto; /* Scrollable table for small screens */
+    }
+
+    th, td {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    button {
+        font-size: 16px; /* Increase button size for touchscreens */
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .payment_details-container {
+        padding: 10px;
+    }
+
+    .payment_details-header h2 {
+        font-size: 16px;
+        margin-top: 10% ;
+        margin-left: -70%;
+    }
+
+    .search-box {
+        font-size: 12px;
+        padding: 6px;
+        width:53%;
+    }
+
+    th, td {
+        font-size: 10px;
+        padding: 5px;
+    }
+
+    button {
+        font-size: 18px;
+    }
+}
