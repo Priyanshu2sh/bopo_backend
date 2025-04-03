@@ -129,26 +129,27 @@
             </div>
         </div>
         
-            <div class="form-group">
-                <label for="state">State:</label>
-                <div class="input-container">
-                <select id="state" name="state" onchange="updateCities()" required>
-                    <option value="" disabled selected>Select State</option>
-                    <option value="Maharashtra">Maharashtra</option>
-                    <option value="Karnataka">Karnataka</option>
-                    <option value="Delhi">Delhi</option>
-                </select>
+      <!-- Dropdown for State Selection -->
+      <div class="form-group">
+        <label for="state">State:</label>
+        <div class="dropdown-container">
+            <div class="custom-dropdown">
+                <input type="text" id="stateSearch" placeholder="Search State..." onkeyup="filterStates()" onclick="toggleDropdown()" autocomplete="off">
+                <div class="dropdown-options" id="stateDropdown"></div>
             </div>
-            </div>
-        
-            <div class="form-group">
-                <label for="city">City:</label>
-                <div class="input-container">
-                <select id="city" name="city" required>
-                    <option value="" disabled selected>Select City</option>
-                </select>
-            </div>
-            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="city">City:</label>
+        <div class="input-container">
+        <select id="city" name="city" required>
+            <option value="" disabled selected>Select City</option>
+        </select>
+    </div>
+</div>
+
+
         
             <div class="form-group">
                 <label for="pincode">Pincode:</label>
@@ -177,17 +178,83 @@ function closeModal() {
     document.getElementById("customerModal").style.display = "none";
 }
 
-// Dynamic State and City Data
+
 const citiesByState = {
-    "Maharashtra": ["Mumbai", "Pune", "Nagpur"],
-    "Karnataka": ["Bangalore", "Mysore", "Hubli"],
-    "Delhi": ["New Delhi", "Old Delhi"]
+    "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur"],
+    "Arunachal Pradesh": ["Itanagar", "Tawang"],
+    "Assam": ["Guwahati", "Dibrugarh"],
+    "Bihar": ["Patna", "Gaya"],
+    "Chhattisgarh": ["Raipur", "Bilaspur"],
+    "Delhi": ["New Delhi", "Dwarka"],
+    "Goa": ["Panaji", "Margao"],
+    "Gujarat": ["Ahmedabad", "Surat"],
+    "Haryana": ["Chandigarh", "Faridabad"],
+    "Himachal Pradesh": ["Shimla", "Manali"],
+    "Jharkhand": ["Ranchi", "Jamshedpur"],
+    "Karnataka": ["Bangalore", "Mysore"],
+    "Kerala": ["Thiruvananthapuram", "Kochi"],
+    "Madhya Pradesh": ["Bhopal", "Indore"],
+    "Maharashtra": ["Mumbai", "Pune"],
+    "Odisha": ["Bhubaneswar", "Cuttack"],
+    "Punjab": ["Amritsar", "Ludhiana"],
+    "Rajasthan": ["Jaipur", "Udaipur"],
+    "Tamil Nadu": ["Chennai", "Coimbatore"],
+    "Telangana": ["Hyderabad", "Warangal"],
+    "Uttar Pradesh": ["Lucknow", "Kanpur"],
+    "West Bengal": ["Kolkata", "Siliguri"]
 };
 
-function updateCities() {
-    let state = document.getElementById("state").value;
-    let cityDropdown = document.getElementById("city");
+// Populate the dropdown on page load
+function populateStates() {
+    let stateDropdown = document.getElementById("stateDropdown");
+    stateDropdown.innerHTML = ""; // Clear previous values
 
+    Object.keys(citiesByState).forEach(state => {
+        let div = document.createElement("div");
+        div.textContent = state;
+        div.onclick = function () {
+            document.getElementById("stateSearch").value = state;
+            updateCities(state);
+            closeDropdown();
+        };
+        stateDropdown.appendChild(div);
+    });
+}
+
+// Filter states when typing
+function filterStates() {
+    let input = document.getElementById("stateSearch").value.toLowerCase();
+    let options = document.getElementById("stateDropdown").getElementsByTagName("div");
+
+    for (let option of options) {
+        if (option.textContent.toLowerCase().includes(input)) {
+            option.style.display = "block";
+        } else {
+            option.style.display = "none";
+        }
+    }
+}
+
+// Show/hide dropdown
+function toggleDropdown() {
+    let dropdown = document.getElementById("stateDropdown");
+    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+}
+
+// Close dropdown when clicking outside
+window.onclick = function (event) {
+    if (!event.target.matches("#stateSearch")) {
+        closeDropdown();
+    }
+};
+
+function closeDropdown() {
+    document.getElementById("stateDropdown").style.display = "none";
+}
+
+// Update cities based on selected state
+function updateCities(state) {
+    let cityDropdown = document.getElementById("city");
     cityDropdown.innerHTML = '<option value="" disabled selected>Select City</option>'; // Reset dropdown
 
     if (state in citiesByState) {
@@ -199,6 +266,14 @@ function updateCities() {
         });
     }
 }
+
+// Initialize states
+document.addEventListener("DOMContentLoaded", populateStates);
+
+
+
+
+
 
 // Close modal when clicking outside
 window.onclick = function(event) {

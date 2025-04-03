@@ -61,6 +61,11 @@ body {
     flex: 1;
     font-size: 14px;
 }
+.addemployee-form-group label[for="city"] {
+    margin-top: 2.5%; /* Adjust as needed */
+    display: block; /* Ensure it's positioned properly */
+    
+}
 
 
 .addemployee-btn-submit {
@@ -142,6 +147,42 @@ body {
 .password-checkbox:checked + .password-toggle i::before {
     content: "\f070"; /* FontAwesome eye-slash */
 }
+custom-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.custom-dropdown input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 0;
+    gap: 20px;
+}
+
+.dropdown-options {
+    display: none;
+    position: absolute;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    z-index: 1000;
+    margin-left: 0;
+}
+
+.dropdown-options div {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown-options div:hover {
+    background: #f1f1f1;
+}
 
 
 
@@ -168,6 +209,9 @@ body {
     transform: translateY(-50%); /* Initial hidden position */
     transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
 }
+
+
+
 
 /* Show Toast */
 .toast-show {
