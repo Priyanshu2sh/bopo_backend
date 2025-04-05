@@ -6,8 +6,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 
-<div class="login-info-back-btn">
-    <a href="{% url 'reduce_limit' %}" class="login-info-back-btn-submit">
+<div class="reduce-limit-back-btn">
+    <a href="{% url 'merchant_limit_list' %}" class="reduce-limit-back-btn-submit">
         <i class="fa fa-arrow-left"></i> Back 
     </a>
 </div>
@@ -23,6 +23,7 @@
             <!-- Project Selection -->
             <label for="project">Select Project</label>
             <select id="project" name="project">
+                <option value="select">-- Select a Project --</option>
                 <option value="Demographic Project">Demographic Project</option>
                 <option value="Tech Initiative">Tech Initiative</option>
             </select>
@@ -32,16 +33,17 @@
             <!-- Merchant Selection -->
             <label for="merchant">Select Merchant</label>
             <select id="merchant" name="merchant">
+                <option value="select">-- Select a Merchant --</option>
                 <option value="DEMO000000000001">DEMO000000000001</option>
                 <option value="DEMO000000000002">DEMO000000000002</option>
             </select>
         </div>
 
-        <div class="form-group limit-section">
+        <div class="form-group ">
             <label>Current Limit</label>
             <div class="input-icon">
                 <span class="icon"><i class="fas fa-money-bill-wave"></i></span>
-                <input type="text" id="current-limit" value="Limit Not Found" readonly>
+                <input type="text" id="current-limit" name="current_limit" placeholder="Current Limit">
              
             </div>
         </div>
@@ -65,7 +67,7 @@
         </div>
 
         <div class="button-group">
-            <button type="button" class="cancel-btn">Cancel</button>
+            <button type="button" class="cancel-btn" onclick="confirmCancel()">Cancel</button>
             <button type="submit" class="submit-btn">Submit</button>
         </div>
     </form>
@@ -74,10 +76,37 @@
  <!-- Toast Notification -->
  <div id="toast" class="toast-container">
     <i class="fa fa-check-circle"></i>
-    <span class="toast-message">Credentials send successfully!</span>
+    <span class="toast-message">Reduce Limit Submitted successfully!</span>
 </div>
 
 <script>
+    function confirmCancel() {
+        // Select all input fields and dropdowns inside the form
+        let inputs = document.querySelectorAll("input, select");
+        let emptyFields = false;
+    
+        // Check if any input or dropdown field is empty
+        inputs.forEach(input => {
+            if (input.value.trim() === "select" || input.value.trim() === "") {
+                emptyFields = true;
+            }
+        });
+    
+        // Show alert if fields are empty
+        if (emptyFields) {
+            alert("⚠️ Please fill in all fields before canceling.");
+            return; // Stop further execution
+        }
+    
+        // Show confirmation dialog if all fields are filled
+        let confirmAction = confirm("❗ Are you sure you want to cancel?");
+        if (confirmAction) {
+            window.location.href = "{% url 'home' %}"; // Redirect to Home Page
+        }
+    }
+    
+
+
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelector("form").addEventListener("submit", function (event) {
             event.preventDefault(); // Prevent actual form submission

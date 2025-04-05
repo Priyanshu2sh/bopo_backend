@@ -26,6 +26,9 @@ urlpatterns = [
     path('transactionHistory/', include('transaction_history.urls')),
     path('qr/', include('qr_store.urls')),
     path('transfer/', include('transfer.urls')),
+    
+    # state , city
+    path('bopo_admin/', include('bopo_admin.urls')), 
 
 
 

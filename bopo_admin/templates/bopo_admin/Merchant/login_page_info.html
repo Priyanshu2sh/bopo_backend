@@ -1,53 +1,90 @@
 {% extends "bopo_admin/base.html" %}
-{% load static %}  <!-- Load static for CSS file -->
-
+{% load static %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/login_page_info.css' %}">
 
-<div class="login-info-back-btn">
-    <a href="{% url 'merchant_status' %}" class="login-info-back-btn-submit">
+<div class="login_info-back-to-list-btn">
+    <a href="{% url 'reduce_limit' %}" class="login_info-add_individual_merchant-btn-submit">
         <i class="fa fa-arrow-left"></i> Back 
     </a>
 </div>
-<h1 class="heading">Merchant Login</h1>
+<h2>Login Info</h2>
 
-<div class="merchant_status">
-    <!-- Sales Contact Details -->
-    <div class="dropdown-container">
-        <div class="form-group">
-            <label for="sales_name">Sales Contact Name:</label>
-            <input type="text" id="sales_name" name="sales_name" placeholder="Enter Sales Contact Name" required>
+<div class="login_info-container">
+    <form method="POST">
+        {% csrf_token %}
+
+        <!-- Sales Contact Name -->
+        <div class="login_info-form-group">
+            <label for="sales-contact-name">Sales Contact Name</label>
+            <div class="login_info-input-icon">
+                <i class="fa fa-user login_info-icon"></i>
+                <input type="text" id="sales-contact-name" name="sales_contact_name" class="login_info-input" placeholder="Enter Sales Contact Name" required>
+            </div>
+        </div>
+        
+        <!-- Sales Contact Number -->
+        <div class="login_info-form-group">
+            <label for="sales-contact-number">Sales Contact Number</label>
+            <div class="login_info-input-icon">
+                <i class="fa fa-phone login_info-icon"></i>
+                <input type="tel" id="sales-contact-number" name="sales_contact_number" class="login_info-input" placeholder="Enter Sales Contact Number" required>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="sales_number">Sales Contact Number:</label>
-            <input type="tel" id="sales_number" name="sales_number" placeholder="Enter Sales Contact Number" required>
+        <!-- Sales Email ID -->
+        <div class="login_info-form-group">
+            <label for="sales-email">Sales Email ID</label>
+            <div class="login_info-input-icon">
+                <i class="fa fa-envelope login_info-icon"></i>
+                <input type="email" id="sales-email" name="sales_email" class="login_info-input" placeholder="Enter Sales Email ID" required>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="sales_email">Sales Email ID:</label>
-            <input type="email" id="sales_email" name="sales_email" placeholder="Enter Sales Email ID" required>
+        <div class="login_info-button-group">
+            <button type="button" class="login_info-cancel-btn" onclick="confirmCancel()">Cancel</button>
+            <button type="submit" class="login_info-submit-btn">Submit</button>
         </div>
-    </div>
-
-    <!-- Buttons -->
-    <div class="button-container">
-        <button type="button" class="cancel-btn" onclick="resetForm()">Cancel</button>
-        <button type="submit" class="submit-btn" onclick="showAlert()">Submit</button>
-    </div>
+    </form>
 </div>
 
-
- <!-- Toast Notification -->
- <div id="toast" class="toast-container">
+<!-- Toast Notification -->
+<div id="toast" class="toast-container">
     <i class="fa fa-check-circle"></i>
-    <span class="toast-message">Credentials send successfully!</span>
+    <span class="toast-message">Details Submitted Successfully!</span>
 </div>
 
 <script>
+    function confirmCancel() {
+        // Select all input fields inside the form
+        let inputs = document.querySelectorAll(".login_info-input");
+        let emptyFields = false;
+
+        // Check if any input field is empty
+        inputs.forEach(input => {
+            if (input.value.trim() === "") {
+                emptyFields = true;
+            }
+        });
+
+        // Show alert if fields are empty
+        if (emptyFields) {
+            alert("⚠️ Please fill in all fields before canceling.");
+            return; // Stop further execution
+        }
+
+        // Show confirmation dialog if all fields are filled
+        let confirmAction = confirm("❗ Are you sure you want to cancel?");
+        if (confirmAction) {
+            window.location.href = "{% url 'home' %}"; // Redirect to Home Page
+        }
+    }
+
+
+
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelector("form").addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent actual form submission
+            event.preventDefault();
 
             let toast = document.getElementById("toast");
             toast.classList.add("toast-show");
@@ -56,15 +93,10 @@
                 toast.classList.add("toast-hide");
                 setTimeout(() => {
                     toast.classList.remove("toast-show", "toast-hide");
-                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
+                    document.querySelector("form").submit();
                 }, 500);
-            }, 3000); // Hide after 3 seconds
+            }, 3000);
         });
     });
-
-
-
-    
 </script>
-
 {% endblock %}

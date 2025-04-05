@@ -10,6 +10,13 @@
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'bopo_admin/css/add_individual_merchant.css' %}">
+
+    <!-- jQuery (required for Select2) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Select2 CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </head>
 <body>
 
@@ -60,14 +67,11 @@
                         <input type="text" name="address" required>
                     </div>
     
-                    <label>Select State</label>
-                    <div class="add_individual_merchant-input-container">
-                        <select name="state">
+                    <label for="state">Select State</label>
+                        <select id="state" name="state" class="select2" onchange="fetchCities()">
                             <option value="">Select State</option>
-                            <option value="Maharashtra">Maharashtra</option>
-                            <option value="Gujarat">Gujarat</option>
                         </select>
-                    </div>
+              
     
                     <label>Country</label>
                     <div class="add_individual_merchant-input-container">
@@ -108,19 +112,17 @@
                         <input type="text" name="legal_name" required>
                     </div>
     
+                     
+                    <label>Select City</label>
+                          <select id="city" name="city" class="select2">
+                            <option value="">Select City</option>
+                        </select>
+               
+
                     <label>Pincode</label>
                     <div class="add_individual_merchant-input-container">
                         <i class="fas fa-home"></i>
                         <input type="text" name="pincode">
-                    </div>
-    
-                    <label>Select City</label>
-                    <div class="add_individual_merchant-input-container">
-                        <select name="city">
-                            <option value="">Select City</option>
-                            <option value="Mumbai">Mumbai</option>
-                            <option value="Pune">Pune</option>
-                        </select>
                     </div>
                 </div>
             </div>
@@ -137,9 +139,17 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            fetchStates();
+            $('.select2').select2({
+                placeholder: "Select an option",
+                allowClear: true,
+                width: '100%'
+            });
+
             document.querySelector("form").addEventListener("submit", function (event) {
                 event.preventDefault(); // Prevent actual form submission
 
+                // Show toast
                 let toast = document.getElementById("toast");
                 toast.classList.add("toast-show");
 
@@ -147,13 +157,52 @@
                     toast.classList.add("toast-hide");
                     setTimeout(() => {
                         toast.classList.remove("toast-show", "toast-hide");
-                        document.querySelector("form").submit(); // Uncomment to submit after toast disappears
+                        document.querySelector("form").reset();
+                        $('.select2').val(null).trigger('change');
                     }, 500);
-                }, 3000); // Hide after 3 seconds
+                }, 3000);
             });
         });
 
 
+ 
+
+        function fetchStates() {
+            fetch("/bopo_admin/get-states/")
+                .then(response => response.json())
+                .then(data => {
+                    let stateDropdown = document.getElementById("state");
+                    stateDropdown.innerHTML = '<option value="">Select State</option>';
+                    data.forEach(state => {
+                        let option = document.createElement("option");
+                        option.value = state.id;
+                        option.textContent = state.name;
+                        stateDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error fetching states:", error));
+        }
+
+        function fetchCities() {
+            let stateId = document.getElementById("state").value;
+            let cityDropdown = document.getElementById("city");
+            cityDropdown.innerHTML = '<option value="">Select City</option>';
+
+            if (stateId) {
+                fetch(`/bopo_admin/get-cities/${stateId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(city => {
+                            let option = document.createElement("option");
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            cityDropdown.appendChild(option);
+                        });
+                        $('#city').trigger('change'); // Refresh Select2
+                    })
+                    .catch(error => console.error("Error fetching cities:", error));
+            }
+        }
 
         
     </script>

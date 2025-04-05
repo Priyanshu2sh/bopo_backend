@@ -83,7 +83,7 @@
 
         <!-- Buttons -->
         <div class="button-container">
-            <button type="button" class="btn btn-danger" id="cancelBtn">Cancel</button>
+            <button type="button" class="btn btn-danger" id="cancelBtn" onclick="confirmCancel()">Cancel</button>
             <button type="submit" class="btn btn-success" id="saveBtn">Save</button>
         </div>
     </div>
@@ -96,12 +96,40 @@
 </div>
 
 <script>
-    document.getElementById("cancelBtn").addEventListener("click", function () {
+
+    function confirmCancel() {
+        // Select all input fields
         let inputs = document.querySelectorAll(".form-control");
+        let emptyFields = false;
+
+        // Check if any input field is empty
         inputs.forEach(input => {
-            input.value = ""; // Clear all fields
+            if (input.value.trim() === "") {
+                emptyFields = true;
+            }
         });
+
+        // Show alert if fields are empty
+        if (emptyFields) {
+            alert("⚠️ Please fill in all fields before canceling.");
+            return;
+        }
+
+        // Show confirmation dialog if all fields are filled
+        let confirmAction = confirm("❗ Are you sure you want to cancel?");
+        if (confirmAction) {
+            window.location.href = "{% url 'home' %}"; // Redirect to Home Page
+        }
+    }
+
+    document.getElementById("cancelBtn").addEventListener("click", function () {
+        // Clear all input fields
+        document.getElementById("accountForm").reset();
     });
+
+
+
+
 
     document.getElementById("accountForm").addEventListener("submit", function (event) {
         event.preventDefault(); // Prevent actual form submission

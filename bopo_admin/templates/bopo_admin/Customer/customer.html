@@ -3,7 +3,12 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/customer.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+ <!-- jQuery (required for Select2) -->
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+ <!-- Select2 CSS & JS -->
+ <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+ <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <div class="customer-container">
     <div class="customer-header">
@@ -56,7 +61,9 @@
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
         <h2>Add Customer</h2>
-        <form id="customerForm" class="form-container">
+
+        <form id="customerForm" class="form-container" method="POST">
+            {% csrf_token %}
             <div class="form-group">
                 <label for="firstName">First Name:</label>
                 <div class="input-container">
@@ -131,24 +138,22 @@
         
       <!-- Dropdown for State Selection -->
       <div class="form-group">
-        <label for="state">State:</label>
-        <div class="dropdown-container">
-            <div class="custom-dropdown">
-                <input type="text" id="stateSearch" placeholder="Search State..." onkeyup="filterStates()" onclick="toggleDropdown()" autocomplete="off">
-                <div class="dropdown-options" id="stateDropdown"></div>
-            </div>
+        <label for="state">Select State:</label>
+        <div class="input-container">
+                    <select id="state" name="state" class="select2" onchange="fetchCities()">
+                        <option value="">Select State</option>
+                    </select>
+                </div>
         </div>
-    </div>
 
     <div class="form-group">
-        <label for="city">City:</label>
+        <label for="city">Select City:</label>
         <div class="input-container">
-        <select id="city" name="city" required>
-            <option value="" disabled selected>Select City</option>
-        </select>
-    </div>
-</div>
-
+                    <select id="city" name="city" class="select2">
+                        <option value="">Select City</option>
+                    </select>
+                </div>
+        </div>
 
         
             <div class="form-group">
@@ -170,140 +175,43 @@
 
 <!-- JavaScript for Modal and Dynamic City Dropdown -->
 <script>
-function openModal() {
-    document.getElementById("customerModal").style.display = "block";
-}
-
-function closeModal() {
-    document.getElementById("customerModal").style.display = "none";
-}
-
-
-const citiesByState = {
-    "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur"],
-    "Arunachal Pradesh": ["Itanagar", "Tawang"],
-    "Assam": ["Guwahati", "Dibrugarh"],
-    "Bihar": ["Patna", "Gaya"],
-    "Chhattisgarh": ["Raipur", "Bilaspur"],
-    "Delhi": ["New Delhi", "Dwarka"],
-    "Goa": ["Panaji", "Margao"],
-    "Gujarat": ["Ahmedabad", "Surat"],
-    "Haryana": ["Chandigarh", "Faridabad"],
-    "Himachal Pradesh": ["Shimla", "Manali"],
-    "Jharkhand": ["Ranchi", "Jamshedpur"],
-    "Karnataka": ["Bangalore", "Mysore"],
-    "Kerala": ["Thiruvananthapuram", "Kochi"],
-    "Madhya Pradesh": ["Bhopal", "Indore"],
-    "Maharashtra": ["Mumbai", "Pune"],
-    "Odisha": ["Bhubaneswar", "Cuttack"],
-    "Punjab": ["Amritsar", "Ludhiana"],
-    "Rajasthan": ["Jaipur", "Udaipur"],
-    "Tamil Nadu": ["Chennai", "Coimbatore"],
-    "Telangana": ["Hyderabad", "Warangal"],
-    "Uttar Pradesh": ["Lucknow", "Kanpur"],
-    "West Bengal": ["Kolkata", "Siliguri"]
-};
-
-// Populate the dropdown on page load
-function populateStates() {
-    let stateDropdown = document.getElementById("stateDropdown");
-    stateDropdown.innerHTML = ""; // Clear previous values
-
-    Object.keys(citiesByState).forEach(state => {
-        let div = document.createElement("div");
-        div.textContent = state;
-        div.onclick = function () {
-            document.getElementById("stateSearch").value = state;
-            updateCities(state);
-            closeDropdown();
-        };
-        stateDropdown.appendChild(div);
-    });
-}
-
-// Filter states when typing
-function filterStates() {
-    let input = document.getElementById("stateSearch").value.toLowerCase();
-    let options = document.getElementById("stateDropdown").getElementsByTagName("div");
-
-    for (let option of options) {
-        if (option.textContent.toLowerCase().includes(input)) {
-            option.style.display = "block";
-        } else {
-            option.style.display = "none";
+        function openModal() {
+            document.getElementById("customerModal").style.display = "block";
         }
-    }
-}
 
-// Show/hide dropdown
-function toggleDropdown() {
-    let dropdown = document.getElementById("stateDropdown");
-    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-}
+        function closeModal() {
+            document.getElementById("customerModal").style.display = "none";
+        }
 
-// Close dropdown when clicking outside
-window.onclick = function (event) {
-    if (!event.target.matches("#stateSearch")) {
-        closeDropdown();
-    }
-};
-
-function closeDropdown() {
-    document.getElementById("stateDropdown").style.display = "none";
-}
-
-// Update cities based on selected state
-function updateCities(state) {
-    let cityDropdown = document.getElementById("city");
-    cityDropdown.innerHTML = '<option value="" disabled selected>Select City</option>'; // Reset dropdown
-
-    if (state in citiesByState) {
-        citiesByState[state].forEach(city => {
-            let option = document.createElement("option");
-            option.value = city;
-            option.textContent = city;
-            cityDropdown.appendChild(option);
-        });
-    }
-}
-
-// Initialize states
-document.addEventListener("DOMContentLoaded", populateStates);
-
-
-
-
-
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    let modal = document.getElementById("customerModal");
-    if (event.target == modal) {
-        closeModal();
-    }
-};
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            let modal = document.getElementById("customerModal");
+            if (event.target == modal) {
+                closeModal();
+            }
+        };
 </script>
 
 
 
 <!-- JavaScript for Search Filtering and Modal -->
 <script>
-function filterTable(tableId, searchBoxId) {
-    let input = document.getElementById(searchBoxId);
-    let filter = input.value.toLowerCase();
-    let table = document.getElementById(tableId);
-    let rows = table.getElementsByTagName("tr");
+    function filterTable(tableId, searchBoxId) {
+        let input = document.getElementById(searchBoxId);
+        let filter = input.value.toLowerCase();
+        let table = document.getElementById(tableId);
+        let rows = table.getElementsByTagName("tr");
 
-    for (let i = 1; i < rows.length; i++) {
-        let rowText = rows[i].innerText.toLowerCase();
-        if (rowText.includes(filter)) {
-            rows[i].style.display = "";
-        } else {
-            rows[i].style.display = "none";
+        for (let i = 1; i < rows.length; i++) {
+            let rowText = rows[i].innerText.toLowerCase();
+            if (rowText.includes(filter)) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }
         }
     }
-}
-
+</script>
 
 
 
@@ -317,8 +225,16 @@ function filterTable(tableId, searchBoxId) {
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        fetchStates();
+
+        $('.select2').select2({
+            placeholder: "Select an option",
+            allowClear: true,
+            width: '100%'
+        });
+
         document.querySelector("form").addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent actual form submission
+            event.preventDefault();
 
             let toast = document.getElementById("toast");
             toast.classList.add("toast-show");
@@ -327,11 +243,48 @@ function filterTable(tableId, searchBoxId) {
                 toast.classList.add("toast-hide");
                 setTimeout(() => {
                     toast.classList.remove("toast-show", "toast-hide");
-                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
+                    document.querySelector("form").submit(); // or handle manually if needed
                 }, 500);
-            }, 3000); // Hide after 3 seconds
+            }, 3000);
         });
     });
+
+    function fetchStates() {
+        fetch("/bopo_admin/get-states/")
+            .then(response => response.json())
+            .then(data => {
+                let stateDropdown = document.getElementById("state");
+                stateDropdown.innerHTML = '<option value="">Select State</option>';
+                data.forEach(state => {
+                    let option = document.createElement("option");
+                    option.value = state.id;
+                    option.textContent = state.name;
+                    stateDropdown.appendChild(option);
+                });
+            })
+            .catch(error => console.error("Error fetching states:", error));
+    }
+
+    function fetchCities() {
+        let stateId = document.getElementById("state").value;
+        let cityDropdown = document.getElementById("city");
+        cityDropdown.innerHTML = '<option value="">Select City</option>';
+
+        if (stateId) {
+            fetch(`/bopo_admin/get-cities/${stateId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(city => {
+                        let option = document.createElement("option");
+                        option.value = city.id;
+                        option.textContent = city.name;
+                        cityDropdown.appendChild(option);
+                    });
+                    $('#city').trigger('change');
+                })
+                .catch(error => console.error("Error fetching cities:", error));
+        }
+    }
 </script>
 
 

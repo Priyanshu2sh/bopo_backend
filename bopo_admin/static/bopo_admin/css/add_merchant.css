@@ -227,3 +227,27 @@ body {
        margin-left: -60%;
     }
 }
+
+
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-selection--single {
+    height: 38px !important;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-selection__rendered {
+    font-size: 14px;
+    color: #555;
+    line-height: 26px;
+}
+
+.select2-selection__arrow {
+    height: 100%;
+}

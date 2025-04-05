@@ -4,9 +4,12 @@ from accounts.models import Merchant
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
 from .models import BopoAdmin
+from django.http import JsonResponse
+from .models import State, City
+from bopo_admin.models import Employee
 
 # Create your views here.
-from django.shortcuts import render
+
 
 def home(request):
    return render(request, 'bopo_admin/home.html')
@@ -130,7 +133,31 @@ def  add_customer(request):
 def employee_list(request):
     return render(request, 'bopo_admin/Employee/employee_list.html')
 
+# def add_employee(request):
+#     return render(request, 'bopo_admin/Employee/add_employee.html')
+
 def add_employee(request):
+    from bopo_admin.models import Employee  # Move import inside function
+    if request.method == "POST":
+        name = request.POST.get("employee_name")
+        email = request.POST.get("email")
+        aadhaar = request.POST.get("aadhaar")
+        address = request.POST.get("address")
+        state_id = request.POST.get("state")
+        city_id = request.POST.get("city")
+        mobile = request.POST.get("mobile")
+        pan = request.POST.get("pan")
+        pincode = request.POST.get("pincode")
+
+        try:
+            Employee.objects.create(
+                name=name, email=email, aadhaar=aadhaar, address=address,
+                state_id=state_id, city_id=city_id, mobile=mobile, pan=pan, pincode=pincode
+            )
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
     return render(request, 'bopo_admin/Employee/add_employee.html')
 
 def employee_role(request):
@@ -161,3 +188,16 @@ def login(request):
     # return redirect()
     else:
         return render(request, 'bopo_admin/login.html')
+    
+    
+
+
+# Get all states
+def get_states(request):
+    states = State.objects.all().values('id', 'name')
+    return JsonResponse(list(states), safe=False)
+
+# Get cities for a given state
+def get_cities(request, state_id):
+    cities = City.objects.filter(state_id=state_id).values('id', 'name')
+    return JsonResponse(list(cities), safe=False)

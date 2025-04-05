@@ -13,17 +13,20 @@
 
 <body>
     <div class="topup-back-btn">
-        <a href="{% url 'merchant_credentials' %}" class="limit-list-back-btn-submit">
+        <a href="{% url 'merchant_credentials' %}" class="topup-back-back-btn-submit">
             <i class="fa fa-arrow-left"></i> Back 
         </a>
     </div>
     <h1 class="heading">Merchant Top-Up Limit</h1>
     <div class="merchant_topup">
      
+        <form method="post">
+            {% csrf_token %}
+        
+            <div class="dropdown-container">
 
-        <!-- Dropdowns for Project and Merchant -->
-        <div class="dropdown-container">
-            {% comment %} <div class="form-group">
+
+             {% comment %} <div class="form-group">
                 <label for="project">Select Project:</label>
                 <select id="project" name="project" required>
                     <option value="">-- Select a Project --</option>
@@ -32,131 +35,97 @@
                     <option value="project3">Project 3</option>
                 </select>
             </div> {% endcomment %}
-
-            <div class="form-group">
-                <label for="merchant">Select Merchant:</label>
-                <select id="merchant" name="merchant" required>
-                    <option value="">-- Select a Merchant --</option>
-                    <option value="merchant1">Merchant 1</option>
-                    <option value="merchant2">Merchant 2</option>
-                    <option value="merchant3">Merchant 3</option>
-                </select>
+            
+                <div class="form-group">
+                    <label for="merchant">Select Merchant:</label>
+                    <select id="merchant" name="merchant" required>
+                        <option value="">-- Select a Merchant --</option>
+                        <option value="merchant1">Merchant 1</option>
+                        <option value="merchant2">Merchant 2</option>
+                        <option value="merchant3">Merchant 3</option>
+                    </select>
+                </div>
             </div>
-        </div>
-
-        <!-- Left and Right Box Wrapper -->
-        <div class="form-container">
-            <!-- Left Form -->
-            <div class="form-wrapper">
-                <form method="post" class="topup-form">
-                    {% csrf_token %}
-
-                    {% comment %} <div class="form-group">
-                        <label for="merchant_id">Merchant ID:</label>
-                        <input type="text" id="merchant_id" name="merchant_id" required>
-                    </div> {% endcomment %}
-
+        
+            <div class="form-container">
+                <!-- Left Form -->
+                <div class="form-wrapper">
                     <div class="form-group">
                         <label for="topup_amount">Top-Up Paid Amount:</label>
                         <input type="number" id="topup_amount" name="topup_amount" required>
                     </div>
-
+        
                     <div class="form-group">
                         <label for="transaction_id">Transaction ID:</label>
                         <input type="text" id="transaction_id" name="transaction_id" required>
                     </div>
+        
                     <div class="form-group">
                         <label for="topup_points">Top-Up Points:</label>
                         <input type="number" id="topup_points" name="topup_points" required>
                     </div>
-                </form>
+                </div>
+        
+                <!-- Right Box -->
+                <div class="right-box">
+                    <div class="form-group">
+                        <label for="payment_mode">Payment Mode:</label>
+                        <select id="payment_mode" name="payment_mode" required onchange="showPaymentFields()">
+                            <option value="">-- Select Payment Method --</option>
+                            <option value="upi">UPI</option>
+                            <option value="net_banking">Net Banking</option>
+                            <option value="credit_card">Credit Card</option>
+                            <option value="debit_card">Debit Card</option>
+                        </select>
+                    </div>
+        
+                    <div id="upi_fields" class="payment-fields">
+                        <div class="form-group">
+                            <label for="upi_id">UPI ID:</label>
+                            <input type="text" id="upi_id" name="upi_id">
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <!-- Right Box for Extra Inputs -->
-            <div class="right-box">
-                
-
-                <div class="form-group">
-                    <label for="payment_mode">Payment Mode:</label>
-                    <select id="payment_mode" name="payment_mode" required onchange="showPaymentFields()">
-                        <option value="">-- Select Payment Method --</option>
-                        <option value="upi">UPI</option>
-                        <option value="net_banking">Net Banking</option>
-                        <option value="credit_card">Credit Card</option>
-                        <option value="debit_card">Debit Card</option>
-                    </select>
-                </div>
-
-                <!-- Payment-Specific Input Fields -->
-                <div id="upi_fields" class="payment-fields">
-                    <div class="form-group">
-                        <label for="upi_id">UPI ID:</label>
-                        <input type="text" id="upi_id" name="upi_id">
-                    </div>
-                </div>
-{% comment %} 
-                <div id="net_banking_fields" class="payment-fields">
-                    <div class="form-group">
-                        <label for="bank_name">Bank Name:</label>
-                        <input type="text" id="bank_name" name="bank_name">
-                    </div>
-                    <div class="form-group">
-                        <label for="account_number">Account Number:</label>
-                        <input type="text" id="account_number" name="account_number">
-                    </div>
-                </div>
-
-                <div id="card_fields" class="payment-fields">
-                    <div class="form-group">
-                        <label for="card_number">Card Number:</label>
-                        <input type="text" id="card_number" name="card_number">
-                    </div>
-                    <div class="form-group">
-                        <label for="card_expiry">Expiry Date:</label>
-                        <input type="month" id="card_expiry" name="card_expiry">
-                    </div> {% endcomment %}
-                   
-                </div>
-                
-            </div>
-            
+        
             <button type="submit" class="topup-btn-submit">Submit</button>
-        </div>
-
+        </form>
+        
     </div>
 
-    <!-- JavaScript -->
-    <script>
-        function showPaymentFields() {
-            let paymentMethod = document.getElementById("payment_mode").value;
-            
-            // Hide all payment-specific fields initially
-            document.getElementById("upi_fields").style.display = "none";
-           // document.getElementById("net_banking_fields").style.display = "none";
-           // document.getElementById("card_fields").style.display = "none";
-
-            // Show fields based on selection
-            if (paymentMethod === "upi") {
-                document.getElementById("upi_fields").style.display = "block";
-            //} else if (paymentMethod === "net_banking") {
-            //    document.getElementById("net_banking_fields").style.display = "block";
-           // } else if (paymentMethod === "credit_card" || paymentMethod === "debit_card") {
-            //    document.getElementById("card_fields").style.display = "block";
-            }
-        }
-    </script>
 
     
  <!-- Toast Notification -->
  <div id="toast" class="toast-container">
     <i class="fa fa-check-circle"></i>
-    <span class="toast-message">Credentials send successfully!</span>
+    <span class="toast-message">Top-Up Limit send successfully!</span>
 </div>
 
 <script>
+
+    function showPaymentFields() {
+        let paymentMethod = document.getElementById("payment_mode").value;
+        
+        // Hide all payment-specific fields initially
+        document.getElementById("upi_fields").style.display = "none";
+       // document.getElementById("net_banking_fields").style.display = "none";
+       // document.getElementById("card_fields").style.display = "none";
+
+        // Show fields based on selection
+        if (paymentMethod === "upi") {
+            document.getElementById("upi_fields").style.display = "block";
+        //} else if (paymentMethod === "net_banking") {
+        //    document.getElementById("net_banking_fields").style.display = "block";
+       // } else if (paymentMethod === "credit_card" || paymentMethod === "debit_card") {
+        //    document.getElementById("card_fields").style.display = "block";
+        }
+    }
+
+
+
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelector("form").addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent actual form submission
+            event.preventDefault(); 
 
             let toast = document.getElementById("toast");
             toast.classList.add("toast-show");
@@ -165,12 +134,11 @@
                 toast.classList.add("toast-hide");
                 setTimeout(() => {
                     toast.classList.remove("toast-show", "toast-hide");
-                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
+                    event.target.submit();
                 }, 500);
-            }, 3000); // Hide after 3 seconds
+            }, 3000);
         });
     });
-
 
 
     

@@ -4,6 +4,7 @@ body {
     background-color: #f8f9fa;
 }
 
+/* Main Container */
 .reduce-limit-container {
     background-color: #ffffff;
     border-radius: 10px;
@@ -25,7 +26,7 @@ h2 {
 }
 
 .form-group {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 label {
@@ -36,19 +37,13 @@ label {
     font-size: 14px;
 }
 
-select, input {
+input ,select{
     width: 100%;
     padding: 10px;
     border: 1px solid #bdc3c7;
     border-radius: 5px;
     font-size: 14px;
     background-color: #f8f9fa;
-}
-
-.limit-section input {
-    background-color: #e9ecef;
-    text-align: center;
-    font-weight: bold;
 }
 
 .input-icon {
@@ -67,7 +62,7 @@ select, input {
 }
 
 .input-icon i {
-    color: #7f8c8d;
+    color: black;
 }
 
 .input-icon input {
@@ -76,28 +71,26 @@ select, input {
     padding-left: 12px;
 }
 
-.no-limit-icon {
-    margin-left: 10px;
-    font-size: 18px;
-    color: red;
-}
-
 .button-group {
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 10px;
 }
 
-.cancel-btn {
-    background: #e74c3c;
-    color: white;
-    padding: 10px 15px;
+.cancel-btn, .submit-btn {
+    width: 45%;
+    padding: 12px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
     font-size: 14px;
     transition: 0.3s;
+}
+
+.cancel-btn {
+    background: #ccc;
+    color: white;
 }
 
 .cancel-btn:hover {
@@ -107,19 +100,14 @@ select, input {
 .submit-btn {
     background: #2c3e50;
     color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    transition: 0.3s;
 }
 
 .submit-btn:hover {
     background: #1a252f;
 }
-.login-info-back-btn a {
+
+/* Back Button */
+.reduce-limit-back-btn a {
     display: inline-block;
     padding: 10px 20px;
     font-size: 16px;
@@ -137,23 +125,22 @@ select, input {
     margin-top: 7%;
 }
 
-.login-info-back-btn a:hover {
+.reduce-limit-back-btn a:hover {
     background: linear-gradient(178deg, red 0%, #85060c 100%);
 }
 
-
-/* Toast Notification Styling */
+/* Toast Notification */
 .toast-container {
     position: fixed;
-    top: 30px;
-    left: 58%;
+    top: 20px;
+    left: 50%;
     transform: translateX(-50%);
     background-color: #28a745;
     color: #fff;
     padding: 8px 15px;
     border-radius: 5px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    display: none; /* Hidden by default */
+    display: none;
     opacity: 0;
     transition: opacity 0.3s ease, transform 0.3s ease;
     z-index: 9999;
@@ -170,17 +157,17 @@ select, input {
     transform: translateX(-50%) translateY(-20px);
 }
 
-/* Responsive Styles */
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .reduce-limit-container {
+        width: 60%;
+    }
+}
+
 @media (max-width: 768px) {
     .reduce-limit-container {
-        width: 80%;
+        width: 75%;
         padding: 20px;
-        margin-top: 10%;
-    }
-
-    .input-icon .icon {
-        width: 35px;
-        padding: 10px;
     }
 
     .button-group {
@@ -189,8 +176,28 @@ select, input {
     }
 
     .cancel-btn, .submit-btn {
+        width: 80%;
+    }
+
+    .reduce-limit-back-btn a {
         width: 100%;
-        text-align: center;
+        font-size: 14px;
+    }
+
+    h2 {
+        font-size: 22px;
+    }
+    select {
+        font-size: 13px;
+        padding: 8px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Prevent dropdown from expanding too much */
+    select:focus {
+        max-width: 90%;
+        font-size: 14px;
     }
 }
 
@@ -198,7 +205,6 @@ select, input {
     .reduce-limit-container {
         width: 90%;
         padding: 15px;
-        margin-top: 30%;
     }
 
     select, input {
@@ -207,6 +213,31 @@ select, input {
     }
 
     .button-group {
-        flex-direction: column;
+        flex-direction: row;
+        gap: 10px;
     }
+
+    .cancel-btn, .submit-btn {
+        width: 50%;
+    }
+
+    h2 {
+        font-size: 20px;
+        margin-top: 10%;
+        margin-left: -40%;
+    }
+
+    .reduce-limit-back-btn a {
+        width: 40%;
+        text-align: center;
+        font-size: 14px;
+        margin-top: 20%;
+        margin-left: 57%;
+    }
+
+    .toast-container {
+        width: 90%;
+        font-size: 14px;
+    }
+ 
 }
