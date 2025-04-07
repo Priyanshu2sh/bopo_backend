@@ -148,16 +148,34 @@ def add_employee(request):
         mobile = request.POST.get("mobile")
         pan = request.POST.get("pan")
         pincode = request.POST.get("pincode")
+        
+        print(state_id)
+        print(city_id)
+        
+        
+        # Check if email, mobile, or aadhaar already exists
+        if Employee.objects.filter(email=email).exists():
+            return JsonResponse({"error": "Email ID already exists!"}, status=400)
 
-        try:
-            Employee.objects.create(
+        if Employee.objects.filter(mobile=mobile).exists():
+            return JsonResponse({"error": "Mobile number already exists!"}, status=400)
+
+        if Employee.objects.filter(aadhaar=aadhaar).exists():
+            return JsonResponse({"error": "Aadhaar number already exists!"}, status=400)
+        
+        if Employee.objects.filter(pan=pan).exists():
+            return JsonResponse({"error": "Pan number already exists!"}, status=400)
+        
+        state = State.objects.get(id=state_id)
+        city = City.objects.get(id=city_id)
+
+        Employee.objects.create(
                 name=name, email=email, aadhaar=aadhaar, address=address,
-                state_id=state_id, city_id=city_id, mobile=mobile, pan=pan, pincode=pincode
+                state=state.name, city=city.name, mobile=mobile, pan=pan, pincode=pincode
             )
-            return JsonResponse({"success": True})
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
-
+        
+        return render(request, 'bopo_admin/Employee/add_employee.html', {'message': 'Employee added successfully!'})
+        
     return render(request, 'bopo_admin/Employee/add_employee.html')
 
 def employee_role(request):

@@ -221,14 +221,17 @@ body {
     border-radius: 5px;
     display: flex;
     align-items: center;
+
 }
 
 .select2-selection__rendered {
     font-size: 14px;
     color: #555;
     line-height: 26px;
+    
 }
 
 .select2-selection__arrow {
     height: 100%;
+
 }

@@ -11,7 +11,6 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'bopo_admin/css/add_employee.css' %}">
 
@@ -31,8 +30,11 @@
     </div>
 
     <h2 class="heading">Add Employee</h2>
+    {% if message %}
+        {{message}}
+    {% endif %}
     <div class="addemployee-container">
-        <form method="POST">
+        <form method="POST" id="employeeForm">
             {% csrf_token %}
             <div class="addemployee-form-container">
                 <!-- Left Column -->
@@ -40,7 +42,7 @@
                     <label for="employee_name">Employee Name</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="employee_name" required>
+                        <input type="text" name="employee_name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" required>
                     </div>
 
                     <label for="email">Email ID</label>
@@ -52,7 +54,7 @@
                     <label for="aadhaar">Aadhaar Number</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar" required>
+                        <input type="text" name="aadhaar" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
                     </div>
 
                     <label for="address">Address</label>
@@ -61,14 +63,12 @@
                         <input type="text" name="address" required>
                     </div>
 
-                    <!-- Searchable Dropdowns -->
-                    <label for="state">Select State:</label>
+                    <label for="state">Select State </label>
                     <select id="state" name="state" class="select2" onchange="fetchCities()">
                         <option value="">Select State</option>
                     </select>
 
-
-                    <label for="city">Select City:</label>
+                    <label for="city">Select City </label>
                     <select id="city" name="city" class="select2">
                         <option value="">Select City</option>
                     </select>
@@ -84,17 +84,18 @@
                     <label for="username">User Name</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="username" required>
+                        <input type="text" name="username" pattern="(?=.*\d)[a-zA-Z0-9]{4,}" title="Username must be at least 4 characters and include at least one number. Letters and numbers only." required>
                     </div>
 
                     <label for="password">Password</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="password" name="password" required class="password-field">
+                        <input type="password" id="password" name="password" pattern="(?=.*\d)(?=.*[a-zA-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}" title="Password must be at least 6 characters and include 1 letter, 1 number, and 1 special character (@, $, !, %, *, ?, &)" required class="password-field">
                         <span class="password-toggle" onclick="togglePassword('password')">
                             <i class="fas fa-eye"></i>
                         </span>
                     </div>
+
                     
                     <label for="confirm_password">Confirm Password</label>
                     <div class="addemployee-input-container">
@@ -104,23 +105,39 @@
                             <i class="fas fa-eye"></i>
                         </span>
                     </div>
+                    <div id="password-error" style="display: none; margin-top: 10px;">
+                        <div style="
+                            background-color: #ffe6e6;
+                            border: 1px solid #ff4d4d;
+                            color: #d8000c;
+                            padding: 10px;
+                            border-radius: 5px;
+                            font-size: 14px;
+                            display: flex;
+                            align-items: center;
+                        ">
+                            <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                            Password and Confirm Password do not match. Please try again.
+                        </div>
+                    </div>
+                    
 
                     <label for="mobile">Mobile Number</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-mobile-alt"></i>
-                        <input type="text" name="mobile" required>
+                        <input type="tel" name="mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
                     </div>
 
                     <label for="pan">Pan Number</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan">
+                        <input type="text" name="pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)">
                     </div>
 
                     <label for="pincode">Pincode</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-home"></i>
-                        <input type="text" name="pincode">
+                        <input type="text" name="pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode">
                     </div>
                 </div>
             </div>
@@ -137,32 +154,6 @@
 
     <!-- Scripts -->
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            fetchStates();
-            $('.select2').select2({
-                placeholder: "Select an option",
-                allowClear: true,
-                width: '100%'
-            });
-
-            document.querySelector("form").addEventListener("submit", function (event) {
-                event.preventDefault(); // Prevent actual form submission
-
-                // Show toast
-                let toast = document.getElementById("toast");
-                toast.classList.add("toast-show");
-
-                setTimeout(function () {
-                    toast.classList.add("toast-hide");
-                    setTimeout(() => {
-                        toast.classList.remove("toast-show", "toast-hide");
-                        document.querySelector("form").reset();
-                        $('.select2').val(null).trigger('change');
-                    }, 500);
-                }, 3000);
-            });
-        });
-
         function togglePassword(id) {
             let passwordInput = document.getElementById(id);
             let icon = passwordInput.nextElementSibling.querySelector("i");
@@ -209,11 +200,48 @@
                             option.textContent = city.name;
                             cityDropdown.appendChild(option);
                         });
-                        $('#city').trigger('change'); // Refresh Select2
+                        $('#city').trigger('change');
                     })
                     .catch(error => console.error("Error fetching cities:", error));
             }
         }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchStates();
+            $('.select2').select2({
+                placeholder: "Select an option",
+                allowClear: true,
+                width: '100%'
+            });
+
+            // Final single form submission logic
+            document.getElementById("employeeForm").addEventListener("submit", function (event) {
+                let password = document.getElementById("password").value;
+                let confirmPassword = document.getElementById("confirmPassword").value;
+                let errorMsg = document.getElementById("password-error");
+
+                if (password !== confirmPassword) {
+                    errorMsg.style.display = "block";
+                    event.preventDefault();
+                    return false;
+                } else {
+                    errorMsg.style.display = "none";
+
+                    // Show toast if validation passes
+                    let toast = document.getElementById("toast");
+                    toast.classList.add("toast-show");
+
+                    setTimeout(function () {
+                        toast.classList.add("toast-hide");
+                        setTimeout(() => {
+                            toast.classList.remove("toast-show", "toast-hide");
+                            document.getElementById("employeeForm").reset();
+                            $('.select2').val(null).trigger('change');
+                        }, 500);
+                    }, 3000);
+                }
+            });
+        });
     </script>
 </body>
 </html>
