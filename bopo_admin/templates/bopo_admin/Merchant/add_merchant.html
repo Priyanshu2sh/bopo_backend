@@ -6,291 +6,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Corporate Merchant</title>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <title>Add Merchant</title>
     <link rel="stylesheet" href="{% static 'bopo_admin/css/add_merchant.css' %}">
-
-     <!-- jQuery (required for Select2) -->
-     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-     <!-- Select2 CSS & JS -->
-     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 </head>
+
 <body>
 
-    <div class="back-to-list-btn">
-        <a href="{% url 'corporate_list' %}" class="addmerchant-btn-submit">
-            <i class="fa fa-arrow-left"></i> Back to List
-        </a>
-    </div>
-
-    <h2 class="heading">Add Merchant</h2>
-    <div class="addmerchant-container">
-
+<div class="container">
+    <h2 class="text-center">Add Merchant</h2>
     <form method="POST">
         {% csrf_token %}
-            
-        <!-- Project Type Selection (Centered and Inline) -->
-            <div class="project-type-container">
-                <label>Select Project Type:</label>
-                <div class="addmerchant-radio-group">
-                    <label for="existing_project">
-                        <input type="radio" id="existing_project" name="project_type" value="Existing Project" required onclick="toggleProjectDropdown()">
-                        Existing Project
-                    </label>
 
-                    <label for="new_project">
-                        <input type="radio" id="new_project" name="project_type" value="New Project" required onclick="toggleProjectDropdown()">
-                        New Project
-                    </label>
-                </div>
+        <!-- Select Project -->
+        <select class="form-select" name="project">
+            <option value="">Select One Project</option>
+            <option value="Project1">Project 1</option>
+            <option value="Project2">Project 2</option>
+        </select>
+
+        <!-- Contact Person & Mobile Number -->
+        <div class="row">
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="contact_person" placeholder="Contact Person" required>
             </div>
-
-            <!-- Select Project Dropdown (Hidden Initially) -->
-            <div id="select-project-container" class="hidden">
-                <label for="select_project">Select Project:</label>
-                <div class="addmerchant-input-container">
-                    <select id="select_project" name="select_project">
-                        <option value="">Select a project</option>
-                        <option value="Project 1">Project 1</option>
-                        <option value="Project 2">Project 2</option>
-                        <option value="Project 3">Project 3</option>
-                    </select>
-                </div>
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="mobile_number" placeholder="Mobile Number" required>
             </div>
+        </div>
 
-            <!-- Project Name Input Field (Initially Hidden) -->
-            <div id="project-name-container" class="hidden">
-                <label for="project_name">Project Name:</label>
-                <div class="addmerchant-input-container">
-                    <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name">
-                </div>
+        <!-- Email & GST Number -->
+        <div class="row mt-2">
+            <div class="col-md-6">
+                <input type="email" class="form-control" name="email" placeholder="Email ID" required>
             </div>
-                
-            <!-- Form Fields (Left & Right Columns) -->
-            <div class="addmerchant-form-container">
-                
-                <!-- Left Column -->
-                <div class="addmerchant-form-group">
-                
-                    <label>First Name</label>
-                    <div class="addmerchant-input-container">
-                        <i class="fas fa-user"></i>
-                        <input type="text" name="first_name" required>
-                    </div>
-
-                                          
-                    <label>Email ID</label>
-                    <div class="addmerchant-input-container">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" name="email" required>
-                    </div>
-    
-                    <label>Aadhaar Number</label>
-                    <div class="addmerchant-input-container">
-                        <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
-                    </div>
-    
-                    <label>Shop Name</label>
-                    <div class="addmerchant-input-container">
-                        <i class="fas fa-store"></i>
-                        <input type="text" name="shop_name" required>
-                    </div>
-    
-                    <label>Address</label>
-                    <div class="addmerchant-input-container">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <input type="text" name="address" required>
-                    </div>
-    
-                    <label>Select State</label>
-                        <select id="state" name="state" class="select2" onchange="fetchCities()">
-                            <option value="">Select State</option>
-                        </select>
-              
-                    
-                    <label>Country</label>
-                    <div class="addmerchant-input-container">
-                        <input type="text" name="country" value="India" disabled>
-                    </div>
-                </div>
-    
-                <!-- Right Column -->
-                <div class="addmerchant-form-group">
-                  <label>Last Name</label>
-                    <div class="addmerchant-input-container">
-                        <i class="fas fa-user"></i>
-                        <input type="text" name="last_name" required>
-                    </div>
-
-                    <label>Mobile Number</label>
-                    <div class="addmerchant-input-container">
-                        <i class="fas fa-mobile-alt"></i>
-                        <input type="text" name="mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
-                    </div>
-    
-                    <label>GST Number</label>
-                    <div class="addmerchant-input-container">
-                        <i class="fas fa-file-invoice"></i>
-                        <input type="text" name="gst_number" id="gst_number" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$"  title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" required>
-                    </div>
-                    <div id="gst_error" style="display: none; margin-top: 10px;">
-                        <div style="
-                            background-color: #ffe6e6;
-                            border: 1px solid #ff4d4d;
-                            color: #d8000c;
-                            padding: 10px;
-                            border-radius: 5px;
-                            font-size: 14px;
-                            display: flex;
-                            align-items: center;
-                        ">
-                            <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
-                            Please enter a valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)
-                        </div>
-                    </div>
-                    
-    
-                    <label>Pan Number</label>
-                    <div class="addmerchant-input-container">
-                        <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan_number" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)">
-                    </div>
-    
-                    <label>Legal Name</label>
-                    <div class="addmerchant-input-container">
-                        <i class="fas fa-building"></i>
-                        <input type="text" name="legal_name" required>
-                    </div>
-    
-                       
-                    <label>Select City</label>
-                       <select id="city" name="city" class="select2">
-                            <option value="">Select City</option>
-                        </select>
-
-                    <label>Pincode</label>
-                        <div class="addmerchant-input-container">
-                            <i class="fas fa-home"></i>
-                            <input type="text" name="pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode">
-                  </div>
-                </div>
-                                   
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="gst_number" placeholder="GST Number" required>
             </div>
-            <button type="submit" class="addmerchant-btn-submit">Submit</button>
-        </form>
-    </div>
-    
+        </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast-container">
-        <i class="fa fa-check-circle"></i>
-        <span class="toast-message">Employee added successfully!</span>
-    </div>
+        <!-- Aadhaar & PAN Number -->
+        <div class="row mt-2">
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="aadhaar_number" placeholder="Aadhaar Number" required>
+            </div>
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="pan_number" placeholder="PAN Number" required>
+            </div>
+        </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            fetchStates();
-            $('.select2').select2({
-                placeholder: "Select an option",
-                allowClear: true,
-                width: '100%'
-            });
+        <!-- Shop Name & Legal Name -->
+        <div class="row mt-2">
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="shop_name" placeholder="Shop Name" required>
+            </div>
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="legal_name" placeholder="Legal Name" required>
+            </div>
+        </div>
 
-            document.querySelector("form").addEventListener("submit", function (event) {
-                event.preventDefault(); // Prevent actual form submission
+        <!-- Address Fields -->
+        <div class="row mt-2">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="shop_no" placeholder="Shop No">
+            </div>
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="lane_no" placeholder="Lane No">
+            </div>
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="lane_name" placeholder="Lane Name">
+            </div>
+        </div>
 
-                // Show toast
-                let toast = document.getElementById("toast");
-                toast.classList.add("toast-show");
+        <div class="row mt-2">
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="area_name" placeholder="Area Name">
+            </div>
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="landmark" placeholder="Landmark">
+            </div>
+        </div>
 
-                setTimeout(function () {
-                    toast.classList.add("toast-hide");
-                    setTimeout(() => {
-                        toast.classList.remove("toast-show", "toast-hide");
-                        document.querySelector("form").reset();
-                        $('.select2').val(null).trigger('change');
-                    }, 500);
-                }, 3000);
-            });
-        });
+        <!-- State, City, and Pincode -->
+        <div class="row mt-2">
+            <div class="col-md-4">
+                <select class="form-select" name="state">
+                    <option value="">Select State</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Karnataka">Karnataka</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" name="city">
+                    <option value="">Select City</option>
+                    <option value="Mumbai">Mumbai</option>
+                    <option value="Pune">Pune</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="pincode" placeholder="Pincode">
+            </div>
+        </div>
 
+        <!-- Fixed Input Field (Country) -->
+        <div class="mt-3">
+            <input type="text" class="form-control" value="India" disabled>
+        </div>
 
- 
+     
 
-        function fetchStates() {
-            fetch("/bopo_admin/get-states/")
-                .then(response => response.json())
-                .then(data => {
-                    let stateDropdown = document.getElementById("state");
-                    stateDropdown.innerHTML = '<option value="">Select State</option>';
-                    data.forEach(state => {
-                        let option = document.createElement("option");
-                        option.value = state.id;
-                        option.textContent = state.name;
-                        stateDropdown.appendChild(option);
-                    });
-                })
-                .catch(error => console.error("Error fetching states:", error));
-        }
+        <!-- Buttons -->
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="reset" class="btn btn-secondary">Cancel</button>
+        </div>
 
-        function fetchCities() {
-            let stateId = document.getElementById("state").value;
-            let cityDropdown = document.getElementById("city");
-            cityDropdown.innerHTML = '<option value="">Select City</option>';
+    </form>
+</div>
 
-            if (stateId) {
-                fetch(`/bopo_admin/get-cities/${stateId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(city => {
-                            let option = document.createElement("option");
-                            option.value = city.id;
-                            option.textContent = city.name;
-                            cityDropdown.appendChild(option);
-                        });
-                        $('#city').trigger('change'); // Refresh Select2
-                    })
-                    .catch(error => console.error("Error fetching cities:", error));
-            }
-        }
-
-    </script>
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const existingProjectRadio = document.getElementById("existing_project");
-            const newProjectRadio = document.getElementById("new_project");
-            const selectProjectContainer = document.getElementById("select-project-container");
-            const projectNameContainer = document.getElementById("project-name-container");
-        
-            function toggleProjectFields() {
-                if (existingProjectRadio.checked) {
-                    selectProjectContainer.style.display = "block";
-                    projectNameContainer.style.display = "none"; // Hide project name input
-                } else if (newProjectRadio.checked) {
-                    selectProjectContainer.style.display = "none"; // Hide select project dropdown
-                    projectNameContainer.style.display = "block"; // Show project name input
-                } else {
-                    selectProjectContainer.style.display = "none";
-                    projectNameContainer.style.display = "none";
-                }
-            }
-        
-            existingProjectRadio.addEventListener("change", toggleProjectFields);
-            newProjectRadio.addEventListener("change", toggleProjectFields);
-        
-            // Initial check
-            toggleProjectFields();
-        });
-        
-    </script>
-    
 </body>
 </html>
 {% endblock %}

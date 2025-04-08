@@ -1,253 +1,97 @@
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
     background-color: #f8f9fa;
     margin: 0;
     padding: 0;
 }
-.addmerchant-container {
-    max-width: 800px;
-    margin: 40 auto;
-    margin-top: 2%;
-    background: #fff;
+
+/* Container */
+.container {
+    max-width: 700px;
+    margin: 40px auto;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
-    margin-left: 13%;
-    min-height: 95vh;
+    background-color: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
 }
-.heading {
+
+/* Heading */
+h2 {
     text-align: center;
-    color: #004080;
-    font-size: 26px;
+    color: #333;
+}
+
+/* Form Styles */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    margin-top: 1%;
-    margin-left: -80%;
-}
-.addmerchant-form-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-}
-.addmerchant-form-group {
-    width: 48%;
-    height:70vh;
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 10px;
-}
-.addmerchant-form-group label {
+    margin-top: 10px;
     display: block;
-    font-size: 14px;
-    margin-bottom: 5px;
-    color: #555;
 }
-.addmerchant-input-container {
-    display: flex;
-    align-items: center;
-    background: #fff;
+
+input,
+select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    padding: 8px;
-    margin-bottom: 10px;
+    font-size: 14px;
+    outline: none;
 }
-.addmerchant-input-container i {
-    color: #555;
+
+input:focus,
+select:focus {
+    border-color: #007bff;
+}
+
+/* Grid Layout */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.row .col-md-6,
+.row .col-md-4 {
+    flex: 1;
     margin-right: 10px;
 }
-.addmerchant-input-container input, select {
-    border: none;
-    outline: none;
-    flex: 1;
-    font-size: 14px;
+
+.row .col-md-6:last-child,
+.row .col-md-4:last-child {
+    margin-right: 0;
 }
 
-
-.addmerchant-btn-submit {
-    display: inline-block;
-    padding: 10px 20px;
-    margin-top: 7%;
-    width: 20%;
+/* Buttons */
+button {
+    padding: 10px;
+    margin-top: 15px;
     font-size: 16px;
-    color: white;
-    background-color: #004080; /* Primary Blue */
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    transition: background 0.3s ease;
-    margin-left: 40%;
 }
 
-.addmerchant-btn-submit:hover {
-    background: linear-gradient(178deg, red 0%, #85060c 100%);
-}
-
-.back-to-list-btn a {
-    display: inline-block;
-    padding: 10px 20px;
-    font-size: 16px;
-    color: white;
-    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
-    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    transition: background 0.3s ease;
-    margin-left: 83%;
-    width: 15%;
-    font-weight: bold;
-    margin-top: 8%;
-}
-
-.back-to-list-btn a:hover {
-    background: linear-gradient(178deg, red 0%, #85060c 100%);
-}
-
-.addmerchant-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
-
-
-/* Centered Project Type Section */
-.project-type-container {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #004080;
-}
-
-/* Inline Radio Buttons */
-.addmerchant-radio-group {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-}
-
-.addmerchant-radio-group label {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    color: #555;
-    cursor: pointer;
-    gap: 5px; /* Space between radio and label text */
-}
-
-.addmerchant-radio-group input[type="radio"] {
-    accent-color: #004080; /* Blue color */
-    transform: scale(1.2); /* Slightly bigger radio buttons */
-    margin-right: 5px;
-}
-
-
-
-
-/* Toast Notification Styling */
-.toast-container {
-    visibility: hidden;
-    min-width: 250px;
-    background-color: #28a745; /* Green Color */
-    color: white;
-    text-align: center;
-    border-radius: 5px;
-    padding: 16px;
-    position: fixed;
-    top: 20px; /* Move to top */
-    left: 50%; /* Align to right */
-    font-size: 17px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    opacity: 0;
-    transform: translateY(-50%); /* Initial hidden position */
-    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-}
-
-/* Show Toast */
-.toast-show {
-    visibility: visible;
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Fade Out Animation */
-.toast-hide {
-    opacity: 0;
-    transform: translateY(-20px);
-}
-
-/* Toast Icon */
-.toast-container i {
-    font-size: 20px;
+.btn-primary {
+    background-color: #007bff;
     color: white;
 }
 
-
-/* 🟢 Responsive Design */
-@media (max-width: 768px) {
-    .addmerchant-container {
-        width: 90%;
-        padding: 15px;
-        height: 175vh;
-        margin-left: 5%;
-        
-    }
-
-    .addmerchant-form-container {
-        flex-direction: column;
-    }
-
-    .addmerchant-form-group {
-        width: 100%;
-    }
-
-    .addmerchant-btn-submit {
-        max-width: 30%;
-        width: 90%;
-        margin-top: 5%;
-        margin-left: 34%;
-    }
-
-    .back-to-list-btn a {
-        max-width: 30%;
-        width: 90%;
-        margin-top: 20%;
-        margin-left: 70%;
-    }
-    .heading {
-        font-size: 22px;
-        margin-top: 5%; /* Move heading down */
-       margin-left: -60%;
-    }
+.btn-primary:hover {
+    background-color: #0056b3;
 }
 
-
-.select2-container {
-    width: 100% !important;
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
 }
 
-.select2-selection--single {
-    height: 38px !important;
-    padding: 4px 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-}
-
-.select2-selection__rendered {
-    font-size: 14px;
-    color: #555;
-    line-height: 26px;
-}
-
-.select2-selection__arrow {
-    height: 100%;
+.btn-secondary:hover {
+    background-color: #545b62;
 }
