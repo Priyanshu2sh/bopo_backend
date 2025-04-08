@@ -33,6 +33,9 @@ class Employee(models.Model):
     mobile = models.CharField(max_length=10, unique=True)
     pan = models.CharField(max_length=10, unique=True)
     pincode = models.CharField(max_length=6)
+    username = models.CharField(max_length=255)
+    password = models.CharField(max_length=255)
+    country = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
