@@ -20,7 +20,7 @@ from django.utils.timezone import now
 class CustomerPoints(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
-    points = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    points = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -28,7 +28,7 @@ class CustomerPoints(models.Model):
 
 class MerchantPoints(models.Model):
     merchant = models.OneToOneField(Merchant, on_delete=models.CASCADE)
-    points = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    points = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
 
@@ -41,7 +41,7 @@ class History(models.Model):
 
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
-    points = models.FloatField(default=0.0)
+    points = models.IntegerField()
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
     created_at = models.DateTimeField(default=now)
 

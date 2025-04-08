@@ -1,6 +1,8 @@
 from django.urls import path, include
-from .views import home, about, merchant,customer, project_onboarding,merchant_list,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,add_customer,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant
+from .views import edit_individual, home, about, merchant,customer, project_onboarding,merchant_list,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,add_customer,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('/login', views.login, name='login'),        
@@ -16,6 +18,9 @@ urlpatterns = [
     path('merchant/list/', merchant_list, name='merchant_list'),
     path('corporate/list/', corporate_list, name='corporate_list'),
     path('individual/list/', individual_list, name='individual_list'),
+    path('individual/edit/<int:id>/', edit_individual, name='edit_individual'),
+    
+
     
     path('merchant/add/', add_merchant, name='add_merchant'),
     path("individual/add/", add_individual_merchant, name="add_individual_merchant"),
@@ -45,8 +50,15 @@ urlpatterns = [
     path('account_info/', account_info, name='account_info'),
     path('reports/', reports, name='reports'),
     
-   
-
-
+    path('export-projects/', views.export_projects, name='export_projects'),
+    path('export_merchants/', views.export_merchants, name='export_merchants'),
+    path('export_disabled_merchants/', views.export_disabled_merchants, name='export_disabled_merchants'),
+    path('export_project_wise_balance/', views.export_projects, name='export_project_wise_balance'),
+    path('export_merchant_wise_balance/', views.export_merchant_wise_balance, name='export_merchant_wise_balance'),
+    path('export_customer_wise_balance/', views.export_customer_wise_balance, name='export_customer_wise_balance'),
+    path('export_customer_transaction/', views.export_customer_transaction, name='export_customer_transaction'),
+    path('export_payment_dues/', views.export_projects, name='export_payment_dues'),
+    path('export_award_transaction/', views.export_projects, name='export_award_transaction'),
+    path('export_corporate_merchant/', views.export_projects, name='export_corporate_merchant'),
   
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

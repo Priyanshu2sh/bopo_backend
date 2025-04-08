@@ -23,7 +23,7 @@
     <h2 class="heading">Add Employee</h2>
     <div class="addemployee-container">
 
- <form>
+        <form method="POST">
             {% csrf_token %}
             <div class="addemployee-form-container">
                 <!-- Left Column -->
@@ -88,8 +88,8 @@
                     <div class="addemployee-input-container">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="password" name="password" required class="password-field">
-                        <input type="text" id="passwordText" name="passwordText" required class="password-field show-password">
-                        <input type="checkbox" id="togglePassword" class="password-checkbox">
+                        <!-- <input type="text" id="passwordText" name="passwordText" required class="password-field show-password"> -->
+                        <!-- <input type="checkbox" id="togglePassword" class="password-checkbox"> -->
                         <label for="togglePassword" class="password-toggle">
                             <i class="fas fa-eye"></i>
                         </label>
@@ -99,8 +99,8 @@
                     <div class="addemployee-input-container">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="confirmPassword" name="confirm_password" required class="password-field">
-                        <input type="text" id="confirmPasswordText" name="confirm_passwordText" required class="password-field show-password">
-                        <input type="checkbox" id="toggleConfirmPassword" class="password-checkbox">
+                        <!-- <input type="text" id="confirmPasswordText" name="confirm_passwordText" required class="password-field show-password">
+                        <input type="checkbox" id="toggleConfirmPassword" class="password-checkbox"> -->
                         <label for="toggleConfirmPassword" class="password-toggle">
                             <i class="fas fa-eye"></i>
                         </label>
@@ -142,22 +142,21 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelector("form").addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent actual form submission
+   document.addEventListener("DOMContentLoaded", function () {
+    document.querySelector("form").addEventListener("submit", function () {
+        let toast = document.getElementById("toast");
+        toast.classList.add("toast-show");
 
-            let toast = document.getElementById("toast");
-            toast.classList.add("toast-show");
-
-            setTimeout(function () {
-                toast.classList.add("toast-hide");
-                setTimeout(() => {
-                    toast.classList.remove("toast-show", "toast-hide");
-                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
-                }, 500);
-            }, 3000); // Hide after 3 seconds
-        });
+        setTimeout(function () {
+            toast.classList.add("toast-hide");
+            setTimeout(() => {
+                toast.classList.remove("toast-show", "toast-hide");
+            }, 500);
+        }, 3000); // Hide after 3 seconds
     });
+});
+
+
 </script>
 
 

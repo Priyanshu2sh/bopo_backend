@@ -30,26 +30,28 @@
 
             <div class="form-group">
                 <label for="merchant">Select Merchant:</label>
-                <select id="merchant" name="merchant" required>
-                    <option value="">-- Select a Merchant --</option>
-                    <option value="merchant1">Merchant 1</option>
-                    <option value="merchant2">Merchant 2</option>
-                    <option value="merchant3">Merchant 3</option>
+                <select id="merchant" name="merchant" onchange="fillMerchantId()">
+                    <option value="">Select Merchant</option>
+                    {% for merchant in merchants %}
+                        <option value="{{ merchant.id }}" data-merchant-id="{{ merchant.merchant_id }}">
+                            {{ merchant.first_name }} {{ merchant.last_name }}
+                        </option>
+                    {% endfor %}
                 </select>
             </div>
         </div>
 
-        <!-- Left and Right Box Wrapper -->
+        <!-- Left and Right Box Wrapper --> 
         <div class="form-container">
             <!-- Left Form -->
             <div class="form-wrapper">
                 <form method="post" class="topup-form">
                     {% csrf_token %}
 
-                    {% comment %} <div class="form-group">
+                   <div class="form-group">
                         <label for="merchant_id">Merchant ID:</label>
-                        <input type="text" id="merchant_id" name="merchant_id" required>
-                    </div> {% endcomment %}
+                        <input type="text" id="merchant_id" name="merchant_id" required readonly>
+                    </div> 
 
                     <div class="form-group">
                         <label for="topup_amount">Top-Up Paid Amount:</label>
@@ -64,7 +66,7 @@
                         <label for="topup_points">Top-Up Points:</label>
                         <input type="number" id="topup_points" name="topup_points" required>
                     </div>
-                </form>
+               
             </div>
 
             <!-- Right Box for Extra Inputs -->
@@ -89,7 +91,7 @@
                         <input type="text" id="upi_id" name="upi_id">
                     </div>
                 </div>
-{% comment %} 
+                {% comment %} 
                 <div id="net_banking_fields" class="payment-fields">
                     <div class="form-group">
                         <label for="bank_name">Bank Name:</label>
@@ -117,6 +119,7 @@
             
             <button type="submit" class="topup-btn-submit">Submit</button>
         </div>
+    </form>
 
     </div>
 
@@ -138,6 +141,13 @@
            // } else if (paymentMethod === "credit_card" || paymentMethod === "debit_card") {
             //    document.getElementById("card_fields").style.display = "block";
             }
+        }
+
+        function fillMerchantId() {
+            const merchantDropdown = document.getElementById("merchant");
+            const selectedOption = merchantDropdown.options[merchantDropdown.selectedIndex];
+            const merchantId = selectedOption.getAttribute("data-merchant-id");
+            document.getElementById("merchant_id").value = merchantId || "";
         }
     </script>
 

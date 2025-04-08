@@ -21,7 +21,7 @@
 
     <h2 class="heading">Add Merchant</h2>
     <div class="addmerchant-container">
-        <form>
+        <form method="POST" action="{% url 'add_merchant' %}">
             {% csrf_token %}
             
         
@@ -47,14 +47,15 @@
     <div class="addmerchant-input-container">
         <select id="select_project" name="select_project">
             <option value="">Select a project</option>
-            <option value="Project 1">Project 1</option>
-            <option value="Project 2">Project 2</option>
-            <option value="Project 3">Project 3</option>
+            {% for corporate in corporates %}
+                <option value="{{ corporate.id }}">{{ corporate.project_name }}</option>
+            {% endfor %}
         </select>
     </div>
 </div>
 
 <!-- Project Name Input Field (Initially Hidden) -->
+ 
 <div id="project-name-container" class="hidden">
     <label for="project_name">Project Name:</label>
     <div class="addmerchant-input-container">

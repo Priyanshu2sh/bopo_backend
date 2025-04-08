@@ -7,6 +7,7 @@
 
 <div class="merchant_status">
     <!-- Sales Contact Details -->
+    <form method="POST" action="{% url 'login_page_info' %}">
     <div class="dropdown-container">
         <div class="form-group">
             <label for="sales_name">Sales Contact Name:</label>
@@ -15,7 +16,7 @@
 
         <div class="form-group">
             <label for="sales_number">Sales Contact Number:</label>
-            <input type="tel" id="sales_number" name="sales_number" placeholder="Enter Sales Contact Number" disabled>
+            <input type="number" id="sales_number" name="sales_number" placeholder="Enter Sales Contact Number" disabled>
         </div>
 
         <div class="form-group">
@@ -30,6 +31,7 @@
         <button type="button" class="cancel-btn" onclick="resetForm()" disabled id="cancel-btn">Cancel</button>
         <button type="submit" class="submit-btn" onclick="showAlert()" disabled id="submit-btn">Submit</button>
     </div>
+</form>
 </div>
 
 <script>

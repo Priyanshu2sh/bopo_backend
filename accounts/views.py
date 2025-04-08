@@ -11,7 +11,7 @@ from rest_framework import status
 from django.utils.timezone import now
 from bopo_backend import settings
 
-from .models import  Customer, Merchant, User
+from .models import  Customer, Merchant, User, Corporate
 from .serializers import   CustomerSerializer, MerchantSerializer, UserSerializer
 
 logger = logging.getLogger(__name__)
@@ -182,8 +182,13 @@ class RegisterUserAPIView(APIView):
                 return Response({"message": "Validation error", "errors": serializer.errors, "user_type": "customer",
                                  "customer_id": None}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"message": message, "user_type": "customer", "customer_id": customer.customer_id},
-                        status=status.HTTP_200_OK)
+        # Send OTP via SMS
+        if OTPService.send_sms_otp(mobile, otp):
+            return Response({"message": message, "user_type": "customer", "user_id": customer.customer_id},
+                            status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "Failed to send OTP.", "user_type": "customer", "customer_id": None},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     
 
@@ -211,11 +216,6 @@ class RegisterUserAPIView(APIView):
         customer.delete()
         return Response({"message": "Customer deleted successfully."}, status=status.HTTP_200_OK)
     
-    def get(self, request):
-        """Fetch all registered customers"""
-        customers = Customer.objects.all()
-        serializer = CustomerSerializer(customers, many=True)
-        return Response({"customers": serializer.data}, status=status.HTTP_200_OK)
 
     def register_merchant(self, request, mobile, user_type, project_name):
         """Handles merchant registration"""
@@ -236,7 +236,7 @@ class RegisterUserAPIView(APIView):
             if merchant.verified_at:
                 return Response(
                     {"message": "Merchant is already registered and verified.", "user_type": "merchant",
-                     "merchant_id": merchant_id},
+                     "user_id": merchant.merchant_id},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
@@ -253,8 +253,13 @@ class RegisterUserAPIView(APIView):
                 return Response({"message": "Validation error", "errors": serializer.errors, "user_type": "merchant",
                                  "merchant_id": None}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"message": message, "user_type": "merchant", "merchant_id": merchant_id},
-                        status=status.HTTP_200_OK)
+        # Send OTP via SMS
+        if OTPService.send_sms_otp(mobile, otp):
+            return Response({"message": message, "user_type": "merchant", "user_id": merchant.merchant_id},
+                            status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "Failed to send OTP.", "user_type": "merchant", "user_id": merchant.merchant_id},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     def update_merchant(self, request, mobile):
         """Update merchant details"""
@@ -289,6 +294,7 @@ class LoginAPIView(APIView):
             mobile = request.data.get("mobile")
             pin = request.data.get("pin")
             user_category = request.data.get("user_category")  # 🔹 Added user category
+            
 
             logger.info(f"Login attempt - Mobile: {mobile}, User Category: {user_category}")
 
@@ -312,17 +318,25 @@ class LoginAPIView(APIView):
                 logger.warning("User not found")
                 return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
 
+            # ✅ Check if user is verified
+            if not user.verified_at:
+                logger.warning("User not verified")
+                return Response({"error": "User not verified. Please verify OTP before logging in."}, status=status.HTTP_400_BAD_REQUEST)
+
             # Ensure PIN is stored as an integer before comparison
             stored_pin = int(user.pin) if not isinstance(user.pin, int) else user.pin
 
             if stored_pin != int(pin):  # Compare integer values
                 logger.warning("Invalid PIN")
-                return Response({"error": "Invalid PIN ."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
 
             # ✅ Prepare success response
             response_data = {
                 "message": "Login successful",
+                "first_name": user.first_name,
+                "last_name": user.last_name,
                 "user_category": user_category,
+                
             }
 
             # Include appropriate ID field
@@ -350,8 +364,8 @@ class VerifyOTPAPIView(APIView):
     def post(self, request):
         try:
             otp = request.data.get("otp")
-            customer_id = request.data.get("customer_id")
-            merchant_id = request.data.get("merchant_id")
+            customer_id = request.data.get("user_id")
+            merchant_id = request.data.get("user_id")
             user_category = request.data.get("user_category", "").strip().lower()
 
             logger.info(f"Received OTP verification request: {request.data}")
@@ -470,6 +484,133 @@ class VerifyOTP(APIView):
             return Response({"message": "OTP verified successfully."}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
-        
 
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.http import JsonResponse
 
+class AddMerchantAPIView(APIView):
+    """API to handle merchant form submission and generate corporate and project IDs"""
+
+    @method_decorator(csrf_exempt)
+    def post(self, request):
+        try:
+            data = request.POST
+            mobile = data.get("mobile")
+            first_name = data.get("first_name")
+            last_name = data.get("last_name")
+            project_type = data.get("project_type")
+            project_name = data.get("project_name", "")
+            select_project = data.get("select_project", "")
+
+            # Validate required fields
+            if not mobile or not first_name or not last_name or not project_type:
+                return JsonResponse({"error": "Missing required fields."}, status=400)
+
+            # Generate corporate ID
+            last_corporate = Merchant.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
+            new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[4:]) + 1
+            corporate_id = f"CORP{new_corporate_id:06d}"
+
+            # Determine project name and generate project ID if it's a new project
+            if project_type == "Existing Project" and select_project:
+                project_name = select_project
+                project_id = None  # No new project ID for existing projects
+            elif project_type == "New Project":
+                if not project_name:
+                    return JsonResponse({"error": "Project name is required for new projects."}, status=400)
+
+                # Generate project ID
+                last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
+                new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
+                project_id = f"PROJ{new_project_id:06d}"
+            else:
+                return JsonResponse({"error": "Invalid project type."}, status=400)
+
+            # Save merchant to the database
+            merchant_data = {
+                "mobile": mobile,
+                "first_name": first_name,
+                "last_name": last_name,
+                "corporate_id": corporate_id,
+                "project_name": project_name,
+                "project_id": project_id,  # Include project ID if it's a new project
+                # Add other fields as needed
+            }
+            serializer = MerchantSerializer(data=merchant_data)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse({
+                    "message": "Merchant added successfully.",
+                    "corporate_id": corporate_id,
+                    "project_id": project_id
+                }, status=201)
+            else:
+                return JsonResponse({"error": "Validation error.", "details": serializer.errors}, status=400)
+
+        except Exception as e:
+            logger.error(f"Error adding merchant: {str(e)}", exc_info=True)
+            return JsonResponse({"error": "Internal Server Error"}, status=500)
+
+class FetchAllUsersAPIView(APIView):
+    """API to fetch all users or specific user types via query params"""
+
+    def get(self, request):
+        user_type = request.query_params.get('user_type')  # can be 'customer', 'merchant', 'corporate'
+
+        all_users = []
+
+        if user_type == 'customer' or user_type is None:
+            customers = Customer.objects.all()
+            customer_data = [
+                {
+                    # "user_type": "customer",
+                    "user_id": customer.customer_id,
+                    "mobile": customer.mobile,
+                    "first_name": customer.first_name,
+                    "last_name": customer.last_name,
+                    "email": customer.email,
+                    "address": customer.address,
+                    "created_at": customer.created_at,
+                }
+                for customer in customers
+            ]
+            all_users += customer_data
+
+        if user_type == 'merchant' or user_type is None:
+            merchants = Merchant.objects.all()
+            merchant_data = [
+                {
+                    # "user_type": "merchant",
+                    "user_id": merchant.merchant_id,
+                    "mobile": merchant.mobile,
+                    "first_name": merchant.first_name,
+                    "last_name": merchant.last_name,
+                    "email": merchant.email,
+                    "shop_name": merchant.shop_name,
+                    "address": merchant.address,
+                    "created_at": merchant.created_at,
+                }
+                for merchant in merchants
+            ]
+            all_users += merchant_data
+
+        if user_type == 'corporate' or user_type is None:
+            corporates = Corporate.objects.all()
+            corporate_data = [
+                {
+                    # "user_type": "corporate",
+                    "user_id": corporate.corporate_id,
+                    "mobile": corporate.mobile,
+                    "first_name": corporate.first_name,
+                    "last_name": corporate.last_name,
+                    "email": corporate.email,
+                    "project_name": corporate.project_name,
+                    "address": corporate.address,
+                    "created_at": corporate.created_at,
+                }
+                for corporate in corporates
+            ]
+            all_users += corporate_data
+
+        return Response({"users": all_users}, status=status.HTTP_200_OK)
