@@ -222,7 +222,7 @@ class RegisterUserAPIView(APIView):
             if merchant.verified_at:
                 return Response(
                     {"message": "Merchant is already registered and verified.", "user_type": "merchant",
-                     "merchant_id": merchant_id},
+                     "merchant_id": merchant.merchant_id},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
@@ -239,7 +239,7 @@ class RegisterUserAPIView(APIView):
                 return Response({"message": "Validation error", "errors": serializer.errors, "user_type": "merchant",
                                  "merchant_id": None}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"message": message, "user_type": "merchant", "merchant_id": merchant_id},
+        return Response({"message": message, "user_type": "merchant", "merchant_id": merchant.merchant_id},
                         status=status.HTTP_200_OK)
 
     def update_merchant(self, request, mobile):
@@ -449,8 +449,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils.timezone import now
-# from .models import User
-# from .serializers import UserSerializer
+from .models import User
+from .serializers import UserSerializer
 from .utils import send_otp_to_mobile
 
 class RegisterUser(APIView):
