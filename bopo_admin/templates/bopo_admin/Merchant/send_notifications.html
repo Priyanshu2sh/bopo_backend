@@ -5,9 +5,15 @@
 <link rel="stylesheet" href="{% static 'bopo_admin/css/send_notifications.css' %}">
 
 <div class="send-notification-container">
+    {% if message %}
+    <div class="success-message">
+        {{ message }}
+    </div>
+    {% endif %}
     <div class="send-notification-header">
         <h2>Send Notifications</h2>
     </div>
+    <form method="POST" action="{% url 'send_notifications' %}">
 
     <div class="send-notification-list">
         <!-- To Single Merchants Section -->
@@ -22,47 +28,47 @@
                 <!-- Select Project -->
                 <div class="form-group">
                     <label for="select-project">Select Project:</label>
-                    <select id="select-project" class="form-control">
-                        <option value="">-- Select Project --</option>
-                        <option value="project1">Project 1</option>
-                        <option value="project2">Project 2</option>
-                        <option value="project3">Project 3</option>
+                    <select id="select_project" name="project">
+                        <option value="">Select a project</option>
+                        {% for corporate in corporates %}
+                            <option value="{{ corporate.project_id }}">{{ corporate.project_name }} ({{ corporate.project_id }})</option>
+                        {% endfor %}
                     </select>
                 </div>
             
                 <!-- Select Merchant ID -->
                 <div class="form-group">
                     <label for="select-merchant">Select Merchant ID:</label>
-                    <select id="select-merchant" class="form-control">
+                    <select id="select-merchant" name="merchant" class="form-control" required>
                         <option value="">-- Select Merchant ID --</option>
-                        <option value="merchant1">Merchant 1</option>
-                        <option value="merchant2">Merchant 2</option>
-                        <option value="merchant3">Merchant 3</option>
+                        {% for merchant in merchants %}
+                            <option value="{{ merchant.id }}">{{ merchant.merchant_id }} - ({{ merchant.first_name }} {{ merchant.last_name }})</option>
+                        {% endfor %}
                     </select>
                 </div>
             
                 <!-- Notification Type -->
                 <div class="form-group">
                     <label for="notification-type">Notification Type:</label>
-                    <input type="text" id="notification-type" class="form-control" placeholder="Enter notification type">
+                    <input type="text" id="notification-type" name="notification_type" class="form-control" placeholder="Enter notification type" required>
                 </div>
             
                 <!-- Title -->
                 <div class="form-group">
                     <label for="notification-title">Title:</label>
-                    <input type="text" id="notification-title" class="form-control" placeholder="Enter title">
+                    <input type="text" id="notification-title" name="notification_title" class="form-control" placeholder="Enter title" required>
                 </div>
             
                 <!-- Description -->
                 <div class="form-group">
                     <label for="notification-description">Description:</label>
-                    <textarea id="notification-description" class="form-control" rows="4" placeholder="Enter description"></textarea>
+                    <textarea id="notification-description" name="description" class="form-control" rows="4" placeholder="Enter description" required></textarea>
                 </div>
             
         <!-- Button Container -->
         <div class="button-container">
             <button class="cancel-btn">Cancel</button>
-            <button class="send-btn" onclick="showAlert()">Send Notification</button>
+            <button class="send-btn" >Send Notification</button>
         </div>
             </div>
             
@@ -79,11 +85,15 @@
                 <!-- Select Project -->
                 <div class="form-group">
                     <label for="select-project">Select Project:</label>
-                    <select id="select-project" class="form-control">
-                        <option value="">-- Select Project --</option>
-                        <option value="project1">Project 1</option>
-                        <option value="project2">Project 2</option>
-                        <option value="project3">Project 3</option>
+                    <select id="select_project" name="project">
+                        <option value="">Select a project</option>
+                        {% if corporates %}
+                            {% for corporate in corporates %}
+                                <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="">No projects available</option>
+                        {% endif %}
                     </select>
                 </div>
         
@@ -92,19 +102,19 @@
                 <!-- Notification Type -->
                 <div class="form-group">
                     <label for="notification-type">Notification Type:</label>
-                    <input type="text" id="notification-type" class="form-control" placeholder="Enter notification type">
+                    <input type="text" id="notification-type" name="notification_type" class="form-control" placeholder="Enter notification type" required>
                 </div>
         
                 <!-- Title -->
                 <div class="form-group">
                     <label for="notification-title">Title:</label>
-                    <input type="text" id="notification-title" class="form-control" placeholder="Enter title">
+                    <input type="text" id="notification-title" name="notification_title" class="form-control" placeholder="Enter title" required>
                 </div>
         
                 <!-- Description -->
                 <div class="form-group">
                     <label for="notification-description">Description:</label>
-                    <textarea id="notification-description" class="form-control" rows="4" placeholder="Enter description"></textarea>
+                    <textarea id="notification-description" name="description" class="form-control" rows="4" placeholder="Enter description" required></textarea>
                 </div>
                 
           <!-- Button Container -->
@@ -114,6 +124,7 @@
         </div><br><br><br>
         </div>
     </div>
+</form>
 </div>
 
 <!-- JavaScript for Search Filtering -->
@@ -156,6 +167,26 @@
     });
 </script>
 
+<script>
+    document.querySelector("form").addEventListener("submit", function (event) {
+        const requiredFields = document.querySelectorAll("[required]");
+        let isValid = true;
+
+        requiredFields.forEach((field) => {
+            if (field.offsetParent === null || field.disabled) {
+                field.required = false; // Temporarily disable validation for hidden/disabled fields
+            } else if (!field.value.trim()) {
+                isValid = false; // Mark form as invalid
+                field.focus(); // Focus on the first invalid field
+            }
+        });
+
+        if (!isValid) {
+            event.preventDefault(); // Prevent form submission
+            alert("Please fill in all required fields.");
+        }
+    });
+</script>
 
 <script>
     function showAlert() {

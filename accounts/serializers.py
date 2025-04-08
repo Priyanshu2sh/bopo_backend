@@ -1,12 +1,14 @@
 from rest_framework import serializers
-from .models import  Customer,  Merchant
+from .models import  Corporate, Customer,  Merchant
 from .models import User
 
-# class CorporateSerializer(serializers.ModelSerializer):
-#     email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
-#     class Meta:
-#         model = Corporate
-#         fields = '__all__'
+class CorporateSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
+    class Meta:
+        model = Corporate
+        fields = '__all__'
+        extra_kwargs = {'otp': {'required' :False}, 'security_question': {'required' :False}, 'answer':{'required':False}, 
+                        'pin': {'required':False}, 'project_name':{'required': False}, 'select_project':{'required': False}, 'project_name':{'required':False}}
 
 
 class MerchantSerializer(serializers.ModelSerializer):
@@ -16,30 +18,20 @@ class MerchantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Merchant
         fields = '__all__'
-        extra_kwargs = {
-            'contact_person': {'required': False},
-            'aadhaar_number': {'required': False},
-            'gst_number': {'required': False},
-            'pan_number': {'required': False},
-            'shop_name': {'required': False},
-            'address': {'required': False},
-            'legal_name': {'required': False},
-            'state': {'required': False},
-            'city': {'required': False},
-            'country': {'required': False},
-            'pincode': {'required': False},
-        }
+        extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 'legal_name': {'required':False},
+                        'pincode': {'required':False}, 'address': {'required':False}, 'select_state': {'required':False}, 'country': {'required':False},
+                        'shop_name':{'required':False},'register_shop_name':{'required':False}, 'gst':{'required':False}}
 
 class CustomerSerializer(serializers.ModelSerializer):
    
-   customer_id = serializers.CharField()
-   email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
-   class Meta:
-       model = Customer
-       fields = '__all__'
-       extra_kwargs = {'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 'gst': {'required':False},
-                       'legal_name': {'required':False}, 'pincode': {'required':False}, 'address': {'required':False}, 'select_state': {'required':False}, 'country': {'required':False},
-                       'shop_name': {'required':False},}
+    customer_id = serializers.CharField()
+    email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
+    age = serializers.IntegerField(required=False, allow_null=True)
+    class Meta:
+        model = Customer
+        fields = '__all__'
+        extra_kwargs = {'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 
+                        'pincode': {'required':False}, 'address': {'required':False}, 'select_state': {'required':False}, 'country': {'required':False},}
 
 
 

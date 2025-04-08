@@ -30,7 +30,7 @@
     <h2 class="heading">Add Merchant</h2>
     <div class="addmerchant-container">
 
-    <form method="POST">
+    <form method="POST" action="{% url 'add_merchant' %}" method="POST">
         {% csrf_token %}
             
         <!-- Project Type Selection (Centered and Inline) -->
@@ -49,27 +49,28 @@
                 </div>
             </div>
 
-            <!-- Select Project Dropdown (Hidden Initially) -->
-            <div id="select-project-container" class="hidden">
-                <label for="select_project">Select Project:</label>
-                <div class="addmerchant-input-container">
-                    <select id="select_project" name="select_project">
-                        <option value="">Select a project</option>
-                        <option value="Project 1">Project 1</option>
-                        <option value="Project 2">Project 2</option>
-                        <option value="Project 3">Project 3</option>
-                    </select>
-                </div>
-            </div>
+<!-- Select Project Dropdown (Hidden Initially) -->
+<div id="select-project-container" class="hidden">
+    <label for="select_project">Select Project:</label>
+    <div class="addmerchant-input-container">
+        <select id="select_project" name="select_project">
+            <option value="">Select a project</option>
+            {% for corporate in corporates %}
+                <option value="{{ corporate.id }}">{{ corporate.project_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
 
-            <!-- Project Name Input Field (Initially Hidden) -->
-            <div id="project-name-container" class="hidden">
-                <label for="project_name">Project Name:</label>
-                <div class="addmerchant-input-container">
-                    <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name">
-                </div>
-            </div>
-                
+<!-- Project Name Input Field (Initially Hidden) -->
+ 
+<div id="project-name-container" class="hidden">
+    <label for="project_name">Project Name:</label>
+    <div class="addmerchant-input-container">
+        <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name">
+    </div>
+</div>
+    
             <!-- Form Fields (Left & Right Columns) -->
             <div class="addmerchant-form-container">
                 
@@ -121,7 +122,8 @@
     
                 <!-- Right Column -->
                 <div class="addmerchant-form-group">
-                  <label>Last Name</label>
+
+                <label>Last Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
                         <input type="text" name="last_name" required>

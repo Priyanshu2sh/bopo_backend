@@ -2,6 +2,7 @@
 
 {% block content %}
 {% load static %}
+{% load custom_filters %} <!-- Load the custom filter -->
 <link rel="stylesheet" href="{% static 'bopo_admin/css/individual_merchant_list.css' %}">
 
 <div class="merchant-container">
@@ -26,29 +27,31 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Merchant Type</th>
                             <th>Contact Person</th>
                             <th>Mobile Number</th>
                             <th>Shop Name</th>
                             <th>City</th>
+                            <th>BBP</th>
                             <th>Verified</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
+                        {% for merchant in merchants %}
                         <tr>
-                            <td>1</td>
-                            <td>Demo Type</td>
-                            <td>Demo contact</td>
-                            <td>8080808080</td>
-                            <td>IND Shop</td>
-                            <td>Mumbai</td>
-                            <td>false</td>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ merchant.first_name }} {{ merchant.last_name }}</td> <!-- Combined column -->
+                            <td>{{ merchant.mobile }}</td>
+                            <td>{{ merchant.shop_name }}</td>
+                            <td>{{ merchant.city }}</td>
+                            <td>{{ points_mapping|get_item:merchant.id }}</td> <!-- Use custom filter -->
+                            <td>{{ merchant.verified_at|yesno:"Active,Inactive" }}</td>
                             <td>
-                                <button>✏️</button>
+                                <a href="{% url 'edit_individual' merchant.id %}">✏️</a>
                                 <button>🗑️</button>
                             </td>
                         </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>

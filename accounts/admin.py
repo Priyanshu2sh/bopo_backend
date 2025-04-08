@@ -4,3 +4,4 @@ from .models import *
 
 admin.site.register(Merchant)
 admin.site.register(Customer)
+admin.site.register(Corporate)

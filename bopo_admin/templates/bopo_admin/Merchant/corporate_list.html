@@ -38,20 +38,38 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% for data in corporate_data %}
                         <tr>
-                            <td>1</td>
-                            <td>1</td>
-                            <td>1</td>
-                            <td>Demo Contact</td>
-                            <td>9090909090</td>
-                            <td>DEMO</td>
-                            <td>Pune</td>
-                            <td>true</td>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ data.corporate.project_id }}</td>
+                            <td>{{ data.corporate.corporate_id }}</td>
+                            <td>{{ data.corporate.first_name }} {{ data.corporate.last_name }}</td>
+                            <td>{{ data.corporate.mobile }}</td>
+                            <td>{{ data.corporate.shop_name }}</td>
+                            <td>{{ data.corporate.city }}</td>
+                            <td>{{ data.corporate.verified_at|yesno:"true,false" }}</td>
                             <td>
                                 <button>✏️</button>
                                 <button>🗑️</button>
                             </td>
                         </tr>
+                        {% for merchant in data.merchants %}
+                        <tr>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>{{ merchant.merchant_id }}</td>
+                            <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
+                            <td>{{ merchant.mobile }}</td>
+                            <td>{{ merchant.shop_name }}</td>
+                            <td>{{ merchant.city }}</td>
+                            <td>{{ merchant.verified_at|yesno:"true,false" }}</td>
+                            <td>
+                                <button>✏️</button>
+                                <button>🗑️</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>

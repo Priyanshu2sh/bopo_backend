@@ -35,21 +35,32 @@
                     <option value="project3">Project 3</option>
                 </select>
             </div> {% endcomment %}
-            
-                <div class="form-group">
-                    <label for="merchant">Select Merchant:</label>
-                    <select id="merchant" name="merchant" required>
-                        <option value="">-- Select a Merchant --</option>
-                        <option value="merchant1">Merchant 1</option>
-                        <option value="merchant2">Merchant 2</option>
-                        <option value="merchant3">Merchant 3</option>
-                    </select>
-                </div>
+
+            <div class="form-group">
+                <label for="merchant">Select Merchant:</label>
+                <select id="merchant" name="merchant" onchange="fillMerchantId()">
+                    <option value="">Select Merchant</option>
+                    {% for merchant in merchants %}
+                        <option value="{{ merchant.id }}" data-merchant-id="{{ merchant.merchant_id }}">
+                            {{ merchant.first_name }} {{ merchant.last_name }}
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
-        
-            <div class="form-container">
-                <!-- Left Form -->
-                <div class="form-wrapper">
+        </div>
+
+        <!-- Left and Right Box Wrapper --> 
+        <div class="form-container">
+            <!-- Left Form -->
+            <div class="form-wrapper">
+                <form method="post" class="topup-form">
+                    {% csrf_token %}
+
+                   <div class="form-group">
+                        <label for="merchant_id">Merchant ID:</label>
+                        <input type="text" id="merchant_id" name="merchant_id" required readonly>
+                    </div> 
+
                     <div class="form-group">
                         <label for="topup_amount">Top-Up Paid Amount:</label>
                         <input type="number" id="topup_amount" name="topup_amount" required>
@@ -64,33 +75,59 @@
                         <label for="topup_points">Top-Up Points:</label>
                         <input type="number" id="topup_points" name="topup_points" required>
                     </div>
+                </form>
+            </div>
+
+            <!-- Right Box for Extra Inputs -->
+            <div class="right-box">
+                
+
+                <div class="form-group">
+                    <label for="payment_mode">Payment Mode:</label>
+                    <select id="payment_mode" name="payment_mode" required onchange="showPaymentFields()">
+                        <option value="">-- Select Payment Method --</option>
+                        <option value="upi">UPI</option>
+                        <option value="net_banking">Net Banking</option>
+                        <option value="credit_card">Credit Card</option>
+                        <option value="debit_card">Debit Card</option>
+                    </select>
                 </div>
-        
-                <!-- Right Box -->
-                <div class="right-box">
+
+                <!-- Payment-Specific Input Fields -->
+                <div id="upi_fields" class="payment-fields">
                     <div class="form-group">
-                        <label for="payment_mode">Payment Mode:</label>
-                        <select id="payment_mode" name="payment_mode" required onchange="showPaymentFields()">
-                            <option value="">-- Select Payment Method --</option>
-                            <option value="upi">UPI</option>
-                            <option value="net_banking">Net Banking</option>
-                            <option value="credit_card">Credit Card</option>
-                            <option value="debit_card">Debit Card</option>
-                        </select>
+                        <label for="upi_id">UPI ID:</label>
+                        <input type="text" id="upi_id" name="upi_id">
                     </div>
-        
-                    <div id="upi_fields" class="payment-fields">
-                        <div class="form-group">
-                            <label for="upi_id">UPI ID:</label>
-                            <input type="text" id="upi_id" name="upi_id">
-                        </div>
+                </div>
+{% comment %} 
+                <div id="net_banking_fields" class="payment-fields">
+                    <div class="form-group">
+                        <label for="bank_name">Bank Name:</label>
+                        <input type="text" id="bank_name" name="bank_name">
                     </div>
+                    <div class="form-group">
+                        <label for="account_number">Account Number:</label>
+                        <input type="text" id="account_number" name="account_number">
+                    </div>
+                </div>
+
+                <div id="card_fields" class="payment-fields">
+                    <div class="form-group">
+                        <label for="card_number">Card Number:</label>
+                        <input type="text" id="card_number" name="card_number">
+                    </div>
+                    <div class="form-group">
+                        <label for="card_expiry">Expiry Date:</label>
+                        <input type="month" id="card_expiry" name="card_expiry">
+                    </div> {% endcomment %}
+                   
                 </div>
             </div>
         
             <button type="submit" class="topup-btn-submit">Submit</button>
-        </form>
-        
+        </div>
+
     </div>
 
 
@@ -142,6 +179,13 @@
 
 
     
+
+        function fillMerchantId() {
+            const merchantDropdown = document.getElementById("merchant");
+            const selectedOption = merchantDropdown.options[merchantDropdown.selectedIndex];
+            const merchantId = selectedOption.getAttribute("data-merchant-id");
+            document.getElementById("merchant_id").value = merchantId || "";
+        }
 </script>
 
 </body>

@@ -7,7 +7,8 @@
 <h2 class="title">Bonus Point Account</h2>
 
 <!-- Account Information Form -->
-<form id="accountForm">
+<form id="accountForm" method="POST" action="{% url 'account_info' %}">
+    {% csrf_token %}
     <div class="container account-container mt-4">
         <div class="row">
             <!-- Left Column -->
@@ -16,7 +17,7 @@
                     <label>Account Number</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-university"></i></span>
-                        <input type="text" class="form-control" id="accountNumber" placeholder="Enter Account Number" required>
+                        <input type="text" name="accountNumber" class="form-control" id="accountNumber" value="{{ account.accountNumber|default:'' }}" placeholder="Enter Account Number" required>
                     </div>
                 </div>
 
@@ -24,7 +25,7 @@
                     <label>Payable To</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-user"></i></span>
-                        <input type="text" class="form-control" id="payableTo" placeholder="Enter Payable To" required>
+                        <input type="text" class="form-control" name="payableTo" id="payableTo" value="{{ account.payableTo|default:'' }}" placeholder="Enter Payable To" required>
                     </div>
                 </div>
 
@@ -32,7 +33,7 @@
                     <label>Bank Name</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-building"></i></span>
-                        <input type="text" class="form-control" id="bankName" placeholder="Enter Bank Name" required>
+                        <input type="text" class="form-control" name="bankName" id="bankName" value="{{ account.bankName|default:'' }}" placeholder="Enter Bank Name" required>
                     </div>
                 </div>
 
@@ -40,7 +41,7 @@
                     <label>City</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-city"></i></span>
-                        <input type="text" class="form-control" id="city" placeholder="Enter City" required>
+                        <input type="text" class="form-control" name="city" id="city" value="{{ account.city|default:'' }}" placeholder="Enter City" required>
                     </div>
                 </div>
             </div>
@@ -51,7 +52,7 @@
                     <label>Account Type</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-wallet"></i></span>
-                        <input type="text" class="form-control" id="accountType" placeholder="Enter Account Type" required>
+                        <input type="text" class="form-control" name="accountType" id="accountType" value="{{ account.accountType|default:'' }}" placeholder="Enter Account Type" required>
                     </div>
                 </div>
 
@@ -59,7 +60,7 @@
                     <label>IFSC Code</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-barcode"></i></span>
-                        <input type="text" class="form-control" id="ifscCode" placeholder="Enter IFSC Code" required>
+                        <input type="text" class="form-control" name="ifscCode" id="ifscCode" value="{{ account.ifscCode|default:'' }}" placeholder="Enter IFSC Code" required>
                     </div>
                 </div>
 
@@ -67,7 +68,7 @@
                     <label>Branch Name</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                        <input type="text" class="form-control" id="branchName" placeholder="Enter Branch Name" required>
+                        <input type="text" class="form-control" name="branchName" id="branchName" value="{{ account.branchName|default:'' }}" placeholder="Enter Branch Name" required>
                     </div>
                 </div>
 
@@ -75,7 +76,7 @@
                     <label>Pin Code</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
-                        <input type="text" class="form-control" id="pinCode" placeholder="Enter Pin Code" required>
+                        <input type="text" class="form-control" name="pincode" id="pinCode" value="{{ account.pincode|default:'' }}" placeholder="Enter Pin Code" required>
                     </div>
                 </div>
             </div>
@@ -132,38 +133,25 @@
 
 
     document.getElementById("accountForm").addEventListener("submit", function (event) {
-        event.preventDefault(); // Prevent actual form submission
-
-        let isValid = true;
-        let inputs = document.querySelectorAll(".form-control");
-
-        // Check if all fields are filled
-        inputs.forEach(input => {
-            if (input.value.trim() === "") {
-                isValid = false;
-                input.classList.add("is-invalid"); // Highlight empty fields
-            } else {
-                input.classList.remove("is-invalid");
+        event.preventDefault(); // Prevent normal form submission
+    
+        let formData = new FormData(this);
+    
+        fetch("{% url 'account_info' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
             }
-        });
-
-        if (!isValid) {
-            alert("Please fill in all required fields.");
-            return;
-        }
-
-        // Show toast notification
-        let toast = document.getElementById("toast");
-        toast.classList.add("toast-show");
-
-        setTimeout(function () {
-            toast.classList.add("toast-hide");
-            setTimeout(() => {
-                toast.classList.remove("toast-show", "toast-hide");
-                document.getElementById("accountForm").submit();
-            }, 500);
-        }, 3000); // Hide after 3 seconds
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);  // Show success message
+            location.reload();  // Reload page to update the form with saved data
+        })
+        .catch(error => console.error("Error:", error));
     });
-</script>
+    </script>
+    
 
 {% endblock %}

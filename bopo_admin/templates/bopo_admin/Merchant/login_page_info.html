@@ -10,35 +10,18 @@
 </div>
 <h2>Login Info</h2>
 
-<div class="login_info-container">
-    <form method="POST">
-        {% csrf_token %}
-
-        <!-- Sales Contact Name -->
-        <div class="login_info-form-group">
-            <label for="sales-contact-name">Sales Contact Name</label>
-            <div class="login_info-input-icon">
-                <i class="fa fa-user login_info-icon"></i>
-                <input type="text" id="sales-contact-name" name="sales_contact_name" class="login_info-input" placeholder="Enter Sales Contact Name" required>
-            </div>
-        </div>
-        
-        <!-- Sales Contact Number -->
-        <div class="login_info-form-group">
-            <label for="sales-contact-number">Sales Contact Number</label>
-            <div class="login_info-input-icon">
-                <i class="fa fa-phone login_info-icon"></i>
-                <input type="tel" id="sales-contact-number" name="sales_contact_number" class="login_info-input" placeholder="Enter Sales Contact Number" required>
-            </div>
+<div class="merchant_status">
+    <!-- Sales Contact Details -->
+    <form method="POST" action="{% url 'login_page_info' %}">
+    <div class="dropdown-container">
+        <div class="form-group">
+            <label for="sales_name">Sales Contact Name:</label>
+            <input type="text" id="sales_name" name="sales_name" placeholder="Enter Sales Contact Name" disabled>
         </div>
 
-        <!-- Sales Email ID -->
-        <div class="login_info-form-group">
-            <label for="sales-email">Sales Email ID</label>
-            <div class="login_info-input-icon">
-                <i class="fa fa-envelope login_info-icon"></i>
-                <input type="email" id="sales-email" name="sales_email" class="login_info-input" placeholder="Enter Sales Email ID" required>
-            </div>
+        <div class="form-group">
+            <label for="sales_number">Sales Contact Number:</label>
+            <input type="number" id="sales_number" name="sales_number" placeholder="Enter Sales Contact Number" disabled>
         </div>
 
         <div class="login_info-button-group">
@@ -48,10 +31,13 @@
     </form>
 </div>
 
-<!-- Toast Notification -->
-<div id="toast" class="toast-container">
-    <i class="fa fa-check-circle"></i>
-    <span class="toast-message">Details Submitted Successfully!</span>
+    <!-- Buttons -->
+    <div class="button-container">
+        <button type="button" class="edit-btn" onclick="enableEditing()">Edit</button>
+        <button type="button" class="cancel-btn" onclick="resetForm()" disabled id="cancel-btn">Cancel</button>
+        <button type="submit" class="submit-btn" onclick="showAlert()" disabled id="submit-btn">Submit</button>
+    </div>
+</form>
 </div>
 
 <script>
