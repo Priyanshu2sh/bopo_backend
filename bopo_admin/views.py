@@ -16,7 +16,7 @@ from bopo_award.models import CustomerPoints, History, MerchantPoints
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
-from .models import AccountInfo, BopoAdmin, Employee, MerchantCredential, MerchantLogin, Reducelimit, Topup, UploadedFile
+from .models import AccountInfo, BopoAdmin, Employee, MerchantCredential, MerchantLogin, Notification, Reducelimit, Topup, UploadedFile
 
 # Create your views here.
 from django.shortcuts import render
@@ -388,7 +388,8 @@ def login_page_info(request):
     return render(request, 'bopo_admin/Merchant/login_page_info.html')
 
 def send_notifications(request):
-    merchants = Merchant.objects.all()  # Fetch all merchants from the database
+    corporates = Corporate.objects.all()  # Fetch all projects from the Corporate table
+    merchants = Merchant.objects.all()  # Fetch all merchants
 
     if request.method == "POST":
         project = request.POST.get("project")
@@ -397,14 +398,25 @@ def send_notifications(request):
         notification_title = request.POST.get("notification_title")
         description = request.POST.get("description")
 
-        # Save to database or perform any other action
-        print('project:', project)
-        print('merchant:', merchant)
-        print('notification_type:', notification_type)
-        print('notification_title:', notification_title)
-        print('description:', description)
+        # Save the notification data to the database
+        Notification.objects.create(
+            project_id=project,
+            merchant_id=merchant,
+            notification_type=notification_type,
+            title=notification_title,
+            description=description
+        )
 
-    return render(request, 'bopo_admin/Merchant/send_notifications.html', {'merchants': merchants})
+        return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+            'corporates': corporates,
+            'merchants': merchants,
+            'message': 'Notification sent and stored successfully!'
+        })
+
+    return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+        'corporates': corporates,
+        'merchants': merchants
+    })
 
 def received_offers(request):
     return render(request, 'bopo_admin/Merchant/received_offers.html')

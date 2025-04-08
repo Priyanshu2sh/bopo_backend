@@ -124,3 +124,14 @@ class UploadedFile(models.Model):
 
     def __str__(self):
         return f"{self.file_type} - {self.file.name}"
+
+class Notification(models.Model):
+    project_id = models.CharField(max_length=20, null=True, blank=True)
+    merchant_id = models.CharField(max_length=20, null=True, blank=True)
+    notification_type = models.CharField(max_length=255, null=True, blank=True)
+    title = models.CharField(max_length=255, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification: {self.title}"
