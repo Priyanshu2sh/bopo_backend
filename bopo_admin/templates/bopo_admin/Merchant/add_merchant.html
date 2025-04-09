@@ -30,8 +30,17 @@
     <h2 class="heading">Add Merchant</h2>
     <div class="addmerchant-container">
 
-    <form method="POST" action="{% url 'add_merchant' %}" method="POST">
+    <form method="POST" action="{% url 'add_merchant' %}" >
         {% csrf_token %}
+
+        {% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-success">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
             
         <!-- Project Type Selection (Centered and Inline) -->
             <div class="project-type-container">
@@ -49,28 +58,28 @@
                 </div>
             </div>
 
-<!-- Select Project Dropdown (Hidden Initially) -->
-<div id="select-project-container" class="hidden">
-    <label for="select_project">Select Project:</label>
-    <div class="addmerchant-input-container">
-        <select id="select_project" name="select_project">
-            <option value="">Select a project</option>
-            {% for corporate in corporates %}
-                <option value="{{ corporate.id }}">{{ corporate.project_name }}</option>
-            {% endfor %}
-        </select>
-    </div>
-</div>
+            <!-- Select Project Dropdown (Hidden Initially) -->
+            <div id="select-project-container" class="hidden">
+                <label for="select_project">Select Project:</label>
+                <div class="addmerchant-input-container">
+                    <select id="select_project" name="select_project">
+                        <option value="">Select a project</option>
+                        {% for corporate in corporates %}
+                            <option value="{{ corporate.id }}">{{ corporate.project_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
 
-<!-- Project Name Input Field (Initially Hidden) -->
- 
-<div id="project-name-container" class="hidden">
-    <label for="project_name">Project Name:</label>
-    <div class="addmerchant-input-container">
-        <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name">
-    </div>
-</div>
-    
+            <!-- Project Name Input Field (Initially Hidden) -->
+            
+            <div id="project-name-container" class="hidden">
+                <label for="project_name">Project Name:</label>
+                <div class="addmerchant-input-container">
+                    <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name">
+                </div>
+            </div>
+                
             <!-- Form Fields (Left & Right Columns) -->
             <div class="addmerchant-form-container">
                 
@@ -93,7 +102,7 @@
                     <label>Aadhaar Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
+                        <input type="text" name="aadhaar" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
                     </div>
     
                     <label>Shop Name</label>
@@ -204,7 +213,7 @@
             });
 
             document.querySelector("form").addEventListener("submit", function (event) {
-                event.preventDefault(); // Prevent actual form submission
+              // Prevent actual form submission
 
                 // Show toast
                 let toast = document.getElementById("toast");

@@ -136,6 +136,15 @@ body {
     transform: translateY(-50%); /* Initial hidden position */
     transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
 }
+.toast-success {
+    background-color: #4CAF50; /* green */
+    color: white;
+}
+.toast-error {
+    background-color: #ff4d4d; /* red (error) */
+    color: white;
+}
+
 
 /* Show Toast */
 .toast-show {

@@ -149,10 +149,18 @@
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="toast-container">
+    {% if success %}
+    <div id="toast" class="toast-container toast-show">
         <i class="fa fa-check-circle"></i>
         <span class="toast-message">Merchant added successfully!</span>
     </div>
+    {% elif error %}
+    <div id="toast" class="toast-container toast-show error-toast">
+        <i class="fa fa-times-circle"></i>
+        <span class="toast-message">{{ error }}</span>
+    </div>
+    {% endif %}
+    
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -176,7 +184,8 @@
                     gstInput.style.border = "1px solid #d9534f";
                     return;
                 }
-                 event.preventDefault(); // Prevent actual form submission
+                 // Prevent actual form submission
+                 event.preventDefault();
 
                 // Show toast
                 let toast = document.getElementById("toast");
@@ -192,9 +201,6 @@
                 }, 3000);
             });
         });
-
-
- 
 
         function fetchStates() {
             fetch("/bopo_admin/get-states/")

@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 
 # Create your models here.
 class BopoAdmin(models.Model):
@@ -72,23 +72,23 @@ class MerchantCredential(models.Model):
     terminal_id = models.CharField(max_length=200,blank=True, null=True)
 
 
-class Employee(models.Model):
-    employee_id = models.CharField(max_length=200, blank=True, null=True)
-    employee_name = models.CharField(max_length=200, blank=True, null=True)
-    username = models.CharField(max_length=200, blank=True, null=True)
-    email = models.CharField(max_length=200, blank=True, null=True)
-    password = models.CharField(max_length=200, blank=True, null=True)
-    aadhar = models.IntegerField( blank=True, null=True)
-    address = models.CharField(max_length=200, blank=True, null=True)
-    mobile = models.CharField(max_length=200, blank=True, null=True)
-    state = models.CharField(max_length=200, blank=True, null=True)
-    pan = models.CharField(max_length=200, blank=True, null=True)
-    city = models.CharField(max_length=200, blank=True, null=True)
-    pincode = models.CharField(max_length=200, blank=True, null=True)
-    country = models.CharField(max_length=200, blank=True, null=True)
+# class Employee(models.Model):
+#     employee_id = models.CharField(max_length=200, blank=True, null=True)
+#     employee_name = models.CharField(max_length=200, blank=True, null=True)
+#     username = models.CharField(max_length=200, blank=True, null=True)
+#     email = models.CharField(max_length=200, blank=True, null=True)
+#     password = models.CharField(max_length=200, blank=True, null=True)
+#     aadhar = models.IntegerField( blank=True, null=True)
+#     address = models.CharField(max_length=200, blank=True, null=True)
+#     mobile = models.CharField(max_length=200, blank=True, null=True)
+#     state = models.CharField(max_length=200, blank=True, null=True)
+#     pan = models.CharField(max_length=200, blank=True, null=True)
+#     city = models.CharField(max_length=200, blank=True, null=True)
+#     pincode = models.CharField(max_length=200, blank=True, null=True)
+#     country = models.CharField(max_length=200, blank=True, null=True)
 
-    def __str__(self):
-        return self.employee_name
+#     def __str__(self):
+#         return self.employee_name
     
 
 class Reducelimit(models.Model):
@@ -150,8 +150,13 @@ class City(models.Model):
     def __str__(self):
         return self.name
     
-
+# STATUS_CHOICES = [
+#         ('Active', 'Active'),
+#         ('Inactive', 'Inactive'),
+#     ]
+    
 class Employee(models.Model):
+    employee_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     aadhaar = models.CharField(max_length=12, unique=True)
@@ -164,6 +169,26 @@ class Employee(models.Model):
     username = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
     country = models.CharField(max_length=255)
+    # status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Inactive', null=False, blank=False)
+
+    
+    def save(self, *args, **kwargs):
+        if not self.employee_id:
+            with transaction.atomic():
+                last_emp = Employee.objects.select_for_update().order_by('-id').first()
+                if last_emp and last_emp.employee_id:
+                    last_id = int(last_emp.employee_id.replace('EMP', ''))
+                    self.employee_id = f"EMP{last_id + 1:03d}"
+                else:
+                    self.employee_id = "EMP001"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
+
+
+
+
+
+
+

@@ -60,5 +60,15 @@ urlpatterns = [
     path('export_payment_dues/', views.export_projects, name='export_payment_dues'),
     path('export_award_transaction/', views.export_projects, name='export_award_transaction'),
     path('export_corporate_merchant/', views.export_projects, name='export_corporate_merchant'),
+    
+    
+    path("get-states/", views.get_states, name="get_states"),
+    path("get-cities/<int:state_id>/", views.get_cities, name="get_cities"),
+    
   
+# path('individual/edit/<int:id>/', views.edit_individual_merchant, name='edit_individual'),
+# path('individual/delete/<int:id>/', views.delete_individual_merchant, name='delete_individual'),
+
+    
+    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
