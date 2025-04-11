@@ -71,7 +71,7 @@ label {
     background: #c0392b;
 }
 
-.merchant_status-submit-btn {
+.merchant_status-submit-btn  {
     background: #2c3e50;
     color: white;
     padding: 10px 15px;
@@ -81,6 +81,8 @@ label {
     font-weight: bold;
     font-size: 14px;
     transition: 0.3s;
+    margin-left: 40%;
+    width: 20%;
 }
 
 .merchant_status-submit-btn:hover {

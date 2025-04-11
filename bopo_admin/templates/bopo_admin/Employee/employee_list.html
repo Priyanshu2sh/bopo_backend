@@ -2,19 +2,18 @@
 
 {% block content %}
 {% load static %}
+
 <link rel="stylesheet" href="{% static 'bopo_admin/css/employee_list.css' %}">
 
 <div class="employee-container">
     <div class="employee-header">
         <h2>Employee's List</h2>
-     <button class="add-employee-btn" onclick="window.location.href='{% url 'add_employee' %}'">
+        <button class="add-employee-btn" onclick="window.location.href='{% url 'add_employee' %}'">
             + Add Employee
         </button>
-       
     </div>
 
     <div class="employee-list">
-        <!-- Corporate Employees Section -->
         <div class="employee-item">
             <label class="employee-label" onclick="toggleTable('corporate-table')">
                 <span class="employee-icon">🏢</span>
@@ -22,85 +21,104 @@
             </label>
             <div class="employee-table" id="corporate-table">
                 <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table-content', 'search-corporate')" placeholder="Search corporate employees...">
-                <table id="corporate-table-content">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Employee ID</th>
-                            <th>Employee Name</th>
-                            <th>Email ID</th>
-                            <th>Mobile Number</th>
-                            <th>Username</th>
-                            <th>Password</th>
-                            {% comment %} <th>Status</th> {% endcomment %}
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for employee in employees %}
-                        <tr>
-                            <td>{{employee.id}}</td>
-                            <td>{{ employee.employee_id }}</td>
-                            <td>{{ employee.name }}</td>
-                            <td>{{ employee.email }}</td>
-                            <td>{{ employee.mobile }}</td>
-                            <td>{{ employee.username}}</td>
-                            <td>{{ employee.password}}</td>
-                            {% comment %} <td>{{ employee.mobile }}</td>
-                            <td>{{ employee.pan }}</td> {% endcomment %}
-                            <td>
-                                <button>✏️</button>
-                                <button>🗑️</button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="9">No employees found.</td>
-                        </tr>
-                        {% endfor %}
-                           
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-wrapper">
+                    <table id="corporate-table-content">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Employee ID</th>
+                                <th>Employee Name</th>
+                                <th>Email ID</th>
+                                <th>Mobile Number</th>
+                                <th>Username</th>
+                                <th>Password</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employee-table-body">
+                            {% for employee in employees %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ employee.employee_id }}</td>
+                                <td>{{ employee.name }}</td>
+                                <td>{{ employee.email }}</td>
+                                <td>{{ employee.mobile }}</td>
+                                <td>{{ employee.username }}</td>
+                                <td>{{ employee.password }}</td>
+                                <td>
+                                    <button >✏️</button>
+                                    <button>🗑️</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8">No employees found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div id="pagination-controls" class="pagination-controls"></div>
+                </div>
             </div>
         </div>
-
     </div>
 </div>
 
-<!-- JavaScript for Search and Toggle Functionality -->
+<!-- JavaScript for Search, Toggle, and Pagination -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // Ensure the first table is open by default
-    document.getElementById("corporate-table").style.maxHeight = "500px";
-    document.getElementById("corporate-table").style.padding = "15px";
+    // Open the table by default
+    const tableDiv = document.getElementById("corporate-table");
+    tableDiv.style.maxHeight = "500px";
+    tableDiv.style.padding = "15px";
+
+    paginateTable(); // Call pagination on load
 });
 
 function toggleTable(tableId) {
-    let tableDiv = document.getElementById(tableId);
-    
-    if (tableDiv.style.maxHeight === "0px" || tableDiv.style.maxHeight === "") {
-        tableDiv.style.maxHeight = "500px";
-        tableDiv.style.padding = "15px";
-    } else {
-        tableDiv.style.maxHeight = "0px";
-        tableDiv.style.padding = "0px";
-    }
+    const tableDiv = document.getElementById(tableId);
+    const isOpen = tableDiv.style.maxHeight === "500px";
+    tableDiv.style.maxHeight = isOpen ? "0px" : "500px";
+    tableDiv.style.padding = isOpen ? "0px" : "15px";
 }
 
 function filterTable(tableId, searchBoxId) {
-    let input = document.getElementById(searchBoxId);
-    let filter = input.value.toLowerCase();
-    let table = document.getElementById(tableId);
-    let rows = table.getElementsByTagName("tr");
-
-    for (let i = 1; i < rows.length; i++) { // Skip header row
+    const input = document.getElementById(searchBoxId).value.toLowerCase();
+    const table = document.getElementById(tableId);
+    const rows = table.getElementsByTagName("tr");
+    for (let i = 1; i < rows.length; i++) {
         let rowText = rows[i].innerText.toLowerCase();
-        if (rowText.includes(filter)) {
-            rows[i].style.display = "";
-        } else {
-            rows[i].style.display = "none";
-        }
+        rows[i].style.display = rowText.includes(input) ? "" : "none";
+    }
+}
+
+// Pagination Script
+const rowsPerPage = 5;
+let currentPage = 1;
+
+function paginateTable() {
+    const tbody = document.getElementById("employee-table-body");
+    const rows = Array.from(tbody.getElementsByTagName("tr"));
+    const totalRows = rows.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    const paginationDiv = document.getElementById("pagination-controls");
+
+    // Hide/show rows based on page
+    rows.forEach((row, index) => {
+        row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? "" : "none";
+    });
+
+    // Build pagination buttons
+    paginationDiv.innerHTML = "";
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.className = i === currentPage ? "active-page" : "";
+        btn.onclick = () => {
+            currentPage = i;
+            paginateTable();
+        };
+        paginationDiv.appendChild(btn);
     }
 }
 </script>

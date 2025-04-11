@@ -30,16 +30,15 @@
     <h2 class="heading">Add Merchant</h2>
     <div class="addmerchant-container">
 
-    <form method="POST" action="{% url 'add_merchant' %}" >
+    <form method="POST" action="{% url 'add_merchant' %}" id="copmerchantForm">
         {% csrf_token %}
 
         {% if messages %}
-  {% for message in messages %}
-    <div class="alert alert-success">
-      {{ message }}
-    </div>
-  {% endfor %}
-{% endif %}
+        {% for message in messages %}
+          <div style="color: green; font-weight: bold;">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+  
 
             
         <!-- Project Type Selection (Centered and Inline) -->
@@ -169,7 +168,7 @@
                     <label>Pan Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan_number" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)">
+                        <input type="text" name="pan_number" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" required>
                     </div>
     
                     <label>Legal Name</label>
@@ -187,7 +186,7 @@
                     <label>Pincode</label>
                         <div class="addmerchant-input-container">
                             <i class="fas fa-home"></i>
-                            <input type="text" name="pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode">
+                            <input type="text" name="pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" required>
                   </div>
                 </div>
                                    
@@ -198,11 +197,11 @@
     
 
     <!-- Toast Notification -->
-    <div id="toast" class="toast-container">
-        <i class="fa fa-check-circle"></i>
-        <span class="toast-message">Employee added successfully!</span>
+    <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+        <i class="fa fa-exclamation-circle"></i>
+        <span class="toast-message">{{ message }}</span>
     </div>
-
+    
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             fetchStates();
@@ -213,23 +212,76 @@
             });
 
             document.querySelector("form").addEventListener("submit", function (event) {
-              // Prevent actual form submission
-
-                // Show toast
-                let toast = document.getElementById("toast");
-                toast.classList.add("toast-show");
-
-                setTimeout(function () {
-                    toast.classList.add("toast-hide");
-                    setTimeout(() => {
-                        toast.classList.remove("toast-show", "toast-hide");
-                        document.querySelector("form").reset();
-                        $('.select2').val(null).trigger('change');
-                    }, 500);
-                }, 3000);
-            });
-        });
-
+                event.preventDefault(); // Add this to stop default form submit
+            
+                let form = document.getElementById("copmerchantForm");
+                   let formData = new FormData(form);
+               
+                   // Submit the form via AJAX (Fetch API)
+                   fetch(form.action || window.location.href, {
+                       method: "POST",
+                       body: formData,
+                       headers: {
+                           "X-Requested-With": "XMLHttpRequest"
+                       }
+                   })
+                   .then(response => response.json())
+                   .then(data => {
+                       if (data.success) {
+                           showToast(data.message, "success");
+                           // Clear the form only upon successful submission
+                           setTimeout(() => {
+                               form.reset();
+                               $('.select2').val(null).trigger('change');
+                           }, 3500);
+                       } else {
+                           showToast(data.message, "error");
+                       }
+                   })
+                   .catch(error => {
+                       console.error("Error submitting form:", error);
+                       showToast("An unexpected error occurred. Please try again later.", "error");
+                   });
+               });
+               
+               // Auto-hide any toast if already visible (such as success messages passed from server)
+               const toast = document.getElementById("toast");
+               if (toast && toast.classList.contains("toast-show")) {
+                   setTimeout(() => {
+                       toast.classList.add("toast-hide");
+                       setTimeout(() => {
+                           toast.classList.remove("toast-show", "toast-hide");
+                       }, 500);
+                   }, 3000);
+               }
+           });
+   
+           // Simple toast function to display messages
+           function showToast(message, type) {
+               let toast = document.getElementById("toast");
+               // Remove any pre-existing type-specific classes
+               toast.classList.remove("toast-success", "toast-error");
+           
+               // Set the text
+               toast.querySelector(".toast-message").textContent = message;
+           
+               // Add the new class based on the type
+               if (type === "success") {
+                   toast.classList.add("toast-success");
+               } else if (type === "error") {
+                   toast.classList.add("toast-error");
+               }
+           
+               // Show the toast
+               toast.classList.add("toast-show");
+               setTimeout(() => {
+                   toast.classList.add("toast-hide");
+                   setTimeout(() => {
+                       toast.classList.remove("toast-show", "toast-hide");
+                   }, 500);
+               }, 3000);
+           }
+           
 
  
 
