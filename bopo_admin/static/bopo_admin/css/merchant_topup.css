@@ -1,11 +1,11 @@
-h1.heading {
+.heading {
     text-align: center;
     color: #004080;
     font-size: 26px;
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    margin-top: 8%;
-    margin-left: -75%;
+    margin-top: 2%;
+    margin-left: -70%;
 }
 
 
@@ -150,4 +150,157 @@ h1.heading {
 
 .topup-btn-submit:hover {
     background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
+
+.topup-back-btn a {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 87%;
+    width: 10%;
+    font-weight: bold;
+    margin-top: 7%;
+}
+
+.topup-back-btn a:hover {
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
+
+
+
+/* Toast Notification Styling */
+.toast-container {
+    position: fixed;
+    top: 30px;
+    left: 58%;
+    transform: translateX(-50%);
+    background-color: #28a745;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: none; /* Hidden by default */
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast-show {
+    display: block;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-hide {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+}
+
+/* Make the toast responsive */
+@media (max-width: 600px) {
+    .toast-container {
+        width: 75;  /* Adjust width on small screens */
+        left: 55%;
+        transform: translateX(-50%); /* Keep it centered */
+    }
+
+    .toast-message {
+        font-size: 14px; /* Adjust font size for mobile */
+    }
+}
+
+@media (min-width: 601px) and (max-width: 1024px) {
+    .toast-container {
+        width: 70%;  /* Adjust width on medium screens */
+    }
+
+    .toast-message {
+        font-size: 16px; /* Adjust font size for tablets */
+    }
+}
+
+@media (min-width: 1025px) {
+    .toast-container {
+        width: 25%;  /* Adjust width for larger screens */
+    }
+
+    .toast-message {
+        font-size: 18px; /* Adjust font size for desktop */
+    }
+   
+}
+@media screen and (max-width: 768px) {
+    .merchant_topup {
+        width: 90%;
+        padding: 15px;
+        margin-top: 5%;
+    }
+
+    .heading{
+        margin-top: 10%;
+        margin-left: -20%;
+    }
+
+  
+    /* Change to single-column layout */
+    .merchant_topup .form-container {
+        flex-direction: column; 
+        gap: 10px;
+    }
+
+    /* Make both form sections full width */
+    .merchant_topup .form-wrapper,
+    .merchant_topup .right-box {
+        width: 100%;  
+        height: auto;  
+    }
+
+    /* Adjust dropdown */
+    .merchant_topup .dropdown-container {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-left: 0;
+        gap: 10px;
+    }
+
+    .merchant_topup .dropdown-container .form-group {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .merchant_topup .dropdown-container select {
+        width: 100%;
+    }
+
+    /* Adjust button width and alignment */
+    .topup-btn-submit {
+        width: 100%;
+        margin-left: 0;
+        font-size: 16px;
+    }
+
+    /* Back button */
+    .topup-back-btn a {
+        width: 30%;
+        margin-left: 65%;
+        margin-top:20%;
+        text-align: center;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        text-align: center;
+    }
 }

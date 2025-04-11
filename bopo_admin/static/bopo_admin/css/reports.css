@@ -147,20 +147,27 @@ body {
     .reports-grid {
         grid-template-columns: repeat(2, 1fr); /* 2 cards per row */
         gap: 8px; /* Reduce gap for medium screens */
-        margin-left: 10px; /* Slight right shift */
+        margin-left: 10px; /
+  
     }
 }
 
 @media (max-width: 768px) {
+
+    .title{
+        margin-top: 20%;
+        margin-left: -60%;
+    }
     .reports-grid {
-        grid-template-columns: repeat(1, 1fr); /* 1 card per row */
+        grid-template-columns: repeat(2, 1fr); /* 1 card per row */
         gap: 6px; /* Reduce gap further for smaller screens */
         margin-left: 0; /* Reset margin */
+      
     }
 
 
     .report-card {
-        max-width: 240px; /* Reduce max width on small screens */
+        max-width: 200px; /* Reduce max width on small screens */
         padding: 12px;
     }
 

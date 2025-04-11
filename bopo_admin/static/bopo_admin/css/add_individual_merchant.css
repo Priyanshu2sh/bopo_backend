@@ -136,6 +136,15 @@ body {
     transform: translateY(-50%); /* Initial hidden position */
     transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
 }
+.toast-success {
+    background-color: #4CAF50; /* green */
+    color: white;
+}
+.toast-error {
+    background-color: #ff4d4d; /* red (error) */
+    color: white;
+}
+
 
 /* Show Toast */
 .toast-show {
@@ -154,4 +163,84 @@ body {
 .toast-container i {
     font-size: 20px;
     color: white;
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .add_individual_merchant-container {
+        width: 90%;
+        margin: 20px auto;
+        padding: 15px;
+        height: auto;
+    }
+
+    .add_individual_merchant-form-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .add_individual_merchant-form-group {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+    }
+
+    .add_individual_merchant-input-container input, 
+    .add_individual_merchant-input-container select {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .add_individual_merchant-btn-submit {
+        max-width: 30%;
+        width: 90%;
+        margin-top: 5%;
+        margin-left: 34%;
+    }
+
+    .back-to-list-btn a {
+        max-width: 30%;
+        width: 90%;
+        margin-top: 20%;
+        margin-left: 70%;
+    }
+
+    .heading {
+        font-size: 22px;
+        margin-top: 5%; /* Move heading down */
+       margin-left: -30%;
+    }
+
+    .toast-container {
+        width: 90%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-selection--single {
+    height: 38px !important;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+
+}
+
+.select2-selection__rendered {
+    font-size: 14px;
+    color: #555;
+    line-height: 26px;
+    
+}
+
+.select2-selection__arrow {
+    height: 100%;
+
 }

@@ -7,70 +7,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Employee</title>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'bopo_admin/css/add_employee.css' %}">
+    <!-- jQuery (required for Select2) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Select2 CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </head>
 <body>
-
     <div class="back-to-list-btn">
         <a href="{% url 'employee_list' %}" class="addemployee-btn-submit">
             <i class="fa fa-arrow-left"></i> Back to List
         </a>
     </div>
 
-    
     <h2 class="heading">Add Employee</h2>
-    <div class="addemployee-container">
+    {% if messages %}
+      {% for message in messages %}
+        <div style="color: green; font-weight: bold;">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
 
-        <form method="POST">
+    <div class="addemployee-container">
+               <form method="POST" method="POST" id="employeeForm">
             {% csrf_token %}
             <div class="addemployee-form-container">
                 <!-- Left Column -->
                 <div class="addemployee-form-group">
-                    <label>Employee Name</label>
+                    <label for="employee_name">Employee Name</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="employee_name" required>
+                        <input type="text" name="employee_name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" required>
                     </div>
 
-                    <label>Email ID</label>
+                    <label for="email">Email ID</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-envelope"></i>
                         <input type="email" name="email" required>
                     </div>
 
-                    <label>Aadhaar Number</label>
+                    <label for="aadhaar">Aadhaar Number</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar" required>
+                        <input type="text" name="aadhaar" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
                     </div>
 
-                    <label>Address</label>
+                    <label for="address">Address</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-map-marker-alt"></i>
                         <input type="text" name="address" required>
                     </div>
 
-                    <label>Select State</label>
-                    <div class="addemployee-input-container">
-                        <select name="state">
-                            <option value="">Select State</option>
-                            <option value="Maharashtra">Maharashtra</option>
-                            <option value="Gujarat">Gujarat</option>
-                        </select>
-                    </div>
+                    <label for="state">Select State </label>
+                    <select id="state" name="state" class="select2" onchange="fetchCities()">
+                        <option value="">Select State</option>
+                    </select>
 
-                    <label>Select City</label>
-                    <div class="addemployee-input-container">
-                        <select name="city">
-                            <option value="">Select City</option>
-                            <option value="Mumbai">Mumbai</option>
-                            <option value="Pune">Pune</option>
-                        </select>
-                    </div>
+                    <label for="city">Select City </label>
+                    <select id="city" name="city" class="select2">
+                        <option value="">Select City</option>
+                    </select>
 
-                    <label>Country</label>
+                    <label for="country">Country</label>
                     <div class="addemployee-input-container">
                         <input type="text" name="country" value="India" disabled>
                     </div>
@@ -78,91 +79,229 @@
 
                 <!-- Right Column -->
                 <div class="addemployee-form-group">
-                    <label>User Name</label>
+                    <label for="username">User Name</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="username" required>
+                        <input type="text" name="username" pattern="(?=.*\d)[a-zA-Z0-9]{4,}" title="Username must be at least 4 characters and include at least one number. Letters and numbers only." required>
                     </div>
 
-                    <label>Password</label>
+                    <label for="password">Password</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="password" name="password" required class="password-field">
-                        <!-- <input type="text" id="passwordText" name="passwordText" required class="password-field show-password"> -->
-                        <!-- <input type="checkbox" id="togglePassword" class="password-checkbox"> -->
-                        <label for="togglePassword" class="password-toggle">
+                        <input type="password" id="password" name="password" pattern="(?=.*\d)(?=.*[a-zA-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}" title="Password must be at least 6 characters and include 1 letter, 1 number, and 1 special character" required class="password-field">
+                        <span class="password-toggle" onclick="togglePassword('password')">
                             <i class="fas fa-eye"></i>
-                        </label>
+                        </span>
                     </div>
-                    
-                    <label>Confirm Password</label>
+
+                    <label for="confirm_password">Confirm Password</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="confirmPassword" name="confirm_password" required class="password-field">
-                        <!-- <input type="text" id="confirmPasswordText" name="confirm_passwordText" required class="password-field show-password">
-                        <input type="checkbox" id="toggleConfirmPassword" class="password-checkbox"> -->
-                        <label for="toggleConfirmPassword" class="password-toggle">
+                        <span class="password-toggle" onclick="togglePassword('confirmPassword')">
                             <i class="fas fa-eye"></i>
-                        </label>
+                        </span>
                     </div>
-           
+                    <div id="password-error" style="display: none; margin-top: 10px;">
+                        <div style="
+                            background-color: #ffe6e6;
+                            border: 1px solid #ff4d4d;
+                            color: #d8000c;
+                            padding: 10px;
+                            border-radius: 5px;
+                            font-size: 14px;
+                            display: flex;
+                            align-items: center;
+                        ">
+                            <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                            Password and Confirm Password do not match. Please try again.
+                        </div>
+                    </div>
 
-                    <label>Mobile Number</label>
+                    <label for="mobile">Mobile Number</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-mobile-alt"></i>
-                        <input type="text" name="mobile" required>
+                        <input type="tel" name="mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
                     </div>
 
-                    <label>Pan Number</label>
+                    <label for="pan">Pan Number</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan">
+                        <input type="text" name="pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)">
                     </div>
 
-                    <label>Pincode</label>
+                    <label for="pincode">Pincode</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-home"></i>
-                        <input type="text" name="pincode">
+                        <input type="text" name="pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode">
                     </div>
-
-                  
                 </div>
             </div>
 
             <button type="submit" class="addemployee-btn-submit">Submit</button>
-           
         </form>
     </div>
 
-  
- <!-- Toast Notification -->
- <div id="toast" class="toast-container">
-    <i class="fa fa-check-circle"></i>
-    <span class="toast-message">Employee added successfully!</span>
-</div>
-
-<script>
-   document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector("form").addEventListener("submit", function () {
-        let toast = document.getElementById("toast");
-        toast.classList.add("toast-show");
-
-        setTimeout(function () {
-            toast.classList.add("toast-hide");
-            setTimeout(() => {
-                toast.classList.remove("toast-show", "toast-hide");
-            }, 500);
-        }, 3000); // Hide after 3 seconds
-    });
-});
-
-
-</script>
-
-
-
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+        <i class="fa fa-exclamation-circle"></i>
+        <span class="toast-message">{{ message }}</span>
+    </div>
     
+    <!-- Scripts -->
+    <script>
+        // Toggle password visibility
+        function togglePassword(id) {
+            let passwordInput = document.getElementById(id);
+            let icon = passwordInput.nextElementSibling.querySelector("i");
 
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                passwordInput.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+
+        // Fetch states and populate select
+        function fetchStates() {
+            fetch("/bopo_admin/get-states/")
+                .then(response => response.json())
+                .then(data => {
+                    let stateDropdown = document.getElementById("state");
+                    stateDropdown.innerHTML = '<option value="">Select State</option>';
+                    data.forEach(state => {
+                        let option = document.createElement("option");
+                        option.value = state.id;
+                        option.textContent = state.name;
+                        stateDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error fetching states:", error));
+        }
+
+        // Fetch cities based on selected state
+        function fetchCities() {
+            let stateId = document.getElementById("state").value;
+            let cityDropdown = document.getElementById("city");
+            cityDropdown.innerHTML = '<option value="">Select City</option>';
+
+            if (stateId) {
+                fetch(`/bopo_admin/get-cities/${stateId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(city => {
+                            let option = document.createElement("option");
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            cityDropdown.appendChild(option);
+                        });
+                        // Trigger change event for select2 if needed
+                        $('#city').trigger('change');
+                    })
+                    .catch(error => console.error("Error fetching cities:", error));
+            }
+        }
+
+        // DOMContentLoaded event to initialize everything
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchStates();
+            $('.select2').select2({
+                placeholder: "Select an option",
+                allowClear: true,
+                width: '100%'
+            });
+                    
+            // Attach submit event handler to the form
+            document.getElementById("employeeForm").addEventListener("submit", function (event) {
+                // Prevent default form submission
+                event.preventDefault();
+            
+                // Validate password match
+                let password = document.getElementById("password").value;
+                let confirmPassword = document.getElementById("confirmPassword").value;
+                let errorMsg = document.getElementById("password-error");
+            
+                if (password !== confirmPassword) {
+                    errorMsg.style.display = "block";
+                    return false;
+                } else {
+                    errorMsg.style.display = "none";
+                }
+            
+                // Collect form data
+                let form = document.getElementById("employeeForm");
+                let formData = new FormData(form);
+            
+                // Submit the form via AJAX (Fetch API)
+                fetch(form.action || window.location.href, {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, "success");
+                        // Clear the form only upon successful submission
+                        setTimeout(() => {
+                            form.reset();
+                            $('.select2').val(null).trigger('change');
+                        }, 3500);
+                    } else {
+                        showToast(data.message, "error");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error submitting form:", error);
+                    showToast("An unexpected error occurred. Please try again later.", "error");
+                });
+            });
+            
+            // Auto-hide any toast if already visible (such as success messages passed from server)
+            const toast = document.getElementById("toast");
+            if (toast && toast.classList.contains("toast-show")) {
+                setTimeout(() => {
+                    toast.classList.add("toast-hide");
+                    setTimeout(() => {
+                        toast.classList.remove("toast-show", "toast-hide");
+                    }, 500);
+                }, 3000);
+            }
+        });
+
+        // Simple toast function to display messages
+        function showToast(message, type) {
+            let toast = document.getElementById("toast");
+            // Remove any pre-existing type-specific classes
+            toast.classList.remove("toast-success", "toast-error");
+        
+            // Set the text
+            toast.querySelector(".toast-message").textContent = message;
+        
+            // Add the new class based on the type
+            if (type === "success") {
+                toast.classList.add("toast-success");
+            } else if (type === "error") {
+                toast.classList.add("toast-error");
+            }
+        
+            // Show the toast
+            toast.classList.add("toast-show");
+            setTimeout(() => {
+                toast.classList.add("toast-hide");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show", "toast-hide");
+                }, 500);
+            }, 3000);
+        }
+        
+    </script>
 </body>
 </html>
 {% endblock %}

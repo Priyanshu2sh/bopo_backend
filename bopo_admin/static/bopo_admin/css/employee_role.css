@@ -159,14 +159,52 @@ input[type="checkbox"]:checked + label::before {
     background-color: #7486b7; 
 }
 
+
 /* Responsive Design */
+@media (max-width: 1024px) {
+    .roles-container {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .role-group {
+        width: 45%;
+    }
+}
+
 @media (max-width: 768px) {
     .roles-container {
         flex-direction: column;
         align-items: center;
+        gap: 20px;
     }
     .role-group {
         width: 90%;
-        margin-bottom: 15px;
+    }
+    .dropdown-container select {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        width: 90%;
+        height: 100vh;
+        padding: 10px;
+        margin-top: 10%;
+        margin-left: 3%;
+    }
+    .page-title {
+        font-size: 20px;
+        margin-top: 20%;
+    }
+    .dropdown-container select {
+        width:100%;
+    }
+    .buttons {
+        flex-direction: row;
+        margin-top: 10%;
+    }
+    .btn {
+        width: 50%;
     }
 }

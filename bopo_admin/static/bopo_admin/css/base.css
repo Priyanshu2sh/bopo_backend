@@ -98,7 +98,7 @@ body {
 }
 
 #belowMerchant.dropdown-open{
-   margin-top: 200px; /* Adjust this value as per dropdown height */
+   margin-top: 260px; /* Adjust this value as per dropdown height */
 }
 
 #belowEmployee.dropdown-open {
@@ -222,4 +222,27 @@ body {
     font-size: 24px;
     color: white;
     padding: 10px;
+    display: none;
+}
+
+
+/* Show menu icon on mobile screens */
+@media (max-width: 768px) {
+    .menu-icon {
+        display: block;
+        cursor: pointer;
+        font-size: 24px;
+        padding: 10px;
+    }
+
+    /* Initially hide the sidebar */
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    /* Show sidebar when toggled */
+    .sidebar.show {
+        transform: translateX(0);
+    }
 }

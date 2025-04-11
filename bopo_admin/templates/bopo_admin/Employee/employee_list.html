@@ -10,6 +10,7 @@
      <button class="add-employee-btn" onclick="window.location.href='{% url 'add_employee' %}'">
             + Add Employee
         </button>
+       
     </div>
 
     <div class="employee-list">
@@ -31,25 +32,33 @@
                             <th>Mobile Number</th>
                             <th>Username</th>
                             <th>Password</th>
-                            <th>Status</th>
+                            {% comment %} <th>Status</th> {% endcomment %}
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
+                        {% for employee in employees %}
                         <tr>
-                           
-                            <td>1</td>
-                            <td>1</td>
-                            <td>Prushal Tech</td>
-                            <td>prushaltech12@gmail.com</td>
-                            <td>9090909090</td>
-                            <td>Prushal@21</td>
-                            <td>prushal@123</td>
-                            <td>true</td>
+                            <td>{{employee.id}}</td>
+                            <td>{{ employee.employee_id }}</td>
+                            <td>{{ employee.name }}</td>
+                            <td>{{ employee.email }}</td>
+                            <td>{{ employee.mobile }}</td>
+                            <td>{{ employee.username}}</td>
+                            <td>{{ employee.password}}</td>
+                            {% comment %} <td>{{ employee.mobile }}</td>
+                            <td>{{ employee.pan }}</td> {% endcomment %}
                             <td>
                                 <button>✏️</button>
                                 <button>🗑️</button>
                             </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9">No employees found.</td>
+                        </tr>
+                        {% endfor %}
+                           
                         </tr>
                     </tbody>
                 </table>

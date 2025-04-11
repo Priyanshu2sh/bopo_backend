@@ -20,9 +20,13 @@ from bopo_award.models import CustomerPoints, History, MerchantPoints
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
 from .models import AccountInfo, BopoAdmin, Employee, MerchantCredential, MerchantLogin, Notification, Reducelimit, Topup, UploadedFile
+from django.http import JsonResponse
+from .models import State, City
+from bopo_admin.models import Employee
+
 
 # Create your views here.
-from django.shortcuts import render
+
 
 def home(request):
     # Calculate total projects and project progress
@@ -104,160 +108,199 @@ def individual_list(request):
     })
 
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from accounts.models import Merchant, Corporate
+import random
+import string
+
 def add_merchant(request):
     if request.method == "POST":
-        select_project = request.POST.get("select_project")
-        project_type = request.POST.get("project_type")
-        project_name = request.POST.get("project_name", "")
-        first_name = request.POST.get("first_name")
-        last_name = request.POST.get("last_name")
-        email = request.POST.get("email")
-        mobile = request.POST.get("mobile")
-        aadhaar = request.POST.get("aadhaar")
-        gst_number = request.POST.get("gst_number")
-        shop_name = request.POST.get("shop_name")
-        pan = request.POST.get("pan")
-        address = request.POST.get("address")
-        legal_name = request.POST.get("legal_name")
-        pincode = request.POST.get("pincode")
-        city = request.POST.get("city")
-        state = request.POST.get("state")
-        country = request.POST.get("country", "India")
+        try:
+            select_project = request.POST.get("select_project")
+            project_type = request.POST.get("project_type")
+            project_name = request.POST.get("project_name", "")
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")
+            email = request.POST.get("email")
+            mobile = request.POST.get("mobile")
+            aadhaar = request.POST.get("aadhaar")
+            gst_number = request.POST.get("gst_number")
+            shop_name = request.POST.get("shop_name")
+            pan = request.POST.get("pan")
+            address = request.POST.get("address")
+            legal_name = request.POST.get("legal_name")
+            pincode = request.POST.get("pincode")
+            city = request.POST.get("city")
+            state = request.POST.get("state")
+            country = request.POST.get("country", "India")
 
-        # Generate corporate_id
-        last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
-        new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[4:]) + 1
-        corporate_id = f"CORP{new_corporate_id:06d}"
+            # Generate corporate_id
+            last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
+            new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[4:]) + 1
+            corporate_id = f"CORP{new_corporate_id:06d}"
 
-        # Determine project_name and generate project_id if it's a new project
-        if project_type == "Existing Project" and select_project:
-            corporate = Corporate.objects.get(id=select_project)
+            if project_type == "Existing Project" and select_project:
+                corporate = Corporate.objects.get(id=select_project)
+                project_name = corporate.project_name
+                project_id = corporate.project_id
 
-            # Use the existing project's details
-            project_name = corporate.project_name
-            project_id = corporate.project_id
+                # Generate merchant_id
+                project_abbr = project_name[:4].upper()
+                random_number = ''.join(random.choices(string.digits, k=11))
+                merchant_id = f"{project_abbr}{random_number}"
 
-            # Generate merchant_id
-            project_abbr = project_name[:4].upper()
-            random_number = ''.join(random.choices(string.digits, k=11))
-            merchant_id = f"{project_abbr}{random_number}"
+                merchant = Merchant(
+                    user_type='corporate',
+                    merchant_id=merchant_id,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    mobile=mobile,
+                    aadhaar_number=aadhaar,
+                    gst_number=gst_number,
+                    pan_number=pan,
+                    shop_name=shop_name,
+                    legal_name=legal_name,
+                    address=address,
+                    pincode=pincode,
+                    state=state,
+                    city=city,
+                    country=country,
+                    corporate_id=corporate.corporate_id,
+                    project_name=project_name
+                )
+                merchant.save()
 
-            # Save the merchant with existing project details
-            merchant = Merchant(
-                user_type='corporate',
-                merchant_id=merchant_id,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                mobile=mobile,
-                aadhaar_number=aadhaar,
-                gst_number=gst_number,
-                pan_number=pan,
-                shop_name=shop_name,
-                legal_name=legal_name,
-                address=address,
-                pincode=pincode,
-                state=state,
-                city=city,
-                country=country,
-                corporate_id=corporate.corporate_id,  # Ensure this field exists in the model
-                project_name=project_name  # Ensure this field exists in the model
-            )
-            merchant.save()
-        elif project_type == "New Project":
-            if not project_name:
-                return render(request, "bopo_admin/Merchant/add_merchant.html", {
-                    "error": "Project name is required for new projects.",
-                    "corporates": Corporate.objects.all()  # Pass existing projects
-                })
+            elif project_type == "New Project":
+                if not project_name:
+                    messages.error(request, "Project name is required for new projects.")
+                    return redirect("add_merchant")
 
-            # Generate project_id
-            last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
-            new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
-            project_id = f"PROJ{new_project_id:06d}"
+                last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
+                new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
+                project_id = f"PROJ{new_project_id:06d}"
 
-            # Create the Corporate object
-            Corporate.objects.create(
-                select_project=select_project,
-                corporate_id=corporate_id,
-                project_name=project_name,
-                project_id=project_id,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                mobile=mobile,
-                aadhaar=aadhaar,
-                gst_number=gst_number,
-                pan=pan,
-                shop_name=shop_name,
-                legal_name=legal_name,
-                address=address,
-                pincode=pincode,
-                state=state,
-                city=city,
-                country=country,
+                Corporate.objects.create(
+                    select_project=select_project,
+                    corporate_id=corporate_id,
+                    project_name=project_name,
+                    project_id=project_id,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    mobile=mobile,
+                    aadhaar=aadhaar,
+                    gst_number=gst_number,
+                    pan=pan,
+                    shop_name=shop_name,
+                    legal_name=legal_name,
+                    address=address,
+                    pincode=pincode,
+                    state=state,
+                    city=city,
+                    country=country,
                 role='admin'
-            )
-        else:
-            return render(request, "bopo_admin/Merchant/add_merchant.html", {
-                "error": "Invalid project type.",
-                "corporates": Corporate.objects.all()  # Pass existing projects
-            })
+                )
 
-        return render(request, "bopo_admin/Merchant/add_merchant.html", {
-            "message": "Merchant added successfully.",
-            "corporate_id": corporate_id,
-            "project_id": project_id if project_type == "New Project" else corporate.project_id,
-            "corporates": Corporate.objects.all()  # Pass existing projects
-        })
+            else:
+                messages.error(request, "Invalid project type selected.")
+                return redirect("add_merchant")
 
+            # ✅ Success
+            messages.success(request, "Merchant added successfully.")
+            return redirect("add_merchant")
+
+        except Exception as e:
+            print("Error saving merchant:", e)
+            messages.error(request, "Something went wrong. Please check your inputs.")
+            return redirect("add_merchant")
+
+    # GET request
     corporates = Corporate.objects.all()
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
+
+
+
 
 
 def edit_individual(request, id):
     merchant = get_object_or_404(Merchant, id=id)
     return render(request, 'bopo_admin/Merchant/edit_individual.html', {'merchant': merchant})
 
+from django.shortcuts import redirect
 
+from django.shortcuts import render, redirect
 
 def add_individual_merchant(request):
     if request.method == "POST":
-        merchant_id = request.POST.get("merchant_id")
-        first_name = request.POST.get("first_name")
-        last_name = request.POST.get("last_name")
-        email = request.POST.get("email")
-        mobile = request.POST.get("mobile")
-        aadhaar_number = request.POST.get("aadhaar_number")
-        gst_number = request.POST.get("gst_number")
-        pan_number = request.POST.get("pan_number")
-        shop_name = request.POST.get("shop_name")
-        legal_name = request.POST.get("legal_name")
-        address = request.POST.get("address")
-        pincode = request.POST.get("pincode")
-        state = request.POST.get("state")
-        city = request.POST.get("city")
-        country = request.POST.get("country", "India")  # Default to 'India' if empty
+        try:
+            merchant_id = request.POST.get("merchant_id")
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")
+            email = request.POST.get("email")
+            mobile = request.POST.get("mobile")
+            aadhaar_number = request.POST.get("aadhaar_number")
+            gst_number = request.POST.get("gst_number")
+            pan_number = request.POST.get("pan_number")
+            shop_name = request.POST.get("shop_name")
+            legal_name = request.POST.get("legal_name")
+            address = request.POST.get("address")
+            pincode = request.POST.get("pincode")
+            state = request.POST.get("state")
+            city = request.POST.get("city")
+            country = request.POST.get("country", "India")
 
-        # Save to database
-        Merchant.objects.create(
-            merchant_id=merchant_id,
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            mobile=mobile,
-            aadhaar_number=aadhaar_number,
-            gst_number=gst_number,
-            pan_number=pan_number,
-            shop_name=shop_name,
-            legal_name=legal_name,
-            address=address,
-            pincode=pincode,
-            state=state,
-            city=city,
-            country=country
-        )
-        
+            # Uniqueness Checks
+            if Merchant.objects.filter(email=email).exists():
+                return render(request, "bopo_admin/Merchant/add_individual_merchant.html", {
+                    "error": "Email ID already exists!"
+                })
+
+            if Merchant.objects.filter(mobile=mobile).exists():
+                return render(request, "bopo_admin/Merchant/add_individual_merchant.html", {
+                    "error": "Mobile number already exists!"
+                })
+
+            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
+                return render(request, "bopo_admin/Merchant/add_individual_merchant.html", {
+                    "error": "Aadhaar number already exists!"
+                })
+
+            if Merchant.objects.filter(pan_number=pan_number).exists():
+                return render(request, "bopo_admin/Merchant/add_individual_merchant.html", {
+                    "error": "PAN number already exists!"
+                })
+
+            # Save to database
+            Merchant.objects.create(
+                merchant_id=merchant_id,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                mobile=mobile,
+                aadhaar_number=aadhaar_number,
+                gst_number=gst_number,
+                pan_number=pan_number,
+                shop_name=shop_name,
+                legal_name=legal_name,
+                address=address,
+                pincode=pincode,
+                state=state,
+                city=city,
+                country=country
+            )
+
+            return render(request, "bopo_admin/Merchant/add_individual_merchant.html", {
+                "success": True
+            })
+
+        except Exception as e:
+            print("Error saving merchant:", e)
+            return render(request, "bopo_admin/Merchant/add_individual_merchant.html", {
+                "error": "Something went wrong. Please check your inputs."
+            })
+
     return render(request, "bopo_admin/Merchant/add_individual_merchant.html")
 
 def project_onboarding(request):
@@ -589,42 +632,69 @@ def  add_customer(request):
     return render(request, 'bopo_admin/Customer/add_customer.html')
 
 def employee_list(request):
-    return render(request, 'bopo_admin/Employee/employee_list.html')
+    employees = Employee.objects.all()
+    return render(request, 'bopo_admin/Employee/employee_list.html', {'employees': employees})
+
+from django.http import JsonResponse
+from django.shortcuts import render
+from .models import Employee, State, City
 
 def add_employee(request):
     if request.method == "POST":
         employee_id = request.POST.get("employee_id")
-        employee_name = request.POST.get("employee_name")
-        username = request.POST.get("username")
+        name = request.POST.get("employee_name")
         email = request.POST.get("email")
-        password = request.POST.get("password")
-        mobile = request.POST.get("mobile")
-        aadhar = request.POST.get("aadhar")
-        pan = request.POST.get("pan")
+        aadhaar = request.POST.get("aadhaar")
         address = request.POST.get("address")
+        state_id = request.POST.get("state")
+        city_id = request.POST.get("city")
+        mobile = request.POST.get("mobile")
+        pan = request.POST.get("pan")
         pincode = request.POST.get("pincode")
-        state = request.POST.get("state")
-        city = request.POST.get("city")
-        country = request.POST.get("country", "India")  
-        
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        country = request.POST.get("country", "India")
+        # status = request.POST.get("status")
 
-        # Save to database
+        if Employee.objects.filter(email=email).exists():
+            return JsonResponse({"success": False, "message": "Email ID already exists!"})
+
+        if Employee.objects.filter(mobile=mobile).exists():
+            return JsonResponse({"success": False, "message": "Mobile number already exists!"})
+
+        if Employee.objects.filter(aadhaar=aadhaar).exists():
+            return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
+
+        if Employee.objects.filter(pan=pan).exists():
+            return JsonResponse({"success": False, "message": "PAN number already exists!"})
+
+        try:
+            state = State.objects.get(id=state_id)
+            city = City.objects.get(id=city_id)
+        except (State.DoesNotExist, City.DoesNotExist):
+            return JsonResponse({"success": False, "message": "Invalid state or city selection."})
+
         Employee.objects.create(
             employee_id=employee_id,
-            employee_name=employee_name,
-            username=username,
+            name=name,
             email=email,
-            mobile=mobile,
-            password=password,
-            aadhar=aadhar,
-            pan=pan,
+            aadhaar=aadhaar,
             address=address,
-            pincode=pincode,
             state=state,
             city=city,
-            country=country
+            mobile=mobile,
+            pan=pan,
+            pincode=pincode,
+            username=username,
+            password=password,
+            country=country,
+            # status=status
         )
+
+        return JsonResponse({"success": True, "message": "Employee added successfully!"})
+
     return render(request, 'bopo_admin/Employee/add_employee.html')
+
 
 def employee_role(request):
     if request.method == "POST":
@@ -1094,3 +1164,17 @@ def export_award_transaction(request):
 def export_corporate_merchant(request):
     return render(request, 'bopo_admin/Payment/reports.html')
 
+
+    
+    
+
+
+# Get all states
+def get_states(request):
+    states = State.objects.all().values('id', 'name')
+    return JsonResponse(list(states), safe=False)
+
+# Get cities for a given state
+def get_cities(request, state_id):
+    cities = City.objects.filter(state_id=state_id).values('id', 'name')
+    return JsonResponse(list(cities), safe=False)

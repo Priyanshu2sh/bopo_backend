@@ -1,9 +1,14 @@
 {% extends "bopo_admin/base.html" %}
-{% load static %}  <!-- Load static for CSS file -->
-
+{% load static %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_status.css' %}">
-<h1 class="heading">Merchant Login</h1>
+<link rel="stylesheet" href="{% static 'bopo_admin/css/login_page_info.css' %}">
+
+<div class="login_info-back-to-list-btn">
+    <a href="{% url 'reduce_limit' %}" class="login_info-add_individual_merchant-btn-submit">
+        <i class="fa fa-arrow-left"></i> Back 
+    </a>
+</div>
+<h2>Login Info</h2>
 
 <div class="merchant_status">
     <!-- Sales Contact Details -->
@@ -19,11 +24,12 @@
             <input type="number" id="sales_number" name="sales_number" placeholder="Enter Sales Contact Number" disabled>
         </div>
 
-        <div class="form-group">
-            <label for="sales_email">Sales Email ID:</label>
-            <input type="email" id="sales_email" name="sales_email" placeholder="Enter Sales Email ID" disabled>
+        <div class="login_info-button-group">
+            <button type="button" class="login_info-cancel-btn" onclick="confirmCancel()">Cancel</button>
+            <button type="submit" class="login_info-submit-btn">Submit</button>
         </div>
-    </div>
+    </form>
+</div>
 
     <!-- Buttons -->
     <div class="button-container">
@@ -35,33 +41,48 @@
 </div>
 
 <script>
-    function enableEditing() {
-        document.getElementById("sales_name").disabled = false;
-        document.getElementById("sales_number").disabled = false;
-        document.getElementById("sales_email").disabled = false;
+    function confirmCancel() {
+        // Select all input fields inside the form
+        let inputs = document.querySelectorAll(".login_info-input");
+        let emptyFields = false;
 
-        // Enable the Cancel and Submit buttons
-        document.getElementById("cancel-btn").disabled = false;
-        document.getElementById("submit-btn").disabled = false;
+        // Check if any input field is empty
+        inputs.forEach(input => {
+            if (input.value.trim() === "") {
+                emptyFields = true;
+            }
+        });
+
+        // Show alert if fields are empty
+        if (emptyFields) {
+            alert("⚠️ Please fill in all fields before canceling.");
+            return; // Stop further execution
+        }
+
+        // Show confirmation dialog if all fields are filled
+        let confirmAction = confirm("❗ Are you sure you want to cancel?");
+        if (confirmAction) {
+            window.location.href = "{% url 'home' %}"; // Redirect to Home Page
+        }
     }
 
-    function resetForm() {
-        document.getElementById("sales_name").value = "";
-        document.getElementById("sales_number").value = "";
-        document.getElementById("sales_email").value = "";
 
-        document.getElementById("sales_name").disabled = true;
-        document.getElementById("sales_number").disabled = true;
-        document.getElementById("sales_email").disabled = true;
 
-        // Disable the Cancel and Submit buttons again
-        document.getElementById("cancel-btn").disabled = true;
-        document.getElementById("submit-btn").disabled = true;
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault();
 
-    function showAlert() {
-        alert("Form Submitted!");
-    }
+            let toast = document.getElementById("toast");
+            toast.classList.add("toast-show");
+
+            setTimeout(function () {
+                toast.classList.add("toast-hide");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show", "toast-hide");
+                    document.querySelector("form").submit();
+                }, 500);
+            }, 3000);
+        });
+    });
 </script>
-
 {% endblock %}

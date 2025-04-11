@@ -1,30 +1,27 @@
 {% extends "bopo_admin/base.html" %}
-{% block content %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merchant Top-Up</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_status.css' %}">
-</head>
+{% block content %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_status.css' %}">
 
-<body>
-    <h1 class="heading">Merchant Status</h1>
-    <div class="merchant_status">
-        <!-- Dropdowns for Project and Merchant -->
-        <div class="dropdown-container">
-            <div class="form-group">
-                <label for="project">Select Project:</label>
-                <select id="select_project" name="project" class="form-control" required>
-                    <option value="">-- Select Project --</option>
-                    {% for corporate in corporates %}
-                        <option value="{{ corporate.project_id }}">
-                            {{ corporate.project_name }} 
-                        </option>
-                    {% endfor %}
+<div class="merchant_status-back-to-list-btn">
+    <a href="{% url 'reduce_limit' %}" class="merchant_status-btn-submit">
+        <i class="fa fa-arrow-left"></i> Back 
+    </a>
+</div>
+<h2>Merchant Status</h2>
+
+<div class="merchant_status-container">
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="merchant_status-form-group">
+            <label for="project-name">Project Name</label>
+            <div class="merchant_status-input-icon">
+                <i class="fa fa-folder merchant_status-icon"></i>
+                <select id="project-name" name="project_name" class="merchant_status-select" required>
+                    <option value="select">-- Select a Project --</option>
+                    <option value="Demographic Project">Demographic Project</option>
+                    <option value="Tech Initiative">Tech Initiative</option>
                 </select>
 
             </div>
@@ -61,15 +58,74 @@
     </select>
 </div>
 
-<!-- Buttons Container -->
-<div class="button-container">
-    <button type="button" class="cancel-btn">Cancel</button>
-    <button type="submit" class="submit-btn">Submit</button>
+<!-- Toast Notification -->
+<div id="toast" class="toast-container">
+    <i class="fa fa-check-circle"></i>
+    <span class="toast-message">Status Change Successfully!</span>
 </div>
 
+<script>
 
 
-    </div>
-</body>
-</html>
+        function confirmCancel() {
+            // Select all input fields and dropdowns inside the form
+            let inputs = document.querySelectorAll(".merchant_status-input, .merchant_status-select");
+            let emptyFields = false;
+    
+            // Check if any input or dropdown field is empty
+            inputs.forEach(input => {
+                if (input.value.trim() === "select" || input.value.trim() === "") {
+                    emptyFields = true;
+                }
+            });
+    
+            // Show alert if fields are empty
+            if (emptyFields) {
+                alert("⚠️ Please fill in all fields before canceling.");
+                return; // Stop further execution
+            }
+    
+            // Show confirmation dialog if all fields are filled
+            let confirmAction = confirm("❗ Are you sure you want to cancel?");
+            if (confirmAction) {
+                window.location.href = "{% url 'home' %}"; // Redirect to Home Page
+            }
+        }
+    
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelector("form").addEventListener("submit", function (event) {
+                event.preventDefault();
+    
+                let toast = document.getElementById("toast");
+                toast.classList.add("toast-show");
+    
+                setTimeout(function () {
+                    toast.classList.add("toast-hide");
+                    setTimeout(() => {
+                        toast.classList.remove("toast-show", "toast-hide");
+                        document.querySelector("form").submit();
+                    }, 500);
+                }, 3000);
+            });
+        });
+
+    
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let toast = document.getElementById("toast");
+            toast.classList.add("toast-show");
+
+            setTimeout(function () {
+                toast.classList.add("toast-hide");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show", "toast-hide");
+                    document.querySelector("form").submit();
+                }, 500);
+            }, 3000);
+        });
+    });
+</script>
 {% endblock %}

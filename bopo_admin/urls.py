@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import edit_individual, home, about, merchant,customer, project_onboarding,merchant_list,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,add_customer,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant
+from .views import edit_individual, home, about, merchant,customer, project_onboarding,merchant_list,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,add_customer,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -60,6 +60,16 @@ urlpatterns = [
     path('export_payment_dues/', views.export_projects, name='export_payment_dues'),
     path('export_award_transaction/', views.export_projects, name='export_award_transaction'),
     path('export_corporate_merchant/', views.export_projects, name='export_corporate_merchant'),
-    path("get-merchant-details/", views.get_merchant_details, name="get_merchant_details"),
+      path("get-merchant-details/", views.get_merchant_details, name="get_merchant_details"),
   
+    
+    path("get-states/", views.get_states, name="get_states"),
+    path("get-cities/<int:state_id>/", views.get_cities, name="get_cities"),
+    
+  
+# path('individual/edit/<int:id>/', views.edit_individual_merchant, name='edit_individual'),
+# path('individual/delete/<int:id>/', views.delete_individual_merchant, name='delete_individual'),
+
+    
+    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
