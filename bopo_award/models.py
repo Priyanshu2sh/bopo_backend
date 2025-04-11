@@ -27,7 +27,7 @@ class CustomerPoints(models.Model):
         unique_together = ('customer', 'merchant')  # Ensures unique customer-merchant pair
 
 class MerchantPoints(models.Model):
-    merchant = models.OneToOneField(Merchant, on_delete=models.CASCADE)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     points = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 

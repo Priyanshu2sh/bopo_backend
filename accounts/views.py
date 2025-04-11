@@ -23,6 +23,10 @@ class OTPService:
     def send_sms_otp(mobile_number, otp):
         """ Sends OTP via SMS using Twilio """
         try:
+            # Ensure Twilio credentials are set in settings
+            if not all([settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN, settings.TWILIO_PHONE_NUMBER]):
+                raise ValueError("Twilio credentials are not configured in settings.")
+
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
             message = client.messages.create(
                 body=f'Your OTP for verification is {otp}',

@@ -30,7 +30,7 @@
 
             <div class="form-group">
                 <label for="merchant">Select Merchant:</label>
-                <select id="merchant" name="merchant" onchange="fillMerchantId()">
+                <select id="merchant" name="merchant" onchange="fetchMerchantDetails()">
                     <option value="">Select Merchant</option>
                     {% for merchant in merchants %}
                         <option value="{{ merchant.id }}" data-merchant-id="{{ merchant.merchant_id }}">
@@ -50,12 +50,12 @@
 
                    <div class="form-group">
                         <label for="merchant_id">Merchant ID:</label>
-                        <input type="text" id="merchant_id" name="merchant_id" required readonly>
+                        <input type="text" id="merchant_id" name="merchant_id" readonly>
                     </div> 
 
                     <div class="form-group">
                         <label for="topup_amount">Top-Up Paid Amount:</label>
-                        <input type="number" id="topup_amount" name="topup_amount" required>
+                        <input type="number" id="topup_amount" name="topup_amount" readonly>
                     </div>
 
                     <div class="form-group">
@@ -124,6 +124,33 @@
     </div>
 
     <!-- JavaScript -->
+    <script>
+        function fetchMerchantDetails() {
+            const merchantSelect = document.getElementById("merchant");
+            const merchantId = merchantSelect.value;
+
+            if (!merchantId) {
+                document.getElementById("merchant_id").value = "";
+                document.getElementById("topup_amount").value = "";
+                return;
+            }
+
+            fetch(`/get-merchant-details/?merchant_id=${merchantId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById("merchant_id").value = data.merchant_code;
+                        document.getElementById("topup_amount").value = data.points || 0;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching merchant details:", error);
+                });
+        }
+    </script>
+    
     <script>
         function showPaymentFields() {
             let paymentMethod = document.getElementById("payment_mode").value;

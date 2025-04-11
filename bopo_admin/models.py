@@ -134,4 +134,4 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Notification: {self.title}"
+        return f"Notification: {self.title} ({self.project_id})"

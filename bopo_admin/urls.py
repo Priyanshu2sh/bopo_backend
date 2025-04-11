@@ -60,5 +60,6 @@ urlpatterns = [
     path('export_payment_dues/', views.export_projects, name='export_payment_dues'),
     path('export_award_transaction/', views.export_projects, name='export_award_transaction'),
     path('export_corporate_merchant/', views.export_projects, name='export_corporate_merchant'),
+    path("get-merchant-details/", views.get_merchant_details, name="get_merchant_details"),
   
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

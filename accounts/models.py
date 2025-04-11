@@ -23,6 +23,7 @@ class Corporate(models.Model):
     pan = models.CharField(max_length=20, unique=True, null=True, blank=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
+    role = models.CharField(max_length=20, default='admin')
     legal_name = models.CharField(max_length=255, null=True, blank=True)
     state = models.CharField(max_length=100, null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
