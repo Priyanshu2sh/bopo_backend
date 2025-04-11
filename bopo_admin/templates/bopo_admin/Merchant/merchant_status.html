@@ -39,17 +39,17 @@
         </div>
 
        <!-- Merchant Name (Disabled) -->
-<div class="send-merchant-form-group">
-    <div class="send-merchant-input-group form-group">
-       
-        {% comment %} <i class="fa fa-user send-merchant-icon"></i>  {% endcomment %}
-        
-        <input type="text" id="merchant_name" name="merchant_name" 
-               class="send-merchant-input" placeholder="Merchant Name" disabled>
+       <div class="merchant_status-form-group">
+        <label for="merchant_name">Merchant Name</label>
+        <div class="merchant_status-input-icon">
+            <i class="fa fa-user merchant_status-icon"></i>
+            <input type="text" id="merchant_name" name="merchant_name"
+                   class="merchant_status-input" placeholder="Merchant Name" disabled>
+        </div>
     </div>
-</div>
-
-<div class="form-group terminal-id-container">
+    
+{% comment %} 
+<div class="merchant_status-form-group">
     <label for="terminal">Select Terminal ID:</label>
     <select id="terminal" name="terminal" required>
         <option value="">-- Select a Terminal Id --</option>
@@ -57,8 +57,21 @@
         <option value="T2">T2</option>
         <option value="T3">T3</option>
     </select>
-</div>
+</div> {% endcomment %}
 
+
+<div class="merchant_status-form-group">
+    <!-- Merchant ID for Verification -->
+    <div class="merchant_status-input-icon">
+        <i class="fa fa-barcode merchant_status-icon"></i>
+        <select id="terminal-id-dropdown" name="terminal_id_dropdown" class="merchant_status-select" required>
+            <option value="select">-- Select a Terminal ID --</option>
+            <option value="TER000000000001">TER000000000001</option>
+            <option value="TER000000000002">TER000000000002</option>
+        </select>
+    </div><br>
+    <button type="submit" class="merchant_status-submit-btn" onclick="showAlert()">Submit</button>
+</div>
 <!-- Toast Notification -->
 <div id="toast" class="toast-container">
     <i class="fa fa-check-circle"></i>

@@ -1,7 +1,9 @@
 {% extends "bopo_admin/base.html" %}
-{% block content %}
 {% load static %}
+{% block content %}
+
 <link rel="stylesheet" href="{% static 'bopo_admin/css/customer.css' %}">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
  <!-- jQuery (required for Select2) -->
  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -14,7 +16,8 @@
     <div class="customer-header">
         <h2>Customer List</h2>
         <div class="customer-buttons">
-            <button class="add-customer-btn" onclick="openModal()">+ Add Customer</button>
+            <button class="add-customer-btn" onclick="window.location.href='{% url 'add_customer' %}'">
+                + Add Customer
             <button class="send-customer-btn" onclick="window.location.href='{% url 'send_customer_notifications' %}'">
                 + Send Notifications
             </button>
@@ -37,18 +40,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>1</td>
-                        <td>Demo Contact</td>
-                        <td>9090909090</td>
-                        <td>Pune</td>
-                        <td>true</td>
-                        <td>
-                            <button onclick="editCustomer(1, 'Demo', 'Contact', 'demo@example.com', '9090909090', 25, 'Male', 'Pune', '411001', 'Some Address', 1)">✏️</button>
-                            <button onclick="deleteCustomer({{ customer.id }})">🗑️</button>
-                        </td>
-                    </tr>
                     {% for customer in customers %}
                     <tr>
                       <td>{{ forloop.counter }}</td>
@@ -90,7 +81,16 @@
         <span class="close" onclick="closeModal()">&times;</span>
         <h2>Add New Customer</h2>
 
-        <form id="customerForm" class="form-container" method="POST">
+        {% if messages %}
+    <div id="toast-success" class="toast-container toast-show">
+        {% for message in messages %}
+            <i class="fa fa-check-circle"></i>
+            <span class="toast-message">{{ message }}</span>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<form id="customerForm" class="form-container" method="POST" action="{% url 'customer' %}">
             {% csrf_token %}
             
             <div class="form-group">
@@ -157,7 +157,7 @@
                 <label for="pan">PAN Number:</label>
                 <div class="input-container">
                     <i class="fas fa-id-badge"></i>
-                    <input type="text" id="pan_number" name="pan_number" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" maxlength="10"  placeholder="Enter valid PAN Number">
+                    <input type="text" id="pan" name="pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" maxlength="10"  placeholder="Enter valid PAN Number">
                 </div>
             </div>
             

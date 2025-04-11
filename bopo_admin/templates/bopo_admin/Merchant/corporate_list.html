@@ -23,55 +23,61 @@
             </label>
             <div class="merchant-table open">  <!-- Add 'open' class here -->
                 <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table', 'search-corporate')" placeholder="Search corporate merchants...">
-                <table id="corporate-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Project ID</th>
-                            <th>Merchant ID</th>
-                            <th>Contact Person</th>
-                            <th>Mobile Number</th>
-                            <th>Shop Name</th>
-                            <th>City</th>
-                            <th>Verified</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for data in corporate_data %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ data.corporate.project_id }}</td>
-                            <td>{{ data.corporate.corporate_id }}</td>
-                            <td>{{ data.corporate.first_name }} {{ data.corporate.last_name }}</td>
-                            <td>{{ data.corporate.mobile }}</td>
-                            <td>{{ data.corporate.shop_name }}</td>
-                            <td>{{ data.corporate.city }}</td>
-                            <td>{{ data.corporate.verified_at|yesno:"true,false" }}</td>
-                            <td>
-                                <button>✏️</button>
-                                <button>🗑️</button>
-                            </td>
-                        </tr>
-                        {% for merchant in data.merchants %}
-                        <tr>
-                            <td>-</td>
-                            <td>-</td>
-                            <td>{{ merchant.merchant_id }}</td>
-                            <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
-                            <td>{{ merchant.mobile }}</td>
-                            <td>{{ merchant.shop_name }}</td>
-                            <td>{{ merchant.city }}</td>
-                            <td>{{ merchant.verified_at|yesno:"true,false" }}</td>
-                            <td>
-                                <button>✏️</button>
-                                <button>🗑️</button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-wrapper">
+                    <table id="corporate-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Project ID</th>
+                                <th>Merchant ID</th>
+                                <th>Contact Person</th>
+                                <th>Mobile Number</th>
+                                <th>Shop Name</th>
+                                <th>City</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            {% for data in corporate_data %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ data.corporate.project_id }}</td>
+                                    <td>{{ data.corporate.corporate_id }}</td>
+                                    <td>{{ data.corporate.first_name }} {{ data.corporate.last_name }}</td>
+                                    <td>{{ data.corporate.mobile }}</td>
+                                    <td>{{ data.corporate.shop_name }}</td>
+                                    <td>{{ data.corporate.city }}</td>
+                                    <td>{{ data.corporate.verified_at|yesno:"true,false" }}</td>
+                                    <td>
+                                        <button>✏️</button>
+                                        <button>🗑️</button>
+                                    </td>
+                                </tr>
+                                {% for merchant in data.merchants %}
+                                <tr>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>{{ merchant.merchant_id }}</td>
+                                    <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
+                                    <td>{{ merchant.mobile }}</td>
+                                    <td>{{ merchant.shop_name }}</td>
+                                    <td>{{ merchant.city }}</td>
+                                    <td>{{ merchant.verified_at|yesno:"true,false" }}</td>
+                                    <td>
+                                        <button>✏️</button>
+                                        <button>🗑️</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination controls -->
+                <div id="pagination-controls" class="pagination-controls"></div>
+                
             </div>
         </div>
     </div>
@@ -95,5 +101,43 @@ function filterTable(tableId, searchBoxId) {
     }
 }
 </script>
+
+<script>
+    const rowsPerPage = 5;
+    let currentPage = 1;
+    
+    function paginateTable() {
+        const table = document.getElementById("corporate-table");
+        const tbody = document.getElementById("table-body");
+        const rows = Array.from(tbody.getElementsByTagName("tr"));
+        const totalRows = rows.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
+        const paginationDiv = document.getElementById("pagination-controls");
+    
+        // Hide all rows
+        rows.forEach((row, i) => {
+            row.style.display = (i >= (currentPage - 1) * rowsPerPage && i < currentPage * rowsPerPage) ? "" : "none";
+        });
+    
+        // Clear previous buttons
+        paginationDiv.innerHTML = "";
+    
+        // Create pagination buttons
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement("button");
+            btn.innerText = i;
+            btn.className = (i === currentPage) ? "active-page" : "";
+            btn.onclick = () => {
+                currentPage = i;
+                paginateTable();
+            };
+            paginationDiv.appendChild(btn);
+        }
+    }
+    
+    // Run on load
+    window.onload = paginateTable;
+    </script>
+    
 
 {% endblock %}
