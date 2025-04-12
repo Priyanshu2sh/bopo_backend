@@ -20,8 +20,10 @@
                 <i class="fa fa-folder merchant_status-icon"></i>
                 <select id="project-name" name="project_name" class="merchant_status-select" required>
                     <option value="select">-- Select a Project --</option>
-                    <option value="Demographic Project">Demographic Project</option>
-                    <option value="Tech Initiative">Tech Initiative</option>
+                    {% for project in projects %}
+                         <option value="{{ project.project_name }}">{{ project.project_name }}</option>
+                    {% endfor %}
+                    
                 </select>
             </div>
         </div>
@@ -62,6 +64,7 @@
 
 <div class="merchant_status-form-group">
     <!-- Merchant ID for Verification -->
+    <label for="terminal">Terminal ID</label>
     <div class="merchant_status-input-icon">
         <i class="fa fa-barcode merchant_status-icon"></i>
         <select id="terminal-id-dropdown" name="terminal_id_dropdown" class="merchant_status-select" required>
@@ -70,8 +73,22 @@
             <option value="TER000000000002">TER000000000002</option>
         </select>
     </div><br>
+
+    <div class="merchant_status-toggle-wrapper">
+        <label class="merchant_status-toggle-switch">
+          <input type="checkbox" id="status-toggle">
+          <span class="merchant_status-slider"></span>
+        </label>
+        <span id="toggle-label" class="merchant_status-toggle-label">Inactive</span>
+      </div>
+      
+
+    <div class="merchant_status-button-group">
+    <button type="button" class="merchant_status-cancel-btn" onclick="confirmCancel()">Cancel</button>
     <button type="submit" class="merchant_status-submit-btn" onclick="showAlert()">Submit</button>
 </div>
+
+
 <!-- Toast Notification -->
 <div id="toast" class="toast-container">
     <i class="fa fa-check-circle"></i>
@@ -123,23 +140,12 @@
             });
         });
 
-    
+  const toggle = document.getElementById('status-toggle');
+  const label = document.getElementById('toggle-label');
 
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelector("form").addEventListener("submit", function (event) {
-            event.preventDefault();
-
-            let toast = document.getElementById("toast");
-            toast.classList.add("toast-show");
-
-            setTimeout(function () {
-                toast.classList.add("toast-hide");
-                setTimeout(() => {
-                    toast.classList.remove("toast-show", "toast-hide");
-                    document.querySelector("form").submit();
-                }, 500);
-            }, 3000);
-        });
-    });
+  toggle.addEventListener('change', function () {
+    label.textContent = this.checked ? 'Active' : 'Inactive';
+  });
+        
 </script>
 {% endblock %}

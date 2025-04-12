@@ -265,9 +265,9 @@ from django.http import JsonResponse
 
 
 def add_individual_merchant(request):
-
     if request.method == "POST":
-        # try:
+        try:
+            # Get data from the form
             merchant_id = request.POST.get("merchant_id")
             first_name = request.POST.get("first_name")
             last_name = request.POST.get("last_name")
@@ -281,28 +281,27 @@ def add_individual_merchant(request):
             address = request.POST.get("address")
             pincode = request.POST.get("pincode")
             state_id = request.POST.get("state")
-            city_id= request.POST.get("city")
+            city_id = request.POST.get("city")
             country = request.POST.get("country", "India")
-            
+
+            # Fetch state and city from DB
             state = State.objects.get(id=state_id)
             city = City.objects.get(id=city_id)
 
-
-         
-            # Uniqueness Checks
-            if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
+            # Uniqueness checks
+            if Merchant.objects.filter(email=email).exists():
                 return JsonResponse({"success": False, "message": "Email ID already exists!"})
 
-            if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(email=email).exists():
+            if Merchant.objects.filter(mobile=mobile).exists():
                 return JsonResponse({"success": False, "message": "Mobile number already exists!"})
 
-            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(email=email).exists():
+            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
                 return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
 
             if Merchant.objects.filter(pan_number=pan_number).exists():
                 return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
-            # Save to database
+            # Save merchant to the database
             Merchant.objects.create(
                 merchant_id=merchant_id,
                 first_name=first_name,
@@ -322,13 +321,12 @@ def add_individual_merchant(request):
             )
 
             return JsonResponse({'success': True, 'message': 'Merchant added successfully!'})
-        
-        # except Exception as e:
-        #     return JsonResponse({'success': False, 'message': str(e)})
 
-    # GET method: render the form page
-    return render(request, 'bopo_admin/Merchant/add_individual_merchant.html')
+        except Exception as e:
+            # Log the error for debugging purposes
+            return JsonResponse({'success': False, 'message': f"An error occurred: {str(e)}"})
 
+    return render(request, "bopo_admin/Merchant/add_individual_merchant.html")
 
 
 
