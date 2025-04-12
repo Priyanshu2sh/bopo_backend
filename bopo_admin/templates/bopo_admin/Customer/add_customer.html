@@ -190,16 +190,6 @@
             document.getElementById("addCustomerForm").addEventListener("submit", function (event) {
                 event.preventDefault();
 
-                let password = document.getElementById("password").value;
-                let confirmPassword = document.getElementById("confirmPassword").value;
-                let errorMsg = document.getElementById("password-error");
-
-                if (password !== confirmPassword) {
-                    errorMsg.style.display = "block";
-                    return false;
-                } else {
-                    errorMsg.style.display = "none";
-                }
 
                 let form = document.getElementById("addCustomerForm");
                 let formData = new FormData(form);

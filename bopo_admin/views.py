@@ -22,6 +22,7 @@ from .models import State, City
 from bopo_admin.models import Employee
 
 
+
 # Create your views here.
 
 
@@ -69,63 +70,9 @@ def about(request):
 def merchant(request):
     return render(request, 'bopo_admin/Merchant/merchant.html')
 
-
-    
-from django.shortcuts import redirect, render
-from accounts.models import Customer
-from bopo_admin.models import City, State  # import your models
-from django.db import transaction
-
-
 def customer(request):
-    if request.method == "POST":
-        customer_id = request.POST.get('customer_id')
-        first_name = request.POST.get('firstName')
-        last_name = request.POST.get('lastName')
-        email = request.POST.get('email')
-        mobile = request.POST.get('mobile')
-        age = request.POST.get('age')
-        gender = request.POST.get('gender')
-        aadhar_number = request.POST.get('aadhar_number') 
-        pan = request.POST.get('pan')
-        address = request.POST.get('address')
-        state_id = request.POST.get('state')
-        city_id = request.POST.get('city')
-        pincode = request.POST.get('pincode')
-
-        city = City.objects.get(id=city_id)
-        state = State.objects.get(id=state_id)
-
-        Customer.objects.create(
-            customer_id=customer_id,
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            mobile=mobile,
-            age=age,
-            gender=gender,
-            aadhar_number=aadhar_number,
-            pan=pan,
-            address=address,
-            state=state,
-            city=city,
-            pincode=pincode,
-            # verified=True 
-        )
-        messages.success(request, 'Customer added successfully!')
-           
-    return render(request, 'bopo_admin/Customer/customer.html')
-
-    
-    
-    
-    
-   
-
-
-
-
-
+    customers = Customer.objects.all()
+    return render(request, 'bopo_admin/Customer/customer.html', {'customers': customers})
 
 def merchant_list(request):
     return render(request, "bopo_admin/Merchant/merchant_list.html")
@@ -186,20 +133,25 @@ def add_merchant(request):
             address = request.POST.get("address")
             legal_name = request.POST.get("legal_name")
             pincode = request.POST.get("pincode")
-            city = request.POST.get("city")
-            state = request.POST.get("state")
+            city_id = request.POST.get("city")
+            state_id = request.POST.get("state")
             country = request.POST.get("country", "India")
+            
+            state = State.objects.get(id=state_id)
+            city = City.objects.get(id=city_id)
+
+
 
             # ✅ Unique field checks
-            if Merchant.objects.filter(email=email).exists():
+            if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
                 message = "Email is already registered."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
-            if Merchant.objects.filter(mobile=mobile).exists():
+            if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
                 message = "Mobile number is already registered."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
-            if Merchant.objects.filter(aadhaar_number=aadhaar).exists():
+            if Merchant.objects.filter(aadhaar_number=aadhaar).exists() or Corporate.objects.filter(aadhaar=aadhaar).exists():
                 message = "Aadhaar number is already registered."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
@@ -315,7 +267,7 @@ from django.http import JsonResponse
 def add_individual_merchant(request):
 
     if request.method == "POST":
-        try:
+        # try:
             merchant_id = request.POST.get("merchant_id")
             first_name = request.POST.get("first_name")
             last_name = request.POST.get("last_name")
@@ -328,19 +280,23 @@ def add_individual_merchant(request):
             legal_name = request.POST.get("legal_name")
             address = request.POST.get("address")
             pincode = request.POST.get("pincode")
-            state = request.POST.get("state")
-            city = request.POST.get("city")
+            state_id = request.POST.get("state")
+            city_id= request.POST.get("city")
             country = request.POST.get("country", "India")
+            
+            state = State.objects.get(id=state_id)
+            city = City.objects.get(id=city_id)
+
 
          
             # Uniqueness Checks
-            if Merchant.objects.filter(email=email).exists():
+            if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
                 return JsonResponse({"success": False, "message": "Email ID already exists!"})
 
-            if Merchant.objects.filter(mobile=mobile).exists():
+            if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(email=email).exists():
                 return JsonResponse({"success": False, "message": "Mobile number already exists!"})
 
-            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
+            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(email=email).exists():
                 return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
 
             if Merchant.objects.filter(pan_number=pan_number).exists():
@@ -367,11 +323,14 @@ def add_individual_merchant(request):
 
             return JsonResponse({'success': True, 'message': 'Merchant added successfully!'})
         
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)})
+        # except Exception as e:
+        #     return JsonResponse({'success': False, 'message': str(e)})
 
     # GET method: render the form page
     return render(request, 'bopo_admin/Merchant/add_individual_merchant.html')
+
+
+
 
 def project_onboarding(request):
     return render(request, 'bopo_admin/project_onboarding.html')
@@ -561,8 +520,63 @@ def  send_customer_notifications(request):
 def  customer_uploads(request):
     return render(request, 'bopo_admin/Customer/customer_uploads.html')
 
-def  add_customer(request):
+
+def add_customer(request): 
+    if request.method == 'POST':
+        customer_id = request.POST.get('customer_id')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        mobile = request.POST.get('mobile')
+        age = request.POST.get('age')
+        gender = request.POST.get('gender')
+        aadhar_number = request.POST.get('aadhaar') 
+        pan = request.POST.get('pan')
+        address = request.POST.get('address')
+        state_id = request.POST.get('state')
+        city_id = request.POST.get('city')
+        pincode = request.POST.get('pincode')
+
+        try:
+            state = State.objects.get(id=state_id)
+            city = City.objects.get(id=city_id)
+        except (State.DoesNotExist, City.DoesNotExist):
+            return JsonResponse({"success": False, "message": "Invalid state or city selection."})
+
+        # Validation checks
+        if Customer.objects.filter(email=email).exists():
+            return JsonResponse({"success": False, "message": "Email ID already exists!"})
+
+        if Customer.objects.filter(mobile=mobile).exists():
+            return JsonResponse({"success": False, "message": "Mobile number already exists!"})
+
+        if Customer.objects.filter(aadhar_number=aadhar_number).exists():
+            return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
+
+        if Customer.objects.filter(pan=pan).exists():
+            return JsonResponse({"success": False, "message": "PAN number already exists!"})
+
+        # Save the customer
+        Customer.objects.create(
+            customer_id=customer_id,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            mobile=mobile,
+            age=age,
+            gender=gender,
+            aadhar_number=aadhar_number,
+            pan=pan,
+            address=address,
+            state=state,
+            city=city,
+            pincode=pincode,
+        )
+
+        return JsonResponse({"success": True, "message": "Customer added successfully!"})
+    
     return render(request, 'bopo_admin/Customer/add_customer.html')
+
 
 def employee_list(request):
     employees = Employee.objects.all()
