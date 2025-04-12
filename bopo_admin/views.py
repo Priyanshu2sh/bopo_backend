@@ -479,6 +479,7 @@ def merchant_limit_list(request):
     # return render(request, 'bopo_admin/Merchant/merchant_limit_list.html')
 
 def reduce_limit(request):
+    corporates = Corporate.objects.all()
     if request.method == "POST":
         project = request.POST.get("project")
         merchant = request.POST.get("merchant")
@@ -500,7 +501,13 @@ def reduce_limit(request):
             reduce_amount=reduce_amount,
             transaction_id=transaction_id
         )
-    return render(request, 'bopo_admin/Merchant/reduce_limit.html')
+    return render(request, 'bopo_admin/Merchant/reduce_limit.html',  {"corporates": corporates})
+
+
+def get_merchants_by_project(request):
+    project_id = request.GET.get('project_id')
+    merchants = Merchant.objects.filter(project_name__project_id=project_id).values('merchant_id')
+    return JsonResponse({'merchants': list(merchants)})
 
 def merchant_status(request):
     merchants = Merchant.objects.all().order_by('first_name')

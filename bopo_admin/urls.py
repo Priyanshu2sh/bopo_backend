@@ -65,6 +65,8 @@ urlpatterns = [
     
     path("get-states/", views.get_states, name="get_states"),
     path("get-cities/<int:state_id>/", views.get_cities, name="get_cities"),
+
+    path('get-merchants/', views.get_merchants_by_project, name='get_merchants_by_project'),
     
   
 # path('individual/edit/<int:id>/', views.edit_individual_merchant, name='edit_individual'),

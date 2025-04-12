@@ -18,23 +18,22 @@
             <label for="project-name">Project Name</label>
             <div class="merchant_status-input-icon">
                 <i class="fa fa-folder merchant_status-icon"></i>
-                <select id="project-name" name="project_name" class="merchant_status-select" required>
-                    <option value="select">-- Select a Project --</option>
-                    <option value="Demographic Project">Demographic Project</option>
-                    <option value="Tech Initiative">Tech Initiative</option>
+                <select id="project-name" name="project_name" class="merchant_status-select" onchange="fetchMerchants()" required>
+                    <option value="">Select a project</option>
+                    {% for corporate in corporates %}
+                        <option value="{{ corporate.project_id }}">{{ corporate.project_name }} </option>
+                    {% endfor %}
                 </select>
 
             </div>
 
+            
+
             <div class="form-group">
                 <label for="merchant">Select Merchant:</label>
-                <select id="merchant_id" name="merchant_id" class="send-merchant-form-control">
-                    <option value="">Select Merchant</option>
-                    {% for merchant in merchants %}
-                        <option value="{{ merchant.id }}" data-merchant-name="{{ merchant.first_name }} {{ merchant.last_name }}">
-                            {{ merchant.merchant_id }} 
-                        </option>
-                    {% endfor %}
+                <select id="merchant" name="merchant" class="merchant_status-select">
+                    <option value="">-- Select a Merchant --</option>
+                    <!-- Options will be loaded here -->
                 </select>
             </div>
         </div>
@@ -73,11 +72,58 @@
     </div><br>
     <button type="submit" class="merchant_status-submit-btn" onclick="showAlert()">Submit</button>
 </div>
+    </form>
 <!-- Toast Notification -->
 <div id="toast" class="toast-container">
     <i class="fa fa-check-circle"></i>
     <span class="toast-message">Status Change Successfully!</span>
 </div>
+
+
+<script>
+    function fetchMerchants() {
+        const projectId = document.getElementById('project-name').value;
+        const merchantSelect = document.getElementById('merchant');
+        const merchantNameInput = document.getElementById('merchant_name');
+
+        // Clear current merchant options and merchant name
+        merchantSelect.innerHTML = '<option value="">-- Select a Merchant --</option>';
+        merchantNameInput.value = '';
+
+        if (projectId) {
+            fetch(`/get-merchants/${projectId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.merchants.forEach(merchant => {
+                        const option = document.createElement('option');
+                        option.value = merchant.id;
+                        option.text = merchant.first_name + ' ' + merchant.last_name;
+                        merchantSelect.appendChild(option);
+                    });
+                });
+        }
+    }
+
+    function fetchMerchantName() {
+        const merchantId = document.getElementById('merchant').value;
+        const merchantNameInput = document.getElementById('merchant_name');
+
+        if (merchantId) {
+            fetch(`/get-merchant-name/${merchantId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    merchantNameInput.value = data.name;
+                });
+        } else {
+            merchantNameInput.value = '';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('merchant').addEventListener('change', fetchMerchantName);
+    });
+</script>
+
 
 <script>
 
