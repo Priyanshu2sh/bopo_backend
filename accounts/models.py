@@ -4,6 +4,7 @@ from django.utils.timezone import now
 
 from django.db import transaction
 from django.contrib.auth import get_user_model
+from django.db import transaction
 
 User = get_user_model()  
 
@@ -123,6 +124,7 @@ class Merchant(models.Model):
     
 
 
+
 class Customer(models.Model):
     GENDER_CHOICES = [
         ('Male', 'Male'),
@@ -135,32 +137,42 @@ class Customer(models.Model):
     email = models.EmailField(unique=True, null=True, blank=True)
     mobile = models.CharField(max_length=15, unique=True)
     age = models.IntegerField(null=True, blank=True)
+    
+    GENDER_CHOICES = [
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ('Other', 'Other'),
+    ]
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
+    
     otp = models.IntegerField(null=True, blank=True)
-    pin = models.IntegerField(blank=True, null=True)
+    pin = models.IntegerField(null=True, blank=True)
     security_question = models.CharField(max_length=255, null=True, blank=True)
     answer = models.CharField(max_length=255, null=True, blank=True)
     aadhar_number = models.CharField(max_length=255, null=True, blank=True)
-    pan = models.CharField(max_length=255, blank=True, null=True)
+    pan = models.CharField(max_length=255, null=True, blank=True, unique=True)
     pincode = models.IntegerField(null=True, blank=True)
-    address = models.CharField(max_length=255, blank=True, null=True)
-    state = models.CharField(max_length=255, blank=True, null=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
+    state = models.CharField(max_length=255, null=True, blank=True)
     country = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    verified_at = models.DateTimeField(null=True, blank=True)
-    
-    city = models.CharField(max_length=100,blank=True, null=True)
+    STATUS_CHOICES = [
+        ('Active', 'Active'),
+        ('Inactive', 'Inactive'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
 
     def save(self, *args, **kwargs):
         if not self.customer_id:
             with transaction.atomic():
-                last_cust = Customer.objects.select_for_update().order_by('-id').first()
-                if last_cust and last_cust.employee_id:
-                    last_id = int(last_cust.employee_id.replace('CUST', ''))
-                    self.customer_id = f"CUST{last_id + 1:03d}"
+                last_cust = Customer.objects.select_for_update().order_by('-created_at').first()
+                if last_cust and last_cust.customer_id:
+                    last_id = int(last_cust.customer_id.replace('CUST', ''))
+                    self.customer_id = f"CUST{last_id + 1:06d}"
                 else:
-                    self.customer_id = "CUST001"
-        super().save(*args, **kwargs)
+                    self.customer_id = "CUST0000001"
+        super(Customer, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.first_name
