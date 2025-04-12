@@ -31,13 +31,13 @@ body {
     background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
     color: white;
     border: none;
-    padding: 8px 15px;
+    padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
     font-weight: bold;
-    margin-left: 85%;
-    margin-top: 1%;
+    margin-left: 86%;
+    margin-top: -2%;
     transition: background 0.3s ease-in-out;
 }
 
@@ -140,4 +140,150 @@ button {
     background: none;
     cursor: pointer;
     font-size: 16px;
+}
+
+
+
+/* RESPONSIVE DESIGN */
+
+/* Tablets */
+@media (max-width: 1024px) {
+    .merchant-container {
+        padding: 15px;
+        margin-top: 3%;
+    }
+
+    .merchant-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .add-merchant-btn {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+}
+
+/* Mobile Devices */
+@media (max-width: 768px) {
+    .merchant-container {
+        max-width: 95%;
+        padding: 15px;
+        margin-top: -80%;
+    }
+
+    .merchant-header {
+        font-size: 18px;
+    }
+
+    .merchant-label {
+        font-size: 14px;
+    }
+
+    .merchant-icon {
+        font-size: 16px;
+    }
+
+    .search-box {
+        width: 100%;
+        max-width: 100%;
+        font-size: 12px;
+    }
+
+    /* Table becomes scrollable */
+    .merchant-table {
+        overflow-x: auto;
+    }
+
+    table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    /* Adjust buttons */
+    button {
+        font-size: 14px;
+    }
+}
+
+
+
+
+/* 🔹 Tablets (1024px and below) */
+@media (max-width: 1024px) {
+    .merchant-container {
+        padding: 15px;
+        margin-top: 24%;
+    }
+
+    .merchant-header {
+        flex-direction: column; /* Stack header elements */
+        text-align: center;
+    }
+
+    .add-merchant-btn {
+        font-size: 14px;
+        padding: 8px 12px;
+        margin-left: 20%;
+        width: 10%;
+      
+    }
+}
+
+/* 🔹 Mobile Devices (768px and below) */
+@media (max-width: 768px) {
+    .merchant-header {
+        flex-direction: column; /* Stack header elements */
+        text-align: center;
+    }
+
+    /* Move the button more below */
+    .add-merchant-btn {
+        font-size: 14px;
+        padding: 12px;
+        width: 30%;
+        max-width: 250px;
+        margin-top: -10%; 
+        margin-left: 75%;
+        
+       
+    }
+}
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.pagination-controls button {
+    background: linear-gradient(135deg, #ff7b54, #ff4e00);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(255, 78, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+.pagination-controls button:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+    box-shadow: 0 6px 12px rgba(255, 78, 0, 0.4);
+}
+
+.pagination-controls .active-page {
+    background: linear-gradient(135deg, #333, #111);
+    color: #fff;
+    font-weight: bold;
+    border: 2px solid #ff4e00;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
 }

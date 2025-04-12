@@ -2,12 +2,12 @@
 
 {% block content %}
 {% load static %}
-{% load custom_filters %} <!-- Load the custom filter -->
+{% load custom_filters %}
+
 <link rel="stylesheet" href="{% static 'bopo_admin/css/individual_merchant_list.css' %}">
 
 <div class="merchant-container">
     <div class="merchant-header">
-
         <button class="add-merchant-btn" onclick="window.location.href='{% url 'add_individual_merchant' %}'">
             + Add Merchant
         </button>
@@ -15,45 +15,47 @@
 
     <div class="merchant-list">
         <div class="merchant-item">
-            <!-- Set checkbox as checked by default to keep it open -->
             <input type="checkbox" id="toggle-individual" class="toggle-checkbox" checked>
             <label for="toggle-individual" class="merchant-label">
                 <span class="merchant-icon">👤</span>
                 <span>Individual Merchants List</span>
             </label>
-            <div class="merchant-table open">  <!-- Add 'open' class here -->
+            <div class="merchant-table open">
                 <input type="text" class="search-box" id="search-individual" onkeyup="filterTable('individual-table', 'search-individual')" placeholder="Search individual merchants...">
-                <table id="individual-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Contact Person</th>
-                            <th>Mobile Number</th>
-                            <th>Shop Name</th>
-                            <th>City</th>
-                            <th>BBP</th>
-                            <th>Verified</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for merchant in merchants %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ merchant.first_name }} {{ merchant.last_name }}</td> <!-- Combined column -->
-                            <td>{{ merchant.mobile }}</td>
-                            <td>{{ merchant.shop_name }}</td>
-                            <td>{{ merchant.city }}</td>
-                            <td>{{ points_mapping|get_item:merchant.id }}</td> <!-- Use custom filter -->
-                            <td>{{ merchant.verified_at|yesno:"Active,Inactive" }}</td>
-                            <td>
-                                <a href="{% url 'edit_individual' merchant.id %}">✏️</a>
-                                <button>🗑️</button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-wrapper">
+                    <table id="individual-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Contact Person</th>
+                                <th>Mobile Number</th>
+                                <th>Shop Name</th>
+                                <th>City</th>
+                                <th>BBP</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="individual-table-body">
+                            {% for merchant in merchants %}
+                            <tr class="merchant-row">
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
+                                <td>{{ merchant.mobile }}</td>
+                                <td>{{ merchant.shop_name }}</td>
+                                <td>{{ merchant.city }}</td>
+                                <td>{{ points_mapping|get_item:merchant.id }}</td>
+                                <td>{{ merchant.verified_at|yesno:"Active,Inactive" }}</td>
+                                <td>
+                                    <a href="{% url 'edit_individual' merchant.id %}">✏️</a>
+                                    <button>🗑️</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div id="pagination-controls" class="pagination-controls"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -67,15 +69,48 @@ function filterTable(tableId, searchBoxId) {
     let table = document.getElementById(tableId);
     let rows = table.getElementsByTagName("tr");
 
-    for (let i = 1; i < rows.length; i++) { // Skip header row
+    for (let i = 1; i < rows.length; i++) {
         let rowText = rows[i].innerText.toLowerCase();
-        if (rowText.includes(filter)) {
-            rows[i].style.display = "";
-        } else {
-            rows[i].style.display = "none";
-        }
+        rows[i].style.display = rowText.includes(filter) ? "" : "none";
     }
 }
+</script>
+
+<!-- Pagination Script -->
+<script>
+const rowsPerPage = 5;
+let currentPage = 1;
+
+function paginateTable() {
+    const table = document.getElementById("individual-table");
+    const tbody = document.getElementById("individual-table-body");
+    const rows = Array.from(tbody.getElementsByTagName("tr"));
+    const totalRows = rows.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    const paginationDiv = document.getElementById("pagination-controls");
+
+    // Hide all rows
+    rows.forEach((row, index) => {
+        row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? "" : "none";
+    });
+
+    // Clear previous pagination
+    paginationDiv.innerHTML = "";
+
+    // Add new pagination buttons
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.innerText = i;
+        btn.className = i === currentPage ? "active-page" : "";
+        btn.onclick = () => {
+            currentPage = i;
+            paginateTable();
+        };
+        paginationDiv.appendChild(btn);
+    }
+}
+
+window.onload = paginateTable;
 </script>
 
 {% endblock %}

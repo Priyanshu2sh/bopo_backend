@@ -169,7 +169,14 @@ body {
     transform: translateY(-50%); /* Initial hidden position */
     transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
 }
-
+.toast-success {
+    background-color: #4CAF50; /* green */
+    color: white;
+}
+.toast-error {
+    background-color: #ff4d4d; /* red (error) */
+    color: white;
+}
 /* Show Toast */
 .toast-show {
     visibility: visible;
@@ -195,7 +202,7 @@ body {
     .addmerchant-container {
         width: 90%;
         padding: 15px;
-        height: 170vh;
+        height: 175vh;
         margin-left: 5%;
         
     }
@@ -211,7 +218,7 @@ body {
     .addmerchant-btn-submit {
         max-width: 30%;
         width: 90%;
-        margin-top: -10%;
+        margin-top: 5%;
         margin-left: 34%;
     }
 
@@ -226,4 +233,28 @@ body {
         margin-top: 5%; /* Move heading down */
        margin-left: -60%;
     }
+}
+
+
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-selection--single {
+    height: 38px !important;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-selection__rendered {
+    font-size: 14px;
+    color: #555;
+    line-height: 26px;
+}
+
+.select2-selection__arrow {
+    height: 100%;
 }

@@ -1,176 +1,234 @@
-h1.heading {
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+
+.merchant_status-container {
+    background: #fff;
+    border-radius: 10px;
+    width: 60%;
+    margin: auto;
+    margin-top: 5%;
+    padding: 25px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
     text-align: center;
     color: #004080;
     font-size: 26px;
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    margin-top: 8%;
-    margin-left: -75%;
+    margin-top: -2%;
+    margin-left: -70%;
 }
 
-.merchant_status {
-    width: 100%;
-    max-width: 1100px;
-    margin: 20px auto;
-    padding: 20px;
-    background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    margin-top: 3%;
-}
-
-.merchant_status .dropdown-container {
-    display: flex;
-    flex-direction: column;  /* Stack dropdowns one below the other */
-    gap: 15px;
-    margin-bottom: 20px;
-    padding: 10px;
-    width: 50%;
-    margin-left: 10%;
-}
-
-.merchant_status .dropdown-container .form-group {
-    display: flex;
-    align-items: center;  /* Align label and dropdown in a row */
-    gap: 10px;  /* Space between label and dropdown */
-    width: 100%;
-}
-
-.merchant_status .dropdown-container label {
-    font-weight: bold;
-    min-width: 150px;  /* Set a fixed width for labels */
-    text-align: right;  /* Align text to the right for better spacing */
-}
-
-.merchant_status .dropdown-container select {
-    flex: 1;  /* Allow dropdown to take available space */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    background: #f9f9f9;
-}
-
-/* Form Groups */
-.merchant_status .form-group {
-    margin-bottom: 15px;
-}
-
-.merchant_status label {
-    font-weight: bold;
+label {
+    font-weight: 600;
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    color: #34495e;
+    font-size: 16px;
 }
 
-/* Input Fields and Dropdowns */
-.merchant_status input,
-.merchant_status select {
+
+.merchant_status-form-group {
+    margin-bottom: 20px;
+}
+
+.merchant_status-select,
+.merchant_status-input {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
+    padding: 10px 10px 10px 40px; /* Extra left padding for icon */
+    border: 1px solid #bdc3c7;
     border-radius: 5px;
-    font-size: 16px;
-    background: #f9f9f9;
-}
-/* Input Group Styling */
-.send-merchant-input-group {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 33%;
-    margin-left: 26%;
-}
-
-/* Icon Styling */
-.send-merchant-icon {
-    position: absolute;
-    left: 12px; /* Adjust position inside input */
-    font-size: 16px;
-    color: #555;
-}
-
-/* Input Field Styling */
-.send-merchant-input {
-    width: 100%;
-    padding: 10px 10px 10px 40px; /* Ensure text starts after the icon */
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    background: #f9f9f9;
-    outline: none;
- 
-}
-
-/* Ensuring the Placeholder Doesn't Overlap */
-.send-merchant-input::placeholder {
-    color: #aaa;
     font-size: 14px;
-    opacity: 1; /* Ensures visibility */
-   
-}
-/* Styling for the Terminal ID container */
-.terminal-id-container {
-    display: flex;  /* Align label and dropdown in a row */
-    align-items: center;  /* Align items vertically */
-    gap: 10px;  /* Space between label and dropdown */
-    width: 50%;  /* Set width to 50% */
-    margin-left:10%; 
-    margin-top: 3%;
+    background-color: #f8f9fa;
 }
 
-/* Styling for the label */
-.terminal-id-container label {
-    font-weight: bold;
-    min-width: 150px;  /* Set a fixed width for the label */
-    text-align: right;  /* Align text to the right */
-}
-
-/* Styling for the dropdown */
-.terminal-id-container select {
-    flex: 1;  /* Allow dropdown to take remaining space */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    background: #f9f9f9;
-}
-
-/* Button Container */
-.button-container {
+.merchant_status-button-group {
     display: flex;
-   margin-left: 31%;
-    gap: 20px;  /* Space between buttons */
-    margin-top: 20px;
+    justify-content: center;
+    gap: 15px;
 }
 
-/* General Button Styles */
-.button-container button {
-    padding: 10px 20px;
-    font-size: 16px;
+.merchant_status-cancel-btn {
+    background: #ccc;
+    color: white;
+    padding: 10px 15px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
     transition: 0.3s;
 }
 
-/* Cancel Button */
-.cancel-btn {
-    background-color: #ccc;
-    color: black;
+.merchant_status-cancel-btn:hover {
+    background: #c0392b;
 }
 
-.cancel-btn:hover {
-    background-color: #999;
-}
-
-/* Submit Button */
-.submit-btn {
-    background-color: #004080;
+.merchant_status-submit-btn  {
+    background: #2c3e50;
     color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: 0.3s;
+    margin-left: 40%;
+    width: 20%;
 }
 
-.submit-btn:hover {
-    background-color: #002d5b;
+.merchant_status-submit-btn:hover {
+    background: #1a252f;
+}
+
+.merchant_status-back-to-list-btn a {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 87%;
+    width: 10%;
+    font-weight: bold;
+    margin-top: 7%;
+}
+/* Container for icon + input/select */
+.merchant_status-input-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Icon styling */
+.merchant_status-icon {
+    position: absolute;
+    left: 10px;
+    color: black;
+    font-size: 16px;
+}
+
+/* Styling for select elements */
+.merchant_status-select {
+    width: 100%;
+    padding: 10px 10px 10px 40px; /* Extra left padding for icon */
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #f8f9fa;
+}
+
+
+
+
+/* Toast Notification Styling */
+.toast-container {
+    position: fixed;
+    top: 30px;
+    left: 58%;
+    transform: translateX(-50%);
+    background-color: #28a745;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: none; /* Hidden by default */
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast-show {
+    display: block;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-hide {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+}
+
+/* ✅📱 Responsive Adjustments for Smaller Screens */
+@media (max-width: 768px) {
+    .merchant_status-container {
+        width: 90%; /* Increase width for smaller screens */
+        padding: 15px;
+    }
+
+    h2 {
+        font-size: 22px;
+    }
+
+    .merchant_status-button-group {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .merchant_status-cancel-btn,
+    .merchant_status-submit-btn {
+        width: 80%; /* Full-width buttons for mobile */
+    }
+
+    .merchant_status-back-to-list-btn a {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* ✅📱 Extra Small Screens (Mobile) */
+@media (max-width: 480px) {
+    .merchant_status-container {
+        width: 95%;
+        padding: 10px;
+    }
+
+    h2 {
+        font-size: 20px;
+        margin-top: 10%;
+        margin-left: -60%;
+    }
+
+    .merchant_status-select,
+    .merchant_status-input {
+        padding: 8px 8px 8px 35px; /* Reduce padding on small screens */
+    }
+
+    .merchant_status-icon {
+        font-size: 14px;
+    }
+
+    .merchant_status-button-group {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .merchant_status-cancel-btn,
+    .merchant_status-submit-btn {
+        width: 50%; /* Full width */
+    }
+    .merchant_status-back-to-list-btn a{
+        width: 40%;
+        text-align: center;
+        font-size: 14px;
+        margin-top: 20%;
+        margin-left: 57%;
+    }
+    .toast-container {
+        width: 80%;
+        font-size: 14px;
+    }
 }

@@ -4,9 +4,18 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/reduce_limit.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+
+<div class="reduce-limit-back-btn">
+    <a href="{% url 'merchant_limit_list' %}" class="reduce-limit-back-btn-submit">
+        <i class="fa fa-arrow-left"></i> Back 
+    </a>
+</div>
+<h2>Merchant Reduce Limit</h2>
 <div class="reduce-limit-container">
-    <h2>Merchant Reduce Limit</h2>
+   
+
 
     <form method="POST" action="{% url 'reduce_limit' %}">
         {% csrf_token %}
@@ -14,53 +23,138 @@
         <div class="form-group">
             <!-- Project Selection -->
             <label for="project">Select Project</label>
-            <select id="project" name="project">
-                <option value="Demographic Project">Demographic Project</option>
-                <option value="Tech Initiative">Tech Initiative</option>
+            <select id="select_project" name="project" onchange="fetchMerchants()">
+                <option value="">Select a project</option>
+                {% for corporate in corporates %}
+                    <option value="{{ corporate.project_id }}">{{ corporate.project_name }} </option>
+                {% endfor %}
             </select>
+
         </div>
 
         <div class="form-group">
             <!-- Merchant Selection -->
             <label for="merchant">Select Merchant</label>
             <select id="merchant" name="merchant">
-                <option value="DEMO000000000001">DEMO000000000001</option>
-                <option value="DEMO000000000002">DEMO000000000002</option>
+                <option value="">-- Select a Merchant --</option>
+                <!-- Options will be loaded here -->
             </select>
         </div>
 
-        <div class="form-group limit-section">
+        <div class="form-group ">
             <label>Current Limit</label>
             <div class="input-icon">
                 <span class="icon"><i class="fas fa-money-bill-wave"></i></span>
-                <input type="text" id="current-limit" name= "current_limit" value="Limit Not Found" readonly>
+                <input type="text" id="current-limit" name= "current_limit" value="" readonly>
              
             </div>
         </div>
 
         <div class="form-group">
             <!-- Reduce Amount -->
-            <label for="reduce-amount">Reduce Amount</label>
+            <label for="reduce-amount">Cash-out Amount</label>
             <div class="input-icon">
                 <span class="icon"><i class="fas fa-coins"></i></span>
                 <input type="number" id="reduce-amount" name="reduce_amount" placeholder="Enter amount">
             </div>
         </div>
 
-        <div class="form-group">
-            <!-- Transaction ID -->
+        <!-- Transaction ID -->
+        <!-- <div class="form-group">
+            
             <label for="transaction-id">Transaction ID</label>
             <div class="input-icon">
                 <span class="icon"><i class="fas fa-university"></i></span>
                 <input type="text" id="transaction-id" name="transaction_id" placeholder="Enter Transaction ID">
             </div>
-        </div>
+        </div> -->
 
         <div class="button-group">
-            <button type="button" class="cancel-btn">Cancel</button>
+            <button type="button" class="cancel-btn" onclick="confirmCancel()">Cancel</button>
             <button type="submit" class="submit-btn">Submit</button>
         </div>
     </form>
 </div>
+
+ <!-- Toast Notification -->
+ <div id="toast" class="toast-container">
+    <i class="fa fa-check-circle"></i>
+    <span class="toast-message">Reduce Limit Submitted successfully!</span>
+</div>
+
+
+<script>
+    function fetchMerchants() {
+        const projectId = document.getElementById("select_project").value;
+        const merchantDropdown = document.getElementById("merchant");
+
+        if (projectId) {
+            fetch(`/get-merchants/?project_id=${projectId}`)
+                .then(response => response.json())
+                .then(data => {
+                    merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
+                    data.merchants.forEach(merchant => {
+                        merchantDropdown.innerHTML += `<option value="${merchant.merchant_id}">${merchant.merchant_id}</option>`;
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching merchants:", error);
+                });
+        } else {
+            merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
+        }
+    }
+</script>
+    
+
+<script>
+    function confirmCancel() {
+        // Select all input fields and dropdowns inside the form
+        let inputs = document.querySelectorAll("input, select");
+        let emptyFields = false;
+    
+        // Check if any input or dropdown field is empty
+        inputs.forEach(input => {
+            if (input.value.trim() === "select" || input.value.trim() === "") {
+                emptyFields = true;
+            }
+        });
+    
+        // Show alert if fields are empty
+        if (emptyFields) {
+            alert("⚠️ Please fill in all fields before canceling.");
+            return; // Stop further execution
+        }
+    
+        // Show confirmation dialog if all fields are filled
+        let confirmAction = confirm("❗ Are you sure you want to cancel?");
+        if (confirmAction) {
+            window.location.href = "{% url 'home' %}"; // Redirect to Home Page
+        }
+    }
+    
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent actual form submission
+
+            let toast = document.getElementById("toast");
+            toast.classList.add("toast-show");
+
+            setTimeout(function () {
+                toast.classList.add("toast-hide");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show", "toast-hide");
+                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
+                }, 500);
+            }, 3000); // Hide after 3 seconds
+        });
+    });
+
+
+
+    
+</script>
 
 {% endblock %}

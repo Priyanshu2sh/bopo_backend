@@ -12,13 +12,22 @@
 </head>
 
 <body>
+    <div class="topup-back-btn">
+        <a href="{% url 'merchant_credentials' %}" class="topup-back-back-btn-submit">
+            <i class="fa fa-arrow-left"></i> Back 
+        </a>
+    </div>
     <h1 class="heading">Merchant Top-Up Limit</h1>
     <div class="merchant_topup">
      
+        <form method="post">
+            {% csrf_token %}
+        
+            <div class="dropdown-container">
 
-        <!-- Dropdowns for Project and Merchant -->
-        <div class="dropdown-container">
-            {% comment %} <div class="form-group">
+
+             
+               {% comment %} <div class="form-group">
                 <label for="project">Select Project:</label>
                 <select id="project" name="project" required>
                     <option value="">-- Select a Project --</option>
@@ -26,11 +35,11 @@
                     <option value="project2">Project 2</option>
                     <option value="project3">Project 3</option>
                 </select>
-            </div> {% endcomment %}
+            </div>   {% endcomment %}
 
             <div class="form-group">
                 <label for="merchant">Select Merchant:</label>
-                <select id="merchant" name="merchant" onchange="fillMerchantId()">
+                <select id="merchant" name="merchant" onchange="fetchMerchantDetails()">
                     <option value="">Select Merchant</option>
                     {% for merchant in merchants %}
                         <option value="{{ merchant.id }}" data-merchant-id="{{ merchant.merchant_id }}">
@@ -50,23 +59,24 @@
 
                    <div class="form-group">
                         <label for="merchant_id">Merchant ID:</label>
-                        <input type="text" id="merchant_id" name="merchant_id" required readonly>
+                        <input type="text" id="merchant_id" name="merchant_id" readonly>
                     </div> 
 
                     <div class="form-group">
                         <label for="topup_amount">Top-Up Paid Amount:</label>
-                        <input type="number" id="topup_amount" name="topup_amount" required>
+                        <input type="number" id="topup_amount" name="topup_amount" readonly>
                     </div>
-
+        
                     <div class="form-group">
                         <label for="transaction_id">Transaction ID:</label>
                         <input type="text" id="transaction_id" name="transaction_id" required>
                     </div>
+        
                     <div class="form-group">
                         <label for="topup_points">Top-Up Points:</label>
                         <input type="number" id="topup_points" name="topup_points" required>
                     </div>
-               
+                </form>
             </div>
 
             <!-- Right Box for Extra Inputs -->
@@ -114,9 +124,8 @@
                     </div> {% endcomment %}
                    
                 </div>
-                
             </div>
-            
+        
             <button type="submit" class="topup-btn-submit">Submit</button>
         </div>
     </form>
@@ -124,6 +133,33 @@
     </div>
 
     <!-- JavaScript -->
+    <script>
+        function fetchMerchantDetails() {
+            const merchantSelect = document.getElementById("merchant");
+            const merchantId = merchantSelect.value;
+
+            if (!merchantId) {
+                document.getElementById("merchant_id").value = "";
+                document.getElementById("topup_amount").value = "";
+                return;
+            }
+
+            fetch(`/get-merchant-details/?merchant_id=${merchantId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById("merchant_id").value = data.merchant_code;
+                        document.getElementById("topup_amount").value = data.points || 0;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching merchant details:", error);
+                });
+        }
+    </script>
+    
     <script>
         function showPaymentFields() {
             let paymentMethod = document.getElementById("payment_mode").value;
@@ -133,15 +169,37 @@
            // document.getElementById("net_banking_fields").style.display = "none";
            // document.getElementById("card_fields").style.display = "none";
 
-            // Show fields based on selection
-            if (paymentMethod === "upi") {
-                document.getElementById("upi_fields").style.display = "block";
-            //} else if (paymentMethod === "net_banking") {
-            //    document.getElementById("net_banking_fields").style.display = "block";
-           // } else if (paymentMethod === "credit_card" || paymentMethod === "debit_card") {
-            //    document.getElementById("card_fields").style.display = "block";
-            }
+        // Show fields based on selection
+        if (paymentMethod === "upi") {
+            document.getElementById("upi_fields").style.display = "block";
+        //} else if (paymentMethod === "net_banking") {
+        //    document.getElementById("net_banking_fields").style.display = "block";
+       // } else if (paymentMethod === "credit_card" || paymentMethod === "debit_card") {
+        //    document.getElementById("card_fields").style.display = "block";
         }
+    }
+
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault(); 
+
+            let toast = document.getElementById("toast");
+            toast.classList.add("toast-show");
+
+            setTimeout(function () {
+                toast.classList.add("toast-hide");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show", "toast-hide");
+                    event.target.submit();
+                }, 500);
+            }, 3000);
+        });
+    });
+
+
+    
 
         function fillMerchantId() {
             const merchantDropdown = document.getElementById("merchant");
@@ -149,7 +207,7 @@
             const merchantId = selectedOption.getAttribute("data-merchant-id");
             document.getElementById("merchant_id").value = merchantId || "";
         }
-    </script>
+</script>
 
 </body>
 </html>
