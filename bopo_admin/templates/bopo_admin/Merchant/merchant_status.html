@@ -23,25 +23,9 @@
                     {% for corporate in corporates %}
                         <option value="{{ corporate.project_id }}">{{ corporate.project_name }} </option>
                     {% endfor %}
-                <select id="project-name" name="project_name" class="merchant_status-select" onchange="fetchMerchants()" required>
-                    <option value="">Select a project</option>
-                    {% for corporate in corporates %}
-                        <option value="{{ corporate.project_id }}">{{ corporate.project_name }} </option>
-                    {% endfor %}
+                
                 </select>
-
-
             </div>
-
-            
-
-            <div class="form-group">
-                <label for="merchant">Select Merchant:</label>
-                <select id="merchant" name="merchant" class="merchant_status-select">
-                    <option value="">-- Select a Merchant --</option>
-                    <!-- Options will be loaded here -->
-
-            
 
             <div class="form-group">
                 <label for="merchant">Select Merchant:</label>
@@ -58,9 +42,9 @@
         <div class="merchant_status-input-icon">
             <i class="fa fa-user merchant_status-icon"></i>
             <input type="text" id="merchant_name" name="merchant_name"
-       class="merchant_status-input" placeholder="Merchant Name" disabled>
+                class="merchant_status-input" placeholder="Merchant Name" disabled>
 
-       class="merchant_status-input" placeholder="Merchant Name" disabled>
+       
 
         </div>
     </div>
@@ -71,15 +55,15 @@
     <div class="merchant_status-input-icon">
         <i class="fa fa-barcode merchant_status-icon"></i>
         <select id="terminal-id-dropdown" name="terminal_id_dropdown" class="merchant_status-select" required>
-            <option value="select">-- Select a Terminal ID --</option>
-            <option value="TER000000000001">TER000000000001</option>
-            <option value="TER000000000002">TER000000000002</option>
+            <option value="">-- Select a Terminal ID --</option>
         </select>
+        
     </div><br>
     <button type="submit" class="merchant_status-submit-btn" onclick="showAlert()">Submit</button>
 </div>
     </form>
-    </form>
+</div>
+    
 <!-- Toast Notification -->
 <div id="toast" class="toast-container">
     <i class="fa fa-check-circle"></i>
@@ -119,13 +103,50 @@
     }
 
     // Autofill merchant name on select
+    // document.addEventListener("DOMContentLoaded", () => {
+    //     document.getElementById("merchant").addEventListener("change", function () {
+    //         const selectedOption = this.options[this.selectedIndex];
+    //         const merchantName = selectedOption.getAttribute("data-name") || "";
+    //         document.getElementById("merchant_name").value = merchantName;
+    //     });
+    // });
+
+
     document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("merchant").addEventListener("change", function () {
-            const selectedOption = this.options[this.selectedIndex];
-            const merchantName = selectedOption.getAttribute("data-name") || "";
-            document.getElementById("merchant_name").value = merchantName;
-        });
+    const merchantDropdown = document.getElementById("merchant");
+    const merchantNameInput = document.getElementById("merchant_name");
+    const terminalDropdown = document.getElementById("terminal-id-dropdown");
+
+    merchantDropdown.addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const merchantId = selectedOption.value;
+        const merchantName = selectedOption.getAttribute("data-name") || "";
+
+        // Set merchant name
+        merchantNameInput.value = merchantName;
+
+        // Clear Terminal ID dropdown
+        terminalDropdown.innerHTML = '<option value="">-- Select a Terminal ID --</option>';
+
+        // Fetch terminal IDs based on selected merchant
+        if (merchantId) {
+            fetch(`/get-terminal-ids/?merchant_id=${merchantId}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.terminal_ids.forEach(tid => {
+                        const option = document.createElement("option");
+                        option.value = tid;
+                        option.text = tid;
+                        terminalDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching terminal IDs:", error);
+                });
+        }
     });
+});
+
 </script>
     
 
@@ -157,8 +178,6 @@ function fetchMerchants() {
             console.error("Error fetching merchants:", error);
         });
 }
-
-
         data.merchants.forEach(merchant => {
     const option = document.createElement("option");
     option.value = merchant.merchant_id;
@@ -166,8 +185,7 @@ function fetchMerchants() {
     option.setAttribute("data-name", `${merchant.first_name} ${merchant.last_name}`); // Store full name
     merchantDropdown.appendChild(option);
 });
-
-    
+   
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("merchant").addEventListener("change", function () {
         const selectedOption = this.options[this.selectedIndex];
@@ -175,10 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("merchant_name").value = fullName;
     });
 });
-
-
-
-
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelector("form").addEventListener("submit", function (event) {
             event.preventDefault();

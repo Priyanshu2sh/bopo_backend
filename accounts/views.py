@@ -252,7 +252,7 @@ class RegisterUserAPIView(APIView):
         # if not project_name or len(project_name) < 4:
         #     return Response({"message": "Project name must be at least 4 characters."}, status=status.HTTP_400_BAD_REQUEST)
 
-        prefix = "MID"
+        prefix = "MEID"
         random_number = ''.join(random.choices(string.digits, k=11))
         merchant_id = f"{prefix}{random_number}"
         otp = random.randint(100000, 999999)

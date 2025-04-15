@@ -69,7 +69,7 @@ urlpatterns = [
     path('get-merchants/', views.get_merchants_by_project, name='get_merchants_by_project'),
     path('get-merchants/', views.get_merchants, name='get_merchants'),
     
-    path('get-merchants/', views.get_merchants, name='get_merchants'),
+
     path('get-employee/<int:employee_id>/', views.get_employee, name='get_employee'),
     path('update-employee/', views.update_employee, name='update_employee'),
     path('delete-employee/<int:employee_id>/', delete_employee, name='delete_employee'),
@@ -79,5 +79,7 @@ urlpatterns = [
 # path('individual/delete/<int:id>/', views.delete_individual_merchant, name='delete_individual'),
 
     
+
+    path("get-terminal-ids/", views.get_terminal_ids, name="get_terminal_ids"),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

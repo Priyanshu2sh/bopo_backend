@@ -3,7 +3,10 @@ from io import BytesIO
 import random
 import string
 from tkinter.font import Font
+from django.db.models import Max
+from django.db import models
 from django.http import HttpResponse, JsonResponse
+from django.db.models.functions import Cast, Substr
 from django.shortcuts import get_object_or_404, render
 import openpyxl
 from requests import Response
@@ -174,7 +177,6 @@ def add_merchant(request):
             # ✅ Corporate ID
             last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
             new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
-            new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
             corporate_id = f"CORP{new_corporate_id:06d}"
 
             if project_type == "Existing Project" and select_project:
@@ -208,6 +210,7 @@ def add_merchant(request):
                     project_name=project_name
                 )
 
+                merchant= Merchant.objects.get(merchant_id=merchant_id)
                 # ✅ Create terminal for the new merchant
                 terminal_id = generate_terminal_id()
                 while Terminal.objects.filter(terminal_id=terminal_id).exists():
@@ -312,32 +315,23 @@ def add_individual_merchant(request):
             # Uniqueness checks
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
             # Uniqueness checks
-            if Merchant.objects.filter(email=email).exists():
+            # if Merchant.objects.filter(email=email).exists():
                 return JsonResponse({"success": False, "message": "Email ID already exists!"})
             if Merchant.objects.filter(mobile=mobile).exists():
                 return JsonResponse({"success": False, "message": "Mobile number already exists!"})
 
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
-            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
+           
                 return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
             if Merchant.objects.filter(pan_number=pan_number).exists():
                 return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
-            # 🔢 Generate unique merchant ID
-            # last_merchant = Merchant.objects.all().order_by('id').last()
-            # if last_merchant and last_merchant.merchant_id:
-            #     try:
-            #         last_id = int(last_merchant.merchant_id.replace('MER', ''))
-            #         merchant_id = f"MER{last_id + 1:06d}"
-            #     except ValueError:
-            #         merchant_id = "MER000001"
-            # else:
-            #     merchant_id = "MER000001"
+             # Generate merchant_id
+            last_merchant = Merchant.objects.order_by('-id').first()
+            next_id = 1 if not last_merchant else last_merchant.id + 1
+            merchant_id = f"MID{str(next_id).zfill(11)}"
 
-            # # 🔢 Generate unique TID
-            # tid = generate_unique_tid()
 
-            # Save to database
             Merchant.objects.create(
                 merchant_id=merchant_id,
                 first_name=first_name,
@@ -345,7 +339,6 @@ def add_individual_merchant(request):
                 email=email,
                 mobile=mobile,
                 aadhaar_number=aadhaar_number,
-                gst=gst,
                 gst=gst,
                 pan_number=pan_number,
                 shop_name=shop_name,
@@ -358,7 +351,7 @@ def add_individual_merchant(request):
                 # tid=tid  # Store TID here
             )
 
-            return JsonResponse({'success': True, 'message': 'Merchant added successfully!'})
+            return JsonResponse({'success': True, 'message': 'Merchant added successfully!', 'merchant_id':merchant_id})
 
         except Exception as e:
             # Log the error for debugging purposes
@@ -378,33 +371,59 @@ def project_list(request):
     return render(request, 'bopo_admin/project_list.html')
 
 def merchant_credentials(request):
-    if request.method == "POST":
-        project = request.POST.get("project")
-        merchant_id = request.POST.get("merchant_id")
-        merchant_name = request.POST.get("merchant_name")
-        terminal_id = request.POST.get("terminal_id")
-
-        # Save to database or perform any other action
-        print('project:', project)
-        print('merchant_id:', merchant_id)
-        print('merchant_name:', merchant_name)
-        print('terminal_id:', terminal_id)
-       
-        MerchantCredential.objects.create(
-            
-            project=project,
-            merchant_id=merchant_id,
-            merchant_name=merchant_name,
-            terminal_id=terminal_id
-            
-        )
-    merchants = Merchant.objects.all().order_by('first_name')
+    merchants = Merchant.objects.all().order_by('merchant_id')
     corporates = Corporate.objects.all().order_by('project_name')
+
+    if request.method == 'POST':
+        project_id = request.POST.get('project')
+        merchant_id = request.POST.get('merchant_id')
+        terminal_id = request.POST.get('terminal_id_dropdown')
+
+        try:
+            merchant = Merchant.objects.get(merchant_id=merchant_id)
+            phone_number = merchant.mobile
+            if not phone_number.startswith('+'):
+                phone_number = f'+91{phone_number}'
+
+           # Compose the SMS message
+            message_text = (
+                f"Dear {merchant.first_name},\n\n"
+                f"Your BOPO login credentials are as follows:\n"
+                f"Merchant ID : {merchant_id}\n"
+                f"Terminal ID : {terminal_id}\n\n"
+                f"Please use these credentials to access your BOPO account.\n\n"
+                f"Regards,\n"
+                f"BOPO Support Team"
+            )
+           
+            # Fetch Twilio credentials from Django settings
+            account_sid = settings.TWILIO_ACCOUNT_SID
+            auth_token = settings.TWILIO_AUTH_TOKEN
+            twilio_phone_number = settings.TWILIO_PHONE_NUMBER
+
+            # Send SMS using Twilio
+            client = Client(account_sid, auth_token)
+            client.messages.create(
+                body=message_text,
+                from_=twilio_phone_number,
+                to=phone_number
+            )
+           
+            messages.success(request, f"Credentials sent to {merchant.first_name} at {phone_number}")
+
+        except Merchant.DoesNotExist:
+            messages.error(request, "Merchant not found.")
+        except Exception as e:
+            messages.error(request, f"Error sending SMS: {str(e)}")
+            print("Sending SMS to:", phone_number)
+            print("merchnat id:", merchant_id)
+
+        return redirect('merchant_credentials')
 
     context = {
         'merchants': merchants,
         'corporates': corporates,
-        }
+    }
     return render(request, 'bopo_admin/Merchant/merchant_credentials.html', context)
 
 def merchant_topup(request):
@@ -503,16 +522,6 @@ def get_merchants_by_project(request):
     merchants = Merchant.objects.filter(project_name__project_id=project_id).values('merchant_id', 'first_name', 'last_name')
     return JsonResponse({'merchants': list(merchants)})
 
-# def get_merchants_by_project(request):
-#     project_id = request.GET.get('project_id')
-#     merchants = Merchant.objects.filter(project_id=project_id)
-
-#     data = {
-#         'merchants': [
-#             {'id': m.id, 'name': m.name} for m in merchants
-#         ]
-#     }
-#     return JsonResponse(data)
 
 def merchant_status(request):
     merchants = Merchant.objects.all().order_by('merchant_id')
@@ -521,11 +530,19 @@ def merchant_status(request):
     context = {
         'merchants': merchants,
         'corporates': corporates,
-        'merchants': merchants,
-        'corporates': corporates,
+        
     }
 
     return render(request, 'bopo_admin/Merchant/merchant_status.html', context)
+
+def get_terminal_ids(request):
+    merchant_code = request.GET.get('merchant_id')  # This is like 'MER000001'
+    try:
+        merchant = Merchant.objects.get(merchant_id=merchant_code)
+        terminal_ids = Terminal.objects.filter(merchant_id=merchant.id).values_list('terminal_id', flat=True)
+        return JsonResponse({'terminal_ids': list(terminal_ids)})
+    except Merchant.DoesNotExist:
+        return JsonResponse({'terminal_ids': []})
 
 def get_merchants(request):
     project_id = request.GET.get('project_id')
@@ -880,7 +897,22 @@ from .models import Employee, State, City
 
 def add_employee(request):
     if request.method == "POST":
-        employee_id = request.POST.get("employee_id")
+        # Generate employee ID
+        last_employee = Employee.objects.aggregate(max_id=Max('employee_id'))['max_id']
+
+        if last_employee:
+            # Extract numeric part from EMP10000001 => 10000001
+            try:
+                last_number = int(last_employee.replace("EMP", ""))
+            except ValueError:
+                last_number = 10000000
+        else:
+            last_number = 10000000
+
+        next_number = last_number + 1
+        employee_id = f"EMP{next_number:08d}"  # Always 8 digits after EMP
+
+        # Continue with rest of the logic
         name = request.POST.get("employee_name")
         email = request.POST.get("email")
         aadhaar = request.POST.get("aadhaar")
@@ -893,17 +925,13 @@ def add_employee(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
         country = request.POST.get("country", "India")
-        # status = request.POST.get("status")
 
         if Employee.objects.filter(email=email).exists():
             return JsonResponse({"success": False, "message": "Email ID already exists!"})
-
         if Employee.objects.filter(mobile=mobile).exists():
             return JsonResponse({"success": False, "message": "Mobile number already exists!"})
-
         if Employee.objects.filter(aadhaar=aadhaar).exists():
             return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
-
         if Employee.objects.filter(pan=pan).exists():
             return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
@@ -926,14 +954,12 @@ def add_employee(request):
             pincode=pincode,
             username=username,
             password=password,
-            country=country,
-            # status=status
+            country=country
         )
 
-        return JsonResponse({"success": True, "message": "Employee added successfully!"})
+        return JsonResponse({"success": True, "message": f"Employee added successfully!"})
 
     return render(request, 'bopo_admin/Employee/add_employee.html')
-
 
 def employee_role(request):
     if request.method == "POST":
