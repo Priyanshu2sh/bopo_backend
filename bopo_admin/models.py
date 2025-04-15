@@ -171,18 +171,6 @@ class Employee(models.Model):
     country = models.CharField(max_length=255)
     # status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Inactive', null=False, blank=False)
 
-    
-    def save(self, *args, **kwargs):
-        if not self.employee_id:
-            with transaction.atomic():
-                last_emp = Employee.objects.select_for_update().order_by('-id').first()
-                if last_emp and last_emp.employee_id:
-                    last_id = int(last_emp.employee_id.replace('EMP', ''))
-                    self.employee_id = f"EMP{last_id + 1:03d}"
-                else:
-                    self.employee_id = "EMP001"
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return self.name
 
