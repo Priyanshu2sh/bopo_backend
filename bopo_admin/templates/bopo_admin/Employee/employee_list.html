@@ -100,12 +100,12 @@
 
                                 <label for="edit_state">Select State</label>
                                 <select id="edit_state" name="state" class="select2" onchange="fetchCities(this.value)">
-                                    <option value="">Select State</option>
+                                    <option value=" ">Select State</option>
                                 </select>
 
                                 <label for="edit_city">Select City</label>
                                 <select id="edit_city" name="city" class="select2" onchange="fetchCities()">
-                                    <option value="">Select City</option>
+                                    <option value=" ">Select City</option>
                                 </select>
 
                                 <label for="edit_country">Country</label>
@@ -234,9 +234,6 @@ function openEditModal(employeeId) {
     fetch(`/bopo_admin/get-employee/${employeeId}/`)
         .then(res => res.json())
         .then(data => {
-            console.log("Employee state:", data.state);
-            console.log("Employee city:", data.city);
-
             document.getElementById("edit_employee_id").value = data.id;
             document.getElementById("edit_employee_name").value = data.name;
             document.getElementById("edit_email").value = data.email;
@@ -249,31 +246,21 @@ function openEditModal(employeeId) {
             document.getElementById("edit_pan").value = data.pan;
             document.getElementById("edit_pincode").value = data.pincode;
 
+            // Fetch states and set the selected state
             fetchStates().then(() => {
-                // Ensure that state dropdown is updated first
-                $('#edit_state').val(data.state).trigger('change'); // This triggers the change event to update cities.
+                const stateDropdown = document.getElementById("edit_state");
+                stateDropdown.value = data.state;
 
-                // Fetch and update cities after the state has been set
-                fetch(`/bopo_admin/get-cities/${data.state}/`)
-                    .then(res => res.json())
-                    .then(cities => {
-                        const cityDropdown = document.getElementById("edit_city");
-                        cityDropdown.innerHTML = '<option value="">Select City</option>';
-                        cities.forEach(city => {
-                            let option = document.createElement("option");
-                            option.value = city.id;
-                            option.textContent = city.name;
-                            cityDropdown.appendChild(option);
-                        });
-
-                        $('#edit_city').val(data.city).trigger('change');
-                    });
+                // Fetch cities for the selected state and set the selected city
+                fetchCities(data.state).then(() => {
+                    const cityDropdown = document.getElementById("edit_city");
+                    cityDropdown.value = data.city;
+                });
             });
 
             document.getElementById("editModal").style.display = "block";
         });
 }
-
 
 function closeEditModal() {
     document.getElementById("editModal").style.display = "none";
@@ -296,7 +283,7 @@ function fetchStates() {
 }
 
 function fetchCities(state) {
-    fetch(`/bopo_admin/get-cities/${state}/`)
+    return fetch(`/bopo_admin/get-cities/${state}/`)
         .then(res => res.json())
         .then(cities => {
             const cityDropdown = document.getElementById("edit_city");
@@ -309,7 +296,6 @@ function fetchCities(state) {
             });
         });
 }
-
 
 function togglePassword(id) {
     const passwordInput = document.getElementById(id);
