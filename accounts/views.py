@@ -13,6 +13,8 @@ from bopo_backend import settings
 
 from .models import  Customer, Merchant, Terminal, User, Corporate
 from .serializers import   CustomerSerializer, MerchantSerializer, TerminalSerializer, UserSerializer
+from .models import  Customer, Merchant, Terminal, User, Corporate
+from .serializers import   CustomerSerializer, MerchantSerializer, TerminalSerializer, UserSerializer
 
 logger = logging.getLogger(__name__)
 

@@ -121,6 +121,12 @@ class Merchant(models.Model):
     def __str__(self):
         return self.first_name if self.first_name else "Merchant"
     
+    
+class Terminal(models.Model):
+    terminal_id = models.CharField(max_length=20, unique=True)
+    merchant_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='terminals')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
 
 
 class Terminal(models.Model):
