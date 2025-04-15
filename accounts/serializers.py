@@ -1,6 +1,12 @@
 from rest_framework import serializers
-from .models import  Corporate, Customer,  Merchant
+from .models import  Corporate, Customer,  Merchant, Terminal
 from .models import User
+
+class TerminalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Terminal
+        fields = ['id', 'terminal_id', 'merchant_id', 'created_at']
+        read_only_fields = ['terminal_id','created_at']
 
 class CorporateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)

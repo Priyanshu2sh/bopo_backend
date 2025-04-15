@@ -11,10 +11,31 @@ from rest_framework import status
 from django.utils.timezone import now
 from bopo_backend import settings
 
-from .models import  Customer, Merchant, User, Corporate
-from .serializers import   CustomerSerializer, MerchantSerializer, UserSerializer
+from .models import  Customer, Merchant, Terminal, User, Corporate
+from .serializers import   CustomerSerializer, MerchantSerializer, TerminalSerializer, UserSerializer
 
 logger = logging.getLogger(__name__)
+
+
+def generate_terminal_id():
+    return 'TERM' + ''.join(random.choices(string.digits, k=6))
+
+class CreateTerminalAPIView(APIView):
+    def post(self, request):
+        merchant_id = request.data.get('merchant_id')
+        try:
+            merchant = Merchant.objects.get(id=merchant_id)
+        except Merchant.DoesNotExist:
+            return Response({'error': 'Merchant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Keep generating until unique terminal_id is found
+        terminal_id = generate_terminal_id()
+        while Terminal.objects.filter(terminal_id=terminal_id).exists():
+            terminal_id = generate_terminal_id()
+
+        terminal = Terminal.objects.create(terminal_id=terminal_id, merchant_id=merchant)
+        serializer = TerminalSerializer(terminal)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class OTPService:
     """ Helper class to handle OTP sending via Twilio """

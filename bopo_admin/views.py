@@ -11,7 +11,8 @@ from openpyxl.styles import Font
 
 
 
-from accounts.models import Corporate, Customer, Merchant
+from accounts.models import Corporate, Customer, Merchant, Terminal
+from accounts.views import generate_terminal_id
 from bopo_award.models import CustomerPoints, History, MerchantPoints
 
 # from django.contrib.auth import authenticate 
@@ -161,7 +162,7 @@ def add_merchant(request):
 
             # ✅ Corporate ID
             last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
-            new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[4:]) + 1
+            new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
             corporate_id = f"CORP{new_corporate_id:06d}"
 
             if project_type == "Existing Project" and select_project:
@@ -194,6 +195,15 @@ def add_merchant(request):
                     corporate_id=corporate.corporate_id,
                     project_name=project_name
                 )
+                
+                merchant = Merchant.objects.get(merchant_id=merchant_id)
+                # ✅ Create terminal for the new merchant
+                terminal_id = generate_terminal_id()
+                print('aaaa')
+                while Terminal.objects.filter(terminal_id=terminal_id).exists():
+                    terminal_id = generate_terminal_id()
+
+                Terminal.objects.create(terminal_id=terminal_id, merchant_id=merchant)
 
             elif project_type == "New Project":
                 if not project_name:
@@ -274,7 +284,7 @@ def add_individual_merchant(request):
             email = request.POST.get("email")
             mobile = request.POST.get("mobile")
             aadhaar_number = request.POST.get("aadhaar_number")
-            gst_number = request.POST.get("gst_number")
+            gst = request.POST.get("gst")
             pan_number = request.POST.get("pan_number")
             shop_name = request.POST.get("shop_name")
             legal_name = request.POST.get("legal_name")
@@ -289,10 +299,10 @@ def add_individual_merchant(request):
             city = City.objects.get(id=city_id)
 
             # Uniqueness checks
-            if Merchant.objects.filter(email=email).exists():
+            if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
                 return JsonResponse({"success": False, "message": "Email ID already exists!"})
 
-            if Merchant.objects.filter(mobile=mobile).exists():
+            if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
                 return JsonResponse({"success": False, "message": "Mobile number already exists!"})
 
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
@@ -300,6 +310,18 @@ def add_individual_merchant(request):
 
             if Merchant.objects.filter(pan_number=pan_number).exists():
                 return JsonResponse({"success": False, "message": "PAN number already exists!"})
+            
+            
+             # 🔢 Generate unique merchant ID
+            last_merchant = Merchant.objects.all().order_by('id').last()
+            if last_merchant and last_merchant.merchant_id:
+                try:
+                    last_id = int(last_merchant.merchant_id.replace('MER', ''))
+                    merchant_id = f"MER{last_id + 1:06d}"
+                except ValueError:
+                    merchant_id = "MER000001"
+            else:
+                merchant_id = "MER000001"
 
             # Save merchant to the database
             Merchant.objects.create(
@@ -309,7 +331,7 @@ def add_individual_merchant(request):
                 email=email,
                 mobile=mobile,
                 aadhaar_number=aadhaar_number,
-                gst_number=gst_number,
+                gst=gst,
                 pan_number=pan_number,
                 shop_name=shop_name,
                 legal_name=legal_name,
@@ -431,17 +453,35 @@ def reduce_limit(request):
         )
     return render(request, 'bopo_admin/Merchant/reduce_limit.html')
 
-def merchant_status(request):
+# def merchant_status(request):
     # Fetch active merchants, ordered by legal name
-    merchants = Merchant.objects.filter(status='active').order_by('legal_name')
+    # merchants = Merchant.objects.filter(status='active').order_by('legal_name')
 
     # Pass the list to the template context
-    context = {
-        'merchants': merchants
-    }
+    # context = {
+    #     'merchants': merchants
+    # }
 
     # Render the template with the context
+    # return render(request, 'bopo_admin/Merchant/merchant_status.html', context)
+    
+def merchant_status(request):
+    merchants = Merchant.objects.all().order_by('merchant_id')
+    corporates = Corporate.objects.all().order_by('project_name')
+
+    context = {
+        'merchants': merchants,
+        'corporates': corporates,
+    }
+
     return render(request, 'bopo_admin/Merchant/merchant_status.html', context)
+
+def get_merchants(request):
+    project_id = request.GET.get('project_id')
+
+    merchants = Merchant.objects.filter(project_id=project_id).values('merchant_id', 'first_name', 'last_name')
+    print(list(merchants))
+    return JsonResponse({'merchants': list(merchants)})
 
 def login_page_info(request):
     if request.method == 'POST':
@@ -580,6 +620,89 @@ def employee_list(request):
     employees = Employee.objects.all()
     return render(request, 'bopo_admin/Employee/employee_list.html', {'employees': employees})
 
+from django.http import JsonResponse
+from .models import Employee 
+def get_employee(request, employee_id):
+    try:
+        # Get the employee by ID
+        employee = Employee.objects.get(id=employee_id)
+        
+        # Return employee details as JSON
+        employee_data = {
+            'id': employee.id,
+            'name': employee.name,
+            'email': employee.email,
+            'aadhaar': employee.aadhaar,
+            'address': employee.address,
+            'state': employee.state,
+            'city': employee.city,
+            'username': employee.username,
+            'password': employee.password,
+            'mobile': employee.mobile,
+            'pan': employee.pan,
+            'pincode': employee.pincode
+        }
+        
+        return JsonResponse(employee_data)
+    except Employee.DoesNotExist:
+        return JsonResponse({'error': 'Employee not found'}, status=404)
+    
+from django.http import JsonResponse
+from .models import Employee
+
+def update_employee(request): 
+    if request.method == "POST":
+        employee_id = request.POST.get('employee_id')
+        name = request.POST.get('employee_name')
+        email = request.POST.get('email')
+        aadhaar = request.POST.get("aadhaar")
+        address = request.POST.get("address")
+        state_id = request.POST.get("state")
+        city_id = request.POST.get("city")
+        mobile = request.POST.get("mobile")
+        pan = request.POST.get("pan")
+        pincode = request.POST.get("pincode")
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        country = request.POST.get("country", "India")
+        
+        try:
+            # Get the employee object by id
+            employee = Employee.objects.get(id=employee_id)
+            
+            # Update the employee object fields
+            employee.name = name
+            employee.email = email
+            employee.aadhaar = aadhaar  # Corrected here
+            employee.address = address  # Corrected here
+            employee.state_id = state_id  # Corrected here
+            employee.city_id = city_id  # Corrected here
+            employee.mobile = mobile
+            employee.pan = pan
+            employee.pincode = pincode
+            employee.username = username
+            employee.password = password
+            employee.country = country
+            
+            # Save the updated employee object
+            employee.save()
+
+            return JsonResponse({'success': True})
+        except Employee.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Employee not found'})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+from django.http import JsonResponse
+from .models import Employee
+
+def delete_employee(request, employee_id):
+    try:
+        employee = Employee.objects.get(id=employee_id)
+        employee.delete()
+        return JsonResponse({'success': True})
+    except Employee.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Employee not found'}, status=404)
 
 
 from django.http import JsonResponse

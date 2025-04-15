@@ -237,22 +237,7 @@ button {
     border: 1px solid #888;
     width: 80%;
 }
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
-    margin: 0;
-    padding: 0;
-}
 
-.merchant-container {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 1300px;
-    margin: auto;
-    margin-top: 5%;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
 
 /* Header */
 .merchant-header {
@@ -266,21 +251,7 @@ body {
     font-weight: bold;
 }
 
-/* Add Merchant Button */
-.add-merchant-btn {
-    background-color: #803a2f;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 20px;
-    font-weight: bold;
-}
 
-.add-merchant-btn:hover {
-    background-color: #a14a3f;
-}
 
 /* Merchant List */
 .merchant-list {
@@ -414,4 +385,187 @@ button {
     font-weight: bold;
     border: 2px solid #ff4e00;
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 120%;
+    height: 120%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 40%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.close {
+    float: right;
+    font-size: 28px;
+    cursor: pointer;
+}
+.addemployee-form-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+.addemployee-form-group {
+    width: 48%;
+    height:70vh;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+}
+.addemployee-form-group label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #555;
+}
+.addemployee-input-container {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+.addemployee-input-container i {
+    color: #555;
+    margin-right: 10px;
+}
+.addemployee-input-container input, select {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 14px;
+}
+.addemployee-form-group label[for="city"] {
+    margin-top: 2.5%; /* Adjust as needed */
+    display: block; /* Ensure it's positioned properly */
+    
+}
+
+
+.addemployee-btn-submit {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 18%;
+    width: 70%;
+    font-size: 16px;
+    color: white;
+    background-color: #004080; /* Primary Blue */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: -40%;
+}
+
+.addemployee-btn-submit:hover {
+    background-color: #002b55; /* Darker Blue */
+}
+
+
+
+
+.addemployee-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.password-checkbox {
+    display: none;
+}
+
+/* Hide text version by default */
+.show-password {
+    display: none;
+}
+
+/* Toggle between password and text input */
+.password-checkbox:checked + .password-toggle + .password-field {
+    display: none;
+}
+
+.password-checkbox:checked + .password-toggle + .password-field + .show-password {
+    display: inline-block;
+}
+
+/* Position eye icon */
+.password-toggle {
+    cursor: pointer;
+    margin-left: -10px;
+    color: #555;
+}
+
+/* Change eye icon when checked */
+.password-checkbox:checked + .password-toggle i::before {
+    content: "\f070"; /* FontAwesome eye-slash */
+}
+
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-selection--single {
+    height: 38px !important;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-selection__rendered {
+    font-size: 14px;
+    color: #555;
+    line-height: 26px;
+}
+
+.select2-selection__arrow {
+    height: 100%;
+}
+
+
+/* Toast Notification Styling */
+.toast-container {
+    visibility: hidden;
+    min-width: 250px; 
+    background-color: #ff4d4d; 
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    padding: 16px;
+    position: fixed;
+    top: 20px; /* Move to top */
+    left: 50%; /* Align to right */
+    font-size: 17px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(-50%); /* Initial hidden position */
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+.toast-success {
+    background-color: #4CAF50; /* green */
+    color: white;
+}
+.toast-error {
+    background-color: #ff4d4d; /* red (error) */
+    color: white;
 }
