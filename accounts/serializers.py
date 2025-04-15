@@ -1,6 +1,12 @@
 from rest_framework import serializers
-from .models import  Corporate, Customer,  Merchant
+from .models import  Corporate, Customer,  Merchant, Terminal
 from .models import User
+
+class TerminalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Terminal
+        fields = ['id', 'terminal_id', 'merchant_id', 'created_at']
+        read_only_fields = ['terminal_id', 'created_at']
 
 class CorporateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
@@ -19,8 +25,8 @@ class MerchantSerializer(serializers.ModelSerializer):
         model = Merchant
         fields = '__all__'
         extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 'legal_name': {'required':False},
-                        'pincode': {'required':False}, 'address': {'required':False}, 'select_state': {'required':False}, 'country': {'required':False},
-                        'shop_name':{'required':False},'register_shop_name':{'required':False}, 'gst':{'required':False}}
+                        'pincode': {'required':False}, 'address': {'required':False}, 'state': {'required':False}, 'country': {'required':False}, 'city': {'required':False}, 'corporate_id': {'required':False}, 
+                        'shop_name':{'required':False},'register_shop_name':{'required':False}, 'gst':{'required':False}, 'project_name':{'required':False}}
 
 class CustomerSerializer(serializers.ModelSerializer):
    
@@ -30,7 +36,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = '__all__'
-        extra_kwargs = {'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 'gender':{'required':False},
+        extra_kwargs = {'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 'gender':{'required':False}, 'project_name':{'required':False},
                         'pincode': {'required':False}, 'address': {'required':False}, 'select_state': {'required':False}, 'country': {'required':False},}
 
 

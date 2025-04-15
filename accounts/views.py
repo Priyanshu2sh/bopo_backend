@@ -11,10 +11,30 @@ from rest_framework import status
 from django.utils.timezone import now
 from bopo_backend import settings
 
-from .models import  Customer, Merchant, User, Corporate
-from .serializers import   CustomerSerializer, MerchantSerializer, UserSerializer
+from .models import  Customer, Merchant, Terminal, User, Corporate
+from .serializers import   CustomerSerializer, MerchantSerializer, TerminalSerializer, UserSerializer
 
 logger = logging.getLogger(__name__)
+
+def generate_terminal_id():
+    return 'TERM' + ''.join(random.choices(string.digits, k=6))
+
+class CreateTerminalAPIView(APIView):
+    def post(self, request):
+        merchant_id = request.data.get('merchant_id')
+        try:
+            merchant = Merchant.objects.get(id=merchant_id)
+        except Merchant.DoesNotExist:
+            return Response({'error': 'Merchant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Keep generating until unique terminal_id is found
+        terminal_id = generate_terminal_id()
+        while Terminal.objects.filter(terminal_id=terminal_id).exists():
+            terminal_id = generate_terminal_id()
+
+        terminal = Terminal.objects.create(terminal_id=terminal_id, merchant_id=merchant)
+        serializer = TerminalSerializer(terminal)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class OTPService:
     """ Helper class to handle OTP sending via Twilio """
@@ -223,16 +243,16 @@ class RegisterUserAPIView(APIView):
 
     def register_merchant(self, request, mobile, user_type, project_name):
         """Handles merchant registration"""
-        if user_type not in ["corporate", "individual"]:
-            return Response({"message": "Invalid user type.", "user_type": "merchant", "merchant_id": None},
+        if user_type not in ["individual"]:
+            return Response({"message": "Invalid user type, only individual merchant can register here", "user_type": "merchant", "merchant_id": None},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        if not project_name or len(project_name) < 4:
-            return Response({"message": "Project name must be at least 4 characters."}, status=status.HTTP_400_BAD_REQUEST)
+        # if not project_name or len(project_name) < 4:
+        #     return Response({"message": "Project name must be at least 4 characters."}, status=status.HTTP_400_BAD_REQUEST)
 
-        project_abbr = project_name[:4].upper()
+        prefix = "MID"
         random_number = ''.join(random.choices(string.digits, k=11))
-        merchant_id = f"{project_abbr}{random_number}"
+        merchant_id = f"{prefix}{random_number}"
         otp = random.randint(100000, 999999)
 
         try:

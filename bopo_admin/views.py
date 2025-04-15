@@ -14,7 +14,8 @@ from django.conf import settings
 
 
 
-from accounts.models import Corporate, Customer, Merchant
+from accounts.models import Corporate, Customer, Merchant, Terminal
+from accounts.views import generate_terminal_id
 from bopo_award.models import CustomerPoints, History, MerchantPoints
 
 # from django.contrib.auth import authenticate 
@@ -28,6 +29,12 @@ from bopo_admin.models import Employee
 
 # Create your views here.
 
+# def generate_unique_tid():
+#     while True:
+#         number_part = random.randint(10000001, 99999999)
+#         tid = f"TID{number_part}"
+#         if not Merchant.objects.filter(tid=tid).exists():
+#             return tid
 
 def home(request):
     # Calculate total projects and project progress
@@ -164,7 +171,7 @@ def add_merchant(request):
 
             # ✅ Corporate ID
             last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
-            new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[4:]) + 1
+            new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
             corporate_id = f"CORP{new_corporate_id:06d}"
 
             if project_type == "Existing Project" and select_project:
@@ -198,6 +205,13 @@ def add_merchant(request):
                     project_name=project_name
                 )
 
+                # ✅ Create terminal for the new merchant
+                terminal_id = generate_terminal_id()
+                while Terminal.objects.filter(terminal_id=terminal_id).exists():
+                    terminal_id = generate_terminal_id()
+
+                Terminal.objects.create(terminal_id=terminal_id, merchant_id=merchant)
+
             elif project_type == "New Project":
                 if not project_name:
                     message = "Project name is required for new projects."
@@ -225,8 +239,7 @@ def add_merchant(request):
                     pincode=pincode,
                     state=state,
                     city=city,
-                    country=country,
-                role='admin'
+                    country=country
                 )
             else:
                 message = "Invalid project type selected."
@@ -269,42 +282,51 @@ from django.http import JsonResponse
 
 
 def add_individual_merchant(request):
-
     if request.method == "POST":
-        # try:
+        try:
+            # Get form data
             merchant_id = request.POST.get("merchant_id")
             first_name = request.POST.get("first_name")
             last_name = request.POST.get("last_name")
             email = request.POST.get("email")
             mobile = request.POST.get("mobile")
             aadhaar_number = request.POST.get("aadhaar_number")
-            gst_number = request.POST.get("gst_number")
+            gst = request.POST.get("gst")
             pan_number = request.POST.get("pan_number")
             shop_name = request.POST.get("shop_name")
             legal_name = request.POST.get("legal_name")
             address = request.POST.get("address")
             pincode = request.POST.get("pincode")
             state_id = request.POST.get("state")
-            city_id= request.POST.get("city")
+            city_id = request.POST.get("city")
             country = request.POST.get("country", "India")
-            
+
             state = State.objects.get(id=state_id)
             city = City.objects.get(id=city_id)
 
-
-         
-            # Uniqueness Checks
-            if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
+            # Uniqueness checks
+            if Merchant.objects.filter(email=email).exists():
                 return JsonResponse({"success": False, "message": "Email ID already exists!"})
-
-            if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(email=email).exists():
+            if Merchant.objects.filter(mobile=mobile).exists():
                 return JsonResponse({"success": False, "message": "Mobile number already exists!"})
-
-            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(email=email).exists():
+            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
                 return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
-
             if Merchant.objects.filter(pan_number=pan_number).exists():
                 return JsonResponse({"success": False, "message": "PAN number already exists!"})
+
+            # 🔢 Generate unique merchant ID
+            # last_merchant = Merchant.objects.all().order_by('id').last()
+            # if last_merchant and last_merchant.merchant_id:
+            #     try:
+            #         last_id = int(last_merchant.merchant_id.replace('MER', ''))
+            #         merchant_id = f"MER{last_id + 1:06d}"
+            #     except ValueError:
+            #         merchant_id = "MER000001"
+            # else:
+            #     merchant_id = "MER000001"
+
+            # # 🔢 Generate unique TID
+            # tid = generate_unique_tid()
 
             # Save to database
             Merchant.objects.create(
@@ -314,7 +336,7 @@ def add_individual_merchant(request):
                 email=email,
                 mobile=mobile,
                 aadhaar_number=aadhaar_number,
-                gst_number=gst_number,
+                gst=gst,
                 pan_number=pan_number,
                 shop_name=shop_name,
                 legal_name=legal_name,
@@ -322,17 +344,16 @@ def add_individual_merchant(request):
                 pincode=pincode,
                 state=state,
                 city=city,
-                country=country
+                country=country,
+                # tid=tid  # Store TID here
             )
 
             return JsonResponse({'success': True, 'message': 'Merchant added successfully!'})
-        
-        # except Exception as e:
-        #     return JsonResponse({'success': False, 'message': str(e)})
 
-    # GET method: render the form page
-    return render(request, 'bopo_admin/Merchant/add_individual_merchant.html')
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f"An error occurred: {str(e)}"})
 
+    return render(request, "bopo_admin/Merchant/add_individual_merchant.html")
 
 
 
@@ -465,11 +486,22 @@ def reduce_limit(request):
 
 def get_merchants_by_project(request):
     project_id = request.GET.get('project_id')
-    merchants = Merchant.objects.filter(project_name__project_id=project_id).values('merchant_id')
+    merchants = Merchant.objects.filter(project_name__project_id=project_id).values('merchant_id', 'first_name', 'last_name')
     return JsonResponse({'merchants': list(merchants)})
 
+# def get_merchants_by_project(request):
+#     project_id = request.GET.get('project_id')
+#     merchants = Merchant.objects.filter(project_id=project_id)
+
+#     data = {
+#         'merchants': [
+#             {'id': m.id, 'name': m.name} for m in merchants
+#         ]
+#     }
+#     return JsonResponse(data)
+
 def merchant_status(request):
-    merchants = Merchant.objects.all().order_by('first_name')
+    merchants = Merchant.objects.all().order_by('merchant_id')
     corporates = Corporate.objects.all().order_by('project_name')
 
     context = {
@@ -478,6 +510,17 @@ def merchant_status(request):
     }
 
     return render(request, 'bopo_admin/Merchant/merchant_status.html', context)
+
+def get_merchants(request):
+    project_id = request.GET.get('project_id')
+
+    merchants = Merchant.objects.filter(project_id=project_id).values('merchant_id', 'first_name', 'last_name')
+    print(list(merchants))
+    return JsonResponse({'merchants': list(merchants)})
+
+
+
+
 
 def login_page_info(request):
     if request.method == 'POST':

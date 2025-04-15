@@ -96,7 +96,6 @@ class Merchant(models.Model):
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Active')
     pincode = models.IntegerField(null=True, blank=True)
     address = models.CharField(max_length=255, blank=True, null=True)
-    select_state = models.CharField(max_length=255, blank=True, null=True)
     country = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     verified_at = models.DateTimeField(null=True, blank=True)
@@ -121,6 +120,15 @@ class Merchant(models.Model):
 
     def __str__(self):
         return self.first_name if self.first_name else "Merchant"
+    
+
+
+class Terminal(models.Model):
+    terminal_id = models.CharField(max_length=20, unique=True)
+    merchant_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='terminals')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
     
 
 
@@ -157,6 +165,7 @@ class Customer(models.Model):
     state = models.CharField(max_length=255, null=True, blank=True)
     country = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
     STATUS_CHOICES = [
         ('Active', 'Active'),
         ('Inactive', 'Inactive'),

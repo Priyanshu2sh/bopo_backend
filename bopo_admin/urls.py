@@ -60,13 +60,14 @@ urlpatterns = [
     path('export_payment_dues/', views.export_projects, name='export_payment_dues'),
     path('export_award_transaction/', views.export_projects, name='export_award_transaction'),
     path('export_corporate_merchant/', views.export_projects, name='export_corporate_merchant'),
-      path("get-merchant-details/", views.get_merchant_details, name="get_merchant_details"),
+    path("get-merchant-details/", views.get_merchant_details, name="get_merchant_details"),
   
     
     path("get-states/", views.get_states, name="get_states"),
     path("get-cities/<int:state_id>/", views.get_cities, name="get_cities"),
 
     path('get-merchants/', views.get_merchants_by_project, name='get_merchants_by_project'),
+    path('get-merchants/', views.get_merchants, name='get_merchants'),
     
   
 # path('individual/edit/<int:id>/', views.edit_individual_merchant, name='edit_individual'),
