@@ -48,7 +48,13 @@
                                 <td>{{ merchant.shop_name }}</td>
                                 <td>{{ merchant.city }}</td>
                                 <td>{{ points_mapping|get_item:merchant.id }}</td>
-                                <td>{{ merchant.verified_at|yesno:"Active,Inactive" }}</td>
+                                {% comment %} <td>{{ merchant.verified_at|yesno:"Active,Inactive" }}</td> {% endcomment %}
+                                <td>
+                                    <label class="switch">
+                                      <input type="checkbox" class="status-toggle" {% if merchant.verified_at %}checked{% endif %} data-id="{{ merchant.id }}">
+                                      <span class="slider round"></span>
+                                    </label>
+                                  </td>
                                 <td>
                                     <button class="edit-btn" onclick="openEditModal('{{ merchant.id }}')">✏️</button>
                                     <button class="delete-btn" onclick="deleteMerchant('{{ merchant.id }}')">🗑️</button>
@@ -426,6 +432,7 @@ function paginateTable() {
 }
 
 window.onload = paginateTable;
+
 
 
 

@@ -1,4 +1,5 @@
 from io import BytesIO
+import json
 import random
 import string
 from tkinter.font import Font
@@ -25,6 +26,26 @@ from bopo_admin.models import Employee
 
 
 # Create your views here.
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth.forms import AuthenticationForm
+
+def login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                auth_login(request, user)
+                return redirect('home')  # Redirect to home after successful login
+            else:
+                error_message = 'Invalid login credentials'
+                return render(request, 'login.html', {'error_message': error_message})
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
 
 
 def home(request):
@@ -260,9 +281,38 @@ def redirect_with_success(request, message):
     messages.success(request, message)
     return redirect("add_merchant")
 
+# In your Django views.py
+from django.http import JsonResponse
+from accounts.models import Merchant,Corporate
 
 
-
+def edit_copmerchant(request, merchant_id):
+    try:
+        # Fetch the merchant by ID
+        merchant = Merchant.objects.get(id=merchant_id)
+        
+        
+        # Prepare the data to return
+        data = {
+            'first_name': merchant.first_name,
+            'last_name': merchant.last_name,
+            'email': merchant.email,
+            'aadhaar': merchant.aadhaar_number,
+            'shop_name': merchant.shop_name,
+            'address': merchant.address,
+            'state': merchant.state,  
+            'mobile': merchant.mobile,
+            'gst_number': merchant.gst_number,
+            'pan_number': merchant.pan_number,
+            'legal_name': merchant.legal_name,
+            'city': merchant.city,  
+            'pincode': merchant.pincode,
+            'project_name': merchant.project_name,  # Add project_name field
+            
+        }
+        return JsonResponse(data)
+    except Merchant.DoesNotExist:
+        return JsonResponse({'error': 'Merchant not found'}, status=404)
 
 
 # def edit_individual(request, id):
@@ -567,6 +617,29 @@ def merchant_status(request):
     }
 
     return render(request, 'bopo_admin/Merchant/merchant_status.html', context)
+
+
+
+# from django.http import JsonResponse
+# from accounts.models import Merchant
+
+
+# def update_merchant_status(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         merchant_id = data.get('id')
+#         verified_at = data.get('verified_at')
+        
+#         try:
+#             merchant = Merchant.objects.get(id=merchant_id)
+#             merchant.verified_at = verified_at
+#             merchant.save()
+#             return JsonResponse({'success': True})
+#         except Merchant.DoesNotExist:
+#             return JsonResponse({'success': False, 'message': 'Merchant not found'})
+
+#     return JsonResponse({'success': False, 'message': 'Invalid request'})
+
 
 def get_merchants(request):
     project_id = request.GET.get('project_id')

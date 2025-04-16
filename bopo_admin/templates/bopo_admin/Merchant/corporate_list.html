@@ -3,6 +3,9 @@
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/corporate_merchant_list.css' %}">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <div class="merchant-container">
     <div class="merchant-header">
@@ -38,7 +41,7 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody id="table-body">
+                        <tbody id="corporate-table-body">
                             {% for data in corporate_data %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
@@ -48,10 +51,10 @@
                                     <td>{{ data.corporate.mobile }}</td>
                                     <td>{{ data.corporate.shop_name }}</td>
                                     <td>{{ data.corporate.city }}</td>
-                                    <td>{{ data.corporate.verified_at|yesno:"true,false" }}</td>
+                                    <td><label class="switch"><input type="checkbox" {% if data.corporate.verified_at %}checked{% endif %} data-id="{{ data.corporate.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
-                                        <button>✏️</button>
-                                        <button>🗑️</button>
+                                        <button onclick="openEditCopMerchantModal({{ data.corporate.id }})">✏️</button>
+                                         <button>🗑️</button>
                                     </td>
                                 </tr>
                                 {% for merchant in data.merchants %}
@@ -63,9 +66,9 @@
                                     <td>{{ merchant.mobile }}</td>
                                     <td>{{ merchant.shop_name }}</td>
                                     <td>{{ merchant.city }}</td>
-                                    <td>{{ merchant.verified_at|yesno:"true,false" }}</td>
+                                    <td><label class="switch"><input type="checkbox" {% if merchant.verified_at %}checked{% endif %} data-id="{{ merchant.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
-                                        <button>✏️</button>
+                                        <button onclick="openEditCopMerchantModal({{ merchant.id }})">✏️</button>
                                         <button>🗑️</button>
                                     </td>
                                 </tr>
@@ -73,18 +76,198 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                </div>
+          
                 
                 <!-- Pagination controls -->
                 <div id="pagination-controls" class="pagination-controls"></div>
-                
+
+            </div>
             </div>
         </div>
+
+
+<!-- Edit Merchant Modal -->
+<div id="editCopMerchantModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Edit Merchant</h2>
+        <form id="editMerchantForm">
+            <!-- Project Type Selection (Centered and Inline) -->
+            <div class="project-type-container">
+                <label>Select Project Type:</label>
+                <div class="addmerchant-radio-group">
+                    <label for="existing_project">
+                        <input type="radio" id="edit_existing_project" name="project_type" value="Existing Project" required onclick="toggleProjectDropdown()">
+                        Existing Project
+                    </label>
+
+                    <label for="new_project">
+                        <input type="radio" id="edit_new_project" name="project_type" value="New Project" required onclick="toggleProjectDropdown()">
+                        New Project
+                    </label>
+                </div>
+            </div>
+
+            <!-- Select Project Dropdown (Hidden Initially) -->
+            <div id="select-project-container" class="hidden">
+                <label for="select_project">Select Project:</label>
+                <div class="addmerchant-input-container">
+                    <select id="edit_select_project" name="select_project">
+                        <option value="">Select a project</option>
+                        {% for corporate in corporates %}
+                            <option value="{{ corporate.id }}">{{ corporate.project_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Project Name Input Field (Initially Hidden) -->
+            <div id="project-name-container" class="hidden">
+                <label for="project_name">Project Name:</label>
+                <div class="addmerchant-input-container">
+                    <input type="text" id="edit_project_name" name="project_name" placeholder="Enter Project Name">
+                </div>
+            </div>
+
+            <!-- Form Fields (Left & Right Columns) -->
+            <div class="addmerchant-form-container">
+                <!-- Left Column -->
+                <div class="addmerchant-form-group">
+                    <label>First Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="first_name" id='edit_first_name' required>
+                    </div>
+                    <label>Email ID</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" id="edit_email" required>
+                    </div>
+                    <label>Aadhaar Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="aadhaar" id ="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
+                    </div>
+                    <label>Shop Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-store"></i>
+                        <input type="text" name="shop_name" id="edit_shop_name" required>
+                    </div>
+                    <label>Address</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" name="address" id="edit_address" required>
+                    </div>
+                    <label>Select State</label>
+                        <select id="edit_state" name="state" class="select2"  onchange="fetchCities()">
+                             <option value="">Select State</option>
+                        </select>
+                                
+                    <label>Country</label>
+                    <div class="addmerchant-input-container">
+                        <input type="text" name="country" value="India" disabled>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="addmerchant-form-group">
+                    <label>Last Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="last_name" id ="edit_last_name" required>
+                    </div>
+                    <label>Mobile Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-mobile-alt"></i>
+                        <input type="text" name="mobile" id="edit_mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
+                    </div>
+                    <label>GST Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-file-invoice"></i>
+                        <input type="text" name="gst_number" id="edit_gst_number" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" required>
+                    </div>
+                    <div id="gst_error" style="display: none; margin-top: 10px;">
+                        <div style="background-color: #ffe6e6; border: 1px solid #ff4d4d; color: #d8000c; padding: 10px; border-radius: 5px; font-size: 14px; display: flex; align-items: center;">
+                            <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
+                            Please enter a valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)
+                        </div>
+                    </div>
+
+                    <label>Pan Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" required>
+                    </div>
+                    <label>Legal Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-building"></i>
+                        <input type="text" name="legal_name" id="edit_legal_name" required>
+                    </div>
+
+                    <label>Select City</label>
+                        <select id="edit_city" name="city" class="select2">
+                             <option value="">Select City</option>
+                        </select>
+
+                    <label>Pincode</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-home"></i>
+                        <input type="text" name="pincode" id="edit_pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="addmerchant-btn-submit">Submit</button>
+        </form>
     </div>
 </div>
 
-<!-- JavaScript for Search Filtering -->
+
 <script>
+   function openEditCopMerchantModal(merchantId) {
+    // Show the modal
+    $('#editCopMerchantModal').show();
+
+    // Fetch merchant data using AJAX
+    $.ajax({
+        url: `/bopo_admin/edit-copmerchant/${merchantId}/`, // The new URL with "edit-copmerchant"
+        type: 'GET',
+        success: function(data) {
+            // Populate the form fields with the retrieved data
+            $('#edit_first_name').val(data.first_name);
+            $('#edit_last_name').val(data.last_name);
+            $('#edit_email').val(data.email);
+            $('#edit_aadhaar_number').val(data.aadhaar);
+            $('#edit_shop_name').val(data.shop_name);
+            $('#edit_address').val(data.address);
+            $('#edit_state').val(data.state); // Make sure the state is also populated correctly
+            $('#edit_mobile').val(data.mobile);
+            $('#edit_gst_number').val(data.gst_number);
+            $('#edit_pan').val(data.pan_number);
+            $('#edit_legal_name').val(data.legal_name);
+            $('#edit_city').val(data.city); // Make sure the city is populated correctly
+            $('#edit_pincode').val(data.pincode);
+
+            // Prefill the project fields
+            $('#edit_project_name').val(data.project_name);  // Prefill project name
+            $('#edit_select_project').val(data.select_project); // Prefill select project
+
+            // Prefill the state dropdown
+            $('#edit_state').val(data.state);  // Set the state ID
+            fetchCities(data.state, data.city); // Pre-fetch cities based on the state and set city
+
+        },
+        error: function(xhr, status, error) {
+            console.error("Error fetching merchant data: ", error);
+        }
+    });
+}
+
+
+    function closeModal() {
+        $('#editCopMerchantModal').hide();
+    }
+
 function filterTable(tableId, searchBoxId) {
     let input = document.getElementById(searchBoxId);
     let filter = input.value.toLowerCase();
@@ -100,44 +283,117 @@ function filterTable(tableId, searchBoxId) {
         }
     }
 }
-</script>
 
-<script>
-    const rowsPerPage = 5;
-    let currentPage = 1;
-    
-    function paginateTable() {
-        const table = document.getElementById("corporate-table");
-        const tbody = document.getElementById("table-body");
-        const rows = Array.from(tbody.getElementsByTagName("tr"));
-        const totalRows = rows.length;
-        const totalPages = Math.ceil(totalRows / rowsPerPage);
-        const paginationDiv = document.getElementById("pagination-controls");
-    
-        // Hide all rows
-        rows.forEach((row, i) => {
-            row.style.display = (i >= (currentPage - 1) * rowsPerPage && i < currentPage * rowsPerPage) ? "" : "none";
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    fetchStates();
+    paginateTable();
+
+    $('.select2').select2({
+        placeholder: "Select an option",
+        allowClear: true,
+        width: '100%'
+    });
+});
+
+
+
+function fetchStates() {
+    return fetch("/bopo_admin/get-states/")
+        .then(response => response.json())
+        .then(states => {
+            const stateDropdown = document.getElementById("edit_state");
+            stateDropdown.innerHTML = '<option value="">Select State</option>';
+            states.forEach(state => {
+                let option = document.createElement("option");
+                option.value = state.id;
+                option.textContent = state.name;
+                stateDropdown.appendChild(option);
+            });
         });
-    
-        // Clear previous buttons
-        paginationDiv.innerHTML = "";
-    
-        // Create pagination buttons
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement("button");
-            btn.innerText = i;
-            btn.className = (i === currentPage) ? "active-page" : "";
-            btn.onclick = () => {
-                currentPage = i;
-                paginateTable();
-            };
-            paginationDiv.appendChild(btn);
+}
+
+function fetchCities(state) {
+    const stateId = state || document.getElementById("edit_state").value;
+    return fetch(`/bopo_admin/get-cities/${stateId}/`)
+        .then(res => res.json())
+        .then(cities => {
+            const cityDropdown = document.getElementById("edit_city");
+            cityDropdown.innerHTML = '<option value="">Select City</option>';
+            cities.forEach(city => {
+                let option = document.createElement("option");
+                option.value = city.id;
+                option.textContent = city.name;
+                cityDropdown.appendChild(option);
+            });
+        });
+}
+
+
+
+const rowsPerPage = 5;
+let currentPage = 1;
+
+function paginateTable() {
+    const table = document.getElementById("corporate-table");
+    const tbody = document.getElementById("corporate-table-body");
+    const rows = Array.from(tbody.getElementsByTagName("tr"));
+    const totalRows = rows.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    const paginationDiv = document.getElementById("pagination-controls");
+
+    // Hide all rows
+    rows.forEach((row, index) => {
+        row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? "" : "none";
+    });
+
+    // Clear previous pagination
+    paginationDiv.innerHTML = "";
+
+    // Add new pagination buttons
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.innerText = i;
+        btn.className = i === currentPage ? "active-page" : "";
+        btn.onclick = () => {
+            currentPage = i;
+            paginateTable();
+        };
+        paginationDiv.appendChild(btn);
+    }
+}
+
+window.onload = paginateTable;
+
+document.addEventListener("DOMContentLoaded", function () {
+    const existingProjectRadio = document.getElementById("existing_project");
+    const newProjectRadio = document.getElementById("new_project");
+    const selectProjectContainer = document.getElementById("select-project-container");
+    const projectNameContainer = document.getElementById("project-name-container");
+
+    function toggleProjectFields() {
+        if (existingProjectRadio.checked) {
+            selectProjectContainer.style.display = "block";
+            projectNameContainer.style.display = "none"; // Hide project name input
+        } else if (newProjectRadio.checked) {
+            selectProjectContainer.style.display = "none"; // Hide select project dropdown
+            projectNameContainer.style.display = "block"; // Show project name input
+        } else {
+            selectProjectContainer.style.display = "none";
+            projectNameContainer.style.display = "none";
         }
     }
-    
-    // Run on load
-    window.onload = paginateTable;
-    </script>
+
+    existingProjectRadio.addEventListener("change", toggleProjectFields);
+    newProjectRadio.addEventListener("change", toggleProjectFields);
+
+    // Initial check
+    toggleProjectFields();
+});
+
+
+</script>
     
 
 {% endblock %}
