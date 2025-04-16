@@ -1,4 +1,4 @@
-from datetime import timezone
+from datetime import date, datetime, timezone
 from io import BytesIO
 import random
 import string
@@ -21,7 +21,7 @@ from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
-from bopo_award.models import CustomerPoints, History, MerchantPoints
+from bopo_award.models import CustomerPoints, History, MerchantPoints, PaymentDetails
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
@@ -29,6 +29,8 @@ from .models import AccountInfo, BopoAdmin, Employee, MerchantCredential, Mercha
 from django.http import JsonResponse
 from .models import State, City
 from bopo_admin.models import Employee
+from django.contrib.auth.decorators import login_required
+
 
 
 
@@ -40,6 +42,9 @@ from bopo_admin.models import Employee
 #         tid = f"TID{number_part}"
 #         if not Merchant.objects.filter(tid=tid).exists():
 #             return tid
+
+
+
 
 def home(request):
     # Calculate total projects and project progress
@@ -429,34 +434,89 @@ def merchant_credentials(request):
 def merchant_topup(request):
     if request.method == "POST":
         merchant_id = request.POST.get("merchant_id")
-        topup_points = int(request.POST.get("topup_points"))
+        topup_points = int(request.POST.get("topup_points") or 0)
+        topup_amount = request.POST.get("topup_amount")
+        transaction_id = request.POST.get("transaction_id")
+        payment_mode = request.POST.get("payment_mode")
+        upi_id = request.POST.get("upi_id") or None
+        
 
-        merchant_obj = Merchant.objects.get(merchant_id=merchant_id)
+        try:
+            merchant_obj = Merchant.objects.get(merchant_id=merchant_id)
 
-        # Create topup entry
-        Topup.objects.create(
-            merchant=merchant_obj,
-            topup_amount=request.POST.get("topup_amount"),
-            transaction_id=request.POST.get("transaction_id"),
-            topup_points=topup_points,
-            payment_mode=request.POST.get("payment_mode"),
-            upi_id=request.POST.get("upi_id"),
-            transaction_date=request.POST.get("transaction_date"),
-            transaction_time=request.POST.get("transaction_time")
-        )
+            try:
+                # Get latest payment for the merchant
+                latest_payment = PaymentDetails.objects.filter(merchant=merchant_obj).latest('id')
+                paid_amount = int(latest_payment.paid_amount or 0)
 
-        # Update or create MerchantPoints
-        points_obj, created = MerchantPoints.objects.get_or_create(
-            merchant_id=merchant_obj.id,
-            defaults={'points': topup_points}
-        )
-        if not created:
-            points_obj.points += topup_points
-            points_obj.save()
+                if int(topup_points) != int(paid_amount):
+                    return render(request, 'bopo_admin/Merchant/merchant_topup.html', {
+                        "merchants": Merchant.objects.all(),
+                        "error": f"Top-Up Points ({topup_points}) must match Paid Amount ({paid_amount}). Transfer blocked."
+                    })
 
-    # Get merchant list
-    merchants = Merchant.objects.all()
-    return render(request, 'bopo_admin/Merchant/merchant_topup.html', {"merchants": merchants})
+
+            except PaymentDetails.DoesNotExist:
+                return render(request, 'bopo_admin/Merchant/merchant_topup.html', {
+                    "merchants": Merchant.objects.all(),
+                    "error": "No payment details found for the selected merchant."
+                })
+
+            # Create Topup entry
+            Topup.objects.create(
+                merchant=merchant_obj,
+                topup_amount=topup_amount,
+                transaction_id=transaction_id,
+                topup_points=topup_points,
+                payment_mode=payment_mode,
+                upi_id=upi_id,
+                
+            )
+
+            # Update or create MerchantPoints
+            points_obj, created = MerchantPoints.objects.get_or_create(
+                merchant_id=merchant_obj.id,
+                defaults={'points': topup_points}
+            )
+            if not created:
+                points_obj.points += topup_points
+                points_obj.save()
+
+            return render(request, 'bopo_admin/Merchant/merchant_topup.html', {
+                "merchants": Merchant.objects.all(),
+                "success": "Top-up successful!"
+            })
+
+        except Merchant.DoesNotExist:
+            return render(request, 'bopo_admin/Merchant/merchant_topup.html', {
+                "merchants": Merchant.objects.all(),
+                "error": "Merchant not found"
+            })
+
+    return render(request, 'bopo_admin/Merchant/merchant_topup.html', {
+        "merchants": Merchant.objects.all()
+    })
+
+def get_payment_details(request):
+    merchant_code = request.GET.get('merchant_id')
+
+    try:
+        merchant_obj = Merchant.objects.get(merchant_id__iexact=merchant_code.strip())
+        latest_payment = PaymentDetails.objects.filter(merchant=merchant_obj).latest('id')
+
+        return JsonResponse({
+            "paid_amount": latest_payment.paid_amount,
+            "transaction_id": latest_payment.transaction_id,
+            "payment_mode": latest_payment.payment_mode,
+        })
+
+    except Merchant.DoesNotExist:
+        return JsonResponse({"error": "Merchant not found"}, status=404)
+    except PaymentDetails.DoesNotExist:
+        return JsonResponse({"error": "No payment found for this merchant"}, status=404)
+
+
+
 
 def get_merchant_details(request):
     merchant_id = request.GET.get('merchant_id')
@@ -480,15 +540,13 @@ def map_bonus_points(request):
     return render(request, 'bopo_admin/Merchant/map_bonus_points.html')
 
 def merchant_limit_list(request):
-    # Fetch the list of merchants from the database
-    merchants = Merchant.objects.all()
-    # Pass the list to the template context
-    context = {
-        'merchants': merchants
-    }
-    # Render the template with the context
-    return render(request, 'bopo_admin/Merchant/merchant_limit_list.html', context)
+    # Fetch all topups along with the merchant related to each topup
+    topups = Topup.objects.select_related('merchant').all().order_by('-created_at')
 
+    context = {
+        'topups': topups
+    }
+    return render(request, 'bopo_admin/Merchant/merchant_limit_list.html', context)
     # return render(request, 'bopo_admin/Merchant/merchant_limit_list.html')
 
 def reduce_limit(request):
@@ -976,23 +1034,16 @@ def employee_role(request):
 
 
 def payment_details(request):
-    if request.method == "POST":
-        payment_id = request.POST.get("payment_id")
-        amount = request.POST.get("amount")
-        transaction_id = request.POST.get("transaction_id")
-        transaction_date = request.POST.get("transaction_date")
-        transaction_time = request.POST.get("transaction_time")
+    topups = Topup.objects.all().order_by('-created_at')  # or any custom ordering
 
-        # Save to database or perform any other action
-        # For example, you can create a Payment model instance here
-        BopoAdmin.objects.create(
-            payment_id=payment_id,
-            amount=amount,
-            transaction_id=transaction_id,
-            transaction_date=transaction_date,
-            transaction_time=transaction_time
-        )
-    return render(request, 'bopo_admin/Payment/payment_details.html')
+    if request.method == "POST":
+        # Handle any POST data if needed
+        pass
+
+    return render(request, 'bopo_admin/Payment/payment_details.html', {
+        'topups': topups
+    })
+    
 
 
 def account_info(request):

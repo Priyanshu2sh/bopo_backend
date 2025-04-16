@@ -7,8 +7,9 @@ from django.db.models import F
 from django.db.models import Sum
 
 from accounts.serializers import CustomerSerializer, MerchantSerializer
+from bopo_award.serializers import PaymentDetailsSerializer
 
-from .models import CustomerToCustomer, MerchantToMerchant
+from .models import CustomerToCustomer, MerchantToMerchant, PaymentDetails
 from accounts.models import Customer, Merchant
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
@@ -577,3 +578,38 @@ class MerchantPointsAPIView(APIView):
             "merchant_id": merchant_id,
             "points_data": points_data
         }, status=status.HTTP_200_OK)
+    
+
+# List all or create new payment
+class PaymentDetailsListCreateAPIView(APIView):
+    def get(self, request):
+        payments = PaymentDetails.objects.all().order_by('-created_at')
+        serializer = PaymentDetailsSerializer(payments, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PaymentDetailsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Retrieve, update, or delete a specific payment
+class PaymentDetailsRetrieveUpdateDestroyAPIView(APIView):
+    def get(self, request, pk):
+        payment = get_object_or_404(PaymentDetails, pk=pk)
+        serializer = PaymentDetailsSerializer(payment)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        payment = get_object_or_404(PaymentDetails, pk=pk)
+        serializer = PaymentDetailsSerializer(payment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        payment = get_object_or_404(PaymentDetails, pk=pk)
+        payment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -79,3 +79,19 @@ class MerchantToMerchant(models.Model):
 
     def __str__(self):
         return f"{self.sender_merchant.merchant_id} -> {self.receiver_merchant.merchant_id}: {self.points} points"
+    
+
+class PaymentDetails(models.Model):
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
+    paid_amount = models.IntegerField()
+    transaction_id = models.CharField(max_length=255, unique=True)
+    topup_point = models.IntegerField()
+    payment_mode = models.CharField(max_length=255, choices=[
+        ('UPI', 'UPI'),
+        ('Credit Card', 'Credit Card'),
+        ('Debit Card', 'Debit Card'),
+        ('Net Banking', 'Net Banking'),
+    ])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    

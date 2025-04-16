@@ -190,4 +190,4 @@ class Customer(models.Model):
         super(Customer, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.first_name
+        return self.first_name   

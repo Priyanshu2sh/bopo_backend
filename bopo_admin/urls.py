@@ -81,5 +81,7 @@ urlpatterns = [
     
 
     path("get-terminal-ids/", views.get_terminal_ids, name="get_terminal_ids"),
+
+    path('get-payment-details/', views.get_payment_details, name='get_payment_details'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

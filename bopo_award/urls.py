@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AwardPointsAPIView, CheckPointsAPIView, CustomerToCustomerTransferAPIView, MerchantToMerchantTransferAPIView, RedeemPointsAPIView, HistoryAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
+from .views import AwardPointsAPIView, CheckPointsAPIView, CustomerToCustomerTransferAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
 
 urlpatterns = [
     path('award/', AwardPointsAPIView.as_view(), name='award-points'),
@@ -13,6 +13,9 @@ urlpatterns = [
     path('update-merchant-profile/<str:merchant_id>/', UpdateMerchantProfileAPIView.as_view(), name='update-merchant-profile'),
     path('customer/', CustomerMerchantPointsAPIView.as_view(), name='customer_merchant_points'),
     path('merchant/<str:merchant_id>/', MerchantPointsAPIView.as_view(), name='merchant_points'),
+
+    path('payment-details/', PaymentDetailsListCreateAPIView.as_view(), name='payment-list-create'),
+    path('payment-details/<int:pk>/', PaymentDetailsRetrieveUpdateDestroyAPIView.as_view(), name='payment-detail'),
 ]
 
 

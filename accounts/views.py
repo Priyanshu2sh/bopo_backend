@@ -361,6 +361,7 @@ class LoginAPIView(APIView):
                 "message": "Login successful",
                 "first_name": user.first_name,
                 "last_name": user.last_name,
+                "pin": user.pin,
                 "user_category": user_category,
                 
             }

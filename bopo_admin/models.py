@@ -1,4 +1,8 @@
+from django.utils import timezone  
+
 from django.db import models, transaction
+
+from accounts.models import Merchant
 
 # Create your models here.
 class BopoAdmin(models.Model):
@@ -36,22 +40,17 @@ class Topup(models.Model):
     #     ('debit_card', 'debit_card'),
 
     # ]
-    merchant = models.CharField(max_length=200, blank=True, null=True)
-    merchant_id = models.CharField(max_length=200, blank=True, null=True)
-    topup_amount = models.IntegerField(blank=True, null=True)
-    transaction_id = models.CharField(max_length=200, blank=True, null=True)
-    topup_points = models.IntegerField(blank=True, null=True)
-    payment_mode =  models.CharField(max_length=200,blank=True, null=True)
-    upi_id = models.CharField(max_length=200, blank=True, null=True)
-    # bank_name = models.CharField(max_length=200, blank=True, null=True)
-    # account_number = models.CharField(max_length=200, blank=True, null=True)
-    # card_number = models.CharField(max_length=200, blank=True, null=True)
-    # card_expiry = models.CharField(max_length=200, blank=True, null=True)
-    transaction_date = models.DateField(auto_now_add=True)
-    transaction_time = models.TimeField(auto_now_add=True)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
+    topup_amount = models.IntegerField()
+    transaction_id = models.CharField(max_length=100)
+    topup_points = models.IntegerField()
+    payment_mode = models.CharField(max_length=50)
+    upi_id = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.merchant_id if self.merchant_id else "Topup"
+        return f"{self.merchant} - {self.transaction_id}"
     
 class MerchantCredential(models.Model):
     # SELECT_OPTIONS = [
