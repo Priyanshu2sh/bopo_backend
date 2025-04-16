@@ -1,15 +1,16 @@
 from django.urls import path, include
-from .views import edit_individual, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,delete_employee
+from .views import  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,delete_employee,edit_merchants,delete_merchant,edit_copmerchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
-urlpatterns = [
-    path('/login', views.login, name='login'),        
-]
+# urlpatterns = [
+#     path('/login', views.login, name='login'),        
+# ]
 from .views import home, about, merchant, customer, project_onboarding,merchant_list
 
 urlpatterns = [
+    path('login/', views.login, name='login'),  
     path('', home, name='home'),
     path('about/', about, name='about'),
     path('merchant/', merchant, name='merchant'),
@@ -18,7 +19,7 @@ urlpatterns = [
     path('merchant/list/', merchant_list, name='merchant_list'),
     path('corporate/list/', corporate_list, name='corporate_list'),
     path('individual/list/', individual_list, name='individual_list'),
-    path('individual/edit/<int:id>/', edit_individual, name='edit_individual'),
+    
     
 
     
@@ -73,6 +74,18 @@ urlpatterns = [
     path('get-employee/<int:employee_id>/', views.get_employee, name='get_employee'),
     path('update-employee/', views.update_employee, name='update_employee'),
     path('delete-employee/<int:employee_id>/', delete_employee, name='delete_employee'),
+    
+    path('edit-merchants/<int:merchant_id>/', views.edit_merchants, name='edit_merchants'),
+    path('update-merchant/', views.update_merchant, name='update_merchant'),
+    path('delete-merchant/<int:merchant_id>/', views.delete_merchant, name='delete_merchant'),
+    
+     path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
+
+    # path('update-merchant-status/', update_merchant_status, name='update_merchant_status'),
+    
+    
+
+
     
   
 # path('individual/edit/<int:id>/', views.edit_individual_merchant, name='edit_individual'),

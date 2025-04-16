@@ -1,5 +1,6 @@
 from datetime import date, datetime, timezone
 from io import BytesIO
+import json
 import random
 import string
 from tkinter.font import Font
@@ -35,15 +36,26 @@ from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth.forms import AuthenticationForm
 
-# def generate_unique_tid():
-#     while True:
-#         number_part = random.randint(10000001, 99999999)
-#         tid = f"TID{number_part}"
-#         if not Merchant.objects.filter(tid=tid).exists():
-#             return tid
-
-
+def login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                auth_login(request, user)
+                return redirect('home')  # Redirect to home after successful login
+            else:
+                error_message = 'Invalid login credentials'
+                return render(request, 'login.html', {'error_message': error_message})
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
 
 
 def home(request):
@@ -156,7 +168,6 @@ def add_merchant(request):
             city_id = request.POST.get("city")
             state_id = request.POST.get("state")
             country = request.POST.get("country", "India")
-            
             state = State.objects.get(id=state_id)
             city = City.objects.get(id=city_id)
 
@@ -212,7 +223,8 @@ def add_merchant(request):
                     city=city,
                     country=country,
                     corporate_id=corporate.corporate_id,
-                    project_name=project_name
+                    project_name=project_name,
+                    select_state=state,
                 )
 
                 merchant= Merchant.objects.get(merchant_id=merchant_id)
@@ -250,7 +262,8 @@ def add_merchant(request):
                     pincode=pincode,
                     state=state,
                     city=city,
-                    country=country
+                    country=country,
+                    role="admin"
                 )
             else:
                 message = "Invalid project type selected."
@@ -277,16 +290,136 @@ def redirect_with_success(request, message):
     messages.success(request, message)
     return redirect("add_merchant")
 
+# In your Django views.py
+from django.http import JsonResponse
+from accounts.models import Merchant,Corporate
+
+
+def edit_copmerchant(request, merchant_id):
+    try:
+        # Fetch the merchant by ID
+        merchant = Merchant.objects.get(id=merchant_id)
+        
+        
+        # Prepare the data to return
+        data = {
+            'first_name': merchant.first_name,
+            'last_name': merchant.last_name,
+            'email': merchant.email,
+            'aadhaar': merchant.aadhaar_number,
+            'shop_name': merchant.shop_name,
+            'address': merchant.address,
+            'state': merchant.state,  
+            'mobile': merchant.mobile,
+            'gst_number': merchant.gst_number,
+            'pan_number': merchant.pan_number,
+            'legal_name': merchant.legal_name,
+            'city': merchant.city,  
+            'pincode': merchant.pincode,
+            'project_name': merchant.project_name,  # Add project_name field
+            
+        }
+        return JsonResponse(data)
+    except Merchant.DoesNotExist:
+        return JsonResponse({'error': 'Merchant not found'}, status=404)
+
+
+# def edit_individual(request, id):
+#     merchant = get_object_or_404(Merchant, id=id)
+#     return render(request, 'bopo_admin/Merchant/edit_individual.html', {'merchant': merchant})
 
 
 
+from django.http import JsonResponse
+from accounts.models import Merchant
+
+def edit_merchants(request, merchant_id):
+    merchant = get_object_or_404(Merchant, id=merchant_id)
+    data = {
+        "id": merchant.id,
+        "first_name": merchant.first_name,
+        "last_name": merchant.last_name,
+        "email": merchant.email,
+        "mobile": merchant.mobile,
+        "shop_name": merchant.shop_name,
+        "address": merchant.address,
+        "aadhaar_number": merchant.aadhaar_number,
+        "gst": merchant.gst,
+        "pan_number": merchant.pan_number,
+        "legal_name": merchant.legal_name,
+        "state": merchant.state,
+        "city": merchant.city,
+        "pincode": merchant.pincode,
+    }
+    return JsonResponse(data)
 
 
-def edit_individual(request, id):
-    merchant = get_object_or_404(Merchant, id=id)
-    return render(request, 'bopo_admin/Merchant/edit_individual.html', {'merchant': merchant})
+from django.http import JsonResponse
+from accounts.models import Merchant
 
-from django.shortcuts import redirect
+def update_merchant(request): 
+    if request.method == "POST":
+        merchant_id = request.POST.get('merchant_id')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        aadhaar = request.POST.get("aadhaar")
+        address = request.POST.get("address")
+        state_id = request.POST.get("state")
+        city_id = request.POST.get("city")
+        mobile = request.POST.get("mobile")
+        pan = request.POST.get("pan")
+        pincode = request.POST.get("pincode")
+        shop_name = request.POST.get("shop_name")
+        country = request.POST.get("country", "India")
+        select_state = request.POST.get("select_state")
+        
+        try:
+            # Get the  merchant object by id
+            merchant = Merchant.objects.get(id=merchant_id)
+            
+            # Update the  merchant object fields
+            merchant.first_name= first_name
+            merchant.last_name=last_name
+            merchant.email = email
+            merchant.aadhaar = aadhaar  # Corrected here
+            merchant.address = address  # Corrected here
+            merchant.state_id = state_id  # Corrected here
+            merchant.city_id = city_id  # Corrected here
+            merchant.mobile = mobile
+            merchant.pan = pan
+            merchant.pincode = pincode
+            merchant.shop_name = shop_name
+            merchant.country = country
+            select_state=select_state,
+            
+            # Save the updated merchant object
+            merchant.save()
+
+            return JsonResponse({
+            "success": True,
+            "message": "Merchant updated successfully!"  # ✅ Important!
+        })
+        except Merchant.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Merchant not found'})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+from django.http import JsonResponse
+from accounts.models import Merchant  # change this based on your model name
+
+
+def delete_merchant(request, merchant_id):
+    if request.method == "DELETE":
+        try:
+            merchant = Merchant.objects.get(id=merchant_id)
+            merchant.delete()
+            return JsonResponse({"success": True, "message": "Merchant deleted successfully."})
+        except Merchant.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Merchant not found."})
+    return JsonResponse({"success": False, "message": "Invalid request method."})
+
+
+
 from accounts.models import Merchant
 from django.shortcuts import render, redirect
 from django.http import JsonResponse

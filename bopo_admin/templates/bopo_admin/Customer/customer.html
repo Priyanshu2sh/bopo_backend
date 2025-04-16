@@ -47,7 +47,7 @@
                         <td>{{ customer.first_name }} {{ customer.last_name }}</td>
                         <td>{{ customer.mobile }}</td>
                         <td>{{ customer.city }}</td>
-                        <td>{{ customer.status }}</td>
+                        <td><label class="switch"><input type="checkbox" {% if customer.status == "Active" %}checked{% endif %} data-id="{{ customer.id }}" class="customer-status-toggle"><span class="slider round"></span></label></td>
                       <td>
                         <button onclick="editCustomer(
                             '{{ customer.id }}',
@@ -187,6 +187,8 @@ function showToast(message, type) {
         }, 500);
     }, 3000);
 }
+
+
     
 </script>
 

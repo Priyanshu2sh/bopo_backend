@@ -34,6 +34,7 @@ class Corporate(models.Model):
     country = models.CharField(max_length=100, null=True, blank=True)
     pincode = models.IntegerField(null=True, blank=True)
     otp = models.IntegerField(null=True, blank=True)
+    role = models.CharField(max_length=20, default='admin')
     pin = models.IntegerField(null=True, blank=True)
     security_question = models.CharField(max_length=255, null=True, blank=True)
     answer = models.CharField(max_length=255, null=True, blank=True)
