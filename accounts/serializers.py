@@ -25,8 +25,8 @@ class MerchantSerializer(serializers.ModelSerializer):
         model = Merchant
         fields = '__all__'
         extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 'legal_name': {'required':False},
-                        'pincode': {'required':False}, 'address': {'required':False}, 'select_state': {'required':False}, 'country': {'required':False},
-                        'shop_name':{'required':False},'register_shop_name':{'required':False}, 'gst':{'required':False}}
+                        'pincode': {'required':False}, 'address': {'required':False}, 'state': {'required':False}, 'country': {'required':False},
+                        'shop_name':{'required':False},'register_shop_name':{'required':False}, 'gst':{'required':False}, 'city':{'required':False}}
 
 class CustomerSerializer(serializers.ModelSerializer):
    

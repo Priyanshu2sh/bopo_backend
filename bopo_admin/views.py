@@ -137,7 +137,6 @@ def add_merchant(request):
             city_id = request.POST.get("city")
             state_id = request.POST.get("state")
             country = request.POST.get("country", "India")
-            
             state = State.objects.get(id=state_id)
             city = City.objects.get(id=city_id)
 
@@ -193,7 +192,8 @@ def add_merchant(request):
                     city=city,
                     country=country,
                     corporate_id=corporate.corporate_id,
-                    project_name=project_name
+                    project_name=project_name,
+                    select_state=state,
                 )
                 
                 merchant = Merchant.objects.get(merchant_id=merchant_id)
@@ -232,7 +232,8 @@ def add_merchant(request):
                     pincode=pincode,
                     state=state,
                     city=city,
-                    country=country
+                    country=country,
+                    role="admin"
                 )
             else:
                 message = "Invalid project type selected."
@@ -312,6 +313,7 @@ def update_merchant(request):
         pincode = request.POST.get("pincode")
         shop_name = request.POST.get("shop_name")
         country = request.POST.get("country", "India")
+        select_state = request.POST.get("select_state")
         
         try:
             # Get the  merchant object by id
@@ -330,6 +332,7 @@ def update_merchant(request):
             merchant.pincode = pincode
             merchant.shop_name = shop_name
             merchant.country = country
+            select_state=select_state,
             
             # Save the updated merchant object
             merchant.save()

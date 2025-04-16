@@ -31,6 +31,7 @@ class Corporate(models.Model):
     country = models.CharField(max_length=100, null=True, blank=True)
     pincode = models.IntegerField(null=True, blank=True)
     otp = models.IntegerField(null=True, blank=True)
+    role = models.CharField(max_length=20, default='admin')
     pin = models.IntegerField(null=True, blank=True)
     security_question = models.CharField(max_length=255, null=True, blank=True)
     answer = models.CharField(max_length=255, null=True, blank=True)
@@ -154,6 +155,8 @@ class Customer(models.Model):
     state = models.CharField(max_length=255, null=True, blank=True)
     country = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    
     STATUS_CHOICES = [
         ('Active', 'Active'),
         ('Inactive', 'Inactive'),
