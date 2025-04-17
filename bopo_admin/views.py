@@ -26,28 +26,62 @@ from bopo_admin.models import Employee
 
 
 # Create your views here.
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth.forms import AuthenticationForm
-
-def login(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                auth_login(request, user)
-                return redirect('home')  # Redirect to home after successful login
-            else:
-                error_message = 'Invalid login credentials'
-                return render(request, 'login.html', {'error_message': error_message})
-    else:
-        form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
 
 
+
+# views.py
+
+# from django.shortcuts import render, redirect
+# from django.contrib.auth import authenticate, login
+# from accounts.models import LoginAttempt  
+# from django.contrib.auth.hashers import make_password
+
+# def login_view(request):
+#     if request.method == 'POST':
+#         username = request.POST['username']
+#         password = request.POST['password']
+#         remember_me = request.POST.get('remember_me')
+        
+     
+#         user = authenticate(request, username=username, password=password)
+
+      
+#         login_success = False
+
+#         if user is not None:
+#             login(request, user)  
+#             login_success = True 
+            
+#             #
+#             login_attempt = LoginAttempt(username=username, password=make_password(password), success=login_success)
+#             login_attempt.save()
+
+          
+#             return redirect('home')
+
+#         else:
+           
+#             login_attempt = LoginAttempt(username=username, password=make_password(password), success=login_success)
+#             login_attempt.save()  
+
+        
+#             return render(request, 'bopo_admin/login.html', {'error_message': 'Invalid credentials'})
+
+ 
+#     return render(request, 'bopo_admin/login.html')
+
+
+
+
+
+# from django.contrib.auth import logout
+
+# def logout_view(request):
+#     logout(request)
+#     return redirect('login')
+
+from django.contrib.auth.decorators import login_required
+# @login_required
 def home(request):
     # Calculate total projects and project progress
     total_projects = Corporate.objects.count()
@@ -95,6 +129,63 @@ def merchant(request):
 def customer(request):
     customers = Customer.objects.all()
     return render(request, 'bopo_admin/Customer/customer.html', {'customers': customers})
+
+
+from django.http import JsonResponse, Http404
+from accounts.models import Customer  # Adjust this import to your actual model
+
+def get_customer(request, customer_id):
+    if request.method == "GET":
+        try:
+            customer = Customer.objects.get(customer_id=customer_id)
+            data = {
+                "first_name": customer.first_name,
+                "last_name": customer.last_name,
+                "email": customer.email,
+                "mobile": customer.mobile,
+                "age": customer.age,
+                "aadhar_number": customer.aadhar_number,  # Changed from 'aadhaar' to 'aadhar_number'
+                "address": customer.address,
+                "city_id": customer.city,
+                "state_id": customer.state,
+                "pincode": customer.pincode,
+                "gender": customer.gender,
+                "pan": customer.pan,
+            }
+            return JsonResponse(data)
+        except Customer.DoesNotExist:
+            raise Http404("Customer does not exist")
+
+from django.shortcuts import render, get_object_or_404, redirect
+from accounts.models import Customer
+from django.http import JsonResponse
+
+def update_customer(request, customer_id):
+    if request.method == "POST":
+        customer = get_object_or_404(Customer, customer_id=customer_id)
+
+        # Update customer data from the form
+        customer.first_name = request.POST.get('first_name')
+        customer.last_name = request.POST.get('last_name')
+        customer.email = request.POST.get('email')
+        customer.mobile = request.POST.get('mobile')
+        customer.age = request.POST.get('age')
+        customer.aadhar_number = request.POST.get('aadhar_number')
+        customer.address = request.POST.get('address')
+        customer.state_id = request.POST.get("state")
+        customer.city_id = request.POST.get("city")
+        customer.pincode = request.POST.get('pincode')
+        customer.gender = request.POST.get('gender')
+        customer.pan = request.POST.get('pan')
+        customer.save()
+
+        # Return a success response
+        return JsonResponse({
+    "status": "success",
+    "message": "Customer updated successfully"
+})
+    return JsonResponse({"message": "Invalid request"}, status=400)
+
 
 def merchant_list(request):
     return render(request, "bopo_admin/Merchant/merchant_list.html")

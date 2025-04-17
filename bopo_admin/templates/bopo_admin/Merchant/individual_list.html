@@ -56,8 +56,8 @@
                                     </label>
                                   </td>
                                 <td>
-                                    <button class="edit-btn" onclick="openEditModal('{{ merchant.id }}')">✏️</button>
-                                    <button class="delete-btn" onclick="deleteMerchant('{{ merchant.id }}')">🗑️</button>
+                                    <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ merchant.id }}')">✏️ Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteMerchant('{{ merchant.id }}')">🗑️ Delete</button>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -71,7 +71,7 @@
             <div id="editModal" class="modal" style="display: none;">
                 <div class="modal-content">
                     <span class="close" onclick="closeEditModal()">&times;</span>
-                    <h3>Edit Merchant</h3>
+                    <h2>Edit Merchant</h2>
                          <form id="editmerchantForm" method="POST">
                             {% csrf_token %}
 

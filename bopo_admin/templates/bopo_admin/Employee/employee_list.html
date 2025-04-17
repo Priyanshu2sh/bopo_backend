@@ -21,7 +21,7 @@
                 <span> Employee's List</span>
             </label>
             <div class="employee-table" id="corporate-table">
-                <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table-content', 'search-corporate')" placeholder="Search corporate employees...">
+                <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table-content', 'search-corporate')" placeholder="Search employees...">
                 <div class="table-wrapper">
                     <table id="corporate-table-content">
                         <thead>
@@ -47,8 +47,8 @@
                                 <td>{{ employee.username }}</td>
                                 <td>{{ employee.password }}</td>
                                 <td>
-                                    <button class="edit-btn" onclick="openEditModal('{{ employee.id }}')">✏️</button>
-                                    <button class="delete-btn" onclick="deleteEmployee('{{ employee.id }}')">🗑️</button>
+                                    <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ employee.id }}')">✏️ Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteEmployee('{{ employee.id }}')">🗑️ Delete</button>
 
                                 </td>
                             </tr>
@@ -164,10 +164,11 @@
                                     <i class="fas fa-home"></i>
                                     <input type="text" id="edit_pincode" name="pincode" pattern="\d{6}" maxlength="6">
                                 </div>
-
-                                <button type="submit" class="addemployee-btn-submit">Save Changes</button>
                             </div>
                         </div>
+
+                                <button type="submit" class="addemployee-btn-submit">Submit</button>
+                            
                     </form>
                 </div>
             </div>
@@ -175,6 +176,16 @@
         </div>
     </div>
 </div>
+
+
+ <!-- Toast Notification -->
+ <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+    <i class="fa fa-exclamation-circle"></i>
+    <span class="toast-message">{{ message }}</span>
+</div>
+
+
+
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -330,18 +341,27 @@ document.getElementById("editEmployeeForm").addEventListener("submit", function 
             'X-CSRFToken': getCookie('csrftoken')
         }
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("Employee updated successfully!");
-                closeEditModal();
+    .then(response => response.json())
+    .then(data => {
+        console.log("Server response:", data); // Check what data.message is
+    
+        if (data.status === "success")
+        {
+            showToast(data.message || "Customer updated successfully!", "success");
+            closeEditModal();
+            setTimeout(() => {
                 location.reload();
-            } else {
-                alert("There was an error updating the employee.");
-            }
-        })
-        .catch(error => console.error("Error:", error));
+            }, 500);
+        } else {
+            showToast(data.message || "Customer updated successfully!", "success");
+        }
+    })
+    
+    .catch(error => {
+        showToast("Error occurred: " + error.message, "error");
+    });
 });
+
 
 function getCookie(name) {
     let cookieValue = null;
@@ -355,6 +375,32 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+function showToast(message, type) {
+    const toast = document.getElementById("toast");
+    const toastMessage = toast.querySelector(".toast-message");
+
+    // Set message and styling
+    toastMessage.textContent = message;
+
+    // Reset classes and apply new one based on type
+    toast.className = "toast-container toast-show";
+    if (type === "success") {
+        toast.style.backgroundColor = "#4CAF50";
+    } else if (type === "error") {
+        toast.style.backgroundColor = "#f44336";
+    } else {
+        toast.style.backgroundColor = "#333";
+    }
+
+    // Show toast
+    toast.classList.add("toast-show");
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove("toast-show");
+    }, 3000);
+}
+
 
 
 function deleteEmployee(employeeId) {
@@ -368,12 +414,14 @@ function deleteEmployee(employeeId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert("Employee deleted successfully!");
-                // Remove the employee row from the table
+                // Show success toast instead of alert
+                showToast("Employee deleted successfully!", "success");
+
+                // Optionally, remove the employee row from the table
                 const row = document.querySelector(`#employee-table-body tr[data-id="${employeeId}"]`);
                 row.remove();
             } else {
-                alert("Error deleting employee.");
+                showToast("Error deleting employee.", "error");
             }
         })
         .catch(error => console.error('Error:', error));

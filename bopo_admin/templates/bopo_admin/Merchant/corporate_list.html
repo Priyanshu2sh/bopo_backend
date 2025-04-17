@@ -53,8 +53,8 @@
                                     <td>{{ data.corporate.city }}</td>
                                     <td><label class="switch"><input type="checkbox" {% if data.corporate.verified_at %}checked{% endif %} data-id="{{ data.corporate.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
-                                        <button onclick="openEditCopMerchantModal({{ data.corporate.id }})">✏️</button>
-                                         <button>🗑️</button>
+                                        <button class="btn btn-sm btn-warning"  onclick="openEditCopMerchantModal({{ data.corporate.id }})">✏️ Edit</button>
+                                         <button class="btn btn-sm btn-danger">🗑️ Delete</button>
                                     </td>
                                 </tr>
                                 {% for merchant in data.merchants %}
@@ -68,8 +68,8 @@
                                     <td>{{ merchant.city }}</td>
                                     <td><label class="switch"><input type="checkbox" {% if merchant.verified_at %}checked{% endif %} data-id="{{ merchant.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
-                                        <button onclick="openEditCopMerchantModal({{ merchant.id }})">✏️</button>
-                                        <button>🗑️</button>
+                                        <button class="btn btn-sm btn-warning"  onclick="openEditCopMerchantModal({{ merchant.id }})">✏️ Edit</button>
+                                        <button class="btn btn-sm btn-danger">🗑️ Delete</button>
                                     </td>
                                 </tr>
                                 {% endfor %}
