@@ -78,13 +78,19 @@ urlpatterns = [
     path('delete-merchant/<int:merchant_id>/', views.delete_merchant, name='delete_merchant'),
     
     path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
+    path('update_copmerchant/', views.update_merchant, name='update_copmerchant'),
+    
+    path('delete-corporate/<int:id>/', views.delete_corporate, name='delete_corporate'),
 
     # path('update-merchant-status/', update_merchant_status, name='update_merchant_status'),
-     path("get-customer/<str:customer_id>/", views.get_customer, name="get_customer"),
+    path("get-customer/<str:customer_id>/", views.get_customer, name="get_customer"),
     path('bopo_admin/update-customer/<str:customer_id>/', views.update_customer, name='update_customer'),
+    path('delete-customer/<str:customer_id>/', views.delete_customer, name='delete_customer'),
 
  
-    
+  
+    # path('delete-merchant/<int:id>/', views.delete_merchant, name='delete_merchant'),
+
 
 
     

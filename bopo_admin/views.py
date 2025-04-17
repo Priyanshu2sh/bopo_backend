@@ -144,7 +144,7 @@ def get_customer(request, customer_id):
                 "email": customer.email,
                 "mobile": customer.mobile,
                 "age": customer.age,
-                "aadhar_number": customer.aadhar_number,  # Changed from 'aadhaar' to 'aadhar_number'
+                "aadhar_number": customer.aadhar_number, 
                 "address": customer.address,
                 "city_id": customer.city,
                 "state_id": customer.state,
@@ -185,6 +185,24 @@ def update_customer(request, customer_id):
     "message": "Customer updated successfully"
 })
     return JsonResponse({"message": "Invalid request"}, status=400)
+
+
+
+# bopo_admin/views.py
+
+from django.http import JsonResponse
+from accounts.models import Customer
+
+
+def delete_customer(request, customer_id):
+    if request.method == 'DELETE':
+        try:
+            customer = Customer.objects.get(customer_id=customer_id)
+            customer.delete()
+            return JsonResponse({'status': 'success', 'message': 'Customer deleted successfully.'})
+        except Customer.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Customer not found.'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=400)
 
 
 def merchant_list(request):
@@ -404,7 +422,82 @@ def edit_copmerchant(request, merchant_id):
         return JsonResponse(data)
     except Merchant.DoesNotExist:
         return JsonResponse({'error': 'Merchant not found'}, status=404)
+    
+    
+    
+from django.http import JsonResponse
+from accounts.models import Merchant, Corporate
 
+def update_copmerchant(request):
+    if request.method == 'POST':
+        # Extract the data from the request (Assuming data comes as form data)
+        merchant_id = request.POST.get('merchant_id')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        aadhaar = request.POST.get('aadhaar')
+        shop_name = request.POST.get('shop_name')
+        address = request.POST.get('address')
+        state = request.POST.get('state')
+        mobile = request.POST.get('mobile')
+        gst_number = request.POST.get('gst_number')
+        pan_number = request.POST.get('pan')
+        legal_name = request.POST.get('legal_name')
+        city = request.POST.get('city')
+        pincode = request.POST.get('pincode')
+        project_name = request.POST.get('project_name')
+        # select_project = request.POST.get('select_project')
+
+        try:
+            # Retrieve the merchant to update
+            merchant = Merchant.objects.get(id=merchant_id)
+
+            # Update the merchant fields
+            merchant.first_name = first_name
+            merchant.last_name = last_name
+            merchant.email = email
+            merchant.aadhaar_number = aadhaar
+            merchant.shop_name = shop_name
+            merchant.address = address
+            merchant.state = state
+            merchant.mobile = mobile
+            merchant.gst_number = gst_number
+            merchant.pan_number = pan_number
+            merchant.legal_name = legal_name
+            merchant.city = city
+            merchant.pincode = pincode
+            merchant.project_name = project_name
+            # merchant.select_project = select_project
+
+            # Save the updated merchant
+            merchant.save()
+
+            # Return a success response with the updated merchant data
+            return JsonResponse({
+                'success': True 
+                })
+
+        except Merchant.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Merchant not found.'})
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+
+from django.http import JsonResponse
+from accounts.models import Corporate, Merchant
+
+def delete_corporate(request, id):
+    if request.method == 'DELETE':
+        try:
+            Corporate.objects.get(id=id).delete()
+            return JsonResponse({'success': True})
+        except Corporate.DoesNotExist:
+            return JsonResponse({'error': 'Corporate not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 # def edit_individual(request, id):
 #     merchant = get_object_or_404(Merchant, id=id)

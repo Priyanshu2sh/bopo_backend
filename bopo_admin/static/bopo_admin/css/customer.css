@@ -522,3 +522,63 @@ custom-dropdown {
     background: #f1f1f1;
 }
 
+/* Modal Background */
+.custom-modal {
+    display: none;  /* Hidden by default */
+    position: fixed;  /* Stay in place */
+    z-index: 1;  /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;  /* Full width */
+    height: 100%;  /* Full height */
+    background-color: rgba(0, 0, 0, 0.5);  /* Black with opacity */
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Modal Content */
+  .custom-modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 80%;
+
+  }
+
+  /* Modal Header Text (Message) */
+#confirmationMessage {
+    font-size: 20px;  /* Reduced font size */
+    color: #333;
+    font-weight: bold;
+  }
+  
+  /* Modal Buttons */
+  .custom-modal-buttons {
+    margin-top: 20px;
+  }
+  
+  .custom-btn {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+  }
+  
+  .custom-btn:hover {
+    background-color: #80af83;
+  }
+  
+  #cancelDelete {
+    background-color: #f44336; /* Red */
+  }
+  
+  #cancelDelete:hover {
+    background-color: #e53935;
+  }
