@@ -15,6 +15,7 @@ from rest_framework import status
 from openpyxl.styles import Font
 from twilio.rest import Client
 from django.conf import settings
+from django.contrib.auth.hashers import check_password
 
 
 
@@ -40,22 +41,22 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.forms import AuthenticationForm
 
-def login(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                auth_login(request, user)
-                return redirect('home')  # Redirect to home after successful login
-            else:
-                error_message = 'Invalid login credentials'
-                return render(request, 'login.html', {'error_message': error_message})
-    else:
-        form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+# def login(request):
+#     if request.method == 'POST':
+#         form = AuthenticationForm(data=request.POST)
+#         if form.is_valid():
+#             username = form.cleaned_data['username']
+#             password = form.cleaned_data['password']
+#             user = authenticate(username=username, password=password)
+#             if user is not None:
+#                 auth_login(request, user)
+#                 return redirect('home')  # Redirect to home after successful login
+#             else:
+#                 error_message = 'Invalid login credentials'
+#                 return render(request, 'login.html', {'error_message': error_message})
+#     else:
+#         form = AuthenticationForm()
+#     return render(request, 'login.html', {'form': form})
 
 
 def home(request):
@@ -139,6 +140,29 @@ def individual_list(request):
     })
 
 
+def toggle_status(request, merchant_id):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            is_active = data.get("is_active")
+
+            merchant = Merchant.objects.get(id=merchant_id)
+
+            if is_active:
+                merchant.status = "Active"
+                merchant.verified_at = datetime.now()
+            else:
+                merchant.status = "Inactive"
+                merchant.verified_at = None
+
+            merchant.save()
+
+            return JsonResponse({"success": True, "status": merchant.status})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+    return JsonResponse({"success": False, "error": "Invalid request"})
+
+
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from accounts.models import Merchant, Corporate
@@ -161,7 +185,7 @@ def add_merchant(request):
             aadhaar = request.POST.get("aadhaar")
             gst_number = request.POST.get("gst_number")
             shop_name = request.POST.get("shop_name")
-            pan = request.POST.get("pan")
+            pan_number = request.POST.get("pan_number")
             address = request.POST.get("address")
             legal_name = request.POST.get("legal_name")
             pincode = request.POST.get("pincode")
@@ -214,7 +238,7 @@ def add_merchant(request):
                     mobile=mobile,
                     aadhaar_number=aadhaar,
                     gst_number=gst_number,
-                    pan_number=pan,
+                    pan_number=pan_number,
                     shop_name=shop_name,
                     legal_name=legal_name,
                     address=address,
@@ -223,8 +247,8 @@ def add_merchant(request):
                     city=city,
                     country=country,
                     corporate_id=corporate.corporate_id,
-                    project_name=project_name,
-                    select_state=state,
+                    project_name=corporate
+                    
                 )
 
                 merchant= Merchant.objects.get(merchant_id=merchant_id)
@@ -255,7 +279,7 @@ def add_merchant(request):
                     mobile=mobile,
                     aadhaar=aadhaar,
                     gst_number=gst_number,
-                    pan=pan,
+                    pan_number=pan_number,
                     shop_name=shop_name,
                     legal_name=legal_name,
                     address=address,
@@ -344,7 +368,7 @@ def edit_merchants(request, merchant_id):
         "shop_name": merchant.shop_name,
         "address": merchant.address,
         "aadhaar_number": merchant.aadhaar_number,
-        "gst": merchant.gst,
+        "gst_number": merchant.gst_number,
         "pan_number": merchant.pan_number,
         "legal_name": merchant.legal_name,
         "state": merchant.state,
@@ -435,8 +459,7 @@ def add_individual_merchant(request):
             email = request.POST.get("email")
             mobile = request.POST.get("mobile")
             aadhaar_number = request.POST.get("aadhaar_number")
-            gst = request.POST.get("gst")
-            gst = request.POST.get("gst")
+            gst_number = request.POST.get("gst_number")
             pan_number = request.POST.get("pan_number")
             shop_name = request.POST.get("shop_name")
             legal_name = request.POST.get("legal_name")
@@ -444,11 +467,12 @@ def add_individual_merchant(request):
             pincode = request.POST.get("pincode")
             state_id = request.POST.get("state")
             city_id = request.POST.get("city")
-            city_id = request.POST.get("city")
             country = request.POST.get("country", "India")
 
             state = State.objects.get(id=state_id)
             city = City.objects.get(id=city_id)
+
+            print("GST Number Received:", gst_number)
 
             # Uniqueness checks
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
@@ -459,7 +483,6 @@ def add_individual_merchant(request):
                 return JsonResponse({"success": False, "message": "Mobile number already exists!"})
 
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
-           
                 return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
             if Merchant.objects.filter(pan_number=pan_number).exists():
                 return JsonResponse({"success": False, "message": "PAN number already exists!"})
@@ -476,8 +499,8 @@ def add_individual_merchant(request):
                 last_name=last_name,
                 email=email,
                 mobile=mobile,
-                aadhaar_number=aadhaar_number,
-                gst=gst,
+                gst_number=gst_number,
+                aadhaar_number=aadhaar_number,                
                 pan_number=pan_number,
                 shop_name=shop_name,
                 legal_name=legal_name,
@@ -488,6 +511,7 @@ def add_individual_merchant(request):
                 country=country,
                 # tid=tid  # Store TID here
             )
+            
 
             return JsonResponse({'success': True, 'message': 'Merchant added successfully!', 'merchant_id':merchant_id})
 
@@ -495,8 +519,7 @@ def add_individual_merchant(request):
             # Log the error for debugging purposes
             return JsonResponse({'success': False, 'message': f"An error occurred: {str(e)}"})
 
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': f"An error occurred: {str(e)}"})
+    
 
     return render(request, "bopo_admin/Merchant/add_individual_merchant.html")
 
@@ -1228,15 +1251,21 @@ def login(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        user = BopoAdmin.objects.get(username=username)
-        if user.password != password:
-            error_message = "Incorrect password"
-            return render(request, 'bopo_admin/login.html', {'error_message': error_message})
-        
-        return render(request, 'bopo_admin/login.html')
-    # return redirect()
-    else:
-        return render(request, 'bopo_admin/login.html')
+        try:
+            user = BopoAdmin.objects.get(username=username)
+            if check_password(password, user.password):
+                # Login successful
+                # You can set session data here
+                request.session['admin_id'] = user.id
+                return redirect('home')  # redirect to dashboard or home
+            else:
+                error_message = "Incorrect password"
+        except BopoAdmin.DoesNotExist:
+            error_message = "User does not exist"
+
+        return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+    
+    return render(request, 'bopo_admin/login.html')
     
 
 def export_projects(request):
@@ -1274,7 +1303,7 @@ def export_projects(request):
         sheet.cell(row=row_num, column=7, value=corporate.mobile or "")
         sheet.cell(row=row_num, column=8, value=corporate.aadhaar or "")
         sheet.cell(row=row_num, column=9, value=corporate.gst_number or "")
-        sheet.cell(row=row_num, column=10, value=corporate.pan or "")
+        sheet.cell(row=row_num, column=10, value=corporate.pan_number or "")
         sheet.cell(row=row_num, column=11, value=corporate.shop_name or "")
         sheet.cell(row=row_num, column=12, value=corporate.address or "")
         sheet.cell(row=row_num, column=13, value=corporate.city or "")
@@ -1627,3 +1656,26 @@ def get_states(request):
 def get_cities(request, state_id):
     cities = City.objects.filter(state_id=state_id).values('id', 'name')
     return JsonResponse(list(cities), safe=False)
+
+
+def deduct_amount(request):
+    if request.method == "POST":
+        # Get form data
+        user_id = request.POST.get("user_id")
+        amount = float(request.POST.get("amount"))
+
+        # Example logic (replace with your model logic)
+        # Let's say you have a `UserBalance` model
+        from .models import UserBalance
+        try:
+            user = UserBalance.objects.get(user_id=user_id)
+            if user.balance >= amount:
+                user.balance -= amount
+                user.save()
+                messages.success(request, f"₹{amount} deducted successfully!")
+            else:
+                messages.error(request, "Insufficient balance.")
+        except UserBalance.DoesNotExist:
+            messages.error(request, "User not found.")
+
+    return render(request, "bopo_admin/Payment/deduct_amount.html")

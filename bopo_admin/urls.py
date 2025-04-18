@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,delete_employee,edit_merchants,delete_merchant,edit_copmerchant
+from .views import  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,delete_employee,edit_merchants,delete_merchant,edit_copmerchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -96,5 +96,8 @@ urlpatterns = [
     path("get-terminal-ids/", views.get_terminal_ids, name="get_terminal_ids"),
 
     path('get-payment-details/', views.get_payment_details, name='get_payment_details'),
+    path('toggle-status/<int:merchant_id>/', toggle_status, name='toggle_status'),
+
+     path('deduct-amount/', views.deduct_amount, name='deduct_amount'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

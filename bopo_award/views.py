@@ -200,19 +200,20 @@ class HistoryAPIView(APIView):
     """
 
     def get(self, request, id, user_type):
-        
+
         all_transactions = History.objects.all().order_by('-created_at')
 
         if user_type == 'customer':
             transactions = all_transactions.filter(customer__customer_id=id)
         elif user_type == 'merchant':
             transactions = all_transactions.filter(merchant__merchant_id=id)
+        else:
+            return Response({"error": "Invalid user_type"}, status=status.HTTP_400_BAD_REQUEST)
 
         transaction_data = []
 
-        # Fetch transaction history
         for transaction in transactions:
-            transaction_data.append({
+            data = {
                 "customer_id": transaction.customer.customer_id if transaction.customer else None,
                 "merchant_id": transaction.merchant.merchant_id if transaction.merchant else None,
                 "points": transaction.points,
@@ -220,38 +221,52 @@ class HistoryAPIView(APIView):
                 "sender_status": "Customer" if transaction.transaction_type == "redeem" else "Merchant",
                 "receiver_status": "Merchant" if transaction.transaction_type == "redeem" else "Customer",
                 "created_at": transaction.created_at.strftime('%Y-%m-%d %H:%M:%S')
-            })
+            }
 
-        # Fetch latest total points for the specified customer (Grouped by Merchant)
-        customer_balances = {}
-        if user_type == 'customer':
-            customer_points = CustomerPoints.objects.filter(customer__customer_id=id).values(
-                'merchant__merchant_id'
-            ).annotate(total_points=Sum('points'))
+            # Add merchant info only for customer
+            if user_type == 'customer' and transaction.merchant:
+                data["merchant_name"] = f"{transaction.merchant.first_name} {transaction.merchant.last_name}"
+                data["shop_name"] = transaction.merchant.shop_name
 
-            for cp in customer_points:
-                customer_balances[cp['merchant__merchant_id']] = cp['total_points']
+            # Add customer info only for merchant
+            if user_type == 'merchant' and transaction.customer:
+                data["customer_name"] = f"{transaction.customer.first_name} {transaction.customer.last_name}"
 
-        # Fetch latest total points for the specified merchant
-        merchant_balance = None
-        if user_type == 'merchant':
-            merchant_points = MerchantPoints.objects.filter(merchant__merchant_id=id).aggregate(
-                total_points=Sum('points')
-            )
-            merchant_balance = merchant_points['total_points'] if merchant_points['total_points'] else 0
+            transaction_data.append(data)
 
-        # Prepare final response
         response_data = {
             "transaction_history": transaction_data,
         }
 
+        # Add balance details specific to user type
         if user_type == 'customer':
+            customer_balances = {}
+            customer_points = CustomerPoints.objects.filter(customer__customer_id=id).values(
+                'merchant__merchant_id',
+                'merchant__first_name',
+                'merchant__last_name',
+                'merchant__shop_name'
+            ).annotate(total_points=Sum('points'))
+
+            for cp in customer_points:
+                merchant_id = cp['merchant__merchant_id']
+                customer_balances[merchant_id] = {
+                    "merchant_name": f"{cp['merchant__first_name']} {cp['merchant__last_name']}",
+                    "shop_name": cp['merchant__shop_name'],
+                    "total_points": cp['total_points']
+                }
+
             response_data["customer_balances"] = customer_balances
+
         elif user_type == 'merchant':
+            merchant_points = MerchantPoints.objects.filter(merchant__merchant_id=id).aggregate(
+                total_points=Sum('points')
+            )
+            merchant_balance = merchant_points['total_points'] or 0
             response_data["merchant_balance"] = merchant_balance
 
         return Response(response_data, status=status.HTTP_200_OK)
-    
+ 
 
 class CustomerToCustomerTransferAPIView(APIView):
     """

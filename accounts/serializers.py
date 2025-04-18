@@ -24,9 +24,9 @@ class MerchantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Merchant
         fields = '__all__'
-        extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 'legal_name': {'required':False},
+        extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan_number': {'required':False}, 'legal_name': {'required':False},
                         'pincode': {'required':False}, 'address': {'required':False}, 'state': {'required':False}, 'country': {'required':False}, 'city': {'required':False}, 'corporate_id': {'required':False}, 
-                        'shop_name':{'required':False},'register_shop_name':{'required':False}, 'gst':{'required':False}, 'project_name':{'required':False}}
+                        'shop_name':{'required':False},'gst_number':{'required':False}, 'project_name':{'required':False}}
 
 class CustomerSerializer(serializers.ModelSerializer):
    
@@ -36,7 +36,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = '__all__'
-        extra_kwargs = {'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan': {'required':False}, 'gender':{'required':False}, 'project_name':{'required':False},
+        extra_kwargs = {'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan_number': {'required':False}, 'gender':{'required':False}, 'project_name':{'required':False},
                         'pincode': {'required':False}, 'address': {'required':False}, 'select_state': {'required':False}, 'country': {'required':False},}
 
 

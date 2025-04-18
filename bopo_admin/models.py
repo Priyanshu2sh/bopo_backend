@@ -3,12 +3,18 @@ from django.utils import timezone
 from django.db import models, transaction
 
 from accounts.models import Merchant
+from django.contrib.auth.hashers import make_password
 
 # Create your models here.
 class BopoAdmin(models.Model):
-    username = models.CharField(max_length=25)
-    password = models.CharField(max_length=15)
-    
+    username = models.CharField(max_length=25, unique=True)
+    password = models.CharField(max_length=128)  # longer length for hashed passwords
+
+    def save(self, *args, **kwargs):
+        # Hash the password before saving if not already hashed
+        if not self.password.startswith('pbkdf2_'):
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.username
@@ -172,6 +178,14 @@ class Employee(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class UserBalance(models.Model):
+    user_id = models.CharField(max_length=50, unique=True)
+    balance = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.user_id} - ₹{self.balance}"
 
 
 

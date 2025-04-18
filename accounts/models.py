@@ -22,7 +22,7 @@ class Corporate(models.Model):
     mobile = models.CharField(max_length=15, unique=True)
     aadhaar = models.CharField(max_length=20, unique=True, null=True, blank=True)
     gst_number = models.CharField(max_length=15, blank=True, null=True, unique=False)
-    pan = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    pan_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     role = models.CharField(max_length=20, default='admin')
@@ -82,19 +82,17 @@ class Merchant(models.Model):
     merchant_id = models.CharField(max_length=255, null=True, blank=True)
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
-    email = models.EmailField(unique=True, null=True, blank=True)
+    email = models.EmailField(unique=False, null=True, blank=True)
     mobile = models.CharField(max_length=15, unique=True)
     otp = models.IntegerField(null=True, blank=True)
     pin = models.IntegerField( blank=True, null=True)
     age = models.IntegerField(blank=True, null=True)
-    gst = models.CharField(max_length=255, blank=True, null=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
     legal_name = models.CharField(max_length=255, blank=True, null=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
-    register_shop_name = models.CharField(max_length=250, null=True, blank=True)
     security_question = models.CharField(max_length=255, null=True, blank=True)
     answer = models.CharField(max_length=255, null=True, blank=True)
-    status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Active')
+    status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Inactive')
     pincode = models.IntegerField(null=True, blank=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     country = models.CharField(max_length=255, null=True, blank=True)
@@ -104,13 +102,11 @@ class Merchant(models.Model):
      
     # New fields added
     aadhaar_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
-    gst_number = models.CharField(max_length=15, blank=True, null=True, unique=False) 
+    gst_number = models.CharField(max_length=15, unique=False, null=True, blank=True) 
     pan_number = models.CharField(max_length=10, unique=True, null=True, blank=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     legal_name = models.CharField(max_length=255, null=True, blank=True)
-    # state = models.CharField(max_length=100, null=True, blank=True)
-    # city = models.CharField(max_length=100, null=True, blank=True)
     state = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
     country = models.CharField(max_length=100, null=True, blank=True)
@@ -129,17 +125,6 @@ class Terminal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
 
-
-class Terminal(models.Model):
-    terminal_id = models.CharField(max_length=20, unique=True)
-    merchant_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='terminals')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-    
-
-
-
 class Customer(models.Model):
     GENDER_CHOICES = [
         ('Male', 'Male'),
@@ -149,23 +134,16 @@ class Customer(models.Model):
     customer_id = models.CharField(max_length=25, primary_key=True, unique=True, blank=True)
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
-    email = models.EmailField(unique=True, null=True, blank=True)
+    email = models.EmailField(unique=False, null=True, blank=True)
     mobile = models.CharField(max_length=15, unique=True)
     age = models.IntegerField(null=True, blank=True)
-    
-    GENDER_CHOICES = [
-        ('Male', 'Male'),
-        ('Female', 'Female'),
-        ('Other', 'Other'),
-    ]
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
-    
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)   
     otp = models.IntegerField(null=True, blank=True)
     pin = models.IntegerField(null=True, blank=True)
     security_question = models.CharField(max_length=255, null=True, blank=True)
     answer = models.CharField(max_length=255, null=True, blank=True)
     aadhar_number = models.CharField(max_length=255, null=True, blank=True)
-    pan = models.CharField(max_length=255, null=True, blank=True, unique=True)
+    pan_number = models.CharField(max_length=255, null=True, blank=True, unique=True)
     pincode = models.IntegerField(null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
