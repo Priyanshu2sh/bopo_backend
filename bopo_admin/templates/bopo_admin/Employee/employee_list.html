@@ -18,9 +18,9 @@
         <div class="employee-item">
             <label class="employee-label" onclick="toggleTable('corporate-table')">
                 <span class="employee-icon">🏢</span>
-                <span> Employee's List</span>
+                <span onclick="toggleTable()" style="cursor: pointer; font-weight: bold;">Employee's List</span>
             </label>
-            <div class="employee-table" id="corporate-table">
+            <div class="employee-table" id="corporate-table" style="overflow: hidden; transition: max-height 0.5s ease, padding 0.3s ease; max-height: 500px; padding: 15px;">
                 <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table-content', 'search-corporate')" placeholder="Search employees...">
                 <div class="table-wrapper">
                     <table id="corporate-table-content">
@@ -67,7 +67,7 @@
             <div id="editModal" class="modal" style="display: none;">
                 <div class="modal-content">
                     <span class="close" onclick="closeEditModal()">&times;</span>
-                    <h3>Edit Employee</h3>
+                    <h2>Edit Employee</h2>
                     <form id="editEmployeeForm">
                         <input type="hidden" name="employee_id" id="edit_employee_id">
 
@@ -209,12 +209,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-function toggleTable(tableId) {
-    const tableDiv = document.getElementById(tableId);
-    const isOpen = tableDiv.style.maxHeight === "500px";
-    tableDiv.style.maxHeight = isOpen ? "0px" : "500px";
-    tableDiv.style.padding = isOpen ? "0px" : "15px";
-}
+let isTableOpen = true;
+
+ function toggleTable() {
+    const tableDiv = document.getElementById("employee-table");
+    tableDiv.classList.toggle("hidden");
+  }
 
 function filterTable(tableId, searchBoxId) {
     const input = document.getElementById(searchBoxId).value.toLowerCase();
@@ -378,53 +378,46 @@ function showToast(message, type) {
 
 
 function deleteEmployee(employeeId) {
+    console.log('Deleting employee:', employeeId); // Debugging log
     document.getElementById("confirmationModal").style.display = "flex";
-
-
     document.getElementById("confirmationMessage").textContent = "Are you sure you want to delete this employee?";
 
-     document.getElementById("confirmDelete").onclick = function() {
-        fetch(`/bopo_admin/delete-employee/${employeeId}/`, { 
+    document.getElementById("confirmDelete").onclick = function() {
+        fetch(`/bopo_admin/delete-employee/${employeeId}/`, {
             method: "DELETE",
             headers: {
-                "X-CSRFToken": getCookie("csrftoken")  
+                "X-CSRFToken": getCookie("csrftoken")
             }
         })
         .then(response => response.json())
         .then(data => {
-            console.log("Response from server:", data);  
+            console.log("Delete response:", data); // Debugging log
 
-       
             if (data.success) {
                 showToast("Employee deleted successfully!");
                 document.querySelector(`button[onclick="deleteEmployee('${employeeId}')"]`).closest("tr").remove();  // Use employeeId here
 
                 setTimeout(() => {
-                    console.log("Reloading page...");  
-                    location.reload();  /
-                }, 3000); 
+                    console.log("Reloading page...");
+                    location.reload();
+                }, 3000);
             } else {
-                showToast("Failed to delete employee!"); 
+                showToast("Failed to delete employee!");
             }
 
-           
             document.getElementById("confirmationModal").style.display = "none";
         })
         .catch(error => {
             console.error("Error deleting employee:", error);
             showToast("Something went wrong!");
-            // Hide the modal if there's an error
             document.getElementById("confirmationModal").style.display = "none";
         });
     };
 
-    // When user clicks "No"
     document.getElementById("cancelDelete").onclick = function() {
-        // Just close the modal without taking any action
         document.getElementById("confirmationModal").style.display = "none";
     };
 }
-
 
 
 const rowsPerPage = 5;

@@ -155,6 +155,7 @@ def get_customer(request, customer_id):
             return JsonResponse(data)
         except Customer.DoesNotExist:
             raise Http404("Customer does not exist")
+        
 
 from django.shortcuts import render, get_object_or_404, redirect
 from accounts.models import Customer
@@ -380,6 +381,11 @@ def add_merchant(request):
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
 
 
+
+
+
+
+
 def redirect_with_error(request, message):
     from django.contrib import messages
     messages.error(request, message)
@@ -389,6 +395,37 @@ def redirect_with_success(request, message):
     from django.contrib import messages
     messages.success(request, message)
     return redirect("add_merchant")
+
+# from django.http import JsonResponse
+# from accounts.models import Corporate  # or whatever your model is named
+
+# def edit_cop(request, corporate_id):
+#     try:
+#         merchant = Corporate.objects.get(id=corporate_id)
+#         data = {
+#             "customer_id": corporate.id,
+#             "first_name": corporate.first_name,
+#             "last_name": corporate.last_name,
+#             "email": corporate.email,
+#             "aadhaar": merchant.aadhaar,
+#             "shop_name": merchant.shop_name,
+#             "address": merchant.address,
+#             "state": merchant.state.id if merchant.state else "",
+#             "city": merchant.city.id if merchant.city else "",
+#             "mobile": merchant.mobile,
+#             "gst_number": merchant.gst_number,
+#             "pan_number": merchant.pan_number,
+#             "legal_name": merchant.legal_name,
+#             "pincode": merchant.pincode,
+#             "project_name": merchant.project.project_name if merchant.project else "",
+#         }
+#         return JsonResponse(data)
+#     except Corporate.DoesNotExist:
+#         return JsonResponse({'error': 'Corporate merchant not found'}, status=404)
+
+
+
+
 
 # In your Django views.py
 from django.http import JsonResponse
@@ -422,8 +459,10 @@ def edit_copmerchant(request, merchant_id):
         return JsonResponse(data)
     except Merchant.DoesNotExist:
         return JsonResponse({'error': 'Merchant not found'}, status=404)
-    
-    
+
+
+
+
     
 from django.http import JsonResponse
 from accounts.models import Merchant, Corporate
