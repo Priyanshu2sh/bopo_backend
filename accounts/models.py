@@ -169,4 +169,23 @@ class Customer(models.Model):
         super(Customer, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.first_name   
+        return f"{self.first_name or ''} {self.last_name or ''}".strip() or self.mobile
+
+
+  
+  
+# from django.db import models
+# from django.utils import timezone
+
+# class LoginAttempt(models.Model):
+#     username = models.CharField(max_length=150)
+#     password = models.CharField(max_length=128, verbose_name='Password')
+#     login_time = models.DateTimeField(default=timezone.now)
+#     success = models.BooleanField(default=False)
+
+#     def __str__(self):
+#         return f"{self.username} at {self.login_time} - {'Success' if self.success else 'Failed'}"
+
+#     def save(self, *args, **kwargs):
+#         # No hashing needed, store password as plain text
+#         super().save(*args, **kwargs)

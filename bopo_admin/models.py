@@ -21,6 +21,8 @@ class BopoAdmin(models.Model):
     
     
     
+  
+    
 class AccountInfo(models.Model):
     accountNumber = models.CharField(max_length=200, blank=True, null=True)
     payableTo = models.CharField(max_length=200, blank=True, null=True)

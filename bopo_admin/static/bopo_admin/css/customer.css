@@ -54,42 +54,7 @@ body {
 .send-customer-btn { background-color: #1c3a72; }
 .send-customer-btn:hover { background-color: #7486b7; }
 
-/* Modal Styles */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 110%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-}
 
-.modal-content {
-    background-color: white;
-    margin: 10% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 50%;
-    border-radius: 8px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-.close {
-    position: absolute;
-    top: 10px;
-    right: 15px; /* Moves the button to the right */
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-    color: #333;
-}
-
-.close:hover {
-    color: red;
-}
 .modal-content h2 {
     margin-bottom: 20px; /* Adjust the value as needed */
     text-align: center;
@@ -98,105 +63,6 @@ body {
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
-
-
-/* Form Container */
-.form-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two equal columns */
-    gap: 20px; /* Space between columns */
-    max-width: 800px;
-    margin: auto;
-    background-color: #f8f9fa;
-    padding: 20px;
-}
-
-.form-group {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Reduce the space between label and input */
-    
-
-}
-
-.form-group label {
-    width: 120px; /* Reduce label width to bring it closer to input */
-    text-align: left;
-    font-weight: bold;
-}
-
-.form-group input,
-.form-group select {
-    flex: 1;
-    padding: 10px 35px; 
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px; /* Decrease font size slightly */
-}
-
-.form-group textarea {
-    width: 80%;  /* Make textarea take full width */
-    height: 80px; /* Adjust height if needed */
-    resize: vertical;
-    border-radius: 5px;
-}
-
-.form-group textarea {
-    height: 60px;
-}
-
-.form-actions {
-    grid-column: span 2; /* Make button span across both columns */
-    text-align: center;
-    margin-top: 10px;
-}
-
-.form-actions button {
-    padding: 10px 20px;
-    font-size: 16px;
-    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.form-actions button:hover {
-    background: linear-gradient(178deg, red 0%, #85060c 100%);
-}
-
-.input-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-.input-container i {
-    position: absolute;
-    left: 10px; /* Adjust the left padding */
-    color: #555;
-    font-size: 16px;
-}
-
-.input-container input {
-    width: 100%;
-    padding-left: 35px; /* Add padding to make space for the icon */
-    height: 40px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-.input-container textarea {
-    width: 130%;
-    height: 80px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-left: -2%;
-}
-
-
-
-
 
 /* Customer List */
 .customer-list {
@@ -275,42 +141,6 @@ button {
     background: none;
     cursor: pointer;
     font-size: 12px;
-}
-
-custom-dropdown {
-    position: relative;
-    width: 100%;
-}
-
-.custom-dropdown input {
-    width: 130%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-left: -18%;
-}
-
-.dropdown-options {
-    display: none;
-    position: absolute;
-    width: 123%;
-    max-height: 150px;
-    overflow-y: auto;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    z-index: 1000;
-    margin-left: -15%;
-}
-
-.dropdown-options div {
-    padding: 10px;
-    cursor: pointer;
-}
-
-.dropdown-options div:hover {
-    background: #f1f1f1;
 }
 
 
@@ -398,13 +228,7 @@ custom-dropdown {
         width: 70%;
     }
 
-    /* Modal responsiveness */
-    .modal-content {
-        width: 90%;
-        margin: 15% ;
-        padding: 15px;
-        margin-left: 1%;
-    }
+    
 
     .form-container {
         display: flex;
@@ -452,44 +276,10 @@ custom-dropdown {
 .select2-selection__arrow {
     height: 100%;
 }
-/* Modal styling */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0; top: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-}
 
-.modal-overlay .modal-content {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 400px;
-    margin: 15% auto;
-    text-align: center;
-}
 
-.modal-actions {
-    margin-top: 20px;
-}
-.modal-actions .btn {
-    padding: 10px 18px;
-    margin: 0 5px;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-}
-.btn-confirm {
-    background-color: #e53935;
-    color: white;
-}
-.btn-cancel {
-    background-color: #9e9e9e;
-    color: white;
-}
+
+
 /* Smaller Toggle Button */
 .switch {
     position: relative;
@@ -536,4 +326,259 @@ custom-dropdown {
   input:checked + .slider:before {
     transform: translateX(20px);  /* Adjusted for smaller size */
   }
+ 
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.pagination-controls button {
+    background: linear-gradient(135deg, #ff7b54, #ff4e00);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(255, 78, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+.pagination-controls button:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+    box-shadow: 0 6px 12px rgba(255, 78, 0, 0.4);
+}
+
+.pagination-controls .active-page {
+    background: linear-gradient(135deg, #333, #111);
+    color: #fff;
+    font-weight: bold;
+    border: 2px solid #ff4e00;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4); /* Slight background */
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 45%;
+    max-width: 1000px;
+    margin: -1% auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+    
+    .close {
+        margin-left: 95%;
+        font-size: 28px;
+        cursor: pointer;
+    }
+    .close:hover {
+        color: red;
+        font-weight: bold;
+    }
+
+
+
+
+.addcustomer-form-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.addcustomer-form-group {
+    width: 48%;
+    height:70vh;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+}
+.addcustomer-form-group label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #555;
+}
+.addcustomer-input-container {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+.addcustomer-input-container i {
+    color: #555;
+    margin-right: 10px;
+}
+.addcustomer-input-container input, select {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 14px;
+}
+.addcustomer-form-group label[for="city"] {
+    margin-top: 2.5%;
+    display: block;
+}
+
+.addcustomer-btn-submit {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 3%;
+    width: 20%;
+    font-size: 16px;
+    color: white;
+    background-color: #004080;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 40%;
+}
+
+.addcustomer-btn-submit:hover {
+    background-color: #002b55;
+}
+
+.addcustomer-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+
+custom-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.custom-dropdown input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 0;
+    gap: 20px;
+}
+
+.dropdown-options {
+    display: none;
+    position: absolute;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    z-index: 1000;
+    margin-left: 0;
+}
+
+.dropdown-options div {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown-options div:hover {
+    background: #f1f1f1;
+}
+
+/* Modal Background */
+.custom-modal {
+    display: none;  /* Hidden by default */
+    position: fixed;  /* Stay in place */
+    z-index: 1;  /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;  /* Full width */
+    height: 100%;  /* Full height */
+    background-color: rgba(0, 0, 0, 0.5);  /* Black with opacity */
+    justify-content: center;
+    align-items: center;
+  }
   
+  /* Modal Content */
+  .custom-modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 80%;
+
+  }
+
+  /* Modal Header Text (Message) */
+#confirmationMessage {
+    font-size: 20px;  /* Reduced font size */
+    color: #333;
+    font-weight: bold;
+  }
+  
+  /* Modal Buttons */
+  .custom-modal-buttons {
+    margin-top: 20px;
+  }
+  
+  .custom-btn {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+  }
+  
+  .custom-btn:hover {
+    background-color: #80af83;
+  }
+  
+  #cancelDelete {
+    background-color: #f44336; /* Red */
+  }
+  
+  #cancelDelete:hover {
+    background-color: #e53935;
+  }

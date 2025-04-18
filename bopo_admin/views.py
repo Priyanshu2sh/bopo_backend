@@ -107,6 +107,82 @@ def customer(request):
     customers = Customer.objects.all()
     return render(request, 'bopo_admin/Customer/customer.html', {'customers': customers})
 
+
+from django.http import JsonResponse, Http404
+from accounts.models import Customer  # Adjust this import to your actual model
+
+def get_customer(request, customer_id):
+    if request.method == "GET":
+        try:
+            customer = Customer.objects.get(customer_id=customer_id)
+            data = {
+                "first_name": customer.first_name,
+                "last_name": customer.last_name,
+                "email": customer.email,
+                "mobile": customer.mobile,
+                "age": customer.age,
+                "aadhar_number": customer.aadhar_number, 
+                "address": customer.address,
+                "city_id": customer.city,
+                "state_id": customer.state,
+                "pincode": customer.pincode,
+                "gender": customer.gender,
+                "pan": customer.pan,
+            }
+            return JsonResponse(data)
+        except Customer.DoesNotExist:
+            raise Http404("Customer does not exist")
+        
+
+from django.shortcuts import render, get_object_or_404, redirect
+from accounts.models import Customer
+from django.http import JsonResponse
+
+def update_customer(request, customer_id):
+    if request.method == "POST":
+        customer = get_object_or_404(Customer, customer_id=customer_id)
+
+        # Update customer data from the form
+        customer.first_name = request.POST.get('first_name')
+        customer.last_name = request.POST.get('last_name')
+        customer.email = request.POST.get('email')
+        customer.mobile = request.POST.get('mobile')
+        customer.age = request.POST.get('age')
+        customer.aadhar_number = request.POST.get('aadhar_number')
+        customer.address = request.POST.get('address')
+        customer.state_id = request.POST.get("state")
+        customer.city_id = request.POST.get("city")
+        customer.pincode = request.POST.get('pincode')
+        customer.gender = request.POST.get('gender')
+        customer.pan = request.POST.get('pan')
+        customer.save()
+
+        # Return a success response
+        return JsonResponse({
+    "status": "success",
+    "message": "Customer updated successfully"
+})
+    return JsonResponse({"message": "Invalid request"}, status=400)
+
+
+
+# bopo_admin/views.py
+
+from django.http import JsonResponse
+from accounts.models import Customer
+
+
+def delete_customer(request, customer_id):
+    if request.method == 'DELETE':
+        try:
+            customer = Customer.objects.get(customer_id=customer_id)
+            customer.delete()
+            return JsonResponse({'status': 'success', 'message': 'Customer deleted successfully.'})
+        except Customer.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Customer not found.'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=400)
+
+
 def merchant_list(request):
     return render(request, "bopo_admin/Merchant/merchant_list.html")
 
@@ -304,6 +380,11 @@ def add_merchant(request):
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
 
 
+
+
+
+
+
 def redirect_with_error(request, message):
     from django.contrib import messages
     messages.error(request, message)
@@ -313,6 +394,37 @@ def redirect_with_success(request, message):
     from django.contrib import messages
     messages.success(request, message)
     return redirect("add_merchant")
+
+# from django.http import JsonResponse
+# from accounts.models import Corporate  # or whatever your model is named
+
+# def edit_cop(request, corporate_id):
+#     try:
+#         merchant = Corporate.objects.get(id=corporate_id)
+#         data = {
+#             "customer_id": corporate.id,
+#             "first_name": corporate.first_name,
+#             "last_name": corporate.last_name,
+#             "email": corporate.email,
+#             "aadhaar": merchant.aadhaar,
+#             "shop_name": merchant.shop_name,
+#             "address": merchant.address,
+#             "state": merchant.state.id if merchant.state else "",
+#             "city": merchant.city.id if merchant.city else "",
+#             "mobile": merchant.mobile,
+#             "gst_number": merchant.gst_number,
+#             "pan_number": merchant.pan_number,
+#             "legal_name": merchant.legal_name,
+#             "pincode": merchant.pincode,
+#             "project_name": merchant.project.project_name if merchant.project else "",
+#         }
+#         return JsonResponse(data)
+#     except Corporate.DoesNotExist:
+#         return JsonResponse({'error': 'Corporate merchant not found'}, status=404)
+
+
+
+
 
 # In your Django views.py
 from django.http import JsonResponse
@@ -347,6 +459,83 @@ def edit_copmerchant(request, merchant_id):
     except Merchant.DoesNotExist:
         return JsonResponse({'error': 'Merchant not found'}, status=404)
 
+
+
+
+    
+from django.http import JsonResponse
+from accounts.models import Merchant, Corporate
+
+def update_copmerchant(request):
+    if request.method == 'POST':
+        # Extract the data from the request (Assuming data comes as form data)
+        merchant_id = request.POST.get('merchant_id')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        aadhaar = request.POST.get('aadhaar')
+        shop_name = request.POST.get('shop_name')
+        address = request.POST.get('address')
+        state = request.POST.get('state')
+        mobile = request.POST.get('mobile')
+        gst_number = request.POST.get('gst_number')
+        pan_number = request.POST.get('pan')
+        legal_name = request.POST.get('legal_name')
+        city = request.POST.get('city')
+        pincode = request.POST.get('pincode')
+        project_name = request.POST.get('project_name')
+        # select_project = request.POST.get('select_project')
+
+        try:
+            # Retrieve the merchant to update
+            merchant = Merchant.objects.get(id=merchant_id)
+
+            # Update the merchant fields
+            merchant.first_name = first_name
+            merchant.last_name = last_name
+            merchant.email = email
+            merchant.aadhaar_number = aadhaar
+            merchant.shop_name = shop_name
+            merchant.address = address
+            merchant.state = state
+            merchant.mobile = mobile
+            merchant.gst_number = gst_number
+            merchant.pan_number = pan_number
+            merchant.legal_name = legal_name
+            merchant.city = city
+            merchant.pincode = pincode
+            merchant.project_name = project_name
+            # merchant.select_project = select_project
+
+            # Save the updated merchant
+            merchant.save()
+
+            # Return a success response with the updated merchant data
+            return JsonResponse({
+                'success': True 
+                })
+
+        except Merchant.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Merchant not found.'})
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+
+from django.http import JsonResponse
+from accounts.models import Corporate, Merchant
+
+def delete_corporate(request, id):
+    if request.method == 'DELETE':
+        try:
+            Corporate.objects.get(id=id).delete()
+            return JsonResponse({'success': True})
+        except Corporate.DoesNotExist:
+            return JsonResponse({'error': 'Corporate not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 # def edit_individual(request, id):
 #     merchant = get_object_or_404(Merchant, id=id)

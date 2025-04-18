@@ -5,12 +5,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 # urlpatterns = [
-#     path('/login', views.login, name='login'),        
+    # path('/login', views.login, name='login'),        
 # ]
 from .views import home, about, merchant, customer, project_onboarding,merchant_list
 
 urlpatterns = [
-    path('login/', views.login, name='login'),  
+    # NEW (correct)
+    # path('login/', views.login_view, name='login'),
     path('', home, name='home'),
     path('about/', about, name='about'),
     path('merchant/', merchant, name='merchant'),
@@ -79,11 +80,22 @@ urlpatterns = [
     path('update-merchant/', views.update_merchant, name='update_merchant'),
     path('delete-merchant/<int:merchant_id>/', views.delete_merchant, name='delete_merchant'),
     
-     path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
+    path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
+    path('update_copmerchant/', views.update_merchant, name='update_copmerchant'),
+    # path('edit-cop/<int:corporate_id>/', views.edit_copmerchant, name='edit_cop'),
+
+    
+    path('delete-corporate/<int:id>/', views.delete_corporate, name='delete_corporate'),
 
     # path('update-merchant-status/', update_merchant_status, name='update_merchant_status'),
-    
-    
+    path("get-customer/<str:customer_id>/", views.get_customer, name="get_customer"),
+    path('bopo_admin/update-customer/<str:customer_id>/', views.update_customer, name='update_customer'),
+    path('delete-customer/<str:customer_id>/', views.delete_customer, name='delete_customer'),
+
+ 
+  
+    # path('delete-merchant/<int:id>/', views.delete_merchant, name='delete_merchant'),
+
 
 
     
