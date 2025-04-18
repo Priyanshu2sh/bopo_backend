@@ -45,4 +45,5 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = PaymentDetails
-        fields = ['merchant', 'paid_amount', 'transaction_id', 'topup_point', 'payment_mode', 'created_at']
+        fields = ['merchant', 'paid_amount', 'transaction_id','topup_point', 'payment_mode', 'created_at']
+        extra_kwargs = {'topup_point' :{'required':False}}
