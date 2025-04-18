@@ -1,16 +1,17 @@
 from django.urls import path, include
-from .views import  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,delete_employee,edit_merchants,delete_merchant,edit_copmerchant
+from .views import  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,delete_employee,edit_merchants,delete_merchant,edit_copmerchant,get_customer
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
 # urlpatterns = [
-#     path('/login', views.login, name='login'),        
+    # path('/login', views.login, name='login'),        
 # ]
 from .views import home, about, merchant, customer, project_onboarding,merchant_list
 
 urlpatterns = [
-    path('login/', views.login, name='login'),  
+    # NEW (correct)
+    # path('login/', views.login_view, name='login'),
     path('', home, name='home'),
     path('about/', about, name='about'),
     path('merchant/', merchant, name='merchant'),
@@ -76,11 +77,22 @@ urlpatterns = [
     path('update-merchant/', views.update_merchant, name='update_merchant'),
     path('delete-merchant/<int:merchant_id>/', views.delete_merchant, name='delete_merchant'),
     
-     path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
+    path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
+    path('update_copmerchant/', views.update_merchant, name='update_copmerchant'),
+    # path('edit-cop/<int:corporate_id>/', views.edit_copmerchant, name='edit_cop'),
+
+    
+    path('delete-corporate/<int:id>/', views.delete_corporate, name='delete_corporate'),
 
     # path('update-merchant-status/', update_merchant_status, name='update_merchant_status'),
-    
-    
+    path("get-customer/<str:customer_id>/", views.get_customer, name="get_customer"),
+    path('bopo_admin/update-customer/<str:customer_id>/', views.update_customer, name='update_customer'),
+    path('delete-customer/<str:customer_id>/', views.delete_customer, name='delete_customer'),
+
+ 
+  
+    # path('delete-merchant/<int:id>/', views.delete_merchant, name='delete_merchant'),
+
 
 
     

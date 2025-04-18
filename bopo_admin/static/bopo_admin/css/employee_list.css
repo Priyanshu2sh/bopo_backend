@@ -110,6 +110,7 @@ body {
     transition: max-height 0.4s ease-in-out, padding 0.3s ease-in-out;
 }
 
+
 /* Show Employee Table when Checkbox is Checked */
 .toggle-checkbox:checked + .employee-label + .employee-table {
     max-height: 500px;
@@ -121,6 +122,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
+    table-layout: auto;
 }
 
 th, td {
@@ -368,26 +370,40 @@ button {
 }
 .modal {
     position: fixed;
-    z-index: 1000;
-    left: 0;
     top: 0;
-    width: 120%;
-    height: 120%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
 }
 
 .modal-content {
     background-color: #fff;
-    margin: 10% auto;
     padding: 20px;
     border-radius: 8px;
-    width: 40%;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    width: 45%;
+    max-width: 1000px;
+    margin: -1% auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+.modal-content h2 {
+    margin-bottom: 20px; /* Adjust the value as needed */
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .close {
-    float: right;
+    margin-left: 95%;
     font-size: 28px;
     cursor: pointer;
 }
@@ -438,8 +454,8 @@ button {
 .addemployee-btn-submit {
     display: inline-block;
     padding: 10px 20px;
-    margin-top: 18%;
-    width: 70%;
+    margin-top: 7%;
+    width: 20%;
     font-size: 16px;
     color: white;
     background-color: #004080; /* Primary Blue */
@@ -449,7 +465,7 @@ button {
     text-align: center;
     text-decoration: none;
     transition: background 0.3s ease;
-    margin-left: -40%;
+    margin-left: 40%;
 }
 
 .addemployee-btn-submit:hover {
@@ -522,8 +538,8 @@ button {
 /* Toast Notification Styling */
 .toast-container {
     visibility: hidden;
-    min-width: 250px; 
-    background-color: #ff4d4d; 
+    min-width: 250px;
+    background-color: #28a745; /* Green Color */
     color: white;
     text-align: center;
     border-radius: 5px;
@@ -540,7 +556,6 @@ button {
     transform: translateY(-50%); /* Initial hidden position */
     transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
 }
-
 .toast-success {
     background-color: #4CAF50; /* green */
     color: white;
@@ -548,4 +563,79 @@ button {
 .toast-error {
     background-color: #ff4d4d; /* red (error) */
     color: white;
+}
+/* Show Toast */
+.toast-show {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Fade Out Animation */
+.toast-hide {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+
+
+/* Modal Background */
+.custom-modal {
+    display: none;  /* Hidden by default */
+    position: fixed;  /* Stay in place */
+    z-index: 9999;  /* Higher z-index to ensure it sits on top */
+    left: 0;
+    top: 0;
+    width: 100%;  /* Full width */
+    height: 100%;  /* Full height */
+    background-color: rgba(0, 0, 0, 0.5);  /* Black with opacity */
+    display: flex;  /* Enable flexbox for centering */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal Content */
+.custom-modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 80%;
+}
+
+/* Modal Header Text (Message) */
+#confirmationMessage {
+    font-size: 20px;  /* Reduced font size */
+    color: #333;
+    font-weight: bold;
+}
+
+/* Modal Buttons */
+.custom-modal-buttons {
+    margin-top: 20px;
+}
+
+.custom-btn {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.custom-btn:hover {
+    background-color: #80af83;
+}
+
+#cancelDelete {
+    background-color: #f44336; /* Red */
+}
+
+#cancelDelete:hover {
+    background-color: #e53935;
 }

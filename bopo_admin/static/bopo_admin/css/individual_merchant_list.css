@@ -288,6 +288,15 @@ button {
 }
 
 
+.modal-content h2 {
+    margin-bottom: 20px; /* Adjust the value as needed */
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
  .modal {
         position: fixed;
         z-index: 1000;
@@ -309,11 +318,14 @@ button {
     }
     
     .close {
-        float: right;
+        margin-left: 95%;
         font-size: 28px;
         cursor: pointer;
     }
-
+    .close:hover {
+        color: red;
+        font-weight: bold;
+    }
 
 
     .add_individual_merchant-form-container {
