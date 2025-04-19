@@ -50,6 +50,7 @@
         <li><a href="{% url 'send_notifications' %}"><i class="fas fa-bell"></i> Send Notifications</a></li>
         <li><a href="{% url 'received_offers' %}"><i class="fas fa-gift"></i> Received Offers</a></li>
         <li><a href="{% url 'uploads' %}"><i class="fas fa-upload"></i> Uploads</a></li>
+        
     </ul>
 </div>
 
@@ -99,6 +100,12 @@
         <div id="reportsSection">
             <a href="{% url 'reports' %}" class="{% if request.path == '/reports/' %}active{% endif %}">
                 <i class="fas fa-chart-line"></i> Reports
+            </a>
+        </div>
+
+        <div id="deduct_amount">
+            <a href="{% url 'deduct_amount' %}" class="{% if request.path == '/deduct_amount/' %}active{% endif %}">
+                <i class="fas fa-money-bill-wave"></i> Deduct Amount
             </a>
         </div>
 
@@ -202,7 +209,6 @@
         });
     });
 
-
     document.addEventListener("DOMContentLoaded", function () {
         const profileToggle = document.getElementById("profileDropdownToggle");
         const profileMenu = document.getElementById("profileDropdownMenu");
@@ -220,8 +226,6 @@
             });
         }
     });
-    
-    
     
 </script>
 

@@ -26,21 +26,23 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% for topup in topups %}
                     <tr>
-                        <td>111</td>
-                        {% comment %} <td>McDonald's</td> {% endcomment %}
-                        <td>Reyansh Desai</td>
-                        <td>9090909090</td>
-                        <td>$100</td>
-                        <td>$80</td>
-                        <td>2025-03-25</td>
-                        <td>Credit Card</td>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ topup.merchant.first_name }} {{ topup.merchant.last_name }}</td>
+                        <td>{{ topup.merchant.mobile }}</td>
+                        <td>{{ topup.topup_amount }}</td>
+                        <td>{{ topup.topup_points }}</td>
+                        <td>{{ topup.transaction_date|date:"Y-m-d" }}</td>
+                        <td>{{ topup.payment_mode }}</td>
                         <td>
-                            <button>✏️</button>
-                            <button>🗑️</button>
+                            <button  class="btn btn-sm btn-warning">✏️ Edit</button>
+                            <button class="btn btn-sm btn-danger">🗑️ Delete</button>
                         </td>
                     </tr>
+                    {% endfor %}
                 </tbody>
+                
             </table>
         </div>
     </div>

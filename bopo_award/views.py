@@ -1,13 +1,16 @@
+import random
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from django.db.models import F
 from django.db.models import Sum
+from rest_framework.permissions import IsAuthenticated
 
 from accounts.serializers import CustomerSerializer, MerchantSerializer
+from .serializers import BankDetailSerializer, PaymentDetailsSerializer
 
-from .models import CustomerToCustomer, MerchantToMerchant
+from .models import BankDetail, CustomerToCustomer, MerchantToMerchant, PaymentDetails
 from accounts.models import Customer, Merchant
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
@@ -18,54 +21,76 @@ class RedeemPointsAPIView(APIView):
 
     def post(self, request):
         customer_id = request.data.get('customer_id')
+        customer_mobile = request.data.get('customer_mobile')
         merchant_id = request.data.get('merchant_id')
+        merchant_mobile = request.data.get('merchant_mobile')
         pin = request.data.get('pin')
         points = int(request.data.get('points', 0))
 
         if points <= 0:
             return Response({'error': 'Points must be greater than zero'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # ✅ Fetch customer by ID or mobile
         try:
-            customer = Customer.objects.get(customer_id=customer_id)
-            merchant = Merchant.objects.get(merchant_id=merchant_id)
+            if customer_id:
+                customer = Customer.objects.get(customer_id=customer_id)
+            elif customer_mobile:
+                customer = Customer.objects.get(mobile=customer_mobile)
+            else:
+                return Response({'error': 'Customer ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
         except Customer.DoesNotExist:
             return Response({'error': 'Customer not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Merchant.DoesNotExist:
-            return Response({'error': 'Merchant not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Validate customer's PIN
+        # ✅ Validate customer's PIN
         if str(customer.pin) != str(pin):
             return Response({'error': 'Please enter the correct PIN.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Get total available points for the customer across all merchants
+        # ✅ Fetch or create merchant
+        merchant = None
+        if merchant_id:
+            try:
+                merchant = Merchant.objects.get(merchant_id=merchant_id)
+            except Merchant.DoesNotExist:
+                return Response({'error': 'Merchant not found.'}, status=status.HTTP_404_NOT_FOUND)
+        elif merchant_mobile:
+            merchant, created = Merchant.objects.get_or_create(
+                mobile=merchant_mobile,
+                defaults={
+                    'merchant_id': f"M{random.randint(100000, 999999)}",
+                }
+            )
+        else:
+            return Response({'error': 'Merchant ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ✅ Check total available customer points
         total_customer_points = CustomerPoints.objects.filter(customer=customer).aggregate(total=Sum('points'))['total'] or 0
 
         if total_customer_points < points:
             return Response({'error': 'Insufficient points. Transfer not allowed.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Apply 5% deduction
-        points_after_deduction = points * 0.95
+        # ✅ Deduct points across CustomerPoints entries
+        points_to_deduct = points
+        customer_point_entries = CustomerPoints.objects.filter(customer=customer).order_by('-points')
 
-        # ✅ Check if an entry exists for this merchant
-        customer_points_entry, created = CustomerPoints.objects.get_or_create(
-            customer=customer,
-            merchant=merchant,
-            defaults={'points': 0}  # Start with 0 points if new
-        )
+        for entry in customer_point_entries:
+            if points_to_deduct <= 0:
+                break
+            if entry.points <= points_to_deduct:
+                points_to_deduct -= entry.points
+                entry.points = 0
+            else:
+                entry.points = F('points') - points_to_deduct
+                points_to_deduct = 0
+            entry.save(update_fields=['points'])
 
-        if customer_points_entry.points < points:
-            return Response({'error': 'Insufficient points for this customer. Transfer not allowed.'}, status=status.HTTP_400_BAD_REQUEST)
+        # ✅ Apply 5% deduction
+        points_after_deduction = round(points * 0.95, 2)
 
-        # Deduct points from CustomerPoints
-        customer_points_entry.points = F('points') - points
-        customer_points_entry.save(update_fields=['points'])
-
-        # ✅ Update or create MerchantPoints entry
+        # ✅ Update or create MerchantPoints
         merchant_points, created = MerchantPoints.objects.get_or_create(
             merchant=merchant,
             defaults={'points': points_after_deduction}
         )
-
         if not created:
             merchant_points.points = F('points') + points_after_deduction
             merchant_points.save(update_fields=['points'])
@@ -78,11 +103,17 @@ class RedeemPointsAPIView(APIView):
             transaction_type="redeem"
         )
 
-        return Response({'message': 'Points redeemed successfully'}, status=status.HTTP_200_OK)
-
+        return Response({
+            'message': 'Points redeemed successfully',
+            'merchant_id': merchant.merchant_id,
+            'merchant_mobile': merchant.mobile
+        }, status=status.HTTP_200_OK)
 
 
     
+
+from .models import Customer, Merchant, CustomerPoints, MerchantPoints, History
+
 
 class AwardPointsAPIView(APIView):
     """
@@ -91,40 +122,64 @@ class AwardPointsAPIView(APIView):
 
     def post(self, request):
         customer_id = request.data.get('customer_id')
+        customer_mobile = request.data.get('customer_mobile')
         merchant_id = request.data.get('merchant_id')
+        merchant_mobile = request.data.get('merchant_mobile')
         points = int(request.data.get('points', 0))
 
         if points <= 0:
             return Response({'error': 'Points must be greater than zero'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # ✅ Fetch customer
         try:
-            customer = Customer.objects.get(customer_id=customer_id)  # ✅ Fetch Customer instance
-            merchant = Merchant.objects.get(merchant_id=merchant_id)  # ✅ Fetch Merchant instance
+            if customer_id:
+                customer = Customer.objects.get(customer_id=customer_id)
+            elif customer_mobile:
+                customer = Customer.objects.get(mobile=customer_mobile)
+            else:
+                return Response({'error': 'Customer ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
         except Customer.DoesNotExist:
             return Response({'error': 'Customer not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Merchant.DoesNotExist:
-            return Response({'error': 'Merchant not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Check if the merchant has enough points
+        # ✅ Fetch or create merchant
+        merchant = None
+        if merchant_id:
+            try:
+                merchant = Merchant.objects.get(merchant_id=merchant_id)
+            except Merchant.DoesNotExist:
+                return Response({'error': 'Merchant not found.'}, status=status.HTTP_404_NOT_FOUND)
+        elif merchant_mobile:
+            merchant, created = Merchant.objects.get_or_create(
+                mobile=merchant_mobile,
+                defaults={
+                    'merchant_id': f"M{random.randint(100000, 999999)}",
+                    'first_name': 'New',
+                    'last_name': 'Merchant',
+                    'status': 'Active'
+                }
+            )
+        else:
+            return Response({'error': 'Merchant ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ✅ Check if merchant has enough points
         merchant_points = MerchantPoints.objects.filter(merchant=merchant).first()
 
         if not merchant_points or merchant_points.points < points:
             return Response({'error': 'Merchant does not have enough points to award'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Deduct points from MerchantPoints
+        # ✅ Deduct points from Merchant
         MerchantPoints.objects.filter(merchant=merchant).update(points=F('points') - points)
 
-        # Update or create CustomerPoints entry
+        # ✅ Update or create CustomerPoints
         customer_points, created = CustomerPoints.objects.get_or_create(
             customer=customer,
             merchant=merchant,
             defaults={'points': points}
         )
-
         if not created:
             CustomerPoints.objects.filter(customer=customer, merchant=merchant).update(points=F('points') + points)
 
-        # ✅ Store transaction in history
+        # ✅ Log transaction
         History.objects.create(
             customer=customer,
             merchant=merchant,
@@ -132,8 +187,11 @@ class AwardPointsAPIView(APIView):
             transaction_type="award"
         )
 
-        return Response({'message': 'Points awarded successfully'}, status=status.HTTP_200_OK)
-
+        return Response({
+            'message': 'Points awarded successfully',
+            'merchant_id': merchant.merchant_id,
+            'merchant_mobile': merchant.mobile
+        }, status=status.HTTP_200_OK)
 
 class HistoryAPIView(APIView):
     """
@@ -143,19 +201,20 @@ class HistoryAPIView(APIView):
     """
 
     def get(self, request, id, user_type):
-        
+
         all_transactions = History.objects.all().order_by('-created_at')
 
         if user_type == 'customer':
             transactions = all_transactions.filter(customer__customer_id=id)
         elif user_type == 'merchant':
             transactions = all_transactions.filter(merchant__merchant_id=id)
+        else:
+            return Response({"error": "Invalid user_type"}, status=status.HTTP_400_BAD_REQUEST)
 
         transaction_data = []
 
-        # Fetch transaction history
         for transaction in transactions:
-            transaction_data.append({
+            data = {
                 "customer_id": transaction.customer.customer_id if transaction.customer else None,
                 "merchant_id": transaction.merchant.merchant_id if transaction.merchant else None,
                 "points": transaction.points,
@@ -163,38 +222,52 @@ class HistoryAPIView(APIView):
                 "sender_status": "Customer" if transaction.transaction_type == "redeem" else "Merchant",
                 "receiver_status": "Merchant" if transaction.transaction_type == "redeem" else "Customer",
                 "created_at": transaction.created_at.strftime('%Y-%m-%d %H:%M:%S')
-            })
+            }
 
-        # Fetch latest total points for the specified customer (Grouped by Merchant)
-        customer_balances = {}
-        if user_type == 'customer':
-            customer_points = CustomerPoints.objects.filter(customer__customer_id=id).values(
-                'merchant__merchant_id'
-            ).annotate(total_points=Sum('points'))
+            # Add merchant info only for customer
+            if user_type == 'customer' and transaction.merchant:
+                data["merchant_name"] = f"{transaction.merchant.first_name} {transaction.merchant.last_name}"
+                data["shop_name"] = transaction.merchant.shop_name
 
-            for cp in customer_points:
-                customer_balances[cp['merchant__merchant_id']] = cp['total_points']
+            # Add customer info only for merchant
+            if user_type == 'merchant' and transaction.customer:
+                data["customer_name"] = f"{transaction.customer.first_name} {transaction.customer.last_name}"
 
-        # Fetch latest total points for the specified merchant
-        merchant_balance = None
-        if user_type == 'merchant':
-            merchant_points = MerchantPoints.objects.filter(merchant__merchant_id=id).aggregate(
-                total_points=Sum('points')
-            )
-            merchant_balance = merchant_points['total_points'] if merchant_points['total_points'] else 0
+            transaction_data.append(data)
 
-        # Prepare final response
         response_data = {
             "transaction_history": transaction_data,
         }
 
+        # Add balance details specific to user type
         if user_type == 'customer':
+            customer_balances = {}
+            customer_points = CustomerPoints.objects.filter(customer__customer_id=id).values(
+                'merchant__merchant_id',
+                'merchant__first_name',
+                'merchant__last_name',
+                'merchant__shop_name'
+            ).annotate(total_points=Sum('points'))
+
+            for cp in customer_points:
+                merchant_id = cp['merchant__merchant_id']
+                customer_balances[merchant_id] = {
+                    "merchant_name": f"{cp['merchant__first_name']} {cp['merchant__last_name']}",
+                    "shop_name": cp['merchant__shop_name'],
+                    "total_points": cp['total_points']
+                }
+
             response_data["customer_balances"] = customer_balances
+
         elif user_type == 'merchant':
+            merchant_points = MerchantPoints.objects.filter(merchant__merchant_id=id).aggregate(
+                total_points=Sum('points')
+            )
+            merchant_balance = merchant_points['total_points'] or 0
             response_data["merchant_balance"] = merchant_balance
 
         return Response(response_data, status=status.HTTP_200_OK)
-    
+ 
 
 class CustomerToCustomerTransferAPIView(APIView):
     """
@@ -406,17 +479,37 @@ class CheckPointsAPIView(APIView):
 class UpdateCustomerProfileAPIView(APIView):
     """API to update customer profile"""
 
-    def put(self, request, customer_id):
+
+    def get(self, request, customer_id):
         """
-        Partially update customer details.
-        Only the fields provided in the request will be updated.
+        Get the profile of a specific customer using customer_id.
         """
         customer = get_object_or_404(Customer, customer_id=customer_id)
-        
+        serializer = CustomerSerializer(customer)
+        return Response({
+            "message": "Customer profile fetched successfully.",
+            "customer_id": customer.customer_id,
+            "profile_data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def put(self, request, customer_id):
+        customer = get_object_or_404(Customer, customer_id=customer_id)
+
+        # # ✅ Prevent re-updating profile
+        # if customer.is_profile_updated:
+        #     return Response({
+        #         "message": "Customer profile has already been updated."
+        #     }, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = CustomerSerializer(customer, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
+
+            # ✅ Update the flag AFTER serializer.save()
+            customer.is_profile_updated = True
+            customer.save(update_fields=["is_profile_updated"])
+
             return Response({
                 "message": "Customer profile updated successfully.",
                 "customer_id": customer.customer_id,
@@ -427,14 +520,16 @@ class UpdateCustomerProfileAPIView(APIView):
             "message": "Validation error",
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
+
 
 class UpdateMerchantProfileAPIView(APIView):
-    """API to update customer profile"""
+    """API to update merchant profile"""
 
     def put(self, request, merchant_id):
         """
-        Partially update customer details.
+        Partially update merchant details.
         Only the fields provided in the request will be updated.
         """
         merchant = get_object_or_404(Merchant, merchant_id=merchant_id)
@@ -443,6 +538,11 @@ class UpdateMerchantProfileAPIView(APIView):
 
         if serializer.is_valid():
             serializer.save()
+
+            # ✅ Set is_profile_updated to True
+            merchant.is_profile_updated = True
+            merchant.save(update_fields=["is_profile_updated"])
+
             return Response({
                 "message": "Merchant profile updated successfully.",
                 "merchant_id": merchant.merchant_id,
@@ -453,6 +553,7 @@ class UpdateMerchantProfileAPIView(APIView):
             "message": "Validation error",
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class CustomerMerchantPointsAPIView(APIView):
@@ -521,3 +622,85 @@ class MerchantPointsAPIView(APIView):
             "merchant_id": merchant_id,
             "points_data": points_data
         }, status=status.HTTP_200_OK)
+    
+
+# List all or create new payment
+class PaymentDetailsListCreateAPIView(APIView):
+    def get(self, request):
+        payments = PaymentDetails.objects.all().order_by('-created_at')
+        serializer = PaymentDetailsSerializer(payments, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PaymentDetailsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Retrieve, update, or delete a specific payment
+class PaymentDetailsRetrieveUpdateDestroyAPIView(APIView):
+    def get(self, request, pk):
+        payment = get_object_or_404(PaymentDetails, pk=pk)
+        serializer = PaymentDetailsSerializer(payment)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        payment = get_object_or_404(PaymentDetails, pk=pk)
+        serializer = PaymentDetailsSerializer(payment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        payment = get_object_or_404(PaymentDetails, pk=pk)
+        payment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+class BankDetailAPIView(APIView):
+    """
+    Handles listing all bank details and creating new ones.
+    """
+    permission_classes = []
+
+    def get(self, request):
+        bank_details = BankDetail.objects.all()
+        serializer = BankDetailSerializer(bank_details, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = BankDetailSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class BankDetailDetailAPIView(APIView):
+    """
+    Handles retrieve, update, and delete operations on a single bank detail.
+    """
+    permission_classes = []
+
+    def get_object(self, pk):
+        return get_object_or_404(BankDetail, pk=pk)
+
+    def get(self, request, pk):
+        bank_detail = self.get_object(pk)
+        serializer = BankDetailSerializer(bank_detail)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        bank_detail = self.get_object(pk)
+        serializer = BankDetailSerializer(bank_detail, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        bank_detail = self.get_object(pk)
+        bank_detail.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

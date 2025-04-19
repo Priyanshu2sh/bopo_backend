@@ -27,7 +27,7 @@ class CustomerPoints(models.Model):
         unique_together = ('customer', 'merchant')  # Ensures unique customer-merchant pair
 
 class MerchantPoints(models.Model):
-    merchant = models.OneToOneField(Merchant, on_delete=models.CASCADE)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     points = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -79,3 +79,28 @@ class MerchantToMerchant(models.Model):
 
     def __str__(self):
         return f"{self.sender_merchant.merchant_id} -> {self.receiver_merchant.merchant_id}: {self.points} points"
+    
+
+class PaymentDetails(models.Model):
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
+    paid_amount = models.IntegerField()
+    transaction_id = models.CharField(max_length=255, unique=True)
+    topup_point = models.IntegerField(null=True, blank=True)
+    payment_mode = models.CharField(max_length=255, choices=[
+        ('UPI', 'UPI'),
+        ('Credit Card', 'Credit Card'),
+        ('Debit Card', 'Debit Card'),
+        ('Net Banking', 'Net Banking'),
+    ])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class BankDetail(models.Model):
+    account_holder_name = models.CharField(max_length=255)
+    bank_name = models.CharField(max_length=255)
+    account_number = models.CharField(max_length=255, unique=True)
+    ifsc_code = models.CharField(max_length=11, unique=True)
+    branch = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    

@@ -136,8 +136,8 @@
             </div>
             <p>Project Wise</p>
             <p class="description">This report contains all award transactions project-wise.</p>
-            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
-                <button class="download-btn" window.href="{% url 'export_award_transaction' %}">
+            <a href="{% url 'export_award_transaction' %}" download>
+                <button class="download-btn" id="downloadExcel">
                     <i class="fas fa-download"></i> Download
                 </button>
             </a>

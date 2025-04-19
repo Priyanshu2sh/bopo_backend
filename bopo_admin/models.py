@@ -1,10 +1,20 @@
+from django.utils import timezone  
+
 from django.db import models, transaction
+
+from accounts.models import Merchant
+from django.contrib.auth.hashers import make_password
 
 # Create your models here.
 class BopoAdmin(models.Model):
-    username = models.CharField(max_length=25)
-    password = models.CharField(max_length=15)
-    
+    username = models.CharField(max_length=25, unique=True)
+    password = models.CharField(max_length=128)  # longer length for hashed passwords
+
+    def save(self, *args, **kwargs):
+        # Hash the password before saving if not already hashed
+        if not self.password.startswith('pbkdf2_'):
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.username
@@ -38,22 +48,17 @@ class Topup(models.Model):
     #     ('debit_card', 'debit_card'),
 
     # ]
-    merchant = models.CharField(max_length=200, blank=True, null=True)
-    merchant_id = models.CharField(max_length=200, blank=True, null=True)
-    topup_amount = models.IntegerField(blank=True, null=True)
-    transaction_id = models.CharField(max_length=200, blank=True, null=True)
-    topup_points = models.IntegerField(blank=True, null=True)
-    payment_mode =  models.CharField(max_length=200,blank=True, null=True)
-    upi_id = models.CharField(max_length=200, blank=True, null=True)
-    # bank_name = models.CharField(max_length=200, blank=True, null=True)
-    # account_number = models.CharField(max_length=200, blank=True, null=True)
-    # card_number = models.CharField(max_length=200, blank=True, null=True)
-    # card_expiry = models.CharField(max_length=200, blank=True, null=True)
-    transaction_date = models.DateField(auto_now_add=True)
-    transaction_time = models.TimeField(auto_now_add=True)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
+    topup_amount = models.IntegerField()
+    transaction_id = models.CharField(max_length=100)
+    topup_points = models.IntegerField()
+    payment_mode = models.CharField(max_length=50)
+    upi_id = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.merchant_id if self.merchant_id else "Topup"
+        return f"{self.merchant} - {self.transaction_id}"
     
 class MerchantCredential(models.Model):
     # SELECT_OPTIONS = [
@@ -136,7 +141,7 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Notification: {self.title}"
+        return f"Notification: {self.title} ({self.project_id})"
     
 
 class State(models.Model):
@@ -173,20 +178,15 @@ class Employee(models.Model):
     country = models.CharField(max_length=255)
     # status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Inactive', null=False, blank=False)
 
-    
-    def save(self, *args, **kwargs):
-        if not self.employee_id:
-            with transaction.atomic():
-                last_emp = Employee.objects.select_for_update().order_by('-id').first()
-                if last_emp and last_emp.employee_id:
-                    last_id = int(last_emp.employee_id.replace('EMP', ''))
-                    self.employee_id = f"EMP{last_id + 1:03d}"
-                else:
-                    self.employee_id = "EMP001"
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return self.name
+    
+
+class UserBalance(models.Model):
+    deduction_amount = models.FloatField(default=0.0)  # Default to 5%
+
+
+    
 
 
 
