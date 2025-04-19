@@ -13,7 +13,7 @@ class CorporateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Corporate
         fields = '__all__'
-        extra_kwargs = {'otp': {'required' :False}, 'security_question': {'required' :False}, 'answer':{'required':False}, 'role':{'required':False},
+        extra_kwargs = {'otp': {'required' :False},'is_profile_updated':{'required' : False}, 'security_question': {'required' :False}, 'answer':{'required':False}, 'role':{'required':False},
                         'pin': {'required':False}, 'project_name':{'required': False}, 'select_project':{'required': False}, 'project_name':{'required':False}}
 
 
@@ -25,7 +25,7 @@ class MerchantSerializer(serializers.ModelSerializer):
         model = Merchant
         fields = '__all__'
         extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan_number': {'required':False}, 'legal_name': {'required':False},
-                        'pincode': {'required':False}, 'address': {'required':False}, 'state': {'required':False}, 'country': {'required':False}, 'city': {'required':False}, 'corporate_id': {'required':False}, 
+                        'pincode': {'required':False}, 'is_profile_updated':{'required' : False}, 'address': {'required':False}, 'state': {'required':False}, 'country': {'required':False}, 'city': {'required':False}, 'corporate_id': {'required':False}, 
                         'shop_name':{'required':False},'gst_number':{'required':False}, 'project_name':{'required':False}}
 
 class CustomerSerializer(serializers.ModelSerializer):

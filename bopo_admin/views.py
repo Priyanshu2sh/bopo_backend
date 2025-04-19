@@ -58,6 +58,11 @@ from django.contrib.auth.forms import AuthenticationForm
 #         form = AuthenticationForm()
 #     return render(request, 'login.html', {'form': form})
 
+from django.contrib.auth import logout
+def custom_logout_view(request):
+    logout(request)
+    return redirect('login')
+
 
 def home(request):
     # Calculate total projects and project progress
@@ -127,7 +132,7 @@ def get_customer(request, customer_id):
                 "state_id": customer.state,
                 "pincode": customer.pincode,
                 "gender": customer.gender,
-                "pan": customer.pan,
+                "pan_number": customer.pan_number,
             }
             return JsonResponse(data)
         except Customer.DoesNotExist:
@@ -154,7 +159,7 @@ def update_customer(request, customer_id):
         customer.city_id = request.POST.get("city")
         customer.pincode = request.POST.get('pincode')
         customer.gender = request.POST.get('gender')
-        customer.pan = request.POST.get('pan')
+        customer.pan_number = request.POST.get('pan_number')
         customer.save()
 
         # Return a success response
@@ -1158,7 +1163,7 @@ def add_customer(request):
         age = request.POST.get('age')
         gender = request.POST.get('gender')
         aadhar_number = request.POST.get('aadhaar') 
-        pan = request.POST.get('pan')
+        pan_number = request.POST.get('pan_number')
         address = request.POST.get('address')
         state_id = request.POST.get('state')
         city_id = request.POST.get('city')
@@ -1180,7 +1185,7 @@ def add_customer(request):
         if Customer.objects.filter(aadhar_number=aadhar_number).exists():
             return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
 
-        if Customer.objects.filter(pan=pan).exists():
+        if Customer.objects.filter(pan_number=pan_number).exists():
             return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
         # Save the customer
@@ -1193,7 +1198,7 @@ def add_customer(request):
             age=age,
             gender=gender,
             aadhar_number=aadhar_number,
-            pan=pan,
+            pan_number=pan_number,
             address=address,
             state=state,
             city=city,

@@ -312,67 +312,69 @@ class RegisterUserAPIView(APIView):
         return Response({"message": "Merchant deleted successfully."}, status=status.HTTP_200_OK)
 
 
+
 class LoginAPIView(APIView):
-    """API for Customer, Merchant, and Corporate Login"""
+    """API for Customer and Merchant Login"""
 
     def post(self, request):
         try:
             mobile = request.data.get("mobile")
             pin = request.data.get("pin")
-            user_category = request.data.get("user_category")  # 🔹 Added user category
-            
+            user_category = request.data.get("user_category")
 
             logger.info(f"Login attempt - Mobile: {mobile}, User Category: {user_category}")
 
             if not mobile or not pin or not user_category:
-                return Response({"error": "Mobile, PIN, and user_category are required."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "error": "Mobile, PIN, and user_category are required."
+                }, status=status.HTTP_400_BAD_REQUEST)
 
             user = None
 
-            # ✅ Determine user type based on `user_category`
+            # ✅ Identify the user based on category
             if user_category == "customer":
                 user = Customer.objects.filter(mobile=mobile).first()
             elif user_category == "merchant":
                 user = Merchant.objects.filter(mobile=mobile).first()
-            # elif user_category == "corporate":
-            #     user = Corporate.objects.filter(mobile=mobile).first()
             else:
                 return Response({"error": "Invalid user category."}, status=status.HTTP_400_BAD_REQUEST)
 
-            #  If user does not exist
             if not user:
                 logger.warning("User not found")
                 return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # ✅ Check if user is verified
             if not user.verified_at:
                 logger.warning("User not verified")
                 return Response({"error": "User not verified. Please verify OTP before logging in."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Ensure PIN is stored as an integer before comparison
+            # 🔐 Compare PINs
             stored_pin = int(user.pin) if not isinstance(user.pin, int) else user.pin
-
-            if stored_pin != int(pin):  # Compare integer values
+            if stored_pin != int(pin):
                 logger.warning("Invalid PIN")
                 return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # ✅ Prepare success response
+            # ✅ Prepare response
             response_data = {
                 "message": "Login successful",
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "pin": user.pin,
-                "user_category": user_category,
-                
+                "user_category": user_category
             }
 
-            # Include appropriate ID field
+            # 🔍 Add ID and profile status based on category
             if user_category == "customer":
                 response_data["customer_id"] = user.customer_id
+                response_data["is_profile_updated"] = user.is_profile_updated
+                # response_data["profile_status_message"] = (
+                #     "User profile is already updated." if user.is_profile_updated else "User profile not updated yet."
+                # )
             elif user_category == "merchant":
                 response_data["merchant_id"] = user.merchant_id
-            # elif user_category == "corporate":
-            #     response_data["corporate_id"] = user.id
+                response_data["is_profile_updated"] = user.is_profile_updated
+                # response_data["profile_status_message"] = (
+                #     "User profile is already updated." if user.is_profile_updated else "User profile not updated yet."
+                # )
 
             logger.info("Login successful")
             return Response(response_data, status=status.HTTP_200_OK)
@@ -380,10 +382,6 @@ class LoginAPIView(APIView):
         except Exception as e:
             logger.error(f"Login error: {str(e)}", exc_info=True)
             return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-
 
 class VerifyOTPAPIView(APIView):
     """API to verify OTP for Customer or Merchant"""
@@ -439,8 +437,13 @@ class VerifyOTPAPIView(APIView):
 
             # ✅ OTP is correct: Activate user
             user.verified_at = now()
-            user.otp = None  # Clear OTP after successful verification
+            user.otp = None
             user.status = "Active"
+
+            # ✅ Update is_profile_updated only for customers
+            if user_category == "customer":
+                user.is_profile_updated = True
+
             user.save()
 
             response_data = {

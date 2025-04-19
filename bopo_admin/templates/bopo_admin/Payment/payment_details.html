@@ -36,8 +36,8 @@
                         <td>{{ topup.transaction_date|date:"Y-m-d" }}</td>
                         <td>{{ topup.payment_mode }}</td>
                         <td>
-                            <button>✏️</button>
-                            <button>🗑️</button>
+                            <button  class="btn btn-sm btn-warning">✏️ Edit</button>
+                            <button class="btn btn-sm btn-danger">🗑️ Delete</button>
                         </td>
                     </tr>
                     {% endfor %}

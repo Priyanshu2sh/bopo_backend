@@ -5,11 +5,12 @@ from rest_framework import status
 from rest_framework.views import APIView
 from django.db.models import F
 from django.db.models import Sum
+from rest_framework.permissions import IsAuthenticated
 
 from accounts.serializers import CustomerSerializer, MerchantSerializer
-from bopo_award.serializers import PaymentDetailsSerializer
+from .serializers import BankDetailSerializer, PaymentDetailsSerializer
 
-from .models import CustomerToCustomer, MerchantToMerchant, PaymentDetails
+from .models import BankDetail, CustomerToCustomer, MerchantToMerchant, PaymentDetails
 from accounts.models import Customer, Merchant
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
@@ -478,17 +479,37 @@ class CheckPointsAPIView(APIView):
 class UpdateCustomerProfileAPIView(APIView):
     """API to update customer profile"""
 
-    def put(self, request, customer_id):
+
+    def get(self, request, customer_id):
         """
-        Partially update customer details.
-        Only the fields provided in the request will be updated.
+        Get the profile of a specific customer using customer_id.
         """
         customer = get_object_or_404(Customer, customer_id=customer_id)
-        
+        serializer = CustomerSerializer(customer)
+        return Response({
+            "message": "Customer profile fetched successfully.",
+            "customer_id": customer.customer_id,
+            "profile_data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def put(self, request, customer_id):
+        customer = get_object_or_404(Customer, customer_id=customer_id)
+
+        # # ✅ Prevent re-updating profile
+        # if customer.is_profile_updated:
+        #     return Response({
+        #         "message": "Customer profile has already been updated."
+        #     }, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = CustomerSerializer(customer, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
+
+            # ✅ Update the flag AFTER serializer.save()
+            customer.is_profile_updated = True
+            customer.save(update_fields=["is_profile_updated"])
+
             return Response({
                 "message": "Customer profile updated successfully.",
                 "customer_id": customer.customer_id,
@@ -499,14 +520,16 @@ class UpdateCustomerProfileAPIView(APIView):
             "message": "Validation error",
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
+
 
 class UpdateMerchantProfileAPIView(APIView):
-    """API to update customer profile"""
+    """API to update merchant profile"""
 
     def put(self, request, merchant_id):
         """
-        Partially update customer details.
+        Partially update merchant details.
         Only the fields provided in the request will be updated.
         """
         merchant = get_object_or_404(Merchant, merchant_id=merchant_id)
@@ -515,6 +538,11 @@ class UpdateMerchantProfileAPIView(APIView):
 
         if serializer.is_valid():
             serializer.save()
+
+            # ✅ Set is_profile_updated to True
+            merchant.is_profile_updated = True
+            merchant.save(update_fields=["is_profile_updated"])
+
             return Response({
                 "message": "Merchant profile updated successfully.",
                 "merchant_id": merchant.merchant_id,
@@ -525,6 +553,7 @@ class UpdateMerchantProfileAPIView(APIView):
             "message": "Validation error",
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class CustomerMerchantPointsAPIView(APIView):
@@ -627,4 +656,51 @@ class PaymentDetailsRetrieveUpdateDestroyAPIView(APIView):
     def delete(self, request, pk):
         payment = get_object_or_404(PaymentDetails, pk=pk)
         payment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+class BankDetailAPIView(APIView):
+    """
+    Handles listing all bank details and creating new ones.
+    """
+    permission_classes = []
+
+    def get(self, request):
+        bank_details = BankDetail.objects.all()
+        serializer = BankDetailSerializer(bank_details, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = BankDetailSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class BankDetailDetailAPIView(APIView):
+    """
+    Handles retrieve, update, and delete operations on a single bank detail.
+    """
+    permission_classes = []
+
+    def get_object(self, pk):
+        return get_object_or_404(BankDetail, pk=pk)
+
+    def get(self, request, pk):
+        bank_detail = self.get_object(pk)
+        serializer = BankDetailSerializer(bank_detail)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        bank_detail = self.get_object(pk)
+        serializer = BankDetailSerializer(bank_detail, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        bank_detail = self.get_object(pk)
+        bank_detail.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
