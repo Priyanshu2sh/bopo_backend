@@ -94,4 +94,13 @@ class PaymentDetails(models.Model):
     ])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class BankDetail(models.Model):
+    account_holder_name = models.CharField(max_length=255)
+    bank_name = models.CharField(max_length=255)
+    account_number = models.CharField(max_length=255, unique=True)
+    ifsc_code = models.CharField(max_length=11, unique=True)
+    branch = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     

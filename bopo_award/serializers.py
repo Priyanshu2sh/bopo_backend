@@ -14,8 +14,8 @@
 from rest_framework import serializers
 
 
-from accounts.models import Merchant
-from .models import CustomerPoints, MerchantPoints, History, PaymentDetails
+from accounts.models import Customer, Merchant
+from .models import BankDetail, CustomerPoints, MerchantPoints, History, PaymentDetails
 
 
 class CustomerPointsSerializer(serializers.ModelSerializer):
@@ -47,3 +47,13 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
         model = PaymentDetails
         fields = ['merchant', 'paid_amount', 'transaction_id','topup_point', 'payment_mode', 'created_at']
         extra_kwargs = {'topup_point' :{'required':False}}
+
+class BankDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Bank Details API
+    
+    """
+    class Meta:
+        model = BankDetail
+        fields = ['account_holder_name', 'bank_name', 'account_number', 'ifsc_code', 'branch', 'created_at']
+        extra_kwargs = {'account_holder_name': {'required': False}}

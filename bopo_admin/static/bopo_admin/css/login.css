@@ -27,6 +27,15 @@ h2 {
     font-weight: 600;
 }
 
+span{
+    text-align: center;
+    font-size: 26px;
+    color: #b84545;
+    margin-bottom: 30px;
+    font-weight: 600;
+
+}
+
 .login-container {
     max-width: 500px;
     height: 50vh;
@@ -141,7 +150,7 @@ button:hover {
     text-align: center;
     font-size: 13px;
     color: #888;
-    margin-top: -3%;
+    margin-top: -1.5%;
 }
 
 .footer-text a {

@@ -183,11 +183,10 @@ class Employee(models.Model):
     
 
 class UserBalance(models.Model):
-    user_id = models.CharField(max_length=50, unique=True)
-    balance = models.IntegerField()
+    deduction_amount = models.FloatField(default=0.0)  # Default to 5%
 
-    def __str__(self):
-        return f"{self.user_id} - ₹{self.balance}"
+
+    
 
 
 

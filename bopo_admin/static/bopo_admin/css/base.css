@@ -159,37 +159,117 @@ body {
     width: calc(100% - 250px);
 }
 
-/* Navbar Styles */
+/* Updated Navbar Styles */
 .navbar {
-    width: 100%;
-    /* background-color: #7F171F; */
-    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
     background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
     color: white;
-    padding: 10px;
+    padding: 10px 20px;
+    height: 60px;
     position: fixed;
     top: 0;
     left: 250px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    width: calc(100% - 250px);
     z-index: 1000;
     font-weight: bold;
 }
 
+/* Ensure both left and right sections use flex properly */
+.navbar-left,
+.navbar-right {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 100px;
+}
+
+/* Menu icon on the left */
+.navbar-left {
+    justify-content: flex-start;
+}
+
+/* Profile section to the right */
+.navbar-right {
+    justify-content: flex-end;
+    gap: 10px;
+}
+.profile-section {
+    cursor: pointer;
+    position: relative;
+    padding: 5px;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: 100%; /* appear below the profile section */
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    display: none; /* initially hidden */
+    flex-direction: column;
+    padding: 10px 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 2000;
+    min-width: 160px;
+}
+
+.profile-dropdown a {
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #0a0a0a;
+    display: block;
+    white-space: nowrap;
+}
+
+.profile-dropdown a:hover {
+    background-color: #0b0b0b;
+}
+.profile-dropdown.show {
+    display: flex;
+}
+
+/* Navigation link style */
 .navbar a {
-    color: white;
+    color: rgb(21, 20, 20);
     text-decoration: none;
     padding: 10px;
 }
 
 .navbar a:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color:white
 }
 
-/* Responsive Sidebar */
+/* Responsive handling for smaller screens */
 @media (max-width: 768px) {
+    .navbar {
+        flex-direction: row;
+        /* align-items: flex-start; */
+        height: 7vh;
+        left: 0;
+        width: 100%;
+
+    }
+
+    .navbar-left{
+        width: 100%;
+        justify-content: space-between;
+        margin-top: 5px;
+    }
+    .navbar-right {
+        width: 100%;
+        justify-content: space-between;
+        margin-left: 40%;
+        margin-top: 5px;
+    }
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
     .sidebar {
         transform: translateX(-100%);
         position: fixed;
@@ -206,15 +286,10 @@ body {
         transform: translateX(0);
     }
 
-    .main-content {
-        margin-left: 0; /* Remove extra margin on mobile */
-        width: 100%;
-    }
+   }
 
-    .navbar {
-        left: 0;
-    }
-}
+
+
 
 /* Menu icon styling */
 .menu-icon {
@@ -233,6 +308,7 @@ body {
         cursor: pointer;
         font-size: 24px;
         padding: 10px;
+        margin-top: -10px;
     }
 
     /* Initially hide the sidebar */
@@ -244,5 +320,12 @@ body {
     /* Show sidebar when toggled */
     .sidebar.show {
         transform: translateX(0);
+    }
+    .profile-section {
+        cursor: pointer;
+        position: relative;
+        padding: 5px;
+        margin-top: -10px;
+        margin-left: 20px;
     }
 }
