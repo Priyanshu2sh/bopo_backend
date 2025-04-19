@@ -553,6 +553,17 @@ from accounts.models import Merchant
 
 def edit_merchants(request, merchant_id):
     merchant = get_object_or_404(Merchant, id=merchant_id)
+
+    # Retrieve the state object by its name
+    state_obj = State.objects.get(name=merchant.state)  # Assuming state is a string, get State object by name
+
+    # Retrieve cities based on selected state
+    cities = City.objects.filter(state=state_obj)  # Now we use the State object
+
+    # Convert cities to a dictionary for use in the frontend
+    city_data = [{"id": city.id, "name": city.name} for city in cities]
+
+    # Data to send to the frontend
     data = {
         "id": merchant.id,
         "first_name": merchant.first_name,
@@ -565,10 +576,13 @@ def edit_merchants(request, merchant_id):
         "gst_number": merchant.gst_number,
         "pan_number": merchant.pan_number,
         "legal_name": merchant.legal_name,
-        "state": merchant.state,
-        "city": merchant.city,
+        "state": merchant.state,  # Assuming state is a string or related field
+        "city": merchant.city,    # Assuming city is also a string or related field
         "pincode": merchant.pincode,
+        "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],  # List of all states
+        "cities": city_data,  # List of cities filtered by state
     }
+
     return JsonResponse(data)
 
 
