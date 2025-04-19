@@ -20,7 +20,7 @@ body {
     color: #004085;
     font-size: 24px;
     font-weight: bold;
-    margin-top: 10%;
+    margin-top: 1%;
     margin-left: -85%;
 }
 
@@ -32,7 +32,7 @@ body {
     row-gap: 40px; /* Keep vertical gap same */
     justify-content: center;
     margin-left: 5%;
-    margin-top: 0%;
+    margin-top: 2%;
 }
 
 /* Report Cards */
@@ -141,6 +141,31 @@ body {
 .download-btn:hover {
     filter: brightness(0.9);
 }
+
+.back-to-list-btn a {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 87%;
+    width: 10%;
+    font-weight: bold;
+    margin-top: 8%;
+}
+
+.back-to-list-btn a:hover {
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
+
+
 
 /* Responsive Design */
 @media (max-width: 1024px) {
