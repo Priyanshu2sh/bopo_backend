@@ -9,7 +9,7 @@ body {
 
 /* Main Container */
 .container {
-    background: #ffffff;
+    background: #fff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 12px;
     padding: 30px;
@@ -21,14 +21,11 @@ body {
     margin-top: 5%;
 }
 
-.container:hover {
-    transform: scale(1.02);
-}
 
 .page-title {
   
     font-size: 24px;
-    margin-top: 10%;
+    margin-top: -1%;
     margin-left: 3%;
     color: #004080;
     font-weight: bold;
@@ -43,9 +40,11 @@ label {
     color: #34495e;
     margin-bottom: 8px;
     display: block;
+   
 }
 
 .dropdown-container {
+    margin-left: 20%;
     display: flex;
     align-items: center; /* Align label and dropdown vertically */
     gap: 10px; /* Space between label and dropdown */
@@ -61,11 +60,11 @@ label {
     width: 60%; /* Adjust width */
     max-width: 300px;
     padding: 8px;
-    border: 2px solid #3498db;
+    border: 2px solid #004080;
     border-radius: 8px;
     font-size: 16px;
-    background-color: #ecf0f1;
-    color: #2c3e50;
+    background-color: #f8f9fa;
+    color: #004080;
     outline: none;
 }
 
@@ -98,7 +97,7 @@ input[type="checkbox"] + label {
     display: flex;
     align-items: center;
     font-size: 14px;
-    color: #2c3e50;
+    color: #004080;
     font-weight: 500;
     margin-bottom: 10px;
 }
@@ -108,7 +107,7 @@ input[type="checkbox"] + label::before {
     width: 18px;
     height: 18px;
     /* background: #ecf0f1; */
-    border: 2px solid #3498db;
+    border: 2px solid #004080;
     border-radius: 4px;
     position: absolute;
     left: 0;
@@ -116,48 +115,76 @@ input[type="checkbox"] + label::before {
 }
 
 input[type="checkbox"]:checked + label::before {
-    background: #3498db;
-    border: 2px solid #2980b9;
+    background: #004080;
+    border: 2px solid #004080;
 }
-
-/* Buttons */
-.buttons {
-    margin-top: 70px;
+.employee-role-button-group {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 15px;
 }
 
-.btn {
-    padding: 12px 20px;
-    font-size: 16px;
+.employee-role-cancel-btn {
+    background:  #ccc;
+    color: white;
+    padding: 10px 15px;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
-    border-radius: 8px;
+    font-size: 14px;
     transition: 0.3s;
-    width: 120px;
-    text-align: center;
+    width: 15%;
+    margin-top: 5%;
+    
 }
 
-.btn-danger {
-    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
-    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+.employee-role-cancel-btn:hover {
+    background: #c0392b;
+}
+
+.employee-role-submit-btn {
+    background: #004080;
     color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: 0.3s;
+    width: 15%;
+    margin-top: 5%;
 }
 
-.btn-danger:hover {
+.employee-role-submit-btn:hover {
+    background: #004080;
+   
+}
+
+
+.send_credentials-back-to-list-btn a {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 87%;
+    width: 10%;
+    font-weight: bold;
+    margin-top: 7%;
+}
+
+.send_credentials-back-to-list-btn a:hover {
     background: linear-gradient(178deg, red 0%, #85060c 100%);
 }
 
-.btn-primary {
-    background-color: #1c3a72;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #7486b7; 
-}
 
 
 /* Responsive Design */
@@ -183,6 +210,7 @@ input[type="checkbox"]:checked + label::before {
     .dropdown-container select {
         width: 100%;
     }
+    
 }
 
 @media (max-width: 480px) {
@@ -195,16 +223,27 @@ input[type="checkbox"]:checked + label::before {
     }
     .page-title {
         font-size: 20px;
-        margin-top: 20%;
+        margin-top: 10%;
     }
     .dropdown-container select {
         width:100%;
     }
-    .buttons {
+    .dropdown-container label{
+        margin-left: -23%;
+    }
+    .send_credentials-back-to-list-btn a{
+        margin-left: 62%;
+        margin-top: 20%;
+       width:30%;
+    }
+    .employee-role-button-group{
         flex-direction: row;
         margin-top: 10%;
     }
-    .btn {
-        width: 50%;
+    .employee-role-cancel-btn,
+    .employee-role-submit-btn {
+        width: 35%;
+        font-size: 14px;
+        padding: 10px;
     }
 }

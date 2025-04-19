@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,delete_employee,edit_merchants,delete_merchant,edit_copmerchant,get_customer
+from .views import  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,employee_role,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,delete_employee,edit_merchants,delete_merchant,edit_copmerchant,get_customer,custom_logout_view
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -12,7 +12,8 @@ from .views import home, about, merchant, customer, project_onboarding,merchant_
 urlpatterns = [
     # NEW (correct)
     # path('login/', views.login_view, name='login'),
-    path('', home, name='home'),
+    path('', views.login, name='login'),
+    path('home/', views.home, name='home'),
     path('about/', about, name='about'),
     path('merchant/', merchant, name='merchant'),
     path('customer/', customer, name='customer'), 
@@ -88,6 +89,8 @@ urlpatterns = [
     path("get-customer/<str:customer_id>/", views.get_customer, name="get_customer"),
     path('bopo_admin/update-customer/<str:customer_id>/', views.update_customer, name='update_customer'),
     path('delete-customer/<str:customer_id>/', views.delete_customer, name='delete_customer'),
+    
+    path('logout/', custom_logout_view, name='logout'),
 
  
   

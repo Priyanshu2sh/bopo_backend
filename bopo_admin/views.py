@@ -15,6 +15,7 @@ from openpyxl.styles import Font
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
 from bopo_award.models import CustomerPoints, History, MerchantPoints
+from django.contrib.auth.hashers import check_password
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
@@ -70,18 +71,41 @@ from bopo_admin.models import Employee
  
 #     return render(request, 'bopo_admin/login.html')
 
+from django.shortcuts import render, redirect
+from .models import BopoAdmin
+from django.contrib.auth.hashers import check_password
+
+def login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        print(f"Attempting to log in user: {username}")
+
+        try:
+            user = BopoAdmin.objects.get(username=username)
+            if check_password(password, user.password):
+                request.session['admin_id'] = user.id
+                request.session['admin_name'] = user.username
+                print("✅ Login successful, redirecting to /home/")
+                return redirect('/home/')
+            else:
+                print("❌ Incorrect password")
+                error_message = "Incorrect password"
+        except BopoAdmin.DoesNotExist:
+            print("❌ User does not exist")
+            error_message = "User does not exist"
+
+        return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+    return render(request, 'bopo_admin/login.html')
+
+from django.contrib.auth import logout
+def custom_logout_view(request):
+    logout(request)
+    return redirect('login') 
 
 
-
-
-# from django.contrib.auth import logout
-
-# def logout_view(request):
-#     logout(request)
-#     return redirect('login')
-
-from django.contrib.auth.decorators import login_required
-# @login_required
 def home(request):
     # Calculate total projects and project progress
     total_projects = Corporate.objects.count()

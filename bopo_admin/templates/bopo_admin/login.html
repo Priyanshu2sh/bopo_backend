@@ -13,13 +13,14 @@
     <div class="colorful-line"></div>
 
     <div class="login-header">
-        <h2>PLEASE LOGIN TO Bigbonuspoints <br/>ADMIN</h2>
+        <h2>Bigbonuspoints ADMIN <br/><span>Login </span></h2>
 
         <div class="login-container">
             {% if error_message %}
                 <div class="error">{{ error_message }}</div>
             {% endif %}
 
+            
             <form method="post" action="">
                 {% csrf_token %}
                 <div class="form-group">
@@ -31,7 +32,7 @@
                         placeholder="Username" 
                         required
                     >
-                    <div class="input-hint">Your unique username to app</div>
+                    <div class="input-hint">Your bigbonuspoints unique username</div>
                 </div>
 
                 <div class="form-group">
@@ -41,7 +42,7 @@
                             type="password" 
                             id="password" 
                             name="password" 
-                            placeholder="*******" 
+                            placeholder="*" 
                             required
                         >
                         <i class="fa-solid fa-eye-slash" id="togglePassword"></i>

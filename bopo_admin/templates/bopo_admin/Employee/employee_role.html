@@ -4,6 +4,14 @@
 {% block content %}
 <link rel="stylesheet" type="text/css" href="{% static 'bopo_admin/css/employee_role.css' %}">
 
+
+<div class="send_credentials-back-to-list-btn">
+    <a href="{% url 'employee_list' %}" class="send_credentials-add_individual_merchant-btn-submit">
+        <i class="fa fa-arrow-left"></i> Back 
+    </a>
+</div>
+
+
 <h2 class="page-title">Assign Employee Roles</h2>
 <div class="container">
      <form method="POST">
@@ -13,7 +21,7 @@
    <div class="dropdown-container">
     <label for="employee">Select Employee:</label>
     <select id="employee" name="employee" required>
-        <option value="">Select One Employee</option>
+        <option value="">Select Employee</option>
       
         <option >Employee 1</option>
         <option >Employee 2</option>
@@ -84,13 +92,18 @@
 
            <input type="checkbox" id="email_settings" name="roles" value="Email Settings">
            <label for="email_settings">Email Settings</label>
-       </div>
+       </div>  </div>
 
-       <div class="buttons">
-        <button type="reset" class="btn btn-danger">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save</button>
-    </div>
-   </div>
+        <!-- Buttons -->
+       <div class="employee-role-button-group">
+           <button type="button" class="employee-role-cancel-btn" onclick="confirmCancel()">
+               <i class="fa fa-times-circle"></i> Cancel
+           </button>
+           <button type="submit" class="employee-role-submit-btn">
+               <i class="fa fa-check-circle"></i> Submit
+           </button>
+       </div>
+ 
 
    <!-- Buttons -->
 
