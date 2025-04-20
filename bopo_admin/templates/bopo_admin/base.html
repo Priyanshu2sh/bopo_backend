@@ -22,7 +22,7 @@
         
         
 
-        <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">
+        <a href="{% url 'home' %}" class="{% if request.path == 'home/' %}active{% endif %}">
             <i class="fas fa-home"></i> Home
         </a>
         
@@ -193,11 +193,6 @@
         setupDropdown("employeeDropdownToggle", "employeeDropdownMenu", "belowEmployee");
     });
     
-    
-</script>
-
-    
-<script>
     document.addEventListener("DOMContentLoaded", function () {
         const menuToggle = document.getElementById("menuToggle");
         const sidebar = document.querySelector(".sidebar");
@@ -232,7 +227,11 @@
         }
     });
     
-    </script>
+</script>
+
+
+
+
 
 
    

@@ -553,6 +553,17 @@ from accounts.models import Merchant
 
 def edit_merchants(request, merchant_id):
     merchant = get_object_or_404(Merchant, id=merchant_id)
+
+    # Retrieve the state object by its name
+    state_obj = State.objects.get(name=merchant.state)  # Assuming state is a string, get State object by name
+
+    # Retrieve cities based on selected state
+    cities = City.objects.filter(state=state_obj)  # Now we use the State object
+
+    # Convert cities to a dictionary for use in the frontend
+    city_data = [{"id": city.id, "name": city.name} for city in cities]
+
+    # Data to send to the frontend
     data = {
         "id": merchant.id,
         "first_name": merchant.first_name,
@@ -565,15 +576,19 @@ def edit_merchants(request, merchant_id):
         "gst_number": merchant.gst_number,
         "pan_number": merchant.pan_number,
         "legal_name": merchant.legal_name,
-        "state": merchant.state,
-        "city": merchant.city,
+        "state": merchant.state,  # Assuming state is a string or related field
+        "city": merchant.city,    # Assuming city is also a string or related field
         "pincode": merchant.pincode,
+        "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],  # List of all states
+        "cities": city_data,  # List of cities filtered by state
     }
+
     return JsonResponse(data)
 
 
 from django.http import JsonResponse
 from accounts.models import Merchant
+
 
 def update_merchant(request): 
     if request.method == "POST":
@@ -581,46 +596,54 @@ def update_merchant(request):
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')
-        aadhaar = request.POST.get("aadhaar")
+        aadhaar_number = request.POST.get("aadhaar_number")
         address = request.POST.get("address")
         state_id = request.POST.get("state")
         city_id = request.POST.get("city")
         mobile = request.POST.get("mobile")
-        pan = request.POST.get("pan")
+        pan_number = request.POST.get("pan_number")
         pincode = request.POST.get("pincode")
         shop_name = request.POST.get("shop_name")
         country = request.POST.get("country", "India")
-        select_state = request.POST.get("select_state")
-        
+
         try:
-            # Get the  merchant object by id
             merchant = Merchant.objects.get(id=merchant_id)
-            
-            # Update the  merchant object fields
-            merchant.first_name= first_name
-            merchant.last_name=last_name
+
+            merchant.first_name = first_name
+            merchant.last_name = last_name
             merchant.email = email
-            merchant.aadhaar = aadhaar  # Corrected here
-            merchant.address = address  # Corrected here
-            merchant.state_id = state_id  # Corrected here
-            merchant.city_id = city_id  # Corrected here
+            merchant.aadhaar_number = aadhaar_number
+            merchant.address = address
             merchant.mobile = mobile
-            merchant.pan = pan
+            merchant.pan_number = pan_number
             merchant.pincode = pincode
             merchant.shop_name = shop_name
             merchant.country = country
-            select_state=select_state,
-            
-            # Save the updated merchant object
+
+            if state_id:
+                state_obj = State.objects.get(id=state_id)
+                merchant.state = state_obj.name  # ✅ only name
+            if city_id:
+                city_obj = City.objects.get(id=city_id)
+                merchant.city = city_obj.name  # ✅ only name
+
             merchant.save()
 
             return JsonResponse({
-            "success": True,
-            "message": "Merchant updated successfully!"  # ✅ Important!
-        })
+                "success": True,
+                "message": "Merchant updated successfully!"
+            })
+
         except Merchant.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Merchant not found'})
+        except State.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'State not found'})
+        except City.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'City not found'})
+
     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
 
 from django.http import JsonResponse
 from accounts.models import Merchant  # change this based on your model name

@@ -92,6 +92,8 @@ urlpatterns = [
     path("get-customer/<str:customer_id>/", views.get_customer, name="get_customer"),
     path('bopo_admin/update-customer/<str:customer_id>/', views.update_customer, name='update_customer'),
     path('delete-customer/<str:customer_id>/', views.delete_customer, name='delete_customer'),
+    
+    path('logout/', custom_logout_view, name='logout'),
 
  
   

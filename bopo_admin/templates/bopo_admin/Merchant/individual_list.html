@@ -289,7 +289,7 @@ document.getElementById("editmerchantForm").onsubmit = function (e) {
             showToast(data.message || "Merchant updated successfully!");
             closeEditModal();
             setTimeout(() => {
-                //location.reload();
+                location.reload();
             }, 3000); // Give user time to see the toast
         } else {
             showToast(data.message || "Something went wrong!");
@@ -312,18 +312,20 @@ function showToast(message, duration = 3000) {
     }, duration);
 }
 
-// function getCookie(name) {
-//     const cookieName = `${name}=`;
-//     const cookies = document.cookie.split(';');
-//     for (let i = 0; i < cookies.length; i++) {
-//         let cookie = cookies[i].trim();
-//         if (cookie.indexOf(cookieName) === 0) {
-//             return cookie.substring(cookieName.length, cookie.length);
-//         }
-//     }
-//     return null;
-// }
-
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 
 
 function openEditModal(merchantId) {
@@ -332,6 +334,7 @@ function openEditModal(merchantId) {
 
         .then(res => res.json())
         .then(data => {
+            console.log(data);
             document.getElementById("edit_merchant_id").value = data.id;
             document.getElementById("edit_first_name").value = data.first_name;
             document.getElementById("edit_last_name").value = data.last_name;
@@ -340,19 +343,46 @@ function openEditModal(merchantId) {
             document.getElementById("edit_shop_name").value = data.shop_name;
             document.getElementById("edit_address").value = data.address;
             document.getElementById("edit_aadhaar_number").value = data.aadhaar_number;
-            document.getElementById("edit_gst").value = data.gst;
+            document.getElementById("edit_gst").value = data.gst_number;
             document.getElementById("edit_pan").value = data.pan_number;
             document.getElementById("edit_legal_name").value = data.legal_name;
             document.getElementById("edit_pincode").value = data.pincode;
 
-            fetchStates().then(() => {
-                const stateDropdown = document.getElementById("edit_state");
-                stateDropdown.value = data.state;
-
-                fetchCities(data.state).then(() => {
-                    document.getElementById("edit_city").value = data.city;
+                // Load states
+            const stateSelect = document.getElementById("edit_state");
+            stateSelect.innerHTML = `<option value="">Select State</option>`;
+            if (data.states && data.states.length > 0) {
+                data.states.forEach(state => {
+                    const option = document.createElement("option");
+                    option.value = state.id;
+                    option.textContent = state.name;
+                    if (state.name === data.state) {
+                        option.selected = true;
+                    }
+                    stateSelect.appendChild(option);
                 });
-            });
+            } else {
+                stateSelect.innerHTML = `<option value="">No states available</option>`;
+            }
+
+            // Load cities based on selected state
+            if (data.cities && data.cities.length > 0) {
+                const citySelect = document.getElementById("edit_city");
+                citySelect.innerHTML = `<option value="">Select City</option>`;
+                data.cities.forEach(city => {
+                    const option = document.createElement("option");
+                    option.value = city.id;
+                    option.textContent = city.name;
+                    if (city.name === data.city) {
+                        option.selected = true;
+                    }
+                    citySelect.appendChild(option);
+                });
+            } else {
+                document.getElementById("edit_city").innerHTML = `<option value="">No cities available</option>`;
+            }
+
+            
 
             document.getElementById("editModal").style.display = "block";
         });
@@ -399,6 +429,16 @@ function deleteMerchant(merchantId) {
     };
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    fetchStates();
+    paginateTable();
+
+    $('.select2').select2({
+        placeholder: "Select an option",
+        allowClear: true,
+        width: '100%'
+    });
+});
 
 
 
