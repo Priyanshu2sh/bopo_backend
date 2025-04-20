@@ -475,34 +475,32 @@ from accounts.models import Merchant,Corporate
 
 def edit_copmerchant(request, merchant_id):
     try:
-        # Fetch the merchant by ID
-        merchant = Merchant.objects.get(id=merchant_id)
-        
-        
-        # Prepare the data to return
+        # Explicitly filter using `merchant_id` (not pk)
+        merchant = Merchant.objects.get(merchant_id=merchant_id)
+
+        corporate = merchant.corporate  # if this is a ForeignKey
         data = {
+            'id': merchant.merchant_id,
             'first_name': merchant.first_name,
             'last_name': merchant.last_name,
             'email': merchant.email,
-            'aadhaar': merchant.aadhaar_number,
+            'aadhaar': merchant.aadhaar,
             'shop_name': merchant.shop_name,
             'address': merchant.address,
-            'state': merchant.state,  
+            'state': merchant.state,
+            'city': merchant.city,
+            'pincode': merchant.pincode,
             'mobile': merchant.mobile,
             'gst_number': merchant.gst_number,
             'pan_number': merchant.pan_number,
             'legal_name': merchant.legal_name,
-            'city': merchant.city,  
-            'pincode': merchant.pincode,
-            'project_name': merchant.project_name,  # Add project_name field
-            
+            'project_name': corporate.project_name if corporate else '',
         }
+
         return JsonResponse(data)
+
     except Merchant.DoesNotExist:
         return JsonResponse({'error': 'Merchant not found'}, status=404)
-
-
-
 
     
 from django.http import JsonResponse

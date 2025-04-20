@@ -82,7 +82,8 @@ urlpatterns = [
     path('delete-merchant/<int:merchant_id>/', views.delete_merchant, name='delete_merchant'),
     
     path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
-    path('update_copmerchant/', views.update_merchant, name='update_copmerchant'),
+    # path('edit-corporate/<int:corporate_id>/', views.edit_corporate, name='edit_corporate'),
+    # path('update_copmerchant/', views.update_merchant, name='update_copmerchant'),
     # path('edit-cop/<int:corporate_id>/', views.edit_copmerchant, name='edit_cop'),
 
     
