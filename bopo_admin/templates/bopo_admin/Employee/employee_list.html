@@ -127,16 +127,17 @@
                                     <i class="fas fa-lock"></i>
                                     <input type="password" id="edit_password" name="password" required class="password-field">
                                     <span class="password-toggle" onclick="togglePassword('edit_password')">
-                                        <i class="fas fa-eye"></i>
+                                         <i class="fas fa-eye-slash"></i>
                                     </span>
                                 </div>
+                                
 
                                 <label for="edit_confirmPassword">Confirm Password</label>
                                 <div class="addemployee-input-container">
                                     <i class="fas fa-lock"></i>
                                     <input type="password" id="edit_confirmPassword" name="confirm_password" required class="password-field">
                                     <span class="password-toggle" onclick="togglePassword('edit_confirmPassword')">
-                                        <i class="fas fa-eye"></i>
+                                        <i class="fas fa-eye-slash"></i>
                                     </span>
                                 </div>
 
@@ -284,6 +285,14 @@ function closeEditModal() {
     document.getElementById("editModal").style.display = "none";
 }
 
+window.onclick = function(event) {
+    let modal = document.getElementById("editModal");
+    if (event.target == modal) {
+        closeEditModal();
+    }
+};
+
+
 function fetchStates() {
     return fetch("/bopo_admin/get-states/")
         .then(response => response.json())
@@ -318,14 +327,16 @@ function fetchCities(state) {
 function togglePassword(id) {
     const passwordInput = document.getElementById(id);
     const icon = passwordInput.nextElementSibling.querySelector("i");
+
     if (passwordInput.type === "password") {
         passwordInput.type = "text";
-        icon.classList.replace("fa-eye", "fa-eye-slash");
+        icon.classList.replace("fa-eye-slash", "fa-eye"); // switch to open eye
     } else {
         passwordInput.type = "password";
-        icon.classList.replace("fa-eye-slash", "fa-eye");
+        icon.classList.replace("fa-eye", "fa-eye-slash"); // switch to closed eye
     }
 }
+
 
 document.getElementById("editEmployeeForm").addEventListener("submit", function (event) {
     event.preventDefault();
@@ -354,13 +365,13 @@ document.getElementById("editEmployeeForm").addEventListener("submit", function 
     
         if (data.status === "success")
         {
-            showToast(data.message || "Customer updated successfully!", "success");
+            showToast(data.message || "Employee updated successfully!", "success");
             closeEditModal();
             setTimeout(() => {
                 location.reload();
             }, 3000);
         } else {
-            showToast(data.message || "Customer updated successfully!", "success");
+            showToast(data.message || "Employee updated successfully!", "success");
         }
     })
     
@@ -368,6 +379,7 @@ document.getElementById("editEmployeeForm").addEventListener("submit", function 
         showToast("Error occurred: " + error.message, "error");
     });
 });
+
 
 
 function getCookie(name) {

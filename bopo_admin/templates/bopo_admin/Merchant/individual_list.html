@@ -289,7 +289,12 @@ function closeEditModal() {
     document.getElementById("editModal").style.display = "none";
 }
 
-
+window.onclick = function(event) {
+    let modal = document.getElementById("editModal");
+    if (event.target == modal) {
+        closeEditModal();
+    }
+};
 
 document.addEventListener('DOMContentLoaded', function () {
     const toggles = document.querySelectorAll('.status-toggle');
