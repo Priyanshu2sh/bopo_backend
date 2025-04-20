@@ -47,8 +47,8 @@
                                 <td>{{ employee.username }}</td>
                                 <td>{{ employee.password }}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ employee.id }}')">✏️ Edit</button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteEmployee('{{ employee.id }}')">🗑️ Delete</button>
+                                    <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ employee.id }}')">✏️Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteEmployee('{{ employee.id }}')">🗑️Delete</button>
 
                                 </td>
                             </tr>
@@ -127,16 +127,17 @@
                                     <i class="fas fa-lock"></i>
                                     <input type="password" id="edit_password" name="password" required class="password-field">
                                     <span class="password-toggle" onclick="togglePassword('edit_password')">
-                                        <i class="fas fa-eye"></i>
+                                         <i class="fas fa-eye-slash"></i>
                                     </span>
                                 </div>
+                                
 
                                 <label for="edit_confirmPassword">Confirm Password</label>
                                 <div class="addemployee-input-container">
                                     <i class="fas fa-lock"></i>
                                     <input type="password" id="edit_confirmPassword" name="confirm_password" required class="password-field">
                                     <span class="password-toggle" onclick="togglePassword('edit_confirmPassword')">
-                                        <i class="fas fa-eye"></i>
+                                        <i class="fas fa-eye-slash"></i>
                                     </span>
                                 </div>
 
@@ -225,7 +226,6 @@ function filterTable(tableId, searchBoxId) {
     }
 }
 
-
 function openEditModal(employeeId) {
     fetch(`/bopo_admin/get-employee/${employeeId}/`)
         .then(res => res.json())
@@ -242,18 +242,41 @@ function openEditModal(employeeId) {
             document.getElementById("edit_pan").value = data.pan;
             document.getElementById("edit_pincode").value = data.pincode;
 
-            // Fetch states and set the selected state
-            fetchStates().then(() => {
-                const stateDropdown = document.getElementById("edit_state");
-                stateDropdown.value = data.state;
-
-                // Fetch cities for the selected state and set the selected city
-                fetchCities(data.state).then(() => {
-                    const cityDropdown = document.getElementById("edit_city");
-                    cityDropdown.value = data.city;
-                });
-            });
-
+                  // Load states
+                  const stateSelect = document.getElementById("edit_state");
+                  stateSelect.innerHTML = `<option value="">Select State</option>`;
+                  if (data.states && data.states.length > 0) {
+                      data.states.forEach(state => {
+                          const option = document.createElement("option");
+                          option.value = state.id;
+                          option.textContent = state.name;
+                          if (state.name === data.state) {
+                              option.selected = true;
+                          }
+                          stateSelect.appendChild(option);
+                      });
+                  } else {
+                      stateSelect.innerHTML = `<option value="">No states available</option>`;
+                  }
+      
+                  // Load cities based on selected state
+                  if (data.cities && data.cities.length > 0) {
+                      const citySelect = document.getElementById("edit_city");
+                      citySelect.innerHTML = `<option value="">Select City</option>`;
+                      data.cities.forEach(city => {
+                          const option = document.createElement("option");
+                          option.value = city.id;
+                          option.textContent = city.name;
+                          if (city.name === data.city) {
+                              option.selected = true;
+                          }
+                          citySelect.appendChild(option);
+                      });
+                  } else {
+                      document.getElementById("edit_city").innerHTML = `<option value="">No cities available</option>`;
+                  }
+      
+            // Display the modal
             document.getElementById("editModal").style.display = "block";
         });
 }
@@ -261,6 +284,14 @@ function openEditModal(employeeId) {
 function closeEditModal() {
     document.getElementById("editModal").style.display = "none";
 }
+
+window.onclick = function(event) {
+    let modal = document.getElementById("editModal");
+    if (event.target == modal) {
+        closeEditModal();
+    }
+};
+
 
 function fetchStates() {
     return fetch("/bopo_admin/get-states/")
@@ -296,14 +327,16 @@ function fetchCities(state) {
 function togglePassword(id) {
     const passwordInput = document.getElementById(id);
     const icon = passwordInput.nextElementSibling.querySelector("i");
+
     if (passwordInput.type === "password") {
         passwordInput.type = "text";
-        icon.classList.replace("fa-eye", "fa-eye-slash");
+        icon.classList.replace("fa-eye-slash", "fa-eye"); // switch to open eye
     } else {
         passwordInput.type = "password";
-        icon.classList.replace("fa-eye-slash", "fa-eye");
+        icon.classList.replace("fa-eye", "fa-eye-slash"); // switch to closed eye
     }
 }
+
 
 document.getElementById("editEmployeeForm").addEventListener("submit", function (event) {
     event.preventDefault();
@@ -332,13 +365,13 @@ document.getElementById("editEmployeeForm").addEventListener("submit", function 
     
         if (data.status === "success")
         {
-            showToast(data.message || "Customer updated successfully!", "success");
+            showToast(data.message || "Employee updated successfully!", "success");
             closeEditModal();
             setTimeout(() => {
                 location.reload();
             }, 3000);
         } else {
-            showToast(data.message || "Customer updated successfully!", "success");
+            showToast(data.message || "Employee updated successfully!", "success");
         }
     })
     
@@ -346,6 +379,7 @@ document.getElementById("editEmployeeForm").addEventListener("submit", function 
         showToast("Error occurred: " + error.message, "error");
     });
 });
+
 
 
 function getCookie(name) {
@@ -360,6 +394,8 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+
 function showToast(message, type) {
     const toast = document.getElementById("toast");
     const toastMessage = toast.querySelector(".toast-message");
@@ -419,7 +455,6 @@ function deleteEmployee(employeeId) {
     };
 }
 
-
 const rowsPerPage = 5;
 let currentPage = 1;
 
@@ -429,11 +464,27 @@ function paginateTable() {
     const totalPages = Math.ceil(rows.length / rowsPerPage);
     const paginationDiv = document.getElementById("pagination-controls");
 
+    // Hide rows based on current page
     rows.forEach((row, index) => {
         row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? "" : "none";
     });
 
+    // Clear pagination controls
     paginationDiv.innerHTML = "";
+
+    // Create Previous button
+    const prevButton = document.createElement("button");
+    prevButton.textContent = "Prev";
+    prevButton.disabled = currentPage === 1; // Disable if on the first page
+    prevButton.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            paginateTable();
+        }
+    };
+    paginationDiv.appendChild(prevButton);
+
+    // Create page buttons
     for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement("button");
         btn.textContent = i;
@@ -444,6 +495,18 @@ function paginateTable() {
         };
         paginationDiv.appendChild(btn);
     }
+
+    // Create Next button
+    const nextButton = document.createElement("button");
+    nextButton.textContent = "Next";
+    nextButton.disabled = currentPage === totalPages; // Disable if on the last page
+    nextButton.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            paginateTable();
+        }
+    };
+    paginationDiv.appendChild(nextButton);
 }
 
 

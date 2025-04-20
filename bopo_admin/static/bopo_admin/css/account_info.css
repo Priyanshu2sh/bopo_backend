@@ -21,7 +21,7 @@ body {
     color: #004085;
     font-size: 24px;
     font-weight: bold;
-    margin-top: 10%;
+    margin-top: 1%;
     margin-left: -76%;
 }
 
@@ -71,36 +71,62 @@ body {
 
 /* Buttons */
 .button-container {
-    text-align: center;
-    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
 }
 
 .btn {
-    font-size: 16px;
-    padding: 10px 20px;
+    background:  #ccc;
+    color: white;
+    padding: 10px 15px;
+    border: none;
     border-radius: 5px;
     cursor: pointer;
-    border: none;
-    margin-right: 10px;
-    transition: background-color 0.3s ease-in-out;
+    font-weight: bold;
+    font-size: 14px;
+    transition: 0.3s;
+    width: 20%;
+    height: 6vh;
 }
 
 .btn-danger {
-    background-color: #e74c3c;
+    background:  #ccc;
     color: white;
 }
 
 .btn-danger:hover {
-    background-color: #c0392b;
+    background: #c0392b;
 }
 
 .btn-success {
-    background-color: #2ecc71;
+    background: #2c3e50;
     color: white;
 }
 
 .btn-success:hover {
-    background-color: #27ae60;
+    background: #1a252f;
+}
+.payment_details-back-to-list-btn a {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 87%;
+    width: 10%;
+    font-weight: bold;
+    margin-top: 7%;
+}
+
+.payment_details-back-to-list-btn a:hover {
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
 }
 
 

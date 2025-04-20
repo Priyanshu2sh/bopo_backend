@@ -20,11 +20,10 @@ body {
 .payment_details-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     color: #004080;
     font-size: 26px;
     padding: 15px;
-    font-size: 18px;
+    font-size: 26px;
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -80,7 +79,27 @@ button {
     font-size: 12px;
 }
 
+.payment_details-back-to-list-btn a {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 87%;
+    width: 10%;
+    font-weight: bold;
+    margin-top: 0%;
+}
 
+.payment_details-back-to-list-btn a:hover {
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
 /* Responsive Styles */
 @media screen and (max-width: 768px) {
     .payment_details-header {

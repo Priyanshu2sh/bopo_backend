@@ -4,6 +4,14 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/account_info.css' %}">
 
+
+
+<div class="payment_details-back-to-list-btn">
+    <a href="{% url 'payment_details' %}" class="send_credentials-add_individual_merchant-btn-submit">
+        <i class="fa fa-arrow-left"></i> Back 
+    </a>
+</div>
+
 <h2 class="title">Bonus Point Account</h2>
 
 <!-- Account Information Form -->
@@ -84,8 +92,8 @@
 
         <!-- Buttons -->
         <div class="button-container">
-            <button type="button" class="btn btn-danger" id="cancelBtn" onclick="confirmCancel()">Cancel</button>
-            <button type="submit" class="btn btn-success" id="saveBtn">Save</button>
+            <button type="button" class="btn btn-danger" id="cancelBtn" onclick="confirmCancel()"> <i class="fa fa-times-circle"></i> Cancel</button>
+            <button type="submit" class="btn btn-success" id="saveBtn"><i class="fa fa-paper-plane"></i>  Submit</button>
         </div>
     </div>
 </form>

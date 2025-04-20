@@ -151,7 +151,7 @@
                     <label for="pan">Pan Number</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)">
+                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)">
                     </div>
 
                     <label for="state">Select State </label>
@@ -195,40 +195,66 @@
 
 <!-- JavaScript for Search Filtering and Modal -->
 <script>
-
     function openEditModal(customerId) {
         document.getElementById("editCustomerId").value = customerId;
     
         fetch(`/bopo_admin/get-customer/${customerId}/`)
             .then(response => response.json())
-            .then(async customer => {
+            .then(customer => {  // Remove the `async` here since `then` is asynchronous
                 // Set basic fields
                 document.getElementById("edit_first_name").value = customer.first_name;
                 document.getElementById("edit_last_name").value = customer.last_name;
                 document.getElementById("edit_email").value = customer.email;
                 document.getElementById("edit_mobile").value = customer.mobile;
                 document.getElementById("edit_age").value = customer.age;
-                document.getElementById("edit_aadhaar").value = customer. aadhar_number;
+                document.getElementById("edit_aadhaar").value = customer.aadhar_number;
                 document.getElementById("edit_address").value = customer.address;
                 document.getElementById("edit_pincode").value = customer.pincode;
                 document.getElementById("edit_gender").value = customer.gender;
                 document.getElementById("edit_pan").value = customer.pan_number;
     
-                // First populate states
-                await fetchStates();
-                document.getElementById("edit_state").value = customer.state_id;
+                const stateSelect = document.getElementById("edit_state");
+                stateSelect.innerHTML = `<option value="">Select State</option>`;
+                
+                // Populate the state dropdown
+                if (customer.states && customer.states.length > 0) {
+                    customer.states.forEach(state => {
+                        const option = document.createElement("option");
+                        option.value = state.id;
+                        option.textContent = state.name;
+                        if (state.name === customer.state) {  // Check if the current state is the selected one
+                            option.selected = true;
+                        }
+                        stateSelect.appendChild(option);
+                    });
+                } else {
+                    stateSelect.innerHTML = `<option value="">No states available</option>`;
+                }
     
-                // Then populate cities for selected state
-                await fetchCities(customer.state_id);
-                document.getElementById("edit_city").value = customer.city_id;
+                // Load cities based on selected state
+                const citySelect = document.getElementById("edit_city");
+                citySelect.innerHTML = `<option value="">Select City</option>`;  // Clear the city dropdown
     
-                // Refresh Select2 UI
-                $('#edit_state').trigger('change.select2');
-                $('#edit_city').trigger('change.select2');
+                if (customer.cities && customer.cities.length > 0) {
+                    customer.cities.forEach(city => {
+                        const option = document.createElement("option");
+                        option.value = city.id;
+                        option.textContent = city.name;
+                        if (city.name === customer.city) {  // Check if the current city is the selected one
+                            option.selected = true;
+                        }
+                        citySelect.appendChild(option);
+                    });
+                } else {
+                    citySelect.innerHTML = `<option value="">No cities available</option>`;
+                }
+    
+                // Show modal
+                document.getElementById("editCustomerModal").style.display = "block";
+            })
+            .catch(error => {
+                console.error('Error fetching customer data:', error);
             });
-    
-        // Show modal
-        document.getElementById("editCustomerModal").style.display = "block";
     }
     
     function closeEditModal() {
@@ -242,6 +268,54 @@
             closeEditModal();
         }
     };
+    
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("editCustomerForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+    
+            let formData = new FormData(this);
+    
+            fetch(`/bopo_admin/update-customer/${document.getElementById("editCustomerId").value}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Server response:", data);
+                if (data.success === true) {
+                    showToast(data.message, "success");
+                    closeEditModal();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3000);
+                } else {
+                    showToast(data.message || data.error || "Update failed", "error");
+                }
+            })
+            .catch(error => {
+                showToast("Error occurred: " + error.message, "error");
+            });
+        });
+    });
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+    
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
     
 
     function filterTable(tableId, searchBoxId) {
@@ -273,59 +347,7 @@
         });
     });
 
-    document.addEventListener("DOMContentLoaded", function () {
-        document.getElementById("editCustomerForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-    
-            let formData = new FormData(this);
-    
-            fetch(`/bopo_admin/update-customer/${document.getElementById("editCustomerId").value}/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": getCookie("csrftoken")  // Ensure the CSRF token is being sent
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Server response:", data); // Debug
-                if (data.status === "success") {
-                    showToast(data.message, "success");
-                    closeEditModal();
-                    setTimeout(() => {
-                        location.reload();
-                    }, 3000);
-                } else {
-                    showToast(data.message, "error");
-                }
-            })
-            .catch(error => {
-                showToast("Error occurred: " + error.message, "error");
-            });
-        });
-    });
-    
-    // Function to get CSRF token from cookies
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-            const cookies = document.cookie.split(";");
-    
-            for (let i = 0; i < cookies.length; i++) {
-                let cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + "=")) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    
-    function closeEditModal() {
-        document.getElementById("editCustomerModal").style.display = "none";
-    }
-    
+  
     
     function showToast(message, type) {
         const toast = document.getElementById("toast");
@@ -422,8 +444,7 @@ function fetchCities(state) {
         });
 }
 
-
-const rowsPerPage = 5;
+const rowsPerPage = 6;
 let currentPage = 1;
 
 function paginateTable() {
@@ -442,7 +463,19 @@ function paginateTable() {
     // Clear previous pagination
     paginationDiv.innerHTML = "";
 
-    // Add new pagination buttons
+    // Add previous page button
+    const prevBtn = document.createElement("button");
+    prevBtn.innerText = "Prev";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            paginateTable();
+        }
+    };
+    paginationDiv.appendChild(prevBtn);
+
+    // Add page number buttons
     for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement("button");
         btn.innerText = i;
@@ -453,11 +486,21 @@ function paginateTable() {
         };
         paginationDiv.appendChild(btn);
     }
+
+    // Add next page button
+    const nextBtn = document.createElement("button");
+    nextBtn.innerText = "Next";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            paginateTable();
+        }
+    };
+    paginationDiv.appendChild(nextBtn);
 }
 
 window.onload = paginateTable;
-
-
 
     
 </script>
