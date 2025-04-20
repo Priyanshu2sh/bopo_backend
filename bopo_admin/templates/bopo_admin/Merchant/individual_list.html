@@ -225,6 +225,72 @@ function filterTable() {
     });
 }
 
+function openEditModal(merchantId) {
+    fetch(`/bopo_admin/edit-merchants/${merchantId}/`)
+
+
+        .then(res => res.json())
+        .then(data => {
+            console.log(data);
+            document.getElementById("edit_merchant_id").value = data.id;
+            document.getElementById("edit_first_name").value = data.first_name;
+            document.getElementById("edit_last_name").value = data.last_name;
+            document.getElementById("edit_email").value = data.email;
+            document.getElementById("edit_mobile").value = data.mobile;
+            document.getElementById("edit_shop_name").value = data.shop_name;
+            document.getElementById("edit_address").value = data.address;
+            document.getElementById("edit_aadhaar_number").value = data.aadhaar_number;
+            document.getElementById("edit_gst").value = data.gst_number;
+            document.getElementById("edit_pan").value = data.pan_number;
+            document.getElementById("edit_legal_name").value = data.legal_name;
+            document.getElementById("edit_pincode").value = data.pincode;
+
+                // Load states
+            const stateSelect = document.getElementById("edit_state");
+            stateSelect.innerHTML = `<option value="">Select State</option>`;
+            if (data.states && data.states.length > 0) {
+                data.states.forEach(state => {
+                    const option = document.createElement("option");
+                    option.value = state.id;
+                    option.textContent = state.name;
+                    if (state.name === data.state) {
+                        option.selected = true;
+                    }
+                    stateSelect.appendChild(option);
+                });
+            } else {
+                stateSelect.innerHTML = `<option value="">No states available</option>`;
+            }
+
+            // Load cities based on selected state
+            if (data.cities && data.cities.length > 0) {
+                const citySelect = document.getElementById("edit_city");
+                citySelect.innerHTML = `<option value="">Select City</option>`;
+                data.cities.forEach(city => {
+                    const option = document.createElement("option");
+                    option.value = city.id;
+                    option.textContent = city.name;
+                    if (city.name === data.city) {
+                        option.selected = true;
+                    }
+                    citySelect.appendChild(option);
+                });
+            } else {
+                document.getElementById("edit_city").innerHTML = `<option value="">No cities available</option>`;
+            }
+
+            
+
+            document.getElementById("editModal").style.display = "block";
+        });
+}
+
+function closeEditModal() {
+    document.getElementById("editModal").style.display = "none";
+}
+
+
+
 document.addEventListener('DOMContentLoaded', function () {
     const toggles = document.querySelectorAll('.status-toggle');
 
@@ -328,69 +394,6 @@ function getCookie(name) {
 }
 
 
-function openEditModal(merchantId) {
-    fetch(`/bopo_admin/edit-merchants/${merchantId}/`)
-
-
-        .then(res => res.json())
-        .then(data => {
-            console.log(data);
-            document.getElementById("edit_merchant_id").value = data.id;
-            document.getElementById("edit_first_name").value = data.first_name;
-            document.getElementById("edit_last_name").value = data.last_name;
-            document.getElementById("edit_email").value = data.email;
-            document.getElementById("edit_mobile").value = data.mobile;
-            document.getElementById("edit_shop_name").value = data.shop_name;
-            document.getElementById("edit_address").value = data.address;
-            document.getElementById("edit_aadhaar_number").value = data.aadhaar_number;
-            document.getElementById("edit_gst").value = data.gst_number;
-            document.getElementById("edit_pan").value = data.pan_number;
-            document.getElementById("edit_legal_name").value = data.legal_name;
-            document.getElementById("edit_pincode").value = data.pincode;
-
-                // Load states
-            const stateSelect = document.getElementById("edit_state");
-            stateSelect.innerHTML = `<option value="">Select State</option>`;
-            if (data.states && data.states.length > 0) {
-                data.states.forEach(state => {
-                    const option = document.createElement("option");
-                    option.value = state.id;
-                    option.textContent = state.name;
-                    if (state.name === data.state) {
-                        option.selected = true;
-                    }
-                    stateSelect.appendChild(option);
-                });
-            } else {
-                stateSelect.innerHTML = `<option value="">No states available</option>`;
-            }
-
-            // Load cities based on selected state
-            if (data.cities && data.cities.length > 0) {
-                const citySelect = document.getElementById("edit_city");
-                citySelect.innerHTML = `<option value="">Select City</option>`;
-                data.cities.forEach(city => {
-                    const option = document.createElement("option");
-                    option.value = city.id;
-                    option.textContent = city.name;
-                    if (city.name === data.city) {
-                        option.selected = true;
-                    }
-                    citySelect.appendChild(option);
-                });
-            } else {
-                document.getElementById("edit_city").innerHTML = `<option value="">No cities available</option>`;
-            }
-
-            
-
-            document.getElementById("editModal").style.display = "block";
-        });
-}
-
-function closeEditModal() {
-    document.getElementById("editModal").style.display = "none";
-}
 
 
 function deleteMerchant(merchantId) {

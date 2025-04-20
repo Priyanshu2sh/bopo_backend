@@ -115,59 +115,96 @@ def customer(request):
 
 from django.http import JsonResponse, Http404
 from accounts.models import Customer  # Adjust this import to your actual model
+from django.shortcuts import get_object_or_404
 
 def get_customer(request, customer_id):
-    if request.method == "GET":
-        try:
-            customer = Customer.objects.get(customer_id=customer_id)
-            data = {
-                "first_name": customer.first_name,
-                "last_name": customer.last_name,
-                "email": customer.email,
-                "mobile": customer.mobile,
-                "age": customer.age,
-                "aadhar_number": customer.aadhar_number, 
-                "address": customer.address,
-                "city_id": customer.city,
-                "state_id": customer.state,
-                "pincode": customer.pincode,
-                "gender": customer.gender,
-                "pan_number": customer.pan_number,
-            }
-            return JsonResponse(data)
-        except Customer.DoesNotExist:
-            raise Http404("Customer does not exist")
-        
+    customer = get_object_or_404(Customer, customer_id=customer_id)
+
+    # Retrieve the state object by its name (if state is stored as a string)
+    state_obj = State.objects.get(name=customer.state)  # Assuming state is a string, get State object by name
+
+    # Retrieve cities based on selected state
+    cities = City.objects.filter(state=state_obj)  # Now we use the State object
+
+    # Convert cities to a dictionary for use in the frontend
+    city_data = [{"id": city.id, "name": city.name} for city in cities]
+
+    # Data to send to the frontend
+    data = {
+        "first_name": customer.first_name,
+        "last_name": customer.last_name,
+        "email": customer.email,
+        "mobile": customer.mobile,
+        "age": customer.age,
+        "aadhar_number": customer.aadhar_number,
+        "address": customer.address,
+        "pincode": customer.pincode,
+        "gender": customer.gender,
+        "pan_number": customer.pan_number,
+        "state": customer.state,  # Prefilled state (assuming it's a string or related field)
+        "city": customer.city,    # Prefilled city (assuming it's a string or related field)
+        "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],  # List of all states
+        "cities": city_data,  # List of cities filtered by the selected state
+    }
+
+    return JsonResponse(data)
 
 from django.shortcuts import render, get_object_or_404, redirect
 from accounts.models import Customer
 from django.http import JsonResponse
 
-def update_customer(request, customer_id):
+
+def update_customer(request, customer_id):  # <-- accept customer_id here
     if request.method == "POST":
-        customer = get_object_or_404(Customer, customer_id=customer_id)
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        mobile = request.POST.get('mobile')
+        age = request.POST.get('age')
+        aadhar_number = request.POST.get('aadhar_number')
+        address = request.POST.get('address')
+        state_id = request.POST.get('state')
+        city_id = request.POST.get('city')
+        pincode = request.POST.get('pincode')
+        gender = request.POST.get('gender')
+        pan_number = request.POST.get('pan_number')
 
-        # Update customer data from the form
-        customer.first_name = request.POST.get('first_name')
-        customer.last_name = request.POST.get('last_name')
-        customer.email = request.POST.get('email')
-        customer.mobile = request.POST.get('mobile')
-        customer.age = request.POST.get('age')
-        customer.aadhar_number = request.POST.get('aadhar_number')
-        customer.address = request.POST.get('address')
-        customer.state_id = request.POST.get("state")
-        customer.city_id = request.POST.get("city")
-        customer.pincode = request.POST.get('pincode')
-        customer.gender = request.POST.get('gender')
-        customer.pan_number = request.POST.get('pan_number')
-        customer.save()
+        try:
+            customer = Customer.objects.get(customer_id=customer_id)  # Note: use `customer_id` field
 
-        # Return a success response
-        return JsonResponse({
-    "status": "success",
-    "message": "Customer updated successfully"
-})
-    return JsonResponse({"message": "Invalid request"}, status=400)
+            customer.first_name = first_name
+            customer.last_name = last_name
+            customer.email = email
+            customer.mobile = mobile
+            customer.age = age
+            customer.aadhar_number = aadhar_number
+            customer.address = address
+            customer.pincode = pincode
+            customer.gender = gender
+            customer.pan_number = pan_number
+
+            if state_id:
+                state_obj = State.objects.get(id=state_id)
+                customer.state = state_obj.name  # or assign FK if applicable
+            if city_id:
+                city_obj = City.objects.get(id=city_id)
+                customer.city = city_obj.name  # or assign FK if applicable
+
+            customer.save()
+
+            return JsonResponse({
+                "success": True,
+                "message": "Customer updated successfully!"
+            })
+
+        except Customer.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Customer not found'})
+        except State.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'State not found'})
+        except City.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'City not found'})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 
 
@@ -1191,6 +1228,7 @@ def add_customer(request):
         state_id = request.POST.get('state')
         city_id = request.POST.get('city')
         pincode = request.POST.get('pincode')
+        country = request.POST.get("country", "India")
 
         try:
             state = State.objects.get(id=state_id)
@@ -1226,6 +1264,7 @@ def add_customer(request):
             state=state,
             city=city,
             pincode=pincode,
+            country=country
         )
 
         return JsonResponse({"success": True, "message": "Customer added successfully!"})
