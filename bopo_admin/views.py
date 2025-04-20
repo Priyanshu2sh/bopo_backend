@@ -5,7 +5,6 @@ import random
 import string
 from tkinter.font import Font
 from django.db.models import Max
-from django.db import models
 from django.http import HttpResponse, JsonResponse
 from django.db.models.functions import Cast, Substr
 from django.shortcuts import get_object_or_404, render
@@ -32,6 +31,7 @@ from django.http import JsonResponse
 from .models import State, City
 from bopo_admin.models import Employee
 from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError, transaction
 
 
 
@@ -1305,7 +1305,7 @@ from .models import Employee, State, City
 
 def add_employee(request):
     if request.method == "POST":
-        # Generate employee ID
+         # Generate employee ID
         last_employee = Employee.objects.aggregate(max_id=Max('employee_id'))['max_id']
 
         if last_employee:
