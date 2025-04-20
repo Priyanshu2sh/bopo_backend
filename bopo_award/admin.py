@@ -32,7 +32,7 @@ class MerchantPointsAdmin(admin.ModelAdmin):
 admin.site.register(CustomerPoints, CustomerPointsAdmin)
 admin.site.register(MerchantPoints, MerchantPointsAdmin)
 class PaymentDetailsAdmin(admin.ModelAdmin):
-    list_display = ('merchant', 'paid_amount', 'transaction_id', 'topup_point', 'payment_mode', 'created_at')
+    list_display = ('merchant', 'paid_amount', 'transaction_id',  'payment_mode', 'created_at')
     search_fields = ('transaction_id', 'merchant__id')  # or 'merchant__name' if available
     list_filter = ('payment_mode', 'created_at')
     ordering = ('-created_at',)

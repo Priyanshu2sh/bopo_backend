@@ -85,7 +85,6 @@ class PaymentDetails(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     paid_amount = models.IntegerField()
     transaction_id = models.CharField(max_length=255, unique=True)
-    topup_point = models.IntegerField(null=True, blank=True)
     payment_mode = models.CharField(max_length=255, choices=[
         ('UPI', 'UPI'),
         ('Credit Card', 'Credit Card'),

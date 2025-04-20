@@ -553,17 +553,6 @@ from accounts.models import Merchant
 
 def edit_merchants(request, merchant_id):
     merchant = get_object_or_404(Merchant, id=merchant_id)
-
-    # Retrieve the state object by its name
-    state_obj = State.objects.get(name=merchant.state)  # Assuming state is a string, get State object by name
-
-    # Retrieve cities based on selected state
-    cities = City.objects.filter(state=state_obj)  # Now we use the State object
-
-    # Convert cities to a dictionary for use in the frontend
-    city_data = [{"id": city.id, "name": city.name} for city in cities]
-
-    # Data to send to the frontend
     data = {
         "id": merchant.id,
         "first_name": merchant.first_name,
@@ -576,19 +565,15 @@ def edit_merchants(request, merchant_id):
         "gst_number": merchant.gst_number,
         "pan_number": merchant.pan_number,
         "legal_name": merchant.legal_name,
-        "state": merchant.state,  # Assuming state is a string or related field
-        "city": merchant.city,    # Assuming city is also a string or related field
+        "state": merchant.state,
+        "city": merchant.city,
         "pincode": merchant.pincode,
-        "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],  # List of all states
-        "cities": city_data,  # List of cities filtered by state
     }
-
     return JsonResponse(data)
 
 
 from django.http import JsonResponse
 from accounts.models import Merchant
-
 
 def update_merchant(request): 
     if request.method == "POST":
@@ -596,54 +581,46 @@ def update_merchant(request):
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')
-        aadhaar_number = request.POST.get("aadhaar_number")
+        aadhaar = request.POST.get("aadhaar")
         address = request.POST.get("address")
         state_id = request.POST.get("state")
         city_id = request.POST.get("city")
         mobile = request.POST.get("mobile")
-        pan_number = request.POST.get("pan_number")
+        pan = request.POST.get("pan")
         pincode = request.POST.get("pincode")
         shop_name = request.POST.get("shop_name")
         country = request.POST.get("country", "India")
-
+        select_state = request.POST.get("select_state")
+        
         try:
+            # Get the  merchant object by id
             merchant = Merchant.objects.get(id=merchant_id)
-
-            merchant.first_name = first_name
-            merchant.last_name = last_name
+            
+            # Update the  merchant object fields
+            merchant.first_name= first_name
+            merchant.last_name=last_name
             merchant.email = email
-            merchant.aadhaar_number = aadhaar_number
-            merchant.address = address
+            merchant.aadhaar = aadhaar  # Corrected here
+            merchant.address = address  # Corrected here
+            merchant.state_id = state_id  # Corrected here
+            merchant.city_id = city_id  # Corrected here
             merchant.mobile = mobile
-            merchant.pan_number = pan_number
+            merchant.pan = pan
             merchant.pincode = pincode
             merchant.shop_name = shop_name
             merchant.country = country
-
-            if state_id:
-                state_obj = State.objects.get(id=state_id)
-                merchant.state = state_obj.name  # ✅ only name
-            if city_id:
-                city_obj = City.objects.get(id=city_id)
-                merchant.city = city_obj.name  # ✅ only name
-
+            select_state=select_state,
+            
+            # Save the updated merchant object
             merchant.save()
 
             return JsonResponse({
-                "success": True,
-                "message": "Merchant updated successfully!"
-            })
-
+            "success": True,
+            "message": "Merchant updated successfully!"  # ✅ Important!
+        })
         except Merchant.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Merchant not found'})
-        except State.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'State not found'})
-        except City.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'City not found'})
-
     return JsonResponse({'success': False, 'error': 'Invalid request'})
-
-
 
 from django.http import JsonResponse
 from accounts.models import Merchant  # change this based on your model name
@@ -1326,24 +1303,33 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from .models import Employee, State, City
 
+from django.db.models import Max
+from django.db import IntegrityError
+import re
+
 def add_employee(request):
     if request.method == "POST":
-         # Generate employee ID
-        last_employee = Employee.objects.aggregate(max_id=Max('employee_id'))['max_id']
-
+        # Generate employee ID by finding the max employee_id and ensuring uniqueness
+        last_employee = Employee.objects.filter(employee_id__startswith="EMP").aggregate(max_id=Max('employee_id'))['max_id']
+        
         if last_employee:
-            # Extract numeric part from EMP10000001 => 10000001
             try:
-                last_number = int(last_employee.replace("EMP", ""))
+                # Extract the numeric part from the last employee_id (e.g., 'EMP00000001' -> 1)
+                last_number = int(re.sub(r'\D', '', last_employee))  # Removing non-numeric characters
             except ValueError:
-                last_number = 10000000
+                last_number = 10000000  # Default to a base number if the format is incorrect
         else:
             last_number = 10000000
 
         next_number = last_number + 1
-        employee_id = f"EMP{next_number:08d}"  # Always 8 digits after EMP
+        employee_id = f"EMP{next_number:06d}"  # Format employee_id with 8 digits, e.g., 'EMP00000001'
 
-        # Continue with rest of the logic
+        # Check for uniqueness of the generated employee_id
+        while Employee.objects.filter(employee_id=employee_id).exists():
+            next_number += 1
+            employee_id = f"EMP{next_number:06d}"  # Regenerate employee_id if the current one exists
+
+        # Fetch POST data for employee
         name = request.POST.get("employee_name")
         email = request.POST.get("email")
         aadhaar = request.POST.get("aadhaar")
@@ -1357,6 +1343,7 @@ def add_employee(request):
         password = request.POST.get("password")
         country = request.POST.get("country", "India")
 
+        # Validation checks
         if Employee.objects.filter(email=email).exists():
             return JsonResponse({"success": False, "message": "Email ID already exists!"})
         if Employee.objects.filter(mobile=mobile).exists():
@@ -1366,45 +1353,54 @@ def add_employee(request):
         if Employee.objects.filter(pan=pan).exists():
             return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
+        # Fetch state and city objects
         try:
             state = State.objects.get(id=state_id)
             city = City.objects.get(id=city_id)
         except (State.DoesNotExist, City.DoesNotExist):
             return JsonResponse({"success": False, "message": "Invalid state or city selection."})
 
-        Employee.objects.create(
-            employee_id=employee_id,
-            name=name,
-            email=email,
-            aadhaar=aadhaar,
-            address=address,
-            state=state,
-            city=city,
-            mobile=mobile,
-            pan=pan,
-            pincode=pincode,
-            username=username,
-            password=password,
-            country=country
-        )
+        # Create employee record
+        try:
+            Employee.objects.create(
+                employee_id=employee_id,
+                name=name,
+                email=email,
+                aadhaar=aadhaar,
+                address=address,
+                state=state.name,
+                city=city.name,
+                mobile=mobile,
+                pan=pan,
+                pincode=pincode,
+                username=username,
+                password=password,
+                country=country
+            )
+        except IntegrityError as e:
+            # Handle any integrity errors (shouldn't happen, but just in case)
+            return JsonResponse({"success": False, "message": f"Error: {str(e)}"})
 
-        return JsonResponse({"success": True, "message": f"Employee added successfully!"})
+        return JsonResponse({"success": True, "message": "Employee added successfully!"})
 
     return render(request, 'bopo_admin/Employee/add_employee.html')
 
+
+
 def employee_role(request):
     if request.method == "POST":
-        employee_id = request.POST.get("employee_id")
-        role = request.POST.get("role")
-        # Save to database or perform any other action
-        # For example, you can create a Role model instance here
-        BopoAdmin.objects.create(
-            employee_id=employee_id,
-            role=role
-        )
+        employee_id = request.POST.get("employee")
+        roles = request.POST.getlist("roles")  # get all selected checkboxes as a list
 
-    return render(request, 'bopo_admin/Employee/employee_role.html') 
+        # Save each role for the employee (optional: you can customize based on your model)
+        for role in roles:
+            BopoAdmin.objects.create(
+                employee_id=employee_id,
+                role=role
+            )
 
+    employees = Employee.objects.all()  # This is now outside the if block
+    return render(request, 'bopo_admin/Employee/employee_role.html', {'employees': employees})
 
 def payment_details(request):
     topups = Topup.objects.all().order_by('-created_at')  # or any custom ordering
