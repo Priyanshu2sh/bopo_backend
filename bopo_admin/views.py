@@ -589,52 +589,61 @@ def edit_merchants(request, merchant_id):
 from django.http import JsonResponse
 from accounts.models import Merchant
 
+
 def update_merchant(request): 
     if request.method == "POST":
         merchant_id = request.POST.get('merchant_id')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')
-        aadhaar = request.POST.get("aadhaar")
+        aadhaar_number = request.POST.get("aadhaar_number")
         address = request.POST.get("address")
         state_id = request.POST.get("state")
         city_id = request.POST.get("city")
         mobile = request.POST.get("mobile")
-        pan = request.POST.get("pan")
+        pan_number = request.POST.get("pan_number")
         pincode = request.POST.get("pincode")
         shop_name = request.POST.get("shop_name")
         country = request.POST.get("country", "India")
-        select_state = request.POST.get("select_state")
-        
+
         try:
-            # Get the  merchant object by id
             merchant = Merchant.objects.get(id=merchant_id)
-            
-            # Update the  merchant object fields
-            merchant.first_name= first_name
-            merchant.last_name=last_name
+
+            merchant.first_name = first_name
+            merchant.last_name = last_name
             merchant.email = email
-            merchant.aadhaar = aadhaar  # Corrected here
-            merchant.address = address  # Corrected here
-            merchant.state_id = state_id  # Corrected here
-            merchant.city_id = city_id  # Corrected here
+            merchant.aadhaar_number = aadhaar_number
+            merchant.address = address
             merchant.mobile = mobile
-            merchant.pan = pan
+            merchant.pan_number = pan_number
             merchant.pincode = pincode
             merchant.shop_name = shop_name
             merchant.country = country
-            select_state=select_state,
-            
-            # Save the updated merchant object
+
+            if state_id:
+                state_obj = State.objects.get(id=state_id)
+                merchant.state = state_obj.name  # ✅ only name
+            if city_id:
+                city_obj = City.objects.get(id=city_id)
+                merchant.city = city_obj.name  # ✅ only name
+
             merchant.save()
 
             return JsonResponse({
-            "success": True,
-            "message": "Merchant updated successfully!"  # ✅ Important!
-        })
+                "success": True,
+                "message": "Merchant updated successfully!"
+            })
+
         except Merchant.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Merchant not found'})
+        except State.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'State not found'})
+        except City.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'City not found'})
+
     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
 
 from django.http import JsonResponse
 from accounts.models import Merchant  # change this based on your model name
