@@ -110,16 +110,25 @@ body {
 }
 
 
+/* Tables */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
+    table-layout: auto;
 }
 
-th, td {
+th {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
+    
+}
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    font-weight: normal;
 }
 
 th {

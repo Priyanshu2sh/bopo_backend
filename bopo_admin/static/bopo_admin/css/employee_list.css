@@ -125,10 +125,17 @@ table {
     table-layout: auto;
 }
 
-th, td {
+th {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
+    
+}
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    font-weight: normal;
 }
 
 th {
@@ -151,6 +158,7 @@ button {
     background: none;
     cursor: pointer;
     font-size: 16px;
+   
 }
 
 /* Responsive Design */

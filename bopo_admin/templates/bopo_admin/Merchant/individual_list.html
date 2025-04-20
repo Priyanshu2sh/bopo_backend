@@ -480,25 +480,35 @@ const rowsPerPage = 5;
 let currentPage = 1;
 
 function paginateTable() {
-    const table = document.getElementById("individual-table");
     const tbody = document.getElementById("individual-table-body");
     const rows = Array.from(tbody.getElementsByTagName("tr"));
-    const totalRows = rows.length;
-    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
     const paginationDiv = document.getElementById("pagination-controls");
 
-    // Hide all rows
+    // Hide rows based on current page
     rows.forEach((row, index) => {
         row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? "" : "none";
     });
 
-    // Clear previous pagination
+    // Clear pagination controls
     paginationDiv.innerHTML = "";
 
-    // Add new pagination buttons
+    // Create Previous button
+    const prevButton = document.createElement("button");
+    prevButton.textContent = "Prev";
+    prevButton.disabled = currentPage === 1; // Disable if on the first page
+    prevButton.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            paginateTable();
+        }
+    };
+    paginationDiv.appendChild(prevButton);
+
+    // Create page buttons
     for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement("button");
-        btn.innerText = i;
+        btn.textContent = i;
         btn.className = i === currentPage ? "active-page" : "";
         btn.onclick = () => {
             currentPage = i;
@@ -506,9 +516,19 @@ function paginateTable() {
         };
         paginationDiv.appendChild(btn);
     }
-}
 
-window.onload = paginateTable;
+    // Create Next button
+    const nextButton = document.createElement("button");
+    nextButton.textContent = "Next";
+    nextButton.disabled = currentPage === totalPages; // Disable if on the last page
+    nextButton.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            paginateTable();
+        }
+    };
+    paginationDiv.appendChild(nextButton);
+}
 
 
 

@@ -1276,35 +1276,45 @@ def employee_list(request):
     employees = Employee.objects.all()
     return render(request, 'bopo_admin/Employee/employee_list.html', {'employees': employees})
 
+
 from django.http import JsonResponse
 from .models import Employee 
+
 def get_employee(request, employee_id):
-    try:
-        # Get the employee by ID
-        employee = Employee.objects.get(id=employee_id)
-        
-        # Return employee details as JSON
-        employee_data = {
-            'id': employee.id,
-            'name': employee.name,
-            'email': employee.email,
-            'aadhaar': employee.aadhaar,
-            'address': employee.address,
-            'state': employee.state,
-            'city': employee.city,
-            'username': employee.username,
-            'password': employee.password,
-            'mobile': employee.mobile,
-            'pan': employee.pan,
-            'pincode': employee.pincode
-        }
-        
-        return JsonResponse(employee_data)
-    except Employee.DoesNotExist:
-        return JsonResponse({'error': 'Employee not found'}, status=404)
-    
+    employee = get_object_or_404(Employee, id=employee_id)
+
+    # Retrieve the state object by its name
+    state_obj = State.objects.get(name=employee.state)  # Assuming state is a string, get State object by name
+
+    # Retrieve cities based on selected state
+    cities = City.objects.filter(state=state_obj)  # Now we use the State object
+
+    # Convert cities to a dictionary for use in the frontend
+    city_data = [{"id": city.id, "name": city.name} for city in cities]
+
+    # Data to send to the frontend
+    data = {
+        "id": employee.id,
+        "name": employee.name,
+        "email": employee.email,
+        "mobile": employee.mobile,
+        "address": employee.address,
+        "aadhaar": employee.aadhaar,
+        "pan": employee.pan,
+        "pincode": employee.pincode,
+        "state": employee.state,  # Assuming state is a string or related field
+        "city": employee.city,    # Assuming city is a string or related field
+        "username": employee.username,
+        "password": employee.password,
+        "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],  # List of all states
+        "cities": city_data,  # List of cities filtered by state
+    }
+
+    return JsonResponse(data)
+
 from django.http import JsonResponse
 from .models import Employee
+
 
 def update_employee(request): 
     if request.method == "POST":
@@ -1321,32 +1331,33 @@ def update_employee(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
         country = request.POST.get("country", "India")
-        
+
         try:
-            # Get the employee object by id
             employee = Employee.objects.get(id=employee_id)
-            
-            # Update the employee object fields
+            state_name = State.objects.get(id=state_id).name
+            city_name = City.objects.get(id=city_id).name
+
             employee.name = name
             employee.email = email
-            employee.aadhaar = aadhaar  # Corrected here
-            employee.address = address  # Corrected here
-            employee.state_id = state_id  # Corrected here
-            employee.city_id = city_id  # Corrected here
+            employee.aadhaar = aadhaar
+            employee.address = address
+            employee.state = state_name
+            employee.city = city_name
             employee.mobile = mobile
             employee.pan = pan
             employee.pincode = pincode
             employee.username = username
             employee.password = password
             employee.country = country
-            
-            # Save the updated employee object
+
             employee.save()
 
-            return JsonResponse({'success': True})
+            return JsonResponse({'status': 'success', 'message': 'Employee updated successfully'})
         except Employee.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Employee not found'})
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
+            return JsonResponse({'status': 'error', 'message': 'Employee not found'})
+        except (State.DoesNotExist, City.DoesNotExist):
+            return JsonResponse({'status': 'error', 'message': 'Invalid state or city'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
 
 from django.http import JsonResponse

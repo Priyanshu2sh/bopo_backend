@@ -97,8 +97,7 @@ body {
     max-height: 500px;
     padding: 15px;
 }
-
-/* Table Responsiveness */
+/* Tables */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -106,10 +105,17 @@ table {
     table-layout: auto;
 }
 
-th, td {
+th {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
+    
+}
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    font-weight: normal;
 }
 
 th {
