@@ -77,18 +77,30 @@
 }
 
 
-#merchant {
-    width: 50%;
-    padding: 10px;
+.center-align {
+    display: flex;
+    justify-content: center; /* Center the content horizontally */
+    align-items: center;     /* Align label and select vertically */
+    gap: 10px;               /* Space between label and dropdown */
+    margin-bottom: 20px;
+}
+
+.center-align label {
+    font-weight: bold;
+}
+
+.center-align select {
+    width: 30%;
+    padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    font-size: 16px;
-    background: #f9f9f9;
 }
+
 .topup-btn-submit {
     display: inline-block;
     padding: 10px 20px;
-    margin: 3% auto 0;
+    margin: 3% auto ;
+    margin-left: 40%;
     width: 20%;
     font-size: 16px;
     font-weight: bold;
@@ -124,12 +136,11 @@
 .topup-back-btn a:hover {
     background: linear-gradient(178deg, red 0%, #85060c 100%);
 }
-
 /* Toast Notification Styling */
 .toast-container {
     position: fixed;
     top: 30px;
-    left: 58%;
+    left: 50%;
     transform: translateX(-50%);
     background-color: #28a745;
     color: #fff;
@@ -152,6 +163,7 @@
     opacity: 0;
     transform: translateX(-50%) translateY(-20px);
 }
+
 
 /* Toast Responsive */
 @media (max-width: 600px) {

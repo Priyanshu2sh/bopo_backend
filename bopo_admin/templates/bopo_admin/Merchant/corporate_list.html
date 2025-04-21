@@ -53,7 +53,8 @@
                                     <td>{{ data.corporate.city }}</td>
                                     <td><label class="switch"><input type="checkbox" {% if data.corporate.verified_at %}checked{% endif %} data-id="{{ data.corporate.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
-                                        <button class="btn btn-sm btn-warning"  onclick="openEditCopMerchantModal({{ data.corporate.id }})">✏️ Edit</button>
+                                        <button class="btn btn-sm btn-warning" onclick=" openEditCorporateModal('{{ data.corporate.corporate_id }}')">✏️ Edit</button>
+
                                         <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑️ Delete</button>
                                     </td>
                                 </tr>
@@ -68,7 +69,7 @@
                                     <td>{{ merchant.city }}</td>
                                     <td><label class="switch"><input type="checkbox" {% if merchant.verified_at %}checked{% endif %} data-id="{{ merchant.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
-                                        <button class="btn btn-sm btn-warning"  onclick="openEditCopMerchantModal({{ merchant.id }})">✏️ Edit</button>
+                                        <button class="btn btn-sm btn-warning"  onclick=" openEditCorporateModal({{ merchant.id }})">✏️ Edit</button>
                                         <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button>
                                     </td>
                                 </tr>
@@ -87,13 +88,13 @@
 
 
 <!-- Edit Merchant Modal -->
-<div id="editCopMerchantModal" class="modal">
+<div id="editCorporateModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
         <h2>Edit Merchant</h2>
         <form id="editMerchantForm" method="POST">
             {% csrf_token %}
-            <input type="hidden" name="Corporate_id" id="edit_corporate_id">
+            <input type="hidden" name="corporate_id" id="edit_corporate_id">
 
           
            <!-- Select Project Dropdown (Hidden Initially) -->
@@ -228,55 +229,86 @@
 </div>
 
 <script>
-   function openEditCopMerchantModal(merchantId) {
-    console.log("merchantId: ", merchantId);
-
-    // Show the modal
-    $('#editCopMerchantModal').show();
-
-    // Fetch merchant data using AJAX
-    $.ajax({
-        url: `/bopo_admin/edit-copmerchant/${merchantId}/`, // The new URL with "edit-copmerchant"
-        type: 'GET',
-        success: function(data) {
-            // Populate the form fields with the retrieved data
-            $('#edit_first_name').val(data.first_name);
-            $('#edit_last_name').val(data.last_name);
-            $('#edit_email').val(data.email);
-            $('#edit_aadhaar_number').val(data.aadhaar);
-            $('#edit_shop_name').val(data.shop_name);
-            $('#edit_address').val(data.address);
-            $('#edit_state').val(data.state); // Make sure the state is also populated correctly
-            $('#edit_mobile').val(data.mobile);
-            $('#edit_gst_number').val(data.gst_number);
-            $('#edit_pan').val(data.pan_number);
-            $('#edit_legal_name').val(data.legal_name);
-            $('#edit_city').val(data.city); // Make sure the city is populated correctly
-            $('#edit_pincode').val(data.pincode);
-
-            // Prefill the project fields
-            $('#edit_project_name').val(data.project_name);  // Prefill project name
-          
-
-            // Prefill the state dropdown
-            $('#edit_state').val(data.state);  // Set the state ID
-            fetchCities(data.state, data.city); // Pre-fetch cities based on the state and set city
-
-        },
-        error: function(xhr, status, error) {
-            console.error("Error fetching merchant data: ", error);
-        }
-    });
-}
-
-
-    function closeModal() {
-        $('#editCopMerchantModal').hide();
+    function openEditCorporateModal(corporateId) {
+        fetch(`/get-corporate/${corporateId}/`)
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+    
+               
+                // Populate the form with fetched data
+                document.getElementById('edit_corporate_id').value = data.corporate_id;
+                document.getElementById('edit_first_name').value = data.first_name;
+                document.getElementById('edit_last_name').value = data.last_name;
+                document.getElementById('edit_email').value = data.email;
+                document.getElementById('edit_mobile').value = data.mobile;
+                document.getElementById('edit_address').value = data.address;
+                document.getElementById('edit_shop_name').value = data.shop_name;
+                document.getElementById('edit_aadhaar_number').value = data.aadhaar;
+                document.getElementById('edit_gst_number').value = data.gst_number;
+                document.getElementById('edit_pan').value = data.pan_number;
+                document.getElementById('edit_legal_name').value = data.legal_name;
+                document.getElementById('edit_pincode').value = data.pincode;
+                document.getElementById('edit_project_name').value = data.project_name;
+                
+    
+                // Populate states dropdown
+                const stateSelect = document.getElementById("edit_state");
+                if (stateSelect) {
+                    stateSelect.innerHTML = `<option value="">Select State</option>`;
+                    data.states.forEach(state => {
+                        const option = document.createElement("option");
+                        option.value = state.name;
+                        option.textContent = state.name;
+                        if (state.name === data.state) {
+                            option.selected = true;
+                        }
+                        stateSelect.appendChild(option);
+                    });
+                } else {
+                    console.error("Element with id 'edit_state' not found!");
+                }
+    
+                // Populate cities dropdown based on selected state
+                const citySelect = document.getElementById("edit_city");
+                if (citySelect) {
+                    citySelect.innerHTML = `<option value="">Select City</option>`;
+                    data.cities.forEach(city => {
+                        const option = document.createElement("option");
+                        option.value = city.name;
+                        option.textContent = city.name;
+                        if (city.name === data.city) {
+                            option.selected = true;
+                        }
+                        citySelect.appendChild(option);
+                    });
+                } else {
+                    console.error("Element with id 'edit_city' not found!");
+                }
+    
+                // Show the modal
+                const modal = document.getElementById("editCorporateModal");
+                if (modal) {
+                    modal.style.display = "block";
+                } else {
+                    console.error("Modal with id 'editCorporateModal' not found!");
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching corporate data:", error);
+            });
     }
-
- 
-
-    $('#editMerchantForm').submit(function(e) {
+    
+    // Close modal when clicked outside
+    window.onclick = function(event) {
+        let modal = document.getElementById("editCorporateModal");
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    };
+    
+    
+    {% comment %} $('#editMerchantForm').submit(function(e) {
         e.preventDefault();  // Prevent the form from submitting normally
     
         // Get form data
@@ -305,7 +337,7 @@
             }
         });
     });
-    
+     {% endcomment %}
 
 function filterTable(tableId, searchBoxId) {
     let input = document.getElementById(searchBoxId);

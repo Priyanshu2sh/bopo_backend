@@ -24,7 +24,7 @@
             {% csrf_token %}
         
             <!-- Merchant Dropdown -->
-            <div class="form-group">
+            <div class="form-group center-align">
                 <label for="merchant">Select Merchant:</label>
                 <select id="merchant" name="merchant" onchange="fetchMerchantDetails()">
                     <option value="">Select Merchant</option>
@@ -35,8 +35,7 @@
                     {% endfor %}
                 </select>
             </div>
-            
-        
+         
             <div class="form-container">
                 <!-- Left Form -->
                 <div class="form-wrapper">
@@ -85,9 +84,16 @@
         
             <button type="submit" class="topup-btn-submit">Submit</button>
         </form>
-        
+        </div>
 
-    </div>
+
+
+ <!-- Toast Notification -->
+ <div id="toast" class="toast-container">
+    <i class="fa fa-check-circle"></i>
+    <span class="toast-message"> Submitted successfully!</span>
+</div>
+
 
     <!-- JavaScript -->
     <script>
@@ -138,8 +144,6 @@
         }
     }
 
-
-
     document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector(".topup-form");
     if (!form) return;
@@ -156,9 +160,6 @@
 });
 
 
-
-    
-
         function fillMerchantId() {
             const merchantDropdown = document.getElementById("merchant");
             const selectedOption = merchantDropdown.options[merchantDropdown.selectedIndex];
@@ -166,6 +167,7 @@
             document.getElementById("merchant_id").value = merchantId || "";
         }
 </script>
+
 
 </body>
 </html>
