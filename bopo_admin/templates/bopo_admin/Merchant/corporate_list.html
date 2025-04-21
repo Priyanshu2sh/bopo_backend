@@ -346,15 +346,18 @@
         const corporateId = formData.get('corporate_id');
         const merchantId = formData.get('merchant_id');
     
+        console.log('Corporate ID:', corporateId);  // Debug logs
+        console.log('Merchant ID:', merchantId);
+    
         let formType = '';
         let url = '';
     
         if (merchantId) {
             formType = 'merchant';
-            url = '/update_copmerchant/';
+            url = '/bopo_admin/update-copmerchant/';
         } else if (corporateId) {
             formType = 'corporate';
-            url = '/update_corporate/';
+            url = '/bopo_admin/update-corporate/';
         } else {
             showToast('Unknown form type.', 'error');
             return;
@@ -369,7 +372,11 @@
             success: function(response) {
                 if (response.success) {
                     showToast(`${formType.charAt(0).toUpperCase() + formType.slice(1)} updated successfully.`, 'success');
-                    closeModal();
+    
+                    setTimeout(() => {
+                        closeEditModal();      // Function to hide modal
+                        location.reload(); // Refresh the page
+                    }, 3000); // 1 second delay for better UX
     
                     if (formType === 'merchant' && typeof updateMerchantInList === 'function') {
                         updateMerchantInList(response.updatedMerchant);
