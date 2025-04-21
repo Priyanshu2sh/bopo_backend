@@ -136,7 +136,6 @@
 .topup-back-btn a:hover {
     background: linear-gradient(178deg, red 0%, #85060c 100%);
 }
-
 /* Toast Notification Styling */
 .toast-container {
     position: fixed;
@@ -164,6 +163,7 @@
     opacity: 0;
     transform: translateX(-50%) translateY(-20px);
 }
+
 
 /* Toast Responsive */
 @media (max-width: 600px) {
