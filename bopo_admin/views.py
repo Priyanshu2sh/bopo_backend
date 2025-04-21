@@ -544,6 +544,65 @@ def get_corporate(request, corporate_id):
         return JsonResponse({'error': 'City not found'}, status=404)
 
 
+
+from django.http import JsonResponse
+from accounts.models import Corporate
+
+def update_corporate(request):
+    try:
+        # Extract the form data from the request
+        corporate_id = request.POST.get('corporate_id')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        mobile = request.POST.get('mobile')
+        address = request.POST.get('address')
+        shop_name = request.POST.get('shop_name')
+        aadhaar = request.POST.get('aadhaar')
+        gst_number = request.POST.get('gst_number')
+        pan_number = request.POST.get('pan_number')
+        legal_name = request.POST.get('legal_name')
+        pincode = request.POST.get('pincode')
+        project_name = request.POST.get('project_name')
+        state_id = request.POST.get("state")
+        city_id = request.POST.get("city")
+
+        # Retrieve the corporate record by corporate_id
+        corporate = Corporate.objects.get(corporate_id=corporate_id)
+
+        # Update the corporate record
+        corporate.first_name = first_name
+        corporate.last_name = last_name
+        corporate.email = email
+        corporate.mobile = mobile
+        corporate.address = address
+        corporate.shop_name = shop_name
+        corporate.aadhaar = aadhaar
+        corporate.gst_number = gst_number
+        corporate.pan_number = pan_number
+        corporate.legal_name = legal_name
+        corporate.pincode = pincode
+        corporate.project_name = project_name
+        
+
+        if state_id:
+                state_obj = State.objects.get(id=state_id)
+                corporate.state = state_obj.name  # ✅ only name
+        if city_id:
+                city_obj = City.objects.get(id=city_id)
+                corporate.city = city_obj.name  # ✅ only name
+        # Save the updated corporate data
+        corporate.save()
+
+        # Return a JSON response indicating success
+        return JsonResponse({'success': True, 'message': 'Corporate details updated successfully!'})
+
+    except Corporate.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Corporate record not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
 # from django.http import JsonResponse
 # from accounts.models import Merchant, Corporate
 

@@ -83,6 +83,7 @@ urlpatterns = [
     
     # path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
     path('get-corporate/<str:corporate_id>/', views.get_corporate, name='get_corporate'),
+    path('update-corporate/', views.update_corporate, name='update_corporate'),
 
 
 

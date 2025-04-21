@@ -92,7 +92,7 @@
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
         <h2>Edit Merchant</h2>
-        <form id="editMerchantForm" method="POST">
+        <form id="editCorporateForm" method="POST">
             {% csrf_token %}
             <input type="hidden" name="corporate_id" id="edit_corporate_id">
 
@@ -230,6 +230,7 @@
 
 <script>
     function openEditCorporateModal(corporateId) {
+        
         fetch(`/get-corporate/${corporateId}/`)
             .then(res => res.json())
             .then(data => {
@@ -252,39 +253,40 @@
                 document.getElementById('edit_project_name').value = data.project_name;
                 
     
-                // Populate states dropdown
-                const stateSelect = document.getElementById("edit_state");
-                if (stateSelect) {
-                    stateSelect.innerHTML = `<option value="">Select State</option>`;
-                    data.states.forEach(state => {
-                        const option = document.createElement("option");
-                        option.value = state.name;
-                        option.textContent = state.name;
-                        if (state.name === data.state) {
-                            option.selected = true;
-                        }
-                        stateSelect.appendChild(option);
-                    });
-                } else {
-                    console.error("Element with id 'edit_state' not found!");
-                }
-    
-                // Populate cities dropdown based on selected state
+                    // Load states
+            const stateSelect = document.getElementById("edit_state");
+            stateSelect.innerHTML = `<option value="">Select State</option>`;
+            if (data.states && data.states.length > 0) {
+                data.states.forEach(state => {
+                    const option = document.createElement("option");
+                    option.value = state.id;
+                    option.textContent = state.name;
+                    if (state.name === data.state) {
+                        option.selected = true;
+                    }
+                    stateSelect.appendChild(option);
+                });
+            } else {
+                stateSelect.innerHTML = `<option value="">No states available</option>`;
+            }
+
+            // Load cities based on selected state
+            if (data.cities && data.cities.length > 0) {
                 const citySelect = document.getElementById("edit_city");
-                if (citySelect) {
-                    citySelect.innerHTML = `<option value="">Select City</option>`;
-                    data.cities.forEach(city => {
-                        const option = document.createElement("option");
-                        option.value = city.name;
-                        option.textContent = city.name;
-                        if (city.name === data.city) {
-                            option.selected = true;
-                        }
-                        citySelect.appendChild(option);
-                    });
-                } else {
-                    console.error("Element with id 'edit_city' not found!");
-                }
+                citySelect.innerHTML = `<option value="">Select City</option>`;
+                data.cities.forEach(city => {
+                    const option = document.createElement("option");
+                    option.value = city.id;
+                    option.textContent = city.name;
+                    if (city.name === data.city) {
+                        option.selected = true;
+                    }
+                    citySelect.appendChild(option);
+                });
+            } else {
+                document.getElementById("edit_city").innerHTML = `<option value="">No cities available</option>`;
+            }
+
     
                 // Show the modal
                 const modal = document.getElementById("editCorporateModal");
@@ -299,6 +301,15 @@
             });
     }
     
+    
+// Function to close the modal
+function closeEditModal() {
+    const modal = document.getElementById('editCorporateModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
     // Close modal when clicked outside
     window.onclick = function(event) {
         let modal = document.getElementById("editCorporateModal");
@@ -306,6 +317,73 @@
             modal.style.display = "none";
         }
     };
+    
+    document.getElementById("editCorporateForm").onsubmit = function (e) {
+        e.preventDefault();  // Prevent default form submission
+    
+        // Get the form data
+        const formData = new FormData(this);
+    
+        // Send a POST request to update the corporate data
+        fetch('/update-corporate/', {
+            method: 'POST',
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken")  // Ensure the CSRF token is being sent
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message || "Corporate updated successfully!");
+                closeEditModal();  // Close the modal
+                setTimeout(() => {
+                    location.reload();  // Reload the page to reflect changes
+                }, 3000); // Delay reload to let user see the success message
+            } else {
+                showToast(data.message || "Something went wrong!");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            showToast("An error occurred while updating the corporate data.");
+        });
+    };
+    
+    // Function to close the modal
+    function closeEditModal() {
+        const modal = document.getElementById('editCorporateModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+    
+    // Function to get the CSRF token (ensure this function is defined in your script)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Function to show a toast message (optional, based on your implementation)
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.classList.add('toast');
+        toast.innerText = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.remove();
+        }, 3000); // Remove toast after 3 seconds
+    }
     
     
     {% comment %} $('#editMerchantForm').submit(function(e) {
