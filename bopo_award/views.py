@@ -659,51 +659,116 @@ class PaymentDetailsRetrieveUpdateDestroyAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
 
-class BankDetailAPIView(APIView):
+class BankDetailByUserAPIView(APIView):
     """
-    Handles listing all bank details and creating new ones.
+    Retrieve, create, and update bank details by user type and ID.
+    URL format: /api/bank-details/<id>/<user_type>/
+    Example: /api/bank-details/1/merchant/ or /api/bank-details/2/customer/
     """
     permission_classes = []
 
-    def get(self, request):
-        bank_details = BankDetail.objects.all()
+    def get(self, request, id, user_type):
+        if user_type == "merchant":
+            try:
+                merchant = Merchant.objects.get(merchant_id=id)
+            except Merchant.DoesNotExist:
+                return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
+            bank_details = BankDetail.objects.filter(merchant=merchant)
+
+        elif user_type == "customer":
+            try:
+                customer = Customer.objects.get(customer_id=id)
+            except Customer.DoesNotExist:
+                return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+            bank_details = BankDetail.objects.filter(customer=customer)
+
+        else:
+            return Response({"error": "Invalid user_type. Must be 'merchant' or 'customer'."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if not bank_details.exists():
+            return Response({"message": "No bank details found."}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = BankDetailSerializer(bank_details, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        serializer = BankDetailSerializer(data=request.data)
+
+    def post(self, request, id, user_type):
+        data = request.data.copy()
+
+        if user_type == "merchant":
+            try:
+                merchant = Merchant.objects.get(merchant_id=id)
+            except Merchant.DoesNotExist:
+                return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
+            data['merchant'] = merchant.id
+            data['customer'] = None
+
+        elif user_type == "customer":
+            try:
+                customer = Customer.objects.get(customer_id=id)
+            except Customer.DoesNotExist:
+                return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+            data['customer'] = customer.customer_id
+            data['merchant'] = None
+
+        else:
+            return Response({"error": "Invalid user_type. Must be 'merchant' or 'customer'."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = BankDetailSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response({
+                "message": "Bank details added successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
-class BankDetailDetailAPIView(APIView):
-    """
-    Handles retrieve, update, and delete operations on a single bank detail.
-    """
-    permission_classes = []
 
-    def get_object(self, pk):
-        return get_object_or_404(BankDetail, pk=pk)
+    def put(self, request, id, user_type):
+        data = request.data.copy()
 
-    def get(self, request, pk):
-        bank_detail = self.get_object(pk)
-        serializer = BankDetailSerializer(bank_detail)
-        return Response(serializer.data)
+        # Fetch existing bank details based on the user type and ID
+        if user_type == "merchant":
+            try:
+                merchant = Merchant.objects.get(merchant_id=id)
+                bank_detail = BankDetail.objects.get(merchant=merchant)
+            except Merchant.DoesNotExist:
+                return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
+            except BankDetail.DoesNotExist:
+                return Response({"error": "Bank details not found for this merchant"}, status=status.HTTP_404_NOT_FOUND)
+            data['merchant'] = merchant.id
+            data['customer'] = None
 
-    def put(self, request, pk):
-        bank_detail = self.get_object(pk)
-        serializer = BankDetailSerializer(bank_detail, data=request.data)
+        elif user_type == "customer":
+            try:
+                customer = Customer.objects.get(customer_id=id)
+                bank_detail = BankDetail.objects.get(customer=customer)
+            except Customer.DoesNotExist:
+                return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+            except BankDetail.DoesNotExist:
+                return Response({"error": "Bank details not found for this customer"}, status=status.HTTP_404_NOT_FOUND)
+            data['customer'] = customer.customer_id
+            data['merchant'] = None
+
+        else:
+            return Response({"error": "Invalid user_type. Must be 'merchant' or 'customer'."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Update bank details if found
+        serializer = BankDetailSerializer(bank_detail, data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response({
+                "message": "Bank details updated successfully",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
-        bank_detail = self.get_object(pk)
-        bank_detail.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
     
 class HelpAPIView(APIView):
     """
@@ -716,9 +781,34 @@ class HelpAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = HelpSerializer(data=request.data)
+        data = request.data.copy()
+        customer_id = data.get("customer")
+        merchant_id = data.get("merchant")
+
+        if customer_id and customer_id != "null":
+            try:
+                customer = Customer.objects.get(customer_id=customer_id)
+                data["customer"] = customer.customer_id
+            except Customer.DoesNotExist:
+                return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            data["customer"] = None
+
+        if merchant_id and merchant_id != "null":
+            try:
+                merchant = Merchant.objects.get(merchant_id=merchant_id)
+                data["merchant"] = merchant.id
+            except Merchant.DoesNotExist:
+                return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            data["merchant"] = None
+
+        serializer = HelpSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Help request submitted successfully.", "data": serializer.data}, status=status.HTTP_201_CREATED)
+            return Response({
+                "message": "Help request submitted successfully.",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    

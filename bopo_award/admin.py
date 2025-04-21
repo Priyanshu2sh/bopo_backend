@@ -6,7 +6,7 @@
 
 
 from django.contrib import admin
-from .models import CustomerPoints, Help, MerchantPoints, PaymentDetails
+from .models import BankDetail, CustomerPoints, Help, MerchantPoints, PaymentDetails
 
 # class TransferPointAdmin(admin.ModelAdmin):
 #     list_display = ('customer_id', 'merchant_id', 'points', 'transaction_type', 'created_at')
@@ -38,6 +38,7 @@ class PaymentDetailsAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
 
 admin.site.register(PaymentDetails, PaymentDetailsAdmin)
+admin.site.register(BankDetail)
 admin.site.register(Help)
 
 

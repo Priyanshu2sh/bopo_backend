@@ -55,7 +55,7 @@ class BankDetailSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = BankDetail
-        fields = ['account_holder_name', 'bank_name', 'account_number', 'ifsc_code', 'branch', 'created_at']
+        fields = ['merchant','customer', 'account_holder_name', 'bank_name', 'account_number', 'ifsc_code', 'branch', 'created_at']
         extra_kwargs = {'account_holder_name': {'required': False}}
 
 
