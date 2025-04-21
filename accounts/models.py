@@ -20,7 +20,7 @@ class Corporate(models.Model):
     last_name = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(unique=True, null=True, blank=True)
     mobile = models.CharField(max_length=15, unique=True)
-    aadhaar = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    aadhaar_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
     gst_number = models.CharField(max_length=15, blank=True, null=True, unique=False)
     pan_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
