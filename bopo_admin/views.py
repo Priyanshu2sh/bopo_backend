@@ -300,7 +300,7 @@ def add_merchant(request):
             last_name = request.POST.get("last_name")
             email = request.POST.get("email")
             mobile = request.POST.get("mobile")
-            aadhaar = request.POST.get("aadhaar")
+            aadhaar_number = request.POST.get("aadhaar_number")
             gst_number = request.POST.get("gst_number")
             shop_name = request.POST.get("shop_name")
             pan_number = request.POST.get("pan_number")
@@ -324,7 +324,7 @@ def add_merchant(request):
                 message = "Mobile number is already registered."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
-            if Merchant.objects.filter(aadhaar_number=aadhaar).exists() or Corporate.objects.filter(aadhaar=aadhaar).exists():
+            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
                 message = "Aadhaar number is already registered."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
@@ -354,7 +354,7 @@ def add_merchant(request):
                     last_name=last_name,
                     email=email,
                     mobile=mobile,
-                    aadhaar_number=aadhaar,
+                    aadhaar_number=aadhaar_number,
                     gst_number=gst_number,
                     pan_number=pan_number,
                     shop_name=shop_name,
@@ -395,7 +395,7 @@ def add_merchant(request):
                     last_name=last_name,
                     email=email,
                     mobile=mobile,
-                    aadhaar=aadhaar,
+                    aadhaar_number=aadhaar_number,
                     gst_number=gst_number,
                     pan_number=pan_number,
                     shop_name=shop_name,
@@ -520,18 +520,18 @@ def get_corporate(request, corporate_id):
             'last_name': corporate.last_name,
             'email': corporate.email,
             'mobile': corporate.mobile,
-            'aadhaar': corporate.aadhaar,
+            'aadhaar_number': corporate.aadhaar_number,
             'gst_number': corporate.gst_number,
             'pan_number': corporate.pan_number,
             'shop_name': corporate.shop_name,
             'legal_name': corporate.legal_name,
             'address': corporate.address,
             'pincode': corporate.pincode,
-            "state": corporate.state,  # Assuming state is a string
-            "city": corporate.city,    # Assuming city is a string
+            "state": corporate.state,  
+            "city": corporate.city,   
             'country': corporate.country,
-            "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],  # List of all states
-            "cities": city_data,  # List of cities filtered by state
+            "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],  
+            "cities": city_data,  
         }
 
         return JsonResponse(data)
@@ -546,62 +546,204 @@ def get_corporate(request, corporate_id):
 
 
 from django.http import JsonResponse
-from accounts.models import Corporate
+from accounts.models import Corporate, Merchant
+
 
 def update_corporate(request):
-    try:
-        # Extract the form data from the request
+    if request.method == 'POST':
         corporate_id = request.POST.get('corporate_id')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        mobile = request.POST.get('mobile')
-        address = request.POST.get('address')
-        shop_name = request.POST.get('shop_name')
-        aadhaar = request.POST.get('aadhaar')
-        gst_number = request.POST.get('gst_number')
-        pan_number = request.POST.get('pan_number')
-        legal_name = request.POST.get('legal_name')
-        pincode = request.POST.get('pincode')
-        project_name = request.POST.get('project_name')
-        state_id = request.POST.get("state")
-        city_id = request.POST.get("city")
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        mobile = request.POST.get('mobile', '').strip()
+        aadhaar_number = request.POST.get('aadhaar_number', '').strip()
+        pan_number = request.POST.get('pan_number', '').strip()
+        gst_number = request.POST.get('gst_number', '').strip()
+        legal_name = request.POST.get('legal_name', '').strip()
+        shop_name = request.POST.get('shop_name', '').strip()
+        address = request.POST.get('address', '').strip()
+        pincode = request.POST.get('pincode', '').strip()
+        state_id = request.POST.get('state')
+        city_id = request.POST.get('city')
+        project_name = request.POST.get('project_name', '').strip()
+        country = request.POST.get('country', 'India').strip()
 
-        # Retrieve the corporate record by corporate_id
-        corporate = Corporate.objects.get(corporate_id=corporate_id)
+        try:
+            corporate = Corporate.objects.get(corporate_id=corporate_id)
 
-        # Update the corporate record
-        corporate.first_name = first_name
-        corporate.last_name = last_name
-        corporate.email = email
-        corporate.mobile = mobile
-        corporate.address = address
-        corporate.shop_name = shop_name
-        corporate.aadhaar = aadhaar
-        corporate.gst_number = gst_number
-        corporate.pan_number = pan_number
-        corporate.legal_name = legal_name
-        corporate.pincode = pincode
-        corporate.project_name = project_name
-        
+            corporate.first_name = first_name
+            corporate.last_name = last_name
+            corporate.email = email
+            corporate.mobile = mobile
+            corporate.aadhaar_number = aadhaar_number
+            corporate.pan_number = pan_number
+            corporate.gst_number = gst_number
+            corporate.legal_name = legal_name
+            corporate.shop_name = shop_name
+            corporate.address = address
+            corporate.pincode = pincode
+            corporate.project_name = project_name
+            corporate.country = country
 
-        if state_id:
+            if state_id:
                 state_obj = State.objects.get(id=state_id)
-                corporate.state = state_obj.name  # ✅ only name
-        if city_id:
+                corporate.state = state_obj.name
+
+            if city_id:
                 city_obj = City.objects.get(id=city_id)
-                corporate.city = city_obj.name  # ✅ only name
-        # Save the updated corporate data
-        corporate.save()
+                corporate.city = city_obj.name
 
-        # Return a JSON response indicating success
-        return JsonResponse({'success': True, 'message': 'Corporate details updated successfully!'})
+            corporate.save()
 
-    except Corporate.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Corporate record not found.'}, status=404)
-    except Exception as e:
-        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+            return JsonResponse({
+                'success': True,
+                'message': 'Corporate updated successfully!',
+                'updatedCorporate': {
+                    'corporate_id': corporate.corporate_id,
+                    'first_name': corporate.first_name,
+                    'last_name': corporate.last_name,
+                    'email': corporate.email,
+                    'mobile': corporate.mobile,
+                    'state': corporate.state,
+                    'city': corporate.city
+                }
+            })
 
+        except Corporate.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Corporate not found'}, status=404)
+        except State.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'State not found'}, status=404)
+        except City.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'City not found'}, status=404)
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+
+def update_copmerchant(request):
+    if request.method == "POST":
+        merchant_id = request.POST.get('merchant_id')
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        mobile = request.POST.get('mobile', '').strip()
+        aadhaar_number = request.POST.get('aadhaar_number', '').strip()
+        pan_number = request.POST.get('pan_number', '').strip()
+        gst_number = request.POST.get('gst_number', '').strip()
+        legal_name = request.POST.get('legal_name', '').strip()
+        shop_name = request.POST.get('shop_name', '').strip()
+        address = request.POST.get('address', '').strip()
+        pincode = request.POST.get('pincode', '').strip()
+        state_id = request.POST.get('state')
+        city_id = request.POST.get('city')
+        project_name = request.POST.get('project_name', '').strip()
+        country = request.POST.get("country", "India").strip()
+
+        try:
+            merchant = Merchant.objects.get(id=merchant_id)
+
+            merchant.first_name = first_name
+            merchant.last_name = last_name
+            merchant.email = email
+            merchant.mobile = mobile
+            merchant.aadhaar_number = aadhaar_number
+            merchant.pan_number = pan_number
+            merchant.gst_number = gst_number
+            merchant.legal_name = legal_name
+            merchant.shop_name = shop_name
+            merchant.address = address
+            merchant.pincode = pincode
+            # merchant.project_name = project_name
+            merchant.country = country
+
+            # Resolve state and city names from IDs
+            if state_id:
+                state_obj = State.objects.get(id=state_id)
+                merchant.state = state_obj.name
+
+            if city_id:
+                city_obj = City.objects.get(id=city_id)
+                merchant.city = city_obj.name
+                
+            # Fetch the Corporate instance using the corporate_id (coming in `project_name`)
+            if project_name:
+                try:
+                    corporate_obj = Corporate.objects.get(corporate_id=project_name)
+                    merchant.project_name = corporate_obj
+                except Corporate.DoesNotExist:
+                    return JsonResponse({'success': False, 'error': 'Corporate (project) not found'}, status=404)
+
+            merchant.save()
+
+            return JsonResponse({
+                "success": True,
+                "message": "Merchant updated successfully!",
+                "updatedMerchant": {
+                    "id": merchant.id,
+                    "first_name": merchant.first_name,
+                    "last_name": merchant.last_name,
+                    "email": merchant.email,
+                    "mobile": merchant.mobile,
+                    "state": merchant.state,
+                    "city": merchant.city
+                }
+            })
+
+        except Merchant.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Merchant not found'}, status=404)
+        except State.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'State not found'}, status=404)
+        except City.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'City not found'}, status=404)
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+
+from django.http import JsonResponse
+from accounts.models import Merchant
+
+def get_copmerchant(request, merchant_id):
+    try:
+        # Fetch the merchant by merchant_id
+        merchant = Merchant.objects.get(id=merchant_id)
+
+        # Assuming the merchant has a state and city linked to them
+        state_obj = State.objects.get(name=merchant.state)
+        city_obj = City.objects.get(name=merchant.city)
+
+        # List of all states and cities for the dropdown
+        cities = City.objects.filter(state=state_obj)
+        city_data = [{"id": city.id, "name": city.name} for city in cities]
+        
+        # Construct the response data
+        data = {
+            'merchant_id': merchant.id,
+            'first_name': merchant.first_name,
+            'last_name': merchant.last_name,
+            'email': merchant.email,
+            'mobile': merchant.mobile,
+            'aadhaar_number': merchant.aadhaar_number,
+            'pan_number': merchant.pan_number,
+            'gst_number': merchant.gst_number,
+            'legal_name': merchant.legal_name,
+            'project_name': merchant.project_name,
+            'shop_name': merchant.shop_name,
+            'address': merchant.address,
+            'pincode': merchant.pincode,
+            "state": merchant.state,
+            "city": merchant.city,
+            'country': merchant.country,
+            "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],
+            "cities": city_data,
+        }
+
+        return JsonResponse(data)
+
+    except Merchant.DoesNotExist:
+        return JsonResponse({'error': 'Merchant not found'}, status=404)
+    except State.DoesNotExist:
+        return JsonResponse({'error': 'State not found'}, status=404)
+    except City.DoesNotExist:
+        return JsonResponse({'error': 'City not found'}, status=404)
 
 # from django.http import JsonResponse
 # from accounts.models import Merchant, Corporate
