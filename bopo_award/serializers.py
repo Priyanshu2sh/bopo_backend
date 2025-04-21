@@ -15,7 +15,7 @@ from rest_framework import serializers
 
 
 from accounts.models import Customer, Merchant
-from .models import BankDetail, CustomerPoints, MerchantPoints, History, PaymentDetails
+from .models import BankDetail, CustomerPoints, Help, MerchantPoints, History, PaymentDetails
 
 
 class CustomerPointsSerializer(serializers.ModelSerializer):
@@ -57,3 +57,13 @@ class BankDetailSerializer(serializers.ModelSerializer):
         model = BankDetail
         fields = ['account_holder_name', 'bank_name', 'account_number', 'ifsc_code', 'branch', 'created_at']
         extra_kwargs = {'account_holder_name': {'required': False}}
+
+
+class HelpSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Help API
+    """
+    class Meta:
+        model = Help
+        fields = ['customer', 'merchant', 'issue_description', 'created_at']
+        extra_kwargs = {'customer':{'required': False}, 'merchant':{'required': False}}

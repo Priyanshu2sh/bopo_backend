@@ -103,3 +103,13 @@ class BankDetail(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+
+class Help(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
+    issue_description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+
+    def __str__(self):
+        return f"Help Request - {self.customer} / {self.merchant}"

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import  Corporate, Customer,  Merchant, Terminal
+from .models import  ChangeMobile, Corporate, Customer,  Merchant, Terminal
 from .models import User
 
 class TerminalSerializer(serializers.ModelSerializer):
@@ -46,6 +46,14 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'mobile_number', 'pin', 'otp', 'created_at', 'verified_at']
         read_only_fields = ['otp', 'created_at', 'verified_at']
+
+class ChangeMobileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChangeMobile
+        fields = ['customer', 'merchant', 'new_mobile', 'otp', 'created_at', 'verified_at']
+        read_only_fields = ['otp', 'created_at', 'verified_at']
+        extra_kwargs = {'customer': {'required': False}, 'merchant':{'required': False}}
+        
 
 
 

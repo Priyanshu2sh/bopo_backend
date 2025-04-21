@@ -11,7 +11,7 @@ from rest_framework import status
 from django.utils.timezone import now
 from bopo_backend import settings
 
-from .models import  Customer, Merchant, Terminal, User, Corporate
+from .models import  ChangeMobile, Customer, Merchant, Terminal, User, Corporate
 from .serializers import   CustomerSerializer, MerchantSerializer, TerminalSerializer, UserSerializer
 from .models import  Customer, Merchant, Terminal, User, Corporate
 from .serializers import   CustomerSerializer, MerchantSerializer, TerminalSerializer, UserSerializer
@@ -644,3 +644,67 @@ class FetchAllUsersAPIView(APIView):
             all_users += corporate_data
 
         return Response({"users": all_users}, status=status.HTTP_200_OK)
+    
+class RequestMobileChangeAPIView(APIView):
+    def post(self, request):
+        customer_id = request.data.get('customer')
+        merchant_id = request.data.get('merchant')
+        new_mobile = request.data.get('new_mobile')
+
+        try:
+            customer = Customer.objects.get(customer_id=customer_id)
+        except Customer.DoesNotExist:
+            return Response({'error': 'Invalid customer ID'}, status=status.HTTP_400_BAD_REQUEST)
+
+        merchant = Merchant.objects.filter(merchant_id=merchant_id).first()
+        if not merchant:
+            return Response({'error': 'Invalid merchant ID'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Generate OTP
+        otp = random.randint(100000, 999999)
+
+        # Create ChangeMobile entry
+        change_request = ChangeMobile.objects.create(
+            customer=customer,
+            merchant=merchant,
+            new_mobile=new_mobile,
+            otp=otp
+        )
+
+        # ✅ Send OTP using Twilio
+        try:
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            message = client.messages.create(
+                body=f"Your BOPO OTP is: {otp}",
+                from_=settings.TWILIO_PHONE_NUMBER,
+                to=f'+91{new_mobile}'  # adjust country code if needed
+            )
+        except Exception as e:
+            return Response({'error': f'Failed to send OTP: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'message': 'OTP sent successfully', 'request_id': change_request.id}, status=status.HTTP_201_CREATED)
+
+class VerifyMobileChangeAPIView(APIView):
+    def post(self, request):
+        request_id = request.data.get('request_id')
+        otp_input = request.data.get('otp')
+
+        try:
+            change_request = ChangeMobile.objects.get(id=request_id, otp=otp_input)
+        except ChangeMobile.DoesNotExist:
+            return Response({'error': 'Invalid OTP or request'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update mobile numbers in Customer and Merchant
+        customer = change_request.customer
+        merchant = change_request.merchant
+
+        customer.mobile = change_request.new_mobile
+        merchant.mobile = change_request.new_mobile
+        customer.save()
+        merchant.save()
+
+        # Update verification time
+        change_request.verified_at = now()
+        change_request.save()
+
+        return Response({'message': 'Mobile number updated successfully'}, status=status.HTTP_200_OK)

@@ -79,7 +79,7 @@ class Merchant(models.Model):
         choices=USER_TYPE_CHOICES,
         default='individual'
     )
-    merchant_id = models.CharField(max_length=255, null=True, blank=True)
+    merchant_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(unique=False, null=True, blank=True)
@@ -172,6 +172,18 @@ class Customer(models.Model):
 
     def __str__(self):
         return f"{self.first_name or ''} {self.last_name or ''}".strip() or self.mobile
+    
+
+class ChangeMobile(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='change_mobile_requests', null=True)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='change_mobile_requests', null=True)
+    new_mobile = models.CharField(max_length=15)
+    otp = models.IntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Change request for {self.customer} / {self.customer}"
 
 
   

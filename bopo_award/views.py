@@ -8,9 +8,9 @@ from django.db.models import Sum
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.serializers import CustomerSerializer, MerchantSerializer
-from .serializers import BankDetailSerializer, PaymentDetailsSerializer
+from .serializers import BankDetailSerializer, HelpSerializer, PaymentDetailsSerializer
 
-from .models import BankDetail, CustomerToCustomer, MerchantToMerchant, PaymentDetails
+from .models import BankDetail, CustomerToCustomer, Help, MerchantToMerchant, PaymentDetails
 from accounts.models import Customer, Merchant
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
@@ -704,3 +704,21 @@ class BankDetailDetailAPIView(APIView):
         bank_detail = self.get_object(pk)
         bank_detail.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class HelpAPIView(APIView):
+    """
+    API View to handle Help requests
+    """
+
+    def get(self, request):
+        help_requests = Help.objects.all().order_by('-created_at')
+        serializer = HelpSerializer(help_requests, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = HelpSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Help request submitted successfully.", "data": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
