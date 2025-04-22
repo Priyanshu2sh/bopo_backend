@@ -59,6 +59,12 @@ body {
 .sidebar {
     transition: width 0.3s ease-in-out;
 }
+.sidebar a.active { 
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color: white !important;
+    font-weight: bold;
+    padding-left: 15px;
+}
 
 
 

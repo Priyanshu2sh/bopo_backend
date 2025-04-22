@@ -66,6 +66,31 @@ body {
     display: block;
 }
 
+.input-icon {
+    display: flex;
+    align-items: center;
+}
+
+.input-icon .icon {
+    padding: 12px;
+    background: #ecf0f1;
+    border-radius: 5px 0 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+}
+
+.input-icon i {
+    color: black;
+}
+
+.input-icon input {
+    border-radius: 0 5px 5px 0;
+    flex: 1;
+    padding-left: 12px;
+}
+
 .addcustomer-btn-submit {
     display: inline-block;
     padding: 10px 20px;
@@ -81,6 +106,7 @@ body {
     text-decoration: none;
     transition: background 0.3s ease;
     margin-left: 40%;
+    font-weight: bold;
 }
 
 .addcustomer-btn-submit:hover {

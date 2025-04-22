@@ -28,40 +28,43 @@
       
     </select>
     </div><br>
-
+    <div class="select-all-container">
+        <input type="checkbox" id="select_all" />
+        <label for="select_all" class="select-all-label">Select All Roles</label>
+    </div>
+    
 
    <div class="roles-container">
+
        <!-- Column 1 -->
        <div class="role-group">
-           <input type="checkbox" id="project_onboarding" name="roles" value="Project OnBoarding">
-           <label for="project_onboarding">Project OnBoarding</label>
+         
+            <input type="checkbox" id="corporate_merchant" name="roles" value="Corporate Merchant">
+           <label for="corporate_merchant">Corporate Merchant</label>
 
-           <input type="checkbox" id="merchant_onboarding" name="roles" value="Merchant OnBoarding">
-           <label for="merchant_onboarding">Merchant OnBoarding</label>
-
+           <input type="checkbox" id="individual_merchant" name="roles" value="Individual Merchant">
+           <label for="individual_merchant">Individual Merchant</label>
+     
            <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
            <label for="merchant_send_credentials">Merchant Send Credentials</label>
 
-           <input type="checkbox" id="merchant_map_bonus" name="roles" value="Merchant Map Bonus Points">
-           <label for="merchant_map_bonus">Merchant Map Bonus Points</label>
-
-           <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
+            <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
            <label for="merchant_limit">Merchant Limit</label>
 
-           <input type="checkbox" id="merchant_status" name="roles" value="Merchant Status">
-           <label for="merchant_status">Merchant Status</label>
+           <input type="checkbox" id="merchant_login" name="roles" value="Merchant Login Page-Info">
+           <label for="merchant_login">Merchant Login Page-Info</label>
+
+         
        </div>
 
        <!-- Column 2 -->
        <div class="role-group">
-           <input type="checkbox" id="merchant_login" name="roles" value="Merchant Login Page-Info">
-           <label for="merchant_login">Merchant Login Page-Info</label>
 
-           <input type="checkbox" id="merchant_notification" name="roles" value="Merchant Send Notification">
-           <label for="merchant_notification">Merchant Send Notification</label>
+            <input type="checkbox" id="merchant_notification" name="roles" value="Merchant Send Notification">
+            <label for="merchant_notification">Merchant Send Notification</label>
 
-           <input type="checkbox" id="merchant_offers" name="roles" value="Merchant Received Offers">
-           <label for="merchant_offers">Merchant Received Offers</label>
+            <input type="checkbox" id="merchant_offers" name="roles" value="Merchant Received Offers">
+            <label for="merchant_offers">Merchant Received Offers</label>
 
            <input type="checkbox" id="modify_customer" name="roles" value="Modify Customer Details">
            <label for="modify_customer">Modify Customer Details</label>
@@ -87,11 +90,15 @@
            <input type="checkbox" id="reports" name="roles" value="Reports">
            <label for="reports">Reports</label>
 
+           <input type="checkbox" id="deduct_amount" name="roles" value="Deduct Amount">
+           <label for="deduct_amount">Deduct Amount</label>
+
+
            <input type="checkbox" id="helpdesk_action" name="roles" value="HelpDesk Action">
            <label for="helpdesk_action">HelpDesk Action</label>
 
-           <input type="checkbox" id="email_settings" name="roles" value="Email Settings">
-           <label for="email_settings">Email Settings</label>
+           {% comment %} <input type="checkbox" id="email_settings" name="roles" value="Email Settings">
+           <label for="email_settings">Email Settings</label> {% endcomment %}
        </div>  </div>
 
         <!-- Buttons -->
@@ -105,7 +112,24 @@
        </div>
  
 
-   <!-- Buttons -->
+       <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAll = document.getElementById('select_all');
+            const checkboxes = document.querySelectorAll('input[type="checkbox"][name="roles"]');
+    
+            selectAll.addEventListener('change', function () {
+                checkboxes.forEach(cb => cb.checked = selectAll.checked);
+            });
+    
+            // Optional: Sync "Select All" if user manually checks/unchecks all boxes
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', function () {
+                    selectAll.checked = [...checkboxes].every(cb => cb.checked);
+                });
+            });
+        });
+    </script>
+    
 
 </form>
 </div>

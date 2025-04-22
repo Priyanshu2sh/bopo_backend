@@ -91,21 +91,23 @@ body {
 }
 
 .btn-danger {
-    background:  #ccc;
-    color: white;
+    background: #c0392b;
+     color: white;
 }
 
 .btn-danger:hover {
-    background: #c0392b;
+    background:  #ccc;
 }
 
 .btn-success {
-    background: #2c3e50;
+    /* background: #2c3e50; */
+    background: linear-gradient(178deg, #004080 0%, #2c3e50 100%);
     color: white;
 }
 
 .btn-success:hover {
-    background: #1a252f;
+    /* background: #1a252f; */
+     background: #2c3e50;
 }
 .payment_details-back-to-list-btn a {
     display: inline-block;

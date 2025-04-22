@@ -93,7 +93,7 @@ class Merchant(models.Model):
     is_profile_updated = models.BooleanField(default=False)
     security_question = models.CharField(max_length=255, null=True, blank=True)
     answer = models.CharField(max_length=255, null=True, blank=True)
-    status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Inactive')
+    status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Active')
     pincode = models.IntegerField(null=True, blank=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     country = models.CharField(max_length=255, null=True, blank=True)

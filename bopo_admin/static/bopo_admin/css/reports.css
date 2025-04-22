@@ -68,7 +68,6 @@ body {
 /* Icons */
 .icon {
     font-size: 30px; /* Reduce icon size */
-    color: #4CAF50;
     margin-bottom: 8px;
 }
 
@@ -108,34 +107,59 @@ body {
     background-color: #388E3C;
     transform: scale(1.05);
 }
-
 /* First Row - Green */
 .reports-grid .report-card:nth-child(1) .download-btn,
 .reports-grid .report-card:nth-child(2) .download-btn,
 .reports-grid .report-card:nth-child(3) .download-btn {
-    background-color: #4CAF50; /* Green */
+    background: linear-gradient(178deg, #4cd137 0%, #128c7e 100%);
+
+}
+
+.reports-grid .report-card:nth-child(1) .icon,
+.reports-grid .report-card:nth-child(2) .icon,
+.reports-grid .report-card:nth-child(3) .icon {
+    color: #4cd137; /* Green icon */
 }
 
 /* Second Row - Blue */
 .reports-grid .report-card:nth-child(4) .download-btn,
 .reports-grid .report-card:nth-child(5) .download-btn,
 .reports-grid .report-card:nth-child(6) .download-btn {
-  background-color: #DC3545;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+}
+
+.reports-grid .report-card:nth-child(4) .icon,
+.reports-grid .report-card:nth-child(5) .icon,
+.reports-grid .report-card:nth-child(6) .icon {
+    color: #e12503; /* Blue icon */
 }
 
 /* Third Row - Orange */
 .reports-grid .report-card:nth-child(7) .download-btn,
 .reports-grid .report-card:nth-child(8) .download-btn,
 .reports-grid .report-card:nth-child(9) .download-btn {
-    background-color: #FF9800; /* Orange */
+    background: linear-gradient(178deg, #fcd34d 0%, #f97316 100%);
+}
+
+.reports-grid .report-card:nth-child(7) .icon,
+.reports-grid .report-card:nth-child(8) .icon,
+.reports-grid .report-card:nth-child(9) .icon {
+    color: #f97316; /* Orange icon */
 }
 
 /* Fourth Row - Red */
 .reports-grid .report-card:nth-child(10) .download-btn,
 .reports-grid .report-card:nth-child(11) .download-btn,
 .reports-grid .report-card:nth-child(12) .download-btn {
-    background-color: #4CAF50;
+    background: linear-gradient(178deg, #4cd137 0%, #128c7e 100%);
 }
+
+.reports-grid .report-card:nth-child(10) .icon,
+.reports-grid .report-card:nth-child(11) .icon,
+.reports-grid .report-card:nth-child(12) .icon {
+    color: #4cd137; /* Red icon */
+}
+
 
 /* Hover Effect */
 .download-btn:hover {

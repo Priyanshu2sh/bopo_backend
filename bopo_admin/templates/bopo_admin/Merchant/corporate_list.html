@@ -338,16 +338,12 @@
         }, 3000); // Remove toast after 3 seconds
     }
 
-    
     $('#editCorporateForm').submit(function(e) {
-        e.preventDefault();  // Prevent default form submission
+        e.preventDefault();  // Stop the default form submission
     
         let formData = new FormData(this);
         const corporateId = formData.get('corporate_id');
         const merchantId = formData.get('merchant_id');
-    
-        console.log('Corporate ID:', corporateId);  // Debug logs
-        console.log('Merchant ID:', merchantId);
     
         let formType = '';
         let url = '';
@@ -369,14 +365,16 @@
             data: formData,
             processData: false,
             contentType: false,
+            headers: {
+                "X-CSRFToken": getCookie('csrftoken') // Add CSRF token to headers
+            },
             success: function(response) {
                 if (response.success) {
                     showToast(`${formType.charAt(0).toUpperCase() + formType.slice(1)} updated successfully.`, 'success');
-    
                     setTimeout(() => {
-                        closeEditModal();      // Function to hide modal
-                        location.reload(); // Refresh the page
-                    }, 3000); // 1 second delay for better UX
+                        closeEditModal();
+                        location.reload(); 
+                    }, 1000);
     
                     if (formType === 'merchant' && typeof updateMerchantInList === 'function') {
                         updateMerchantInList(response.updatedMerchant);
@@ -394,6 +392,20 @@
         });
     });
     
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
     
     {% comment %} $('#editMerchantForm').submit(function(e) {
         e.preventDefault();  // Prevent the form from submitting normally
@@ -699,7 +711,7 @@ function paginateTable() {
     paginationDiv.appendChild(nextButton);
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+{% comment %} document.addEventListener("DOMContentLoaded", function () {
     const existingProjectRadio = document.getElementById("existing_project");
     const newProjectRadio = document.getElementById("new_project");
     const selectProjectContainer = document.getElementById("select-project-container");
@@ -723,7 +735,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Initial check
     toggleProjectFields();
-});
+}); {% endcomment %}
 
 
 </script>
