@@ -703,18 +703,14 @@ from accounts.models import Merchant
 
 def get_copmerchant(request, merchant_id):
     try:
-        # Fetch the merchant by merchant_id
         merchant = Merchant.objects.get(id=merchant_id)
 
-        # Assuming the merchant has a state and city linked to them
         state_obj = State.objects.get(name=merchant.state)
         city_obj = City.objects.get(name=merchant.city)
 
-        # List of all states and cities for the dropdown
         cities = City.objects.filter(state=state_obj)
         city_data = [{"id": city.id, "name": city.name} for city in cities]
-        
-        # Construct the response data
+
         data = {
             'merchant_id': merchant.id,
             'first_name': merchant.first_name,
@@ -725,7 +721,7 @@ def get_copmerchant(request, merchant_id):
             'pan_number': merchant.pan_number,
             'gst_number': merchant.gst_number,
             'legal_name': merchant.legal_name,
-            'project_name': merchant.project_name,
+            'project_name': merchant.project_name.project_name if merchant.project_name else None,  # ✅ FIXED
             'shop_name': merchant.shop_name,
             'address': merchant.address,
             'pincode': merchant.pincode,
@@ -1299,7 +1295,6 @@ def send_sms(to_number, message_body):
 
 def send_notifications(request):
     corporates = Corporate.objects.all()
-    merchants = Merchant.objects.all()
 
     if request.method == "POST":
         form_type = request.POST.get("form_type")
@@ -1308,106 +1303,46 @@ def send_notifications(request):
         notification_title = request.POST.get("notification_title")
         description = request.POST.get("description")
 
-        
+        if form_type == "single":
+            merchant_id = request.POST.get("merchant")
+            merchant = Merchant.objects.get(merchant_id=merchant_id)
 
-        if not project or not notification_type or not notification_title or not description:
-            print("Field validation check triggered? ", not all([project, notification_type, notification_title, description]))
+            # Save the notification
+            Notification.objects.create(
+                project_id=project,
+                merchant_id=merchant_id,
+                notification_type=notification_type,
+                title=notification_title,
+                description=description
+            )
 
-            return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-                'corporates': corporates,
-                'merchants': merchants,
-                'error': 'All fields are required.'
-            })
-       
-        print("Notification Type:", notification_type)
+            # Create message and send via SMS
+            message = f"{notification_type} - {notification_title}:\n{description}"
+            send_sms(merchant.mobile, message)
 
-
-        try: 
-            if form_type == "single":
-                print("Form Type:", form_type)
-            if form_type not in ["single", "all"]:
-                print("⚠️ Unknown form type or not submitted correctly!")
-                print("Project:", project)
-                merchant_id = request.POST.get("merchant")
-                print("Selected Merchant ID:", merchant_id)
-                print("Selected Merchant Name:", request.POST.get("merchant_name"))
-
-                if not merchant_id:
-                    print("No merchant selected.")
-                    return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-                        'corporates': corporates,
-                        'merchants': merchants,
-                        'error': 'Please select a merchant.'
-                    })
-
-                merchant = Merchant.objects.get(merchant_id=merchant_id)
-
-                # Save notification
+        elif form_type == "all":
+            merchants = Merchant.objects.filter(corporate_id=project)
+            for merchant in merchants:
                 Notification.objects.create(
                     project_id=project,
-                    merchant_id=merchant_id,
+                    merchant_id=merchant.merchant_id,
                     notification_type=notification_type,
                     title=notification_title,
                     description=description
                 )
-                print("Notification saved.")
 
-                # Send SMS
-                message_body = f"{notification_title}\n{description}"
-                sms_result = send_sms(merchant.mobile, message_body)
-                if sms_result:
-                    print(f"✅ SMS sent successfully to {merchant.mobile}")
-                else:
-                    print(f"❌ Failed to send SMS to {merchant.mobile}")
+                message = f"{notification_type} - {notification_title}:\n{description}"
+                send_sms(merchant.mobile, message)
 
-            elif form_type == "all":
-                project_merchants = Merchant.objects.filter(corporate_id=project)
-                for project_merchant in project_merchants:
-                    Notification.objects.create(
-                        project_id=project,
-                        merchant_id=project_merchant.merchant_id,
-                        notification_type=notification_type,
-                        title=notification_title,
-                        description=description
-                    )
-                    print("Notification saved for all merchants.")
-                    message_body = f"{notification_title}\n{description}"
-                    sms_result = send_sms(project_merchant.mobile, message_body)
-                    if sms_result:
-                        print(f"✅ SMS sent successfully to {project_merchant.mobile}")
-                    else:
-                        print(f"❌ Failed to send SMS to {project_merchant.mobile}")
-                else:
-                    print("⚠️ Neither 'single' nor 'all' block was triggered.")
-
-
-
-            return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-                'corporates': corporates,
-                'merchants': merchants,
-                # 'message': 'Notification and SMS sent successfully!'
-            })
-                      
-
-        except Merchant.DoesNotExist:
-            print("❌ Merchant not found.")
-            return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-                'corporates': corporates,
-                'merchants': merchants,
-                'error': 'Merchant not found.'
-            })
-        except Exception as e:
-            print(f"❌ Error in send_notifications: {str(e)}")
-            return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-                'corporates': corporates,
-                'merchants': merchants,
-                'error': f"An error occurred: {str(e)}"
-            })
+        return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+            'corporates': corporates,
+            'message': 'Notification(s) sent via SMS!'
+        })
 
     return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-        'corporates': corporates,
-        'merchants': merchants
+        'corporates': corporates
     })
+
 
 
 def received_offers(request):

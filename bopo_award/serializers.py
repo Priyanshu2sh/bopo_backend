@@ -14,7 +14,7 @@
 from rest_framework import serializers
 
 
-from accounts.models import Customer, Merchant
+from accounts.models import Corporate, Customer, Merchant
 from .models import BankDetail, CustomerPoints, Help, MerchantPoints, History, PaymentDetails
 
 
@@ -67,3 +67,12 @@ class HelpSerializer(serializers.ModelSerializer):
         model = Help
         fields = ['customer', 'merchant', 'issue_description', 'created_at']
         extra_kwargs = {'customer':{'required': False}, 'merchant':{'required': False}}
+
+
+class CorporateProjectSerializer(serializers.ModelSerializer):
+    """
+    Serializer to return only project_name from Corporate
+    """
+    class Meta:
+        model = Corporate
+        fields = ['project_name']

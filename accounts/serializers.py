@@ -52,9 +52,8 @@ class ChangeMobileSerializer(serializers.ModelSerializer):
         model = ChangeMobile
         fields = ['customer', 'merchant', 'new_mobile', 'otp', 'created_at', 'verified_at']
         read_only_fields = ['otp', 'created_at', 'verified_at']
-        extra_kwargs = {'customer': {'required': False}, 'merchant':{'required': False}}
-        
-
-
-
+        extra_kwargs = {
+            'customer': {'required': False, 'allow_null': True},
+            'merchant': {'required': False, 'allow_null': True}
+        }
 

@@ -10,6 +10,6 @@ urlpatterns = [
     path('verify-otp/', VerifyOTPAPIView.as_view(), name="verify_otp"),
     path('fetch-users/', FetchAllUsersAPIView.as_view(), name='fetch-users'),
 
-    path('change-mobile/request/', RequestMobileChangeAPIView.as_view(), name='change-mobile-request'),
-    path('change-mobile/verify/', VerifyMobileChangeAPIView.as_view(), name='change-mobile-verify'),
+     path('request-mobile-change/', RequestMobileChangeAPIView.as_view(), name='request-mobile-change'),
+    path('verify-mobile-change/', VerifyMobileChangeAPIView.as_view(), name='verify-mobile-change'),
 ]

@@ -175,16 +175,15 @@ class Customer(models.Model):
     
 
 class ChangeMobile(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='change_mobile_requests', null=True)
-    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='change_mobile_requests', null=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='change_mobile_requests', null=True, blank=True)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='change_mobile_requests', null=True, blank=True)
     new_mobile = models.CharField(max_length=15)
     otp = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     verified_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"Change request for {self.customer} / {self.customer}"
-
+        return f"ChangeMobile request for {self.customer or self.merchant}"
 
   
   
