@@ -13,6 +13,7 @@ urlpatterns = [
     # NEW (correct)
     path('', views.login, name='login'),
     path('logout/', custom_logout_view, name='logout'),
+    path('profile/', views.profile, name='profile'),
     path('home/', home, name='home'),
     path('about/', about, name='about'),
     path('merchant/', merchant, name='merchant'),
@@ -83,9 +84,10 @@ urlpatterns = [
     
     # path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
     path('get-corporate/<str:corporate_id>/', views.get_corporate, name='get_corporate'),
+    path('get-copmerchant/<str:merchant_id>/', views.get_copmerchant, name='get_copmerchant'),
     path('update-corporate/', views.update_corporate, name='update_corporate'),
     path('update-copmerchant/', views.update_copmerchant, name='update_copmerchant'),
-     path('get-copmerchant/<str:merchant_id>/', views.get_copmerchant, name='get_copmerchant'),
+
 
 
 

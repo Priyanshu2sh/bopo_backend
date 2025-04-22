@@ -74,6 +74,31 @@
     outline: none;
     box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
 }
+.input-icon {
+    display: flex;
+    align-items: center;
+}
+
+.input-icon .icon {
+    padding: 12px;
+    background: #ecf0f1;
+    border-radius: 5px 0 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+}
+
+.input-icon i {
+    color: black;
+}
+
+.input-icon input {
+    border-radius: 0 5px 5px 0;
+    flex: 1;
+    padding-left: 12px;
+}
+
 
 .deduct_amount .submit-btn {
     color: white;
