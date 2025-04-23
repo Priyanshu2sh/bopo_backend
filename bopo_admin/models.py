@@ -8,7 +8,8 @@ from django.contrib.auth.hashers import make_password
 # Create your models here.
 class BopoAdmin(models.Model):
     username = models.CharField(max_length=25, unique=True)
-    password = models.CharField(max_length=128)  # longer length for hashed passwords
+    password = models.CharField(max_length=128)
+    role = models.CharField(max_length=20, choices=[('superadmin', 'Super Admin'), ('employee', 'Employee')])
 
     def save(self, *args, **kwargs):
         # Hash the password before saving if not already hashed

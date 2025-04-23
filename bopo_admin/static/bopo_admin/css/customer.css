@@ -328,7 +328,7 @@ button {
   input:checked + .slider:before {
     transform: translateX(20px);  /* Adjusted for smaller size */
   }
- 
+/*  
 .pagination-controls {
     display: flex;
     justify-content: center;
@@ -363,7 +363,7 @@ button {
     font-weight: bold;
     border: 2px solid #ff4e00;
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
-}
+} */
 
 .modal {
     position: fixed;

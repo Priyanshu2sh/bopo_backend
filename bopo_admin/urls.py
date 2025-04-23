@@ -87,6 +87,11 @@ urlpatterns = [
     path('get-copmerchant/<str:merchant_id>/', views.get_copmerchant, name='get_copmerchant'),
     path('update-corporate/', views.update_corporate, name='update_corporate'),
     path('update-copmerchant/', views.update_copmerchant, name='update_copmerchant'),
+    
+    path('corporate_admin/', views.corporate_admin, name='corporate_admin'),
+
+
+    
 
 
 
