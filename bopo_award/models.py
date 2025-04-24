@@ -85,7 +85,6 @@ class PaymentDetails(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     paid_amount = models.IntegerField()
     transaction_id = models.CharField(max_length=255, unique=True)
-    topup_point = models.IntegerField(null=True, blank=True)
     payment_mode = models.CharField(max_length=255, choices=[
         ('UPI', 'UPI'),
         ('Credit Card', 'Credit Card'),
@@ -96,11 +95,25 @@ class PaymentDetails(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 class BankDetail(models.Model):
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
     account_holder_name = models.CharField(max_length=255)
     bank_name = models.CharField(max_length=255)
     account_number = models.CharField(max_length=255, unique=True)
-    ifsc_code = models.CharField(max_length=11, unique=True)
+    ifsc_code = models.CharField(max_length=11, null=True, blank=True)
     branch = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     
+    
+
+class Help(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
+    issue_description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+
+    def __str__(self):
+        return f"Help Request - {self.customer} / {self.merchant}"
+    
+

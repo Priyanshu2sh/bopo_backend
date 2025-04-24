@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AwardPointsAPIView, BankDetailAPIView, BankDetailDetailAPIView, CheckPointsAPIView, CustomerToCustomerTransferAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
+from .views import AwardPointsAPIView,  BankDetailByUserAPIView, CheckPointsAPIView, CorporateProjectListAPIView, CustomerToCustomerTransferAPIView, HelpAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
 
 urlpatterns = [
     path('award/', AwardPointsAPIView.as_view(), name='award-points'),
@@ -20,9 +20,11 @@ urlpatterns = [
     path("customer/profile/<str:customer_id>/", UpdateCustomerProfileAPIView.as_view()),
 
 
-    path('bank-details/', BankDetailAPIView.as_view(), name='bank-detail-list-create'),
-     path('bank-details/<str:customer_id>/<str:merchant_id>/', BankDetailDetailAPIView.as_view(), name='bank-detail-by-user'
-    ),
+    path('bank-details/<str:id>/<str:user_type>/', BankDetailByUserAPIView.as_view(), name='bank-detail-by-user'),
+
+    
+    path('help/', HelpAPIView.as_view(), name='help-api'),
+     path('corporate-projects/', CorporateProjectListAPIView.as_view(), name='corporate-projects'),
 ]
 
 

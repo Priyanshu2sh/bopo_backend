@@ -19,13 +19,12 @@
         
    <!-- Employee Dropdown -->
    <div class="dropdown-container">
-    <label for="employee">Select Employee:</label>
+    <label for="employee">Employee:</label>
     <select id="employee" name="employee" required>
         <option value="">Select Employee</option>
-      
-        <option >Employee 1</option>
-        <option >Employee 2</option>
-      
+        {% for emp in employees %}
+            <option value="{{ emp.employee_id }}">{{ emp.name }}</option>
+        {% endfor %}
     </select>
     </div><br>
     <div class="select-all-container">
