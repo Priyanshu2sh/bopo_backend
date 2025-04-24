@@ -1,3 +1,4 @@
+
 {% extends "bopo_admin/base.html" %}
 {% block content %}
 {% load static %}
@@ -40,24 +41,24 @@
 
     <div class="add_individual_merchant-form-container">
 
-        <!-- Left Column -->
-        <div class="add_individual_merchant-form-group">
+          <!-- Left Column -->
+          <div class="add_individual_merchant-form-group">
             <label>First Name</label>
             <div class="add_individual_merchant-input-container">
                 <i class="fas fa-user"></i>
-                <input type="text" name="first_name" required>
+                <input type="text" name="first_name" id="first_name" required>
             </div>
 
             <label>Email ID</label>
             <div class="add_individual_merchant-input-container">
                 <i class="fas fa-envelope"></i>
-                <input type="email" name="email" required>
+                <input type="email" name="email" id="email">
             </div>
 
             <label>Aadhaar Number</label>
             <div class="add_individual_merchant-input-container">
                 <i class="fas fa-id-card"></i>
-                <input type="text" name="aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
+                <input type="text" name="aadhaar_number" id="aadhaar_number" maxlength="12" required>
             </div>
 
             <label>Shop Name</label>
@@ -88,28 +89,26 @@
             <label>Last Name</label>
             <div class="add_individual_merchant-input-container">
                 <i class="fas fa-user"></i>
-                <input type="text" name="last_name" required>
+                <input type="text" name="last_name"  id="last_name" required>
             </div>
 
             <label>Mobile Number</label>
             <div class="add_individual_merchant-input-container">
                 <i class="fas fa-mobile-alt"></i>
-                <input type="text" name="mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
+                <input type="text" name="mobile" id="mobile" maxlength="10"  required>
             </div>
 
             <label>GST Number</label>
             <div class="add_individual_merchant-input-container">
                 <i class="fas fa-file-invoice"></i>
-                <input type="text" name="gst_number" id="gst_number" placeholder="Enter GST Number"
-                        pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$"
-                        title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15">
+                <input type="text" name="gst_number" id="gst_number" maxlength="15">
             </div>
            
 
             <label>Pan Number</label>
             <div class="add_individual_merchant-input-container">
                 <i class="fas fa-id-card"></i>
-                <input type="text" name="pan_number" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" required>
+                <input type="text" name="pan_number" id="pan" maxlength="10" required>
             </div>
 
             <label>Legal Name</label>
@@ -126,7 +125,7 @@
             <label>Pincode</label>
             <div class="add_individual_merchant-input-container">
                 <i class="fas fa-home"></i>
-                <input type="text" name="pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" required>
+                <input type="text" name="pincode" id="pincode"  maxlength="6"  required>
             </div>
         </div>
     </div>
@@ -143,18 +142,128 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         fetchStates();
+    
+        // Initialize select2
         $('.select2').select2({
             placeholder: "Select an option",
             allowClear: true,
             width: '100%'
         });
+    
+        // Validators
+        const validators = {
+            email: function (value) {
+               if (value === "") return "Email is required";
+               if (value.includes(" ")) return "Email must not contain spaces";
+               if (!value.includes("@")) return "Email must contain '@'";
+               
+               const parts = value.split("@");
+               if (parts.length !== 2) return "Email must contain only one '@' symbol";
+               
+               const [local, domain] = parts;
+       
+               if (local.trim() === "") return "Email must have a name before '@'";
+               if (domain.trim() === "") return "Email must have a domain after '@'";
+               if (!domain.includes(".")) return "Email domain must contain a '.' (e.g., gmail.com)";
+               
+               const domainParts = domain.split(".");
+               if (domainParts.some(part => part.trim() === "")) return "Email domain must not have empty sections (e.g., 'example..com' is invalid)";
+               if (domainParts[domainParts.length - 1].length < 2) return "Email domain extension must be at least 2 characters (e.g., '.com', '.in')";
+       
+               return ""; // All good
+           },
+       mobile: function (value) {
+           if (value === "") return "Mobile number is required";
+           if (!/^\d+$/.test(value)) return "Mobile number must contain only digits";
+           if (value.length !== 10) return "Mobile number must be 10 digits";
+           return "";
+       },
+       aadhaar_number: function (value) {
+           if (value === "") return "Aadhaar number is required";
+           if (!/^\d+$/.test(value)) return "Aadhaar must contain only digits";
+           if (value.length !== 12) return "Aadhaar number must be 12 digits";
+           return "";
+       },
+       pan_number: function(value) {
+           if (value.trim() === "") return "PAN number is required";
+       
+           // Real PAN format regex:
+           const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+       
+           if (!panRegex.test(value)) {
+               return "PAN must be 5 uppercase letters, 4 digits, 1 uppercase letter (e.g., ABCDE1234F)";
+           }
+       
+           // Additional optional check: The 4th letter is the type of PAN holder (optional strict check)
+           const panTypes = ['P', 'C', 'H', 'A', 'B', 'G', 'J', 'L', 'F', 'T'];
+           const fourthChar = value.charAt(3);
+           if (!panTypes.includes(fourthChar)) {
+               return "Invalid PAN holder type (4th character should be one of P/C/H/A/B/G/J/L/F/T)";
+           }
+       
+           return "";
+       },
+       
+       gst_number: function (value) {
+           if (value === "") return "GST number is required";
+           if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value)) {
+               return "Enter a valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)";
+           }
+           return "";
+       },
+      
+       pincode: function (value) {
+           if (value === "") return "Pincode is required";
+           if (!/^\d{6}$/.test(value)) return "Pincode must be 6 digits";
+           return "";
+       },
+       first_name: function (value) {
+           if (value === "") return "First name is required";
+           if (!/^[A-Za-z\s]+$/.test(value)) return "First name must contain only letters and spaces";
+           return "";
+       },
+       last_name: function (value) {
+           if (value === "") return "Last name is required";
+           if (!/^[A-Za-z\s]+$/.test(value)) return "Last name must contain only letters and spaces";
+           return "";
+       }
+   };
 
+        // Live validation
+        Object.keys(validators).forEach(name => {
+            const input = document.getElementsByName(name)[0];
+            if (!input) return;
+    
+            input.addEventListener("input", () => {
+                const value = input.value.trim();
+                const errorMessage = validators[name](value);
+                input.setCustomValidity(errorMessage);
+                input.reportValidity();
+            });
+        });
+    
+        // Handle form submission
         document.querySelector("form").addEventListener("submit", function (event) {
             event.preventDefault();
-
-            let form = document.getElementById("copmerchantForm");
+    
+            const form = this;
+            let isValid = true;
+    
+            Object.keys(validators).forEach(name => {
+                const input = document.getElementsByName(name)[0];
+                const value = input.value.trim();
+                const errorMessage = validators[name](value);
+                input.setCustomValidity(errorMessage);
+                if (errorMessage) {
+                    input.reportValidity();
+                    isValid = false;
+                }
+            });
+    
+            if (!isValid) return;
+    
             let formData = new FormData(form);
-
+    
             fetch(form.action || window.location.href, {
                 method: "POST",
                 body: formData,
@@ -169,6 +278,7 @@
                     setTimeout(() => {
                         form.reset();
                         $('.select2').val(null).trigger('change');
+                        window.location.href = "/individual/list/"; 
                     }, 3500);
                 } else {
                     showToast(data.message, "error");
@@ -179,7 +289,8 @@
                 showToast("An unexpected error occurred. Please try again later.", "error");
             });
         });
-
+    
+        // Handle toast auto-dismiss if visible initially
         const toast = document.getElementById("toast");
         if (toast && toast.classList.contains("toast-show")) {
             setTimeout(() => {
@@ -190,19 +301,21 @@
             }, 3000);
         }
     });
-
+    
+    // Toast function
     function showToast(message, type) {
-        let toast = document.getElementById("toast");
+        const toast = document.getElementById("toast");
         toast.classList.remove("toast-success", "toast-error");
         toast.querySelector(".toast-message").textContent = message;
-
+    
         if (type === "success") {
             toast.classList.add("toast-success");
         } else if (type === "error") {
             toast.classList.add("toast-error");
         }
-
+    
         toast.classList.add("toast-show");
+    
         setTimeout(() => {
             toast.classList.add("toast-hide");
             setTimeout(() => {
@@ -210,7 +323,7 @@
             }, 500);
         }, 3000);
     }
-
+    
 
     function fetchStates() {
         fetch("/bopo_admin/get-states/")
@@ -253,3 +366,4 @@
 </body>
 </html>
 {% endblock %}
+

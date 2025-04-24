@@ -40,19 +40,19 @@
                     <label for="employee_name">Employee Name</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="employee_name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" required>
+                        <input type="text" name="employee_name" id="employee_name" required>
                     </div>
 
                     <label for="email">Email ID</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" name="email" required>
+                        <input type="email" name="email" id="email" required>
                     </div>
 
                     <label for="aadhaar">Aadhaar Number</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
+                        <input type="text" name="aadhaar" id="aadhaar" maxlength="12"  required>
                     </div>
 
                     <label for="address">Address</label>
@@ -82,7 +82,7 @@
                     <label for="username">User Name</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="username" pattern="(?=.*\d)[a-zA-Z0-9]{4,}" title="Username must be at least 4 characters and include at least one number. Letters and numbers only." required>
+                        <input type="text" name="username" id="username" required>
                     </div>
 
                     <label for="password">Password</label>
@@ -125,19 +125,19 @@
                     <label for="mobile">Mobile Number</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-mobile-alt"></i>
-                        <input type="tel" name="mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
+                        <input type="tel" name="mobile" id="mobile" maxlength="10"  required>
                     </div>
 
                     <label for="pan">Pan Number</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" required>
+                        <input type="text" name="pan"  id="pan" maxlength="10" required>
                     </div>
 
                     <label for="pincode">Pincode</label>
                     <div class="addemployee-input-container">
                         <i class="fas fa-home"></i>
-                        <input type="text" name="pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode">
+                        <input type="text" name="pincode" maxlength="6" id="pincode" required>
                     </div>
                 </div>
             </div>
@@ -154,6 +154,103 @@
     
     <!-- Scripts -->
     <script>
+
+        const validators = {
+            employee_name: function(value) { 
+                if (value === "") return "Employee name is required";
+                if (!/^[A-Za-z\s]+$/.test(value)) return "Employee name must contain only letters and spaces";
+                return "";
+            },
+            username: function(value) {
+                if (value === "") return "Username is required";
+                if (!/^(?=.*\d)[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{4,}$/.test(value)) {
+                    return "Username must be at least 4 characters and include at least one number.";
+                }
+                return "";
+            },
+            
+                       
+            email: function (value) {
+                if (value === "") return "Email is required";
+                if (value.includes(" ")) return "Email must not contain spaces";
+                if (!value.includes("@")) return "Email must contain '@'";
+                
+                const parts = value.split("@");
+                if (parts.length !== 2) return "Email must contain only one '@' symbol";
+                
+                const [local, domain] = parts;
+        
+                if (local.trim() === "") return "Email must have a name before '@'";
+                if (domain.trim() === "") return "Email must have a domain after '@'";
+                if (!domain.includes(".")) return "Email domain must contain a '.' (e.g., gmail.com)";
+                
+                const domainParts = domain.split(".");
+                if (domainParts.some(part => part.trim() === "")) return "Email domain must not have empty sections (e.g., 'example..com' is invalid)";
+                if (domainParts[domainParts.length - 1].length < 2) return "Email domain extension must be at least 2 characters (e.g., '.com', '.in')";
+        
+                return ""; // All good
+            },
+            mobile: function (value) {
+                if (value === "") return "Mobile number is required";
+                if (!/^\d+$/.test(value)) return "Mobile number must contain only digits";
+                if (value.length !== 10) return "Mobile number must be 10 digits";
+                return "";
+            },
+            aadhaar: function (value) {
+                if (value === "") return "Aadhaar number is required";
+                if (!/^\d+$/.test(value)) return "Aadhaar must contain only digits";
+                if (value.length !== 12) return "Aadhaar number must be 12 digits";
+                return "";
+            },
+            pan: function(value) {
+                if (value.trim() === "") return "PAN number is required";
+            
+                // Real PAN format regex:
+                const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+            
+                if (!panRegex.test(value)) {
+                    return "PAN must be 5 uppercase letters, 4 digits, 1 uppercase letter (e.g., ABCDE1234F)";
+                }
+            
+                // Additional optional check: The 4th letter is the type of PAN holder (optional strict check)
+                const panTypes = ['P', 'C', 'H', 'A', 'B', 'G', 'J', 'L', 'F', 'T'];
+                const fourthChar = value.charAt(3);
+                if (!panTypes.includes(fourthChar)) {
+                    return "Invalid PAN holder type (4th character should be one of P/C/H/A/B/G/J/L/F/T)";
+                }
+            
+                return "";
+            },
+            
+            gst_number: function (value) {
+                if (value === "") return "GST number is required";
+                if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value)) {
+                    return "Enter a valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)";
+                }
+                return "";
+            },
+           
+            pincode: function (value) {
+                if (value === "") return "Pincode is required";
+                if (!/^\d{6}$/.test(value)) return "Pincode must be 6 digits";
+                return "";
+            },
+          
+        };
+
+        // Apply validation on input
+        Object.keys(validators).forEach(name => {
+            const input = document.getElementsByName(name)[0];
+            if (!input) return;
+
+            input.addEventListener("input", () => {
+                const value = input.value.trim();
+                const errorMessage = validators[name](value);
+                input.setCustomValidity(errorMessage);
+                input.reportValidity();
+            });
+        });
+        
         // Toggle password visibility
         function togglePassword(id) {
             const passwordInput = document.getElementById(id);
@@ -255,6 +352,7 @@
                         setTimeout(() => {
                             form.reset();
                             $('.select2').val(null).trigger('change');
+                            window.location.href = "/employee_list/";
                         }, 3500);
                     } else {
                         showToast(data.message, "error");

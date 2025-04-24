@@ -42,6 +42,7 @@
         <li><a href="{% url 'individual_list' %}"><i class="fas fa-user"></i> Individual Merchant List</a></li>
         {% comment %} <li><a href="{% url 'add_merchant' %}"><i class="fas fa-user-plus"></i> Add Merchant</a></li> {% endcomment %}
         {% comment %} <a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}"><i class="fas fa-terminal"></i> Terminals</a> {% endcomment %}
+        {% comment %} <a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}"><i class="fas fa-terminal"></i> Terminals</a> {% endcomment %}
         <li><a href="{% url 'merchant_credentials' %}"><i class="fas fa-key"></i> Merchant Credentials</a></li>
         <li><a href="{% url 'merchant_topup' %}"><i class="fas fa-wallet"></i> Top-Up Limit</a></li>
         <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li>
@@ -122,7 +123,16 @@
             <a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}">
                 <i class="fas fa-terminal"></i> Terminals
             </a>
+        </div> {% endcomment %}
+
+       <!-- Terminals Section -->
+        <div id="terminalsSection">
+            <a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}">
+                <i class="fas fa-terminal"></i> Terminals
+            </a>
         </div>
+
+
 
 
 

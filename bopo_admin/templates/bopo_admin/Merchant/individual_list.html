@@ -37,7 +37,8 @@
         display: flex;
         justify-content: flex-end; /* Align buttons to the right */
         margin-bottom: 15px;
-    }
+     
+;    }
 
     /* Custom Pagination Styling (Like .pagination-controls) */
     .dataTables_paginate {
@@ -132,7 +133,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <div id="pagination-controls" class="pagination-controls"></div>
+                    {% comment %} <div id="pagination-controls" class="pagination-controls"></div> {% endcomment %}
                 </div>
             </div>
         </div>
