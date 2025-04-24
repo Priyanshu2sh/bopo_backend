@@ -1,6 +1,6 @@
 {% extends "bopo_admin/base.html" %}
-{% load static %}
 {% block content %}
+{% load static %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/payment_details.css' %}">
 
 <div class="payment_details-container">
@@ -16,11 +16,12 @@
 
     <div class="payment_details-list">
         <div class="payment_details-table">
-            <input type="text" class="search-box" id="search-payment-details" onkeyup="filterTable('payment-table', 'search-payment-details')" placeholder="Search by MID, Project Name, Contact Person, Mobile Number, Paid Amount, Top-Up, Date, Payment Method...">
+            <input type="text" class="search-box" id="search-payment-details" onkeyup="filterTable('payment-table', 'search-payment-details')" placeholder="Search by MID,Project Name,Contact Person,Mobile Number,Paid Amount,Top-Up,Date,Payment Method...">
             <table id="payment-table">
                 <thead>
                     <tr>
-                        <th>Sr.No.</th>
+                        <th>MID</th>
+                        {% comment %} <th>Project Name</th> {% endcomment %}
                         <th>Contact Person</th>
                         <th>Mobile Number</th>
                         <th>Paid Amount</th>
@@ -31,41 +32,42 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for payment in topups %}
+                    {% for topup in topups %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        <td>{{ payment.merchant.first_name }} {{ payment.merchant.last_name }}</td>
-                        <td>{{ payment.merchant.mobile }}</td>
-                        <td>{{ payment.paid_amount }}</td>
-                        <td>-</td> <!-- Adjust if you later add topup points -->
-                        <td>{{ payment.created_at|date:"Y-m-d" }}</td>
-                        <td>{{ payment.payment_mode }}</td>
+                        <td>{{ topup.merchant.first_name }} {{ topup.merchant.last_name }}</td>
+                        <td>{{ topup.merchant.mobile }}</td>
+                        <td>{{ topup.topup_amount }}</td>
+                        <td>{{ topup.topup_points }}</td>
+                        <td>{{ topup.transaction_date|date:"Y-m-d" }}</td>
+                        <td>{{ topup.payment_mode }}</td>
                         <td>
-                            <button class="btn btn-sm btn-warning">Top-Up</button>
+                            <button  class="btn btn-sm btn-warning">Top-Up</button>
+                            
                         </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="8">No payment records found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
+                
             </table>
         </div>
     </div>
 </div>
 
+
+
+<!-- JavaScript for Search Filtering and Modal -->
 <script>
     function filterTable(tableId, searchBoxId) {
         let input = document.getElementById(searchBoxId);
         let filter = input.value.toLowerCase();
         let table = document.getElementById(tableId);
         let rows = table.getElementsByTagName("tr");
-
+    
         for (let i = 1; i < rows.length; i++) {
             let cells = rows[i].getElementsByTagName("td");
             let rowMatch = false;
-
+    
             for (let j = 0; j < cells.length; j++) {
                 let cellText = cells[j].innerText.toLowerCase();
                 if (cellText.includes(filter)) {
@@ -73,9 +75,10 @@
                     break;
                 }
             }
-
+    
             rows[i].style.display = rowMatch ? "" : "none";
         }
     }
 </script>
+
 {% endblock %}

@@ -293,6 +293,7 @@ class RegisterUserAPIView(APIView):
 
         if merchant.verified_at:
             return Response({"message": "Verified merchants cannot be updated."}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = MerchantSerializer(merchant, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -754,5 +755,3 @@ class VerifyMobileChangeAPIView(APIView):
 
         except (Customer.DoesNotExist, Merchant.DoesNotExist):
             return Response({'error': 'Invalid customer or merchant ID'}, status=status.HTTP_400_BAD_REQUEST)
-        
-
