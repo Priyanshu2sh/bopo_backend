@@ -25,7 +25,7 @@
                 <table id="limit-table">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th>Sr.No.</th>
                             <th>Merchant ID</th>
                             <th>Merchant Limit</th>
                             <!-- <th>Due Date</th> -->
@@ -46,8 +46,8 @@
                             <td>{{ topup.updated_at|date:"Y-m-d H:i:s" }}</td>
                             <td>{{ topup.merchant.status }}</td>  <!-- Access merchant's status -->
                             <td>
-                                <button>✏️</button>
-                                <button>🗑️</button>
+                                <button class="btn btn-sm btn-warning">✏️ Edit</button>
+                                <button class="btn btn-sm btn-danger">🗑️ Delete</button>
                             </td>
                         </tr>
                         {% endfor %}

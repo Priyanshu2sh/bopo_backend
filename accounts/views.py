@@ -12,9 +12,9 @@ from django.utils.timezone import now
 from bopo_backend import settings
 
 from .models import  Customer, Merchant, Terminal, User, Corporate
-from .serializers import   CustomerSerializer, MerchantSerializer, TerminalSerializer, UserSerializer
-from .models import  Customer, Merchant, Terminal, User, Corporate
-from .serializers import   CustomerSerializer, MerchantSerializer, TerminalSerializer, UserSerializer
+from .serializers import   CustomerSerializer, MerchantSerializer,  TerminalSerializer, UserSerializer
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -293,7 +293,6 @@ class RegisterUserAPIView(APIView):
 
         if merchant.verified_at:
             return Response({"message": "Verified merchants cannot be updated."}, status=status.HTTP_400_BAD_REQUEST)
-
         serializer = MerchantSerializer(merchant, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -318,24 +317,29 @@ class LoginAPIView(APIView):
 
     def post(self, request):
         try:
-            mobile = request.data.get("mobile")
+            identifier = request.data.get("mobile") or request.data.get("merchant_id")  # Mobile or Merchant ID
             pin = request.data.get("pin")
             user_category = request.data.get("user_category")
 
-            logger.info(f"Login attempt - Mobile: {mobile}, User Category: {user_category}")
+            logger.info(f"Login attempt - Identifier: {identifier}, User Category: {user_category}")
 
-            if not mobile or not pin or not user_category:
+            if not identifier or not pin or not user_category:
                 return Response({
-                    "error": "Mobile, PIN, and user_category are required."
+                    "error": "Mobile/Merchant ID, PIN, and user_category are required."
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             user = None
 
             # ✅ Identify the user based on category
             if user_category == "customer":
-                user = Customer.objects.filter(mobile=mobile).first()
+                user = Customer.objects.filter(mobile=str(identifier)).first()
             elif user_category == "merchant":
-                user = Merchant.objects.filter(mobile=mobile).first()
+                if str(identifier).isdigit() and len(str(identifier)) == 10:
+                    # Login with mobile
+                    user = Merchant.objects.filter(mobile=str(identifier)).first()
+                else:
+                    # Login with merchant_id
+                    user = Merchant.objects.filter(merchant_id=identifier).first()
             else:
                 return Response({"error": "Invalid user category."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -347,9 +351,19 @@ class LoginAPIView(APIView):
                 logger.warning("User not verified")
                 return Response({"error": "User not verified. Please verify OTP before logging in."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # 🔐 Compare PINs
-            stored_pin = int(user.pin) if not isinstance(user.pin, int) else user.pin
-            if stored_pin != int(pin):
+            # 🔐 Compare PINs safely
+            if user.pin is None:
+                logger.warning("PIN not set for user")
+                return Response({"error": "PIN not set for user."}, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                stored_pin = int(user.pin)
+                input_pin = int(pin)
+            except (ValueError, TypeError):
+                logger.warning("Invalid PIN format")
+                return Response({"error": "PIN must be a valid number."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if stored_pin != input_pin:
                 logger.warning("Invalid PIN")
                 return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -362,19 +376,13 @@ class LoginAPIView(APIView):
                 "user_category": user_category
             }
 
-            # 🔍 Add ID and profile status based on category
+            # 🔍 Add ID and profile status
             if user_category == "customer":
                 response_data["customer_id"] = user.customer_id
                 response_data["is_profile_updated"] = user.is_profile_updated
-                # response_data["profile_status_message"] = (
-                #     "User profile is already updated." if user.is_profile_updated else "User profile not updated yet."
-                # )
             elif user_category == "merchant":
                 response_data["merchant_id"] = user.merchant_id
                 response_data["is_profile_updated"] = user.is_profile_updated
-                # response_data["profile_status_message"] = (
-                #     "User profile is already updated." if user.is_profile_updated else "User profile not updated yet."
-                # )
 
             logger.info("Login successful")
             return Response(response_data, status=status.HTTP_200_OK)
@@ -644,3 +652,107 @@ class FetchAllUsersAPIView(APIView):
             all_users += corporate_data
 
         return Response({"users": all_users}, status=status.HTTP_200_OK)
+    
+class RequestMobileChangeAPIView(APIView):
+    def post(self, request):
+        customer_id = request.data.get('customer')
+        merchant_id = request.data.get('merchant')
+        new_mobile = request.data.get('new_mobile')
+        pin = request.data.get('pin')
+        security_question = request.data.get('security_question')
+        answer = request.data.get('answer')
+
+        if not new_mobile:
+            return Response({'error': 'New mobile number is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        new_mobile_otp = str(random.randint(100000, 999999))  # Generate OTP
+
+        try:
+            if customer_id:
+                customer = Customer.objects.get(customer_id=customer_id)
+                if (pin and customer.pin == int(pin)) or (
+                    security_question and answer and
+                    customer.security_question == security_question and customer.answer == answer
+                ):
+                    customer.new_mobile_otp = new_mobile_otp
+                    customer.save()
+                else:
+                    return Response({'error': 'PIN or Security Question/Answer does not match for customer'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+            elif merchant_id:
+                merchant = Merchant.objects.get(merchant_id=merchant_id)
+                if (pin and merchant.pin == int(pin)) or (
+                    security_question and answer and
+                    merchant.security_question == security_question and merchant.answer == answer
+                ):
+                    merchant.new_mobile_otp = new_mobile_otp
+                    merchant.save()
+                else:
+                    return Response({'error': 'PIN or Security Question/Answer does not match for merchant'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                return Response({'error': 'Either customer or merchant ID must be provided'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        except (Customer.DoesNotExist, Merchant.DoesNotExist):
+            return Response({'error': 'Invalid customer or merchant ID'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Send OTP via SMS
+        try:
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=f"Your BOPO OTP is: {new_mobile_otp}",
+                from_=settings.TWILIO_PHONE_NUMBER,
+                to=f'+91{new_mobile}'
+            )
+        except Exception as e:
+            return Response({'error': f'Failed to send OTP: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({
+            'message': 'OTP sent successfully',
+            'new_mobile': new_mobile,
+            'otp': new_mobile_otp  # Optional: useful for debugging, hide in production
+        }, status=status.HTTP_201_CREATED)
+
+
+
+class VerifyMobileChangeAPIView(APIView):
+    def post(self, request):
+        customer_id = request.data.get('customer_id')
+        merchant_id = request.data.get('merchant_id')
+        new_mobile = request.data.get('new_mobile')
+        new_mobile_otp_input = request.data.get('new_mobile_otp')
+
+        if not new_mobile or not new_mobile_otp_input:
+            return Response({'error': 'new_mobile and otp are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if customer_id:
+                customer = Customer.objects.get(customer_id=customer_id)
+                if customer.new_mobile_otp == new_mobile_otp_input:
+                    customer.mobile = new_mobile
+                    customer.new_mobile_otp = None  # clear OTP
+                    customer.save()
+                    return Response({'message': 'Mobile number updated successfully'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Invalid OTP for customer'}, status=status.HTTP_400_BAD_REQUEST)
+
+            elif merchant_id:
+                merchant = Merchant.objects.get(merchant_id=merchant_id)
+                if merchant.new_mobile_otp == new_mobile_otp_input:
+                    merchant.mobile = new_mobile
+                    merchant.new_mobile_otp = None  # clear OTP
+                    merchant.save()
+                    return Response({'message': 'Mobile number updated successfully'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Invalid OTP for merchant'}, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                return Response({'error': 'customer or merchant ID must be provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except (Customer.DoesNotExist, Merchant.DoesNotExist):
+            return Response({'error': 'Invalid customer or merchant ID'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
