@@ -2,134 +2,148 @@
 {% load static %}
 
 {% block content %}
+<!-- CSS -->
 <link rel="stylesheet" type="text/css" href="{% static 'bopo_admin/css/employee_role.css' %}">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
 
+<!-- JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
+<!-- Back to List Button -->
 <div class="send_credentials-back-to-list-btn">
     <a href="{% url 'employee_list' %}" class="send_credentials-add_individual_merchant-btn-submit">
         <i class="fa fa-arrow-left"></i> Back 
     </a>
 </div>
 
-
+<!-- Page Title -->
 <h2 class="page-title">Assign Employee Roles</h2>
+
+<!-- Form Start -->
 <div class="container">
-     <form method="POST">
+    <form method="POST" action="{% url 'assign_employee_role' %}">
         {% csrf_token %}
         
-   <!-- Employee Dropdown -->
-   <div class="dropdown-container">
-    <label for="employee">Employee:</label>
-    <select id="employee" name="employee" required>
-        <option value="">Select Employee</option>
-        {% for emp in employees %}
-            <option value="{{ emp.employee_id }}">{{ emp.name }}</option>
-        {% endfor %}
-    </select>
-    </div><br>
-    <div class="select-all-container">
-        <input type="checkbox" id="select_all" />
-        <label for="select_all" class="select-all-label">Select All Roles</label>
-    </div>
-    
+        <!-- Employee Dropdown -->
+        <div class="dropdown-container">
+            <label for="employee">Employee:</label>
+            <select id="employee" name="employee_id" required>
+                <option value="">Select Employee</option>
+                {% for emp in employees %}
+                    <option value="{{ emp.employee_id }}">{{ emp.name }}</option>
+                {% endfor %}
+            </select>
+        </div><br>
+        
+        <!-- Select All Roles Checkbox -->
+        <div class="select-all-container">
+            <input type="checkbox" id="select_all" />
+            <label for="select_all" class="select-all-label">Select All Roles</label>
+        </div>
 
-   <div class="roles-container">
+        <!-- Roles Checkboxes -->
+        <div class="roles-container">
+            <div class="role-group">
+                <input type="checkbox" id="corporate_merchant" name="roles" value="Corporate Merchant">
+                <label for="corporate_merchant">Corporate Merchant</label>
 
-       <!-- Column 1 -->
-       <div class="role-group">
-         
-            <input type="checkbox" id="corporate_merchant" name="roles" value="Corporate Merchant">
-           <label for="corporate_merchant">Corporate Merchant</label>
+                <input type="checkbox" id="individual_merchant" name="roles" value="Individual Merchant">
+                <label for="individual_merchant">Individual Merchant</label>
+                
+                <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
+                <label for="merchant_send_credentials">Merchant Send Credentials</label>
+                
+                <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
+                <label for="merchant_limit">Merchant Limit</label>
 
-           <input type="checkbox" id="individual_merchant" name="roles" value="Individual Merchant">
-           <label for="individual_merchant">Individual Merchant</label>
-     
-           <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
-           <label for="merchant_send_credentials">Merchant Send Credentials</label>
+                <input type="checkbox" id="merchant_login" name="roles" value="Merchant Login Page-Info">
+                <label for="merchant_login">Merchant Login Page-Info</label>
+            </div>
 
-            <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
-           <label for="merchant_limit">Merchant Limit</label>
+            <div class="role-group">
+                <input type="checkbox" id="merchant_notification" name="roles" value="Merchant Send Notification">
+                <label for="merchant_notification">Merchant Send Notification</label>
 
-           <input type="checkbox" id="merchant_login" name="roles" value="Merchant Login Page-Info">
-           <label for="merchant_login">Merchant Login Page-Info</label>
+                <input type="checkbox" id="merchant_offers" name="roles" value="Merchant Received Offers">
+                <label for="merchant_offers">Merchant Received Offers</label>
 
-         
-       </div>
+                <input type="checkbox" id="modify_customer" name="roles" value="Modify Customer Details">
+                <label for="modify_customer">Modify Customer Details</label>
 
-       <!-- Column 2 -->
-       <div class="role-group">
+                <input type="checkbox" id="customer_notification" name="roles" value="Customer Send Notification">
+                <label for="customer_notification">Customer Send Notification</label>
 
-            <input type="checkbox" id="merchant_notification" name="roles" value="Merchant Send Notification">
-            <label for="merchant_notification">Merchant Send Notification</label>
+                <input type="checkbox" id="create_employee" name="roles" value="Create Employee">
+                <label for="create_employee">Create Employee</label>
+            </div>
 
-            <input type="checkbox" id="merchant_offers" name="roles" value="Merchant Received Offers">
-            <label for="merchant_offers">Merchant Received Offers</label>
+            <div class="role-group">    
+                <input type="checkbox" id="payment_details" name="roles" value="Payment Details">
+                <label for="payment_details">Payment Details</label>
 
-           <input type="checkbox" id="modify_customer" name="roles" value="Modify Customer Details">
-           <label for="modify_customer">Modify Customer Details</label>
+                <input type="checkbox" id="account_info" name="roles" value="Account-Info">
+                <label for="account_info">Account-Info</label>
 
-           <input type="checkbox" id="customer_notification" name="roles" value="Customer Send Notification">
-           <label for="customer_notification">Customer Send Notification</label>
+                <input type="checkbox" id="reports" name="roles" value="Reports">
+                <label for="reports">Reports</label>
 
-           <input type="checkbox" id="create_employee" name="roles" value="Create Employee">
-           <label for="create_employee">Create Employee</label>
-       </div>
+                <input type="checkbox" id="deduct_amount" name="roles" value="Deduct Amount">
+                <label for="deduct_amount">Deduct Amount</label>
 
-       <!-- Column 3 -->
-       <div class="role-group">
-           <input type="checkbox" id="assign_roles" name="roles" value="Assign Employee Roles">
-           <label for="assign_roles">Assign Employee Roles</label>
+                <input type="checkbox" id="helpdesk_action" name="roles" value="HelpDesk Action">
+                <label for="helpdesk_action">HelpDesk Action</label>
+            </div>
+        </div>
 
-           <input type="checkbox" id="payment_details" name="roles" value="Payment Details">
-           <label for="payment_details">Payment Details</label>
+        <!-- Form Buttons -->
+        <div class="employee-role-button-group">
+            <button type="button" class="employee-role-cancel-btn" onclick="confirmCancel()">
+                <i class="fa fa-times-circle"></i> Cancel
+            </button>
+            <button type="submit" class="employee-role-submit-btn">
+                <i class="fa fa-check-circle"></i> Submit
+            </button>
+        </div>
+    </form>
+</div>
 
-           <input type="checkbox" id="account_info" name="roles" value="Account-Info">
-           <label for="account_info">Account-Info</label>
+<!-- Toastr Messages -->
+{% if messages %}
+<script>
+    {% for message in messages %}
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "timeOut": "1000",
+            "positionClass": "toast-top-right"
+        };
+        toastr["{{ message.tags }}"]("{{ message|escapejs }}");
+    {% endfor %}
+</script>
+{% endif %}
 
-           <input type="checkbox" id="reports" name="roles" value="Reports">
-           <label for="reports">Reports</label>
+<!-- Select All Role JS -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAll = document.getElementById('select_all');
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="roles"]');
 
-           <input type="checkbox" id="deduct_amount" name="roles" value="Deduct Amount">
-           <label for="deduct_amount">Deduct Amount</label>
+        selectAll.addEventListener('change', function () {
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+        });
 
-
-           <input type="checkbox" id="helpdesk_action" name="roles" value="HelpDesk Action">
-           <label for="helpdesk_action">HelpDesk Action</label>
-
-           {% comment %} <input type="checkbox" id="email_settings" name="roles" value="Email Settings">
-           <label for="email_settings">Email Settings</label> {% endcomment %}
-       </div>  </div>
-
-        <!-- Buttons -->
-       <div class="employee-role-button-group">
-           <button type="button" class="employee-role-cancel-btn" onclick="confirmCancel()">
-               <i class="fa fa-times-circle"></i> Cancel
-           </button>
-           <button type="submit" class="employee-role-submit-btn">
-               <i class="fa fa-check-circle"></i> Submit
-           </button>
-       </div>
- 
-
-       <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const selectAll = document.getElementById('select_all');
-            const checkboxes = document.querySelectorAll('input[type="checkbox"][name="roles"]');
-    
-            selectAll.addEventListener('change', function () {
-                checkboxes.forEach(cb => cb.checked = selectAll.checked);
-            });
-    
-            // Optional: Sync "Select All" if user manually checks/unchecks all boxes
-            checkboxes.forEach(cb => {
-                cb.addEventListener('change', function () {
-                    selectAll.checked = [...checkboxes].every(cb => cb.checked);
-                });
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                selectAll.checked = [...checkboxes].every(cb => cb.checked);
             });
         });
-    </script>
-    
+    });
 
-</form>
-</div>
+    function confirmCancel() {
+        if (confirm("Are you sure you want to cancel? Any unsaved changes will be lost.")) {
+            window.location.href = "{% url 'employee_list' %}";
+        }
+    }
+</script>
 {% endblock %}

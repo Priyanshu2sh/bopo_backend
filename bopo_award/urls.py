@@ -24,7 +24,8 @@ urlpatterns = [
 
     
     path('help/', HelpAPIView.as_view(), name='help-api'),
-     path('corporate-projects/', CorporateProjectListAPIView.as_view(), name='corporate-projects'),
+    path('corporate-projects/', CorporateProjectListAPIView.as_view(), name='corporate-projects'),
+
 ]
 
 

@@ -7,18 +7,24 @@ from django.contrib.auth.hashers import make_password
 
 # Create your models here.
 class BopoAdmin(models.Model):
+    USER_ROLES = (
+        ('super_admin', 'Super Admin'),
+        ('corporate_admin', 'Corporate Admin'),
+        ('employee', 'Employee'),
+    )
+
     username = models.CharField(max_length=25, unique=True)
-    password = models.CharField(max_length=128)  # longer length for hashed passwords
+    password = models.CharField(max_length=128)
+    role = models.CharField(max_length=20, choices=USER_ROLES)  # <- Add this field
 
     def save(self, *args, **kwargs):
-        # Hash the password before saving if not already hashed
         if not self.password.startswith('pbkdf2_'):
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.username
-    
+        return f"{self.username} ({self.role})"
+
     
     
   
@@ -171,11 +177,47 @@ class Employee(models.Model):
     def __str__(self):
         return self.name
     
-# class EmployeeRole(models.Model):
-#     employee_id = models.ForeignKey(Employee. on_delete=models.CASCADE, related_name="cities")
+class EmployeeRole(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    corporate_merchant = models.BooleanField(default=False)
+    individual_merchant = models.BooleanField(default=False)
+    merchant_send_credentials = models.BooleanField(default=False)
+    merchant_limit = models.BooleanField(default=False)
+    merchant_login_page_info = models.BooleanField(default=False)
+    merchant_send_notification = models.BooleanField(default=False)
+    merchant_received_offers = models.BooleanField(default=False)
+    modify_customer_details = models.BooleanField(default=False)
+    customer_send_notification = models.BooleanField(default=False)
+    create_employee = models.BooleanField(default=False)
+    payment_details = models.BooleanField(default=False)
+    account_info = models.BooleanField(default=False)
+    reports = models.BooleanField(default=False)
+    deduct_amount = models.BooleanField(default=False)
+    helpdesk_action = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Roles for {self.employee.employee_id}"
+
+    def has_merchant_access(self):
+        return any([
+            self.corporate_merchant,
+            self.individual_merchant,
+            self.merchant_send_credentials,
+            self.merchant_limit,
+            self.merchant_login_page_info,
+            self.merchant_send_notification,
+            self.merchant_received_offers
+        ])
+
+    def has_customer_access(self):
+        return self.modify_customer_details or self.customer_send_notification
+
+    def granted_permissions(self):
+        return [f.name for f in self._meta.fields if isinstance(f, models.BooleanField) and getattr(self, f.name)]
     
 
 class UserBalance(models.Model):
+
     deduction_amount = models.FloatField(default=0.0)  # Default to 5%
 
 

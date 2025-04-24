@@ -15,6 +15,7 @@ from rest_framework import serializers
 
 
 from accounts.models import Corporate, Customer, Merchant
+from bopo_admin.models import EmployeeRole
 from .models import BankDetail, CustomerPoints, Help, MerchantPoints, History, PaymentDetails
 
 
@@ -76,3 +77,8 @@ class CorporateProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Corporate
         fields = ['project_name']
+
+class EmployeeRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmployeeRole
+        fields = '__all__'

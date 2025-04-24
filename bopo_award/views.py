@@ -8,6 +8,7 @@ from django.db.models import Sum
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.serializers import CustomerSerializer, MerchantSerializer
+
 from .serializers import BankDetailSerializer, CorporateProjectSerializer, HelpSerializer, PaymentDetailsSerializer
 
 from .models import BankDetail, CustomerToCustomer, Help, MerchantToMerchant, PaymentDetails
@@ -822,3 +823,5 @@ class CorporateProjectListAPIView(APIView):
         projects = Corporate.objects.all().values('project_name').distinct()
         serializer = CorporateProjectSerializer(projects, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+

@@ -18,6 +18,7 @@ from django.contrib.auth.hashers import check_password
 
 
 
+from accounts import models
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
@@ -26,7 +27,7 @@ from bopo_award.models import CustomerPoints, History, MerchantPoints, PaymentDe
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
-from .models import AccountInfo, BopoAdmin, Employee, MerchantCredential, MerchantLogin, Notification, Reducelimit, Topup, UploadedFile
+from .models import AccountInfo, BopoAdmin, Employee, EmployeeRole, MerchantCredential, MerchantLogin, Notification, Reducelimit, Topup, UploadedFile
 from django.http import JsonResponse
 from .models import State, City
 from bopo_admin.models import Employee
@@ -1609,23 +1610,51 @@ def add_employee(request):
 
 
 
-def employee_role(request):
-    if request.method == "POST":
-        employee_id = request.POST.get("employee")
-        roles = request.POST.getlist("roles")  # get all selected checkboxes as a list
+from django.contrib import messages
 
-        # Save each role for the employee (optional: you can customize based on your model)
-        for role in roles:
-            BopoAdmin.objects.create(
-                employee_id=employee_id,
-                role=role
-            )
+def assign_employee_role(request):
+    if request.method == 'POST':
+        employee_id = request.POST.get('employee_id')
+        try:
+            employee = Employee.objects.get(employee_id=employee_id)
+        except Employee.DoesNotExist:
+            messages.error(request, "Employee not found.")
+            return redirect('assign_employee_role')  # Redirect back to form
 
-    employees = Employee.objects.all()  # This is now outside the if block
-    return render(request, 'bopo_admin/Employee/employee_role.html', {'employees': employees})
+        roles_data = {
+            'corporate_merchant': 'Corporate Merchant' in request.POST.getlist('roles'),
+            'individual_merchant': 'Individual Merchant' in request.POST.getlist('roles'),
+            'merchant_send_credentials': 'Merchant Send Credentials' in request.POST.getlist('roles'),
+            'merchant_limit': 'Merchant Limit' in request.POST.getlist('roles'),
+            'merchant_login_page_info': 'Merchant Login Page-Info' in request.POST.getlist('roles'),
+            'merchant_send_notification': 'Merchant Send Notification' in request.POST.getlist('roles'),
+            'merchant_received_offers': 'Merchant Received Offers' in request.POST.getlist('roles'),
+            'modify_customer_details': 'Modify Customer Details' in request.POST.getlist('roles'),
+            'customer_send_notification': 'Customer Send Notification' in request.POST.getlist('roles'),
+            'create_employee': 'Create Employee' in request.POST.getlist('roles'),
+            'payment_details': 'Payment Details' in request.POST.getlist('roles'),
+            'account_info': 'Account-Info' in request.POST.getlist('roles'),
+            'reports': 'Reports' in request.POST.getlist('roles'),
+            'deduct_amount': 'Deduct Amount' in request.POST.getlist('roles'),
+            'helpdesk_action': 'HelpDesk Action' in request.POST.getlist('roles')
+        }
+
+        employee_role, created = EmployeeRole.objects.update_or_create(
+            employee=employee,
+            defaults=roles_data
+        )
+
+        messages.success(request, "Roles successfully assigned.")
+        return redirect('employee_list')  # This should be the same view that uses Toastr
+
+    else:
+        employees = Employee.objects.all()
+        return render(request, 'bopo_admin/Employee/employee_role.html', {'employees': employees})
+
+
 
 def payment_details(request):
-    topups = Topup.objects.all().order_by('-created_at')  # or any custom ordering
+    topups = PaymentDetails.objects.all().order_by('-created_at')  # or any custom ordering
 
     if request.method == "POST":
         # Handle any POST data if needed
@@ -1682,17 +1711,22 @@ def reports(request):
     return render(request, 'bopo_admin/Payment/reports.html')
 
 def login(request):
-    if request.method == 'POST':
+    if request.method == 'POST': 
         username = request.POST.get('username')
         password = request.POST.get('password')
+        user_type = request.POST.get('user_type')  # New line to capture the selected role
 
         try:
+            # Filter user by username and user_type if you are storing type
             user = BopoAdmin.objects.get(username=username)
+            
+            # Optional: filter by role too if role is stored
+            # user = BopoAdmin.objects.get(username=username, role=user_type)
+
             if check_password(password, user.password):
-                # Login successful
-                # You can set session data here
                 request.session['admin_id'] = user.id
-                return redirect('home')  # redirect to dashboard or home
+                request.session['user_type'] = user_type  # Store the role in session
+                return redirect('home')
             else:
                 error_message = "Incorrect password"
         except BopoAdmin.DoesNotExist:
@@ -1700,7 +1734,11 @@ def login(request):
 
         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
     
+    # GET request
     return render(request, 'bopo_admin/login.html')
+
+
+
     
 
 def export_projects(request):
@@ -2078,10 +2116,6 @@ def export_corporate_merchant(request):
     return render(request, 'bopo_admin/Payment/reports.html')
 
 
-    
-    
-
-
 # Get all states
 def get_states(request):
     states = State.objects.all().values('id', 'name')
@@ -2114,3 +2148,33 @@ def deduct_amount(request):
             messages.error(request, "User not found.")
 
     return render(request, "bopo_admin/Payment/deduct_amount.html")
+
+
+
+# def has_merchant_access(self):
+#         """Return True if the role has any merchant-related permissions."""
+#         return (
+#             self.coporate_merchant or
+#             self.individual_merchant or
+#             self.merchant_send_credentials or
+#             self.merchant_limit or
+#             self.merchant_login_page_info or
+#             self.merchant_send_notification or
+#             self.merchant_received_offers
+#         )
+
+# def has_customer_access(self):
+#         """Return True if the role has any customer-related permissions."""
+#         return (
+#             self.modify_customer_details or
+#             self.customer_send_notification
+#         )
+
+# def granted_permissions(self):
+#         """Return a list of granted permission names (booleans that are True)."""
+#         granted = []
+#         for field in self._meta.fields:
+#             if isinstance(field, models.BooleanField):
+#                 if getattr(self, field.name):
+#                     granted.append(field.name)
+#         return granted
