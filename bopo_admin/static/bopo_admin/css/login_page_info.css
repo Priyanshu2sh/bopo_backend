@@ -94,15 +94,18 @@ label {
 
 .cancel-btn:hover {
     background: #ccc;
+    color: black;
 }
 
 .submit-btn {
-    background: #2c3e50;
+    /* background: #2c3e50; */
+    background: linear-gradient(178deg, #004080 0%, #2c3e50 100%);
     color: white;
 }
 
 .submit-btn:hover {
-    background: #1a252f;
+    /* background: #1a252f; */
+    background: #2c3e50;
 }
 
 .login_info-back-to-list-btn a {

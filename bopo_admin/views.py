@@ -18,6 +18,7 @@ from django.contrib.auth.hashers import check_password
 
 
 
+from accounts import models
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
@@ -26,7 +27,7 @@ from bopo_award.models import CustomerPoints, History, MerchantPoints, PaymentDe
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
-from .models import AccountInfo, BopoAdmin, Employee, MerchantCredential, MerchantLogin, Notification, Reducelimit, Topup, UploadedFile
+from .models import AccountInfo, BopoAdmin, Employee, EmployeeRole, MerchantCredential, MerchantLogin, Notification, Reducelimit, Topup, UploadedFile
 from django.http import JsonResponse
 from .models import State, City
 from bopo_admin.models import Employee
@@ -63,7 +64,11 @@ def custom_logout_view(request):
     logout(request)
     return redirect('login')
 
+def profile(request):
+    return render(request, 'bopo_admin/profile.html')  # Include the correct path and .html extension
 
+ 
+ 
 def home(request):
     # Calculate total projects and project progress
     total_projects = Corporate.objects.count()
@@ -544,54 +549,40 @@ def get_corporate(request, corporate_id):
         return JsonResponse({'error': 'City not found'}, status=404)
 
 
-
 from django.http import JsonResponse
-from accounts.models import Corporate, Merchant
+from accounts.models import Corporate
 
 
 def update_corporate(request):
     if request.method == 'POST':
         corporate_id = request.POST.get('corporate_id')
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        email = request.POST.get('email', '').strip()
-        mobile = request.POST.get('mobile', '').strip()
-        aadhaar_number = request.POST.get('aadhaar_number', '').strip()
-        pan_number = request.POST.get('pan_number', '').strip()
-        gst_number = request.POST.get('gst_number', '').strip()
-        legal_name = request.POST.get('legal_name', '').strip()
-        shop_name = request.POST.get('shop_name', '').strip()
-        address = request.POST.get('address', '').strip()
-        pincode = request.POST.get('pincode', '').strip()
-        state_id = request.POST.get('state')
-        city_id = request.POST.get('city')
-        project_name = request.POST.get('project_name', '').strip()
-        country = request.POST.get('country', 'India').strip()
-
         try:
             corporate = Corporate.objects.get(corporate_id=corporate_id)
 
-            corporate.first_name = first_name
-            corporate.last_name = last_name
-            corporate.email = email
-            corporate.mobile = mobile
-            corporate.aadhaar_number = aadhaar_number
-            corporate.pan_number = pan_number
-            corporate.gst_number = gst_number
-            corporate.legal_name = legal_name
-            corporate.shop_name = shop_name
-            corporate.address = address
-            corporate.pincode = pincode
-            corporate.project_name = project_name
-            corporate.country = country
+            corporate.first_name = request.POST.get('first_name', '').strip()
+            corporate.last_name = request.POST.get('last_name', '').strip()
+            corporate.email = request.POST.get('email', '').strip()
+            corporate.mobile = request.POST.get('mobile', '').strip()
+            corporate.aadhaar_number = request.POST.get('aadhaar_number', '').strip()
+            corporate.pan_number = request.POST.get('pan_number', '').strip()
+            corporate.gst_number = request.POST.get('gst_number', '').strip()
+            corporate.legal_name = request.POST.get('legal_name', '').strip()
+            corporate.shop_name = request.POST.get('shop_name', '').strip()
+            corporate.address = request.POST.get('address', '').strip()
+            corporate.pincode = request.POST.get('pincode', '').strip()
+            corporate.project_name = request.POST.get('project_name', '').strip()
+            corporate.country = request.POST.get('country', 'India').strip()
+
+            state_id = request.POST.get('state')
+            city_id = request.POST.get('city')
 
             if state_id:
-                state_obj = State.objects.get(id=state_id)
-                corporate.state = state_obj.name
+                state = State.objects.get(id=state_id)
+                corporate.state = state.name
 
             if city_id:
-                city_obj = City.objects.get(id=city_id)
-                corporate.city = city_obj.name
+                city = City.objects.get(id=city_id)
+                corporate.city = city.name
 
             corporate.save()
 
@@ -605,10 +596,9 @@ def update_corporate(request):
                     'email': corporate.email,
                     'mobile': corporate.mobile,
                     'state': corporate.state,
-                    'city': corporate.city
+                    'city': corporate.city,
                 }
             })
-
         except Corporate.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Corporate not found'}, status=404)
         except State.DoesNotExist:
@@ -619,56 +609,54 @@ def update_corporate(request):
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 
+
 def update_copmerchant(request):
     if request.method == "POST":
         merchant_id = request.POST.get('merchant_id')
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        email = request.POST.get('email', '').strip()
-        mobile = request.POST.get('mobile', '').strip()
-        aadhaar_number = request.POST.get('aadhaar_number', '').strip()
-        pan_number = request.POST.get('pan_number', '').strip()
-        gst_number = request.POST.get('gst_number', '').strip()
-        legal_name = request.POST.get('legal_name', '').strip()
-        shop_name = request.POST.get('shop_name', '').strip()
-        address = request.POST.get('address', '').strip()
-        pincode = request.POST.get('pincode', '').strip()
-        state_id = request.POST.get('state')
-        city_id = request.POST.get('city')
-        project_name = request.POST.get('project_name', '').strip()
-        country = request.POST.get("country", "India").strip()
+
+        if not merchant_id:
+            return JsonResponse({'success': False, 'error': 'Missing merchant ID'}, status=400)
 
         try:
             merchant = Merchant.objects.get(id=merchant_id)
 
-            merchant.first_name = first_name
-            merchant.last_name = last_name
-            merchant.email = email
-            merchant.mobile = mobile
-            merchant.aadhaar_number = aadhaar_number
-            merchant.pan_number = pan_number
-            merchant.gst_number = gst_number
-            merchant.legal_name = legal_name
-            merchant.shop_name = shop_name
-            merchant.address = address
-            merchant.pincode = pincode
-            # merchant.project_name = project_name
-            merchant.country = country
+            # Get and sanitize form fields
+            merchant.first_name = request.POST.get('first_name', '').strip()
+            merchant.last_name = request.POST.get('last_name', '').strip()
+            merchant.email = request.POST.get('email', '').strip()
+            merchant.mobile = request.POST.get('mobile', '').strip()
+            merchant.aadhaar_number = request.POST.get('aadhaar_number', '').strip()
+            merchant.pan_number = request.POST.get('pan_number', '').strip()
+            merchant.gst_number = request.POST.get('gst_number', '').strip()
+            merchant.legal_name = request.POST.get('legal_name', '').strip()
+            merchant.shop_name = request.POST.get('shop_name', '').strip()
+            merchant.address = request.POST.get('address', '').strip()
+            merchant.pincode = request.POST.get('pincode', '').strip()
+            merchant.country = request.POST.get("country", "India").strip()
 
-            # Resolve state and city names from IDs
+            # Foreign key assignments
+            state_id = request.POST.get('state')
+            city_id = request.POST.get('city')
+            project_name = request.POST.get('project_name', '').strip()
+
             if state_id:
-                state_obj = State.objects.get(id=state_id)
-                merchant.state = state_obj.name
+                try:
+                    state = State.objects.get(id=state_id)
+                    merchant.state = state.name
+                except State.DoesNotExist:
+                    return JsonResponse({'success': False, 'error': 'State not found'}, status=404)
 
             if city_id:
-                city_obj = City.objects.get(id=city_id)
-                merchant.city = city_obj.name
-                
-            # Fetch the Corporate instance using the corporate_id (coming in `project_name`)
+                try:
+                    city = City.objects.get(id=city_id)
+                    merchant.city = city.name
+                except City.DoesNotExist:
+                    return JsonResponse({'success': False, 'error': 'City not found'}, status=404)
+
             if project_name:
                 try:
-                    corporate_obj = Corporate.objects.get(corporate_id=project_name)
-                    merchant.project_name = corporate_obj
+                    corporate = Corporate.objects.get(corporate_id=project_name)
+                    merchant.project_name = corporate
                 except Corporate.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'Corporate (project) not found'}, status=404)
 
@@ -690,12 +678,8 @@ def update_copmerchant(request):
 
         except Merchant.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Merchant not found'}, status=404)
-        except State.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'State not found'}, status=404)
-        except City.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'City not found'}, status=404)
 
-    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
 
 
 from django.http import JsonResponse
@@ -703,18 +687,14 @@ from accounts.models import Merchant
 
 def get_copmerchant(request, merchant_id):
     try:
-        # Fetch the merchant by merchant_id
         merchant = Merchant.objects.get(id=merchant_id)
 
-        # Assuming the merchant has a state and city linked to them
         state_obj = State.objects.get(name=merchant.state)
         city_obj = City.objects.get(name=merchant.city)
 
-        # List of all states and cities for the dropdown
         cities = City.objects.filter(state=state_obj)
         city_data = [{"id": city.id, "name": city.name} for city in cities]
-        
-        # Construct the response data
+
         data = {
             'merchant_id': merchant.id,
             'first_name': merchant.first_name,
@@ -725,7 +705,7 @@ def get_copmerchant(request, merchant_id):
             'pan_number': merchant.pan_number,
             'gst_number': merchant.gst_number,
             'legal_name': merchant.legal_name,
-            'project_name': merchant.project_name,
+            'project_name': merchant.project_name.project_name if merchant.project_name else None,  # ✅ FIXED
             'shop_name': merchant.shop_name,
             'address': merchant.address,
             'pincode': merchant.pincode,
@@ -744,6 +724,8 @@ def get_copmerchant(request, merchant_id):
         return JsonResponse({'error': 'State not found'}, status=404)
     except City.DoesNotExist:
         return JsonResponse({'error': 'City not found'}, status=404)
+
+
 
 # from django.http import JsonResponse
 # from accounts.models import Merchant, Corporate
@@ -1299,7 +1281,6 @@ def send_sms(to_number, message_body):
 
 def send_notifications(request):
     corporates = Corporate.objects.all()
-    merchants = Merchant.objects.all()
 
     if request.method == "POST":
         form_type = request.POST.get("form_type")
@@ -1308,106 +1289,46 @@ def send_notifications(request):
         notification_title = request.POST.get("notification_title")
         description = request.POST.get("description")
 
-        
+        if form_type == "single":
+            merchant_id = request.POST.get("merchant")
+            merchant = Merchant.objects.get(merchant_id=merchant_id)
 
-        if not project or not notification_type or not notification_title or not description:
-            print("Field validation check triggered? ", not all([project, notification_type, notification_title, description]))
+            # Save the notification
+            Notification.objects.create(
+                project_id=project,
+                merchant_id=merchant_id,
+                notification_type=notification_type,
+                title=notification_title,
+                description=description
+            )
 
-            return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-                'corporates': corporates,
-                'merchants': merchants,
-                'error': 'All fields are required.'
-            })
-       
-        print("Notification Type:", notification_type)
+            # Create message and send via SMS
+            message = f"{notification_type} - {notification_title}:\n{description}"
+            send_sms(merchant.mobile, message)
 
-
-        try: 
-            if form_type == "single":
-                print("Form Type:", form_type)
-            if form_type not in ["single", "all"]:
-                print("⚠️ Unknown form type or not submitted correctly!")
-                print("Project:", project)
-                merchant_id = request.POST.get("merchant")
-                print("Selected Merchant ID:", merchant_id)
-                print("Selected Merchant Name:", request.POST.get("merchant_name"))
-
-                if not merchant_id:
-                    print("No merchant selected.")
-                    return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-                        'corporates': corporates,
-                        'merchants': merchants,
-                        'error': 'Please select a merchant.'
-                    })
-
-                merchant = Merchant.objects.get(merchant_id=merchant_id)
-
-                # Save notification
+        elif form_type == "all":
+            merchants = Merchant.objects.filter(corporate_id=project)
+            for merchant in merchants:
                 Notification.objects.create(
                     project_id=project,
-                    merchant_id=merchant_id,
+                    merchant_id=merchant.merchant_id,
                     notification_type=notification_type,
                     title=notification_title,
                     description=description
                 )
-                print("Notification saved.")
 
-                # Send SMS
-                message_body = f"{notification_title}\n{description}"
-                sms_result = send_sms(merchant.mobile, message_body)
-                if sms_result:
-                    print(f"✅ SMS sent successfully to {merchant.mobile}")
-                else:
-                    print(f"❌ Failed to send SMS to {merchant.mobile}")
+                message = f"{notification_type} - {notification_title}:\n{description}"
+                send_sms(merchant.mobile, message)
 
-            elif form_type == "all":
-                project_merchants = Merchant.objects.filter(corporate_id=project)
-                for project_merchant in project_merchants:
-                    Notification.objects.create(
-                        project_id=project,
-                        merchant_id=project_merchant.merchant_id,
-                        notification_type=notification_type,
-                        title=notification_title,
-                        description=description
-                    )
-                    print("Notification saved for all merchants.")
-                    message_body = f"{notification_title}\n{description}"
-                    sms_result = send_sms(project_merchant.mobile, message_body)
-                    if sms_result:
-                        print(f"✅ SMS sent successfully to {project_merchant.mobile}")
-                    else:
-                        print(f"❌ Failed to send SMS to {project_merchant.mobile}")
-                else:
-                    print("⚠️ Neither 'single' nor 'all' block was triggered.")
-
-
-
-            return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-                'corporates': corporates,
-                'merchants': merchants,
-                # 'message': 'Notification and SMS sent successfully!'
-            })
-                      
-
-        except Merchant.DoesNotExist:
-            print("❌ Merchant not found.")
-            return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-                'corporates': corporates,
-                'merchants': merchants,
-                'error': 'Merchant not found.'
-            })
-        except Exception as e:
-            print(f"❌ Error in send_notifications: {str(e)}")
-            return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-                'corporates': corporates,
-                'merchants': merchants,
-                'error': f"An error occurred: {str(e)}"
-            })
+        return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+            'corporates': corporates,
+            'message': 'Notification(s) sent via SMS!'
+        })
 
     return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-        'corporates': corporates,
-        'merchants': merchants
+        'corporates': corporates
     })
+
 
 
 def received_offers(request):
@@ -1689,23 +1610,51 @@ def add_employee(request):
 
 
 
-def employee_role(request):
-    if request.method == "POST":
-        employee_id = request.POST.get("employee")
-        roles = request.POST.getlist("roles")  # get all selected checkboxes as a list
+from django.contrib import messages
 
-        # Save each role for the employee (optional: you can customize based on your model)
-        for role in roles:
-            BopoAdmin.objects.create(
-                employee_id=employee_id,
-                role=role
-            )
+def assign_employee_role(request):
+    if request.method == 'POST':
+        employee_id = request.POST.get('employee_id')
+        try:
+            employee = Employee.objects.get(employee_id=employee_id)
+        except Employee.DoesNotExist:
+            messages.error(request, "Employee not found.")
+            return redirect('assign_employee_role')  # Redirect back to form
 
-    employees = Employee.objects.all()  # This is now outside the if block
-    return render(request, 'bopo_admin/Employee/employee_role.html', {'employees': employees})
+        roles_data = {
+            'corporate_merchant': 'Corporate Merchant' in request.POST.getlist('roles'),
+            'individual_merchant': 'Individual Merchant' in request.POST.getlist('roles'),
+            'merchant_send_credentials': 'Merchant Send Credentials' in request.POST.getlist('roles'),
+            'merchant_limit': 'Merchant Limit' in request.POST.getlist('roles'),
+            'merchant_login_page_info': 'Merchant Login Page-Info' in request.POST.getlist('roles'),
+            'merchant_send_notification': 'Merchant Send Notification' in request.POST.getlist('roles'),
+            'merchant_received_offers': 'Merchant Received Offers' in request.POST.getlist('roles'),
+            'modify_customer_details': 'Modify Customer Details' in request.POST.getlist('roles'),
+            'customer_send_notification': 'Customer Send Notification' in request.POST.getlist('roles'),
+            'create_employee': 'Create Employee' in request.POST.getlist('roles'),
+            'payment_details': 'Payment Details' in request.POST.getlist('roles'),
+            'account_info': 'Account-Info' in request.POST.getlist('roles'),
+            'reports': 'Reports' in request.POST.getlist('roles'),
+            'deduct_amount': 'Deduct Amount' in request.POST.getlist('roles'),
+            'helpdesk_action': 'HelpDesk Action' in request.POST.getlist('roles')
+        }
+
+        employee_role, created = EmployeeRole.objects.update_or_create(
+            employee=employee,
+            defaults=roles_data
+        )
+
+        messages.success(request, "Roles successfully assigned.")
+        return redirect('employee_list')  # This should be the same view that uses Toastr
+
+    else:
+        employees = Employee.objects.all()
+        return render(request, 'bopo_admin/Employee/employee_role.html', {'employees': employees})
+
+
 
 def payment_details(request):
-    topups = Topup.objects.all().order_by('-created_at')  # or any custom ordering
+    topups = PaymentDetails.objects.all().order_by('-created_at')  # or any custom ordering
 
     if request.method == "POST":
         # Handle any POST data if needed
@@ -1762,17 +1711,22 @@ def reports(request):
     return render(request, 'bopo_admin/Payment/reports.html')
 
 def login(request):
-    if request.method == 'POST':
+    if request.method == 'POST': 
         username = request.POST.get('username')
         password = request.POST.get('password')
+        user_type = request.POST.get('user_type')  # New line to capture the selected role
 
         try:
+            # Filter user by username and user_type if you are storing type
             user = BopoAdmin.objects.get(username=username)
+            
+            # Optional: filter by role too if role is stored
+            # user = BopoAdmin.objects.get(username=username, role=user_type)
+
             if check_password(password, user.password):
-                # Login successful
-                # You can set session data here
                 request.session['admin_id'] = user.id
-                return redirect('home')  # redirect to dashboard or home
+                request.session['user_type'] = user_type  # Store the role in session
+                return redirect('home')
             else:
                 error_message = "Incorrect password"
         except BopoAdmin.DoesNotExist:
@@ -1780,7 +1734,11 @@ def login(request):
 
         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
     
+    # GET request
     return render(request, 'bopo_admin/login.html')
+
+
+
     
 
 def export_projects(request):
@@ -2158,10 +2116,6 @@ def export_corporate_merchant(request):
     return render(request, 'bopo_admin/Payment/reports.html')
 
 
-    
-    
-
-
 # Get all states
 def get_states(request):
     states = State.objects.all().values('id', 'name')
@@ -2194,3 +2148,33 @@ def deduct_amount(request):
             messages.error(request, "User not found.")
 
     return render(request, "bopo_admin/Payment/deduct_amount.html")
+
+
+
+# def has_merchant_access(self):
+#         """Return True if the role has any merchant-related permissions."""
+#         return (
+#             self.coporate_merchant or
+#             self.individual_merchant or
+#             self.merchant_send_credentials or
+#             self.merchant_limit or
+#             self.merchant_login_page_info or
+#             self.merchant_send_notification or
+#             self.merchant_received_offers
+#         )
+
+# def has_customer_access(self):
+#         """Return True if the role has any customer-related permissions."""
+#         return (
+#             self.modify_customer_details or
+#             self.customer_send_notification
+#         )
+
+# def granted_permissions(self):
+#         """Return a list of granted permission names (booleans that are True)."""
+#         granted = []
+#         for field in self._meta.fields:
+#             if isinstance(field, models.BooleanField):
+#                 if getattr(self, field.name):
+#                     granted.append(field.name)
+#         return granted

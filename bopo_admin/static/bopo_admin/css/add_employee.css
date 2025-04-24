@@ -66,6 +66,30 @@ body {
     display: block; /* Ensure it's positioned properly */
     
 }
+.input-icon {
+    display: flex;
+    align-items: center;
+}
+
+.input-icon .icon {
+    padding: 12px;
+    background: #ecf0f1;
+    border-radius: 5px 0 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+}
+
+.input-icon i {
+    color: black;
+}
+
+.input-icon input {
+    border-radius: 0 5px 5px 0;
+    flex: 1;
+    padding-left: 12px;
+}
 
 
 .addemployee-btn-submit {
@@ -83,6 +107,7 @@ body {
     text-decoration: none;
     transition: background 0.3s ease;
     margin-left: 40%;
+    font-weight: bold;
 }
 
 .addemployee-btn-submit:hover {

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import  ChangeMobile, Corporate, Customer,  Merchant, Terminal
+from .models import  Corporate, Customer,  Merchant, SecurityQue, Terminal
 from .models import User
 
 class TerminalSerializer(serializers.ModelSerializer):
@@ -26,7 +26,7 @@ class MerchantSerializer(serializers.ModelSerializer):
         fields = '__all__'
         extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan_number': {'required':False}, 'legal_name': {'required':False},
                         'pincode': {'required':False}, 'is_profile_updated':{'required' : False}, 'address': {'required':False}, 'state': {'required':False}, 'country': {'required':False}, 'city': {'required':False}, 'corporate_id': {'required':False}, 
-                        'shop_name':{'required':False},'gst_number':{'required':False}, 'project_name':{'required':False}}
+                        'shop_name':{'required':False},'gst_number':{'required':False}, 'project_name':{'required':False}, 'employee_id':{'required':False} }
 
 class CustomerSerializer(serializers.ModelSerializer):
    
@@ -47,14 +47,18 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'mobile_number', 'pin', 'otp', 'created_at', 'verified_at']
         read_only_fields = ['otp', 'created_at', 'verified_at']
 
-class ChangeMobileSerializer(serializers.ModelSerializer):
+# class ChangeMobileSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = ChangeMobile
+#         fields = ['customer', 'merchant', 'new_mobile', 'new_mobile_otp', 'created_at', 'verified_at']
+#         read_only_fields = ['otp', 'created_at', 'verified_at']
+#         extra_kwargs = {
+#             'customer': {'required': False, 'allow_null': True},
+#             'merchant': {'required': False, 'allow_null': True}
+#         }
+
+class SecurityQueSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ChangeMobile
-        fields = ['customer', 'merchant', 'new_mobile', 'otp', 'created_at', 'verified_at']
-        read_only_fields = ['otp', 'created_at', 'verified_at']
-        extra_kwargs = {'customer': {'required': False}, 'merchant':{'required': False}}
-        
-
-
-
+        model = SecurityQue
+        fields = ['id', 'security_question', 'answer']
 

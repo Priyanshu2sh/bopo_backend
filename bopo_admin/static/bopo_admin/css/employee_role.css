@@ -15,7 +15,7 @@ body {
     padding: 30px;
     width: 90%;
     max-width: 1000px;
-    height: 60vh;
+    height: 70vh;
     text-align: center;
     transition: all 0.3s ease;
     margin-top: 5%;
@@ -44,7 +44,7 @@ label {
 }
 
 .dropdown-container {
-    margin-left: 20%;
+    margin-left: 25%;
     display: flex;
     align-items: center; /* Align label and dropdown vertically */
     gap: 10px; /* Space between label and dropdown */
@@ -92,31 +92,66 @@ input[type="checkbox"] {
 
 input[type="checkbox"] + label {
     position: relative;
-    padding-left: 30px;
+    padding-left: 35px; /* Adjust padding for better space */
     cursor: pointer;
     display: flex;
     align-items: center;
-    font-size: 14px;
-    color: #004080;
+    font-size: 16px;
+    color: #34495e;
     font-weight: 500;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    transition: color 0.3s ease;
 }
 
+/* Custom checkbox style */
 input[type="checkbox"] + label::before {
     content: "";
-    width: 18px;
-    height: 18px;
-    /* background: #ecf0f1; */
-    border: 2px solid #004080;
-    border-radius: 4px;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #ddd; /* Light grey border */
+    border-radius: 6px;
     position: absolute;
     left: 0;
-    transition: 0.3s;
+    top: 2px;
+    background-color: #f9f9f9;
+    transition: 0.3s ease all; /* Smooth transition for background and border */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow to create depth */
+}
+
+/* On Hover */
+input[type="checkbox"] + label:hover::before {
+    border-color: #004080;;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
 
 input[type="checkbox"]:checked + label::before {
-    background: #004080;
-    border: 2px solid #004080;
+    background-color: #28a745;
+    border-color: #28a745;
+    content: "✔";
+    color: white;
+    font-size: 16px;
+    text-align: center;
+    line-height: 22px;
+    /* transform: scale(1.2); */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* When checkbox is unchecked */
+input[type="checkbox"]:not(:checked) + label::before {
+    background-color: #f9f9f9;
+    border-color: #ddd;
+}
+
+/* Smooth transition effect for label */
+input[type="checkbox"] + label {
+    transition: all 0.3s ease;
+}
+
+/* When hovering over the label */
+input[type="checkbox"]:not(:checked) + label:hover::before {
+    border-color: #004080;;
 }
 .employee-role-button-group {
     display: flex;
@@ -125,7 +160,7 @@ input[type="checkbox"]:checked + label::before {
 }
 
 .employee-role-cancel-btn {
-    background:  #ccc;
+    background: #c0392b;
     color: white;
     padding: 10px 15px;
     border: none;
@@ -140,11 +175,12 @@ input[type="checkbox"]:checked + label::before {
 }
 
 .employee-role-cancel-btn:hover {
-    background: #c0392b;
+    background:  #ccc;
+    color: black;
 }
 
 .employee-role-submit-btn {
-    background: #004080;
+    background: linear-gradient(178deg, #004080 0%, #2c3e50 100%);
     color: white;
     padding: 10px 15px;
     border: none;
@@ -158,7 +194,7 @@ input[type="checkbox"]:checked + label::before {
 }
 
 .employee-role-submit-btn:hover {
-    background: #004080;
+    background: #2c3e50;
    
 }
 
@@ -246,4 +282,44 @@ input[type="checkbox"]:checked + label::before {
         font-size: 14px;
         padding: 10px;
     }
+}
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 15px 25px;
+    border-radius: 8px;
+    display: none;
+    font-size: 16px;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.toast-show {
+    display: block;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.toast-hide {
+    animation: fadeOut 0.5s ease-in-out;
+}
+
+.toast-success {
+    background-color: #28a745;
+}
+
+.toast-error {
+    background-color: #dc3545;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-10px); }
 }

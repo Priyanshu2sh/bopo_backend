@@ -23,6 +23,17 @@
             
             <form method="post" action="">
                 {% csrf_token %}
+            
+                <div class="form-group">
+                    <label for="user_type">Login as</label>
+                    <select id="user_type" name="user_type" required>
+                        <option value="" disabled selected>Select user type</option>
+                        <option value="super_admin">Super Admin</option>
+                        <option value="corporate_admin">Corporate Admin</option>
+                        <option value="employee">Employee</option>
+                    </select>
+                </div>
+            
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input 
@@ -32,9 +43,8 @@
                         placeholder="Username" 
                         required
                     >
-                    {% comment %} <div class="input-hint">Your unique username for bigbonuspoints </div> {% endcomment %}
                 </div>
-
+            
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="password-wrapper">
@@ -49,16 +59,17 @@
                     </div>
                     <div class="input-hint">Your strong password</div>
                 </div>
-
+            
                 <div class="form-group remember-me">
                     <input type="checkbox" name="remember_me" id="remember_me">
                     <label for="remember_me">Remember me</label>
                 </div>
-
+            
                 <div class="remember-hint">(if this is a private computer)</div>
-
+            
                 <button type="submit">Login</button>
             </form>
+            
         </div>
 
         <div class="footer-text">

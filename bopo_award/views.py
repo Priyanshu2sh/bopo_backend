@@ -8,10 +8,11 @@ from django.db.models import Sum
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.serializers import CustomerSerializer, MerchantSerializer
-from .serializers import BankDetailSerializer, HelpSerializer, PaymentDetailsSerializer
+
+from .serializers import BankDetailSerializer, CorporateProjectSerializer, HelpSerializer, PaymentDetailsSerializer
 
 from .models import BankDetail, CustomerToCustomer, Help, MerchantToMerchant, PaymentDetails
-from accounts.models import Customer, Merchant
+from accounts.models import Corporate, Customer, Merchant
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
 class RedeemPointsAPIView(APIView):
@@ -812,3 +813,15 @@ class HelpAPIView(APIView):
             }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class CorporateProjectListAPIView(APIView):
+    """
+    API View to get all project names from Corporate table
+    """
+    def get(self, request):
+        projects = Corporate.objects.all().values('project_name').distinct()
+        serializer = CorporateProjectSerializer(projects, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
