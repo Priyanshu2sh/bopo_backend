@@ -61,18 +61,7 @@ class Topup(models.Model):
         return f"{self.merchant} - {self.transaction_id}"
     
 class MerchantCredential(models.Model):
-    # SELECT_OPTIONS = [
-    #     ('Project 1', 'Project 1'),
-    #     ('Project 2', 'Project 2'),
-    # ]
-    # SELECT_ID = [
-    #     (' M001', 'M001'),
-    #     ('M002', 'M002'),
-    # ]
-    # SELECT_TERMINALID = [
-    #     ('T001', 'T001'),
-    #     ('T002', 'T002'),
-    # ]
+   
     project = models.CharField(max_length=200 ,blank=True, null=True)
     merchant_id = models.CharField(max_length=200 ,blank=True, null=True)
     merchant_name = models.CharField(max_length=200, blank=True, null=True)
@@ -163,11 +152,12 @@ class City(models.Model):
 #     ]
     
 class Employee(models.Model):
-    employee_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    employee_id = models.CharField(max_length=20, primary_key=True)
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     aadhaar = models.CharField(max_length=12, unique=True)
     address = models.TextField()
+    role = models.CharField(max_length=20, default='employee')
     state = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
     mobile = models.CharField(max_length=10, unique=True)
@@ -180,6 +170,9 @@ class Employee(models.Model):
 
     def __str__(self):
         return self.name
+    
+# class EmployeeRole(models.Model):
+#     employee_id = models.ForeignKey(Employee. on_delete=models.CASCADE, related_name="cities")
     
 
 class UserBalance(models.Model):
