@@ -88,7 +88,9 @@ urlpatterns = [
     path('update-corporate/', views.update_corporate, name='update_corporate'),
     path('update-copmerchant/', views.update_copmerchant, name='update_copmerchant'),
     
-    path('corporate_admin/', views.corporate_admin, name='corporate_admin'),
+    # path('corporate_admin/', views.corporate_admin, name='corporate_admin'),
+    path('terminals/', views.terminals, name='terminals'),
+    path('get_terminals/<str:merchant_id>/', views.get_terminals, name='get_terminals'),
 
 
     

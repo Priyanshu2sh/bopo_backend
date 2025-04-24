@@ -84,13 +84,41 @@ def corporate_admin(request):
     })
 
 
-def dashboard(request):
-    print("User role in session:", request.session.get('user_role'))  # Debug line
-    user_role = request.session.get('user_role')
-    return render(request, 'base.html', {'user_role': user_role})
+# def dashboard(request):
+#     print("User role in session:", request.session.get('user_role'))  # Debug line
+#     user_role = request.session.get('user_role')
+#     return render(request, 'base.html', {'user_role': user_role})
 
 
+from django.shortcuts import render
+from accounts.models import Merchant  # Replace `your_app` and `Merchant` with actual names
 
+def terminals(request):
+    merchants = Merchant.objects.all().order_by('merchant_id')
+    return render(request, 'bopo_admin/Payment/terminals.html', {'merchants': merchants})
+
+from django.http import JsonResponse
+from accounts.models import Merchant, Terminal
+
+def get_terminals(request, merchant_id):
+    # Get the merchant based on merchant_id
+    try:
+        merchant = Merchant.objects.get(merchant_id=merchant_id)
+    except Merchant.DoesNotExist:
+        return JsonResponse({'error': 'Merchant not found'}, status=404)
+
+    # Get terminals for this merchant
+    terminals = Terminal.objects.filter(merchant_id=merchant)
+    
+    # Prepare the terminal data for response
+    terminal_data = [
+        {'terminal_id': terminal.terminal_id, 'password': terminal.password} 
+        for terminal in terminals
+    ]
+    
+    return JsonResponse({'terminals': terminal_data})
+
+ 
  
 def home(request):
     # Calculate total projects and project progress
@@ -1783,8 +1811,9 @@ def login(request):
         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
     
     return render(request, 'bopo_admin/login.html')
-    
 
+
+  
 def export_projects(request):
     # Create an Excel workbook and sheet
     workbook = openpyxl.Workbook()
