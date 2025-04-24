@@ -23,7 +23,7 @@
         
 
         <a href="{% url 'home' %}" class="{% if request.path == 'home/' %}active{% endif %}">
-            <i class="fas fa-home"></i> Home
+            <i class="fas fa-home"></i>  Home
         </a>
         
         {% comment %} <a href="{% url 'project_list' %}" class="{% if request.path == '/project_list/' %}active{% endif %}">
@@ -34,7 +34,7 @@
          <!-- Merchant Dropdown -->
 <div class="dropdown">
     <a class="dropdown-link" id="merchantDropdownToggle">
-        <i class="fas fa-store"></i> Merchant
+        <i class="fas fa-store"></i>  Merchant
     </a>
     <ul class="dropdown-menu" id="merchantDropdownMenu">
         {% comment %} <li><a href="{% url 'merchant_list' %}"><i class="fas fa-list"></i> Merchant List</a></li> {% endcomment %}
@@ -58,21 +58,21 @@
       
          <div id="belowMerchant">
             <a href="{% url 'customer' %}" class="{% if request.path == 'customer/' %}active{% endif %}">
-                <i class="fas fa-users"></i> Customer
+                <i class="fas fa-users"></i>  Customer
             </a>
         </div>  
 
         <!-- Employee Section -->
         {% comment %} <div id="belowCustomer">
             <a href="{% url 'employee_list' %}" class="{% if request.path == 'employee_list/' %}active{% endif %}">
-                <i class="fas fa-user-tie"></i> Employee
+                <i class="fas fa-user-tie"></i>  Employee
             </a>
         </div> {% endcomment %}
 
         <!-- Employee Dropdown -->
         <div class="dropdown" >
             <a class="dropdown-link" id="employeeDropdownToggle">
-                <i class="fas fa-user-tie"></i> Employee
+                <i class="fas fa-user-tie"></i>  Employee
             </a>
             <ul class="dropdown-menu"  id="employeeDropdownMenu">
                 <li><a href="{% url 'employee_list' %}"><i class="fas fa-list"></i> Employee List</a></li>
@@ -85,14 +85,14 @@
         <!-- Payment Details Section -->
         <div id="belowEmployee">
             <a href="{% url 'payment_details' %}" class="{% if request.path == 'payment_details/' %}active{% endif %}">
-                <i class="fas fa-credit-card"></i> Payment Details
+                <i class="fas fa-credit-card"></i>  Payment Details
             </a>
         </div>
 
         <!-- Account Info Section -->
         <div id="accountInfo">
             <a href="{% url 'account_info' %}" class="{% if request.path == '/account_info/' %}active{% endif %}">
-                <i class="fas fa-user-circle"></i> Account Info
+                <i class="fas fa-user-circle"></i>  Account Info
             </a>
         </div>  
 
@@ -100,13 +100,13 @@
         <!-- Reports Section -->
         <div id="reportsSection">
             <a href="{% url 'reports' %}" class="{% if request.path == '/reports/' %}active{% endif %}">
-                <i class="fas fa-chart-line"></i> Reports
+                <i class="fas fa-chart-line"></i>  Reports
             </a>
         </div>
 
         <div id="deduct_amount">
             <a href="{% url 'deduct_amount' %}" class="{% if request.path == '/deduct_amount/' %}active{% endif %}">
-                <i class="fas fa-money-bill-wave"></i> Deduct Amount
+                <i class="fas fa-money-bill-wave"></i>  Deduct Amount
             </a>
         </div>
 
@@ -144,7 +144,11 @@
     <!-- Right side -->
     <div class="navbar-right">
         <div class="profile-section" id="profileDropdownToggle">
+<<<<<<< HEAD
             <span class="me-2">{{ request.session.username|default:"admin" }}</span>
+=======
+            <span class="me-2">{{ request.session.admin_name|default:"Prushaltech" }}</span>
+>>>>>>> shweta
             <i class="fas fa-user-circle fa-lg"></i>
         
             <div class="profile-dropdown" id="profileDropdownMenu">

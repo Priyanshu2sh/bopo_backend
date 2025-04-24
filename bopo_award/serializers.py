@@ -14,8 +14,8 @@
 from rest_framework import serializers
 
 
-from accounts.models import Customer, Merchant
-from .models import BankDetail, CustomerPoints, MerchantPoints, History, PaymentDetails
+from accounts.models import Corporate, Customer, Merchant
+from .models import BankDetail, CustomerPoints, Help, MerchantPoints, History, PaymentDetails
 
 
 class CustomerPointsSerializer(serializers.ModelSerializer):
@@ -45,8 +45,8 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = PaymentDetails
-        fields = ['merchant', 'paid_amount', 'transaction_id','topup_point', 'payment_mode', 'created_at']
-        extra_kwargs = {'topup_point' :{'required':False}}
+        fields = ['merchant', 'paid_amount', 'transaction_id', 'payment_mode', 'created_at']
+        
 
 class BankDetailSerializer(serializers.ModelSerializer):
     """
@@ -55,5 +55,24 @@ class BankDetailSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = BankDetail
-        fields = ['account_holder_name', 'bank_name', 'account_number', 'ifsc_code', 'branch', 'created_at']
+        fields = ['merchant','customer', 'account_holder_name', 'bank_name', 'account_number', 'ifsc_code', 'branch', 'created_at']
         extra_kwargs = {'account_holder_name': {'required': False}}
+
+
+class HelpSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Help API
+    """
+    class Meta:
+        model = Help
+        fields = ['customer', 'merchant', 'issue_description', 'created_at']
+        extra_kwargs = {'customer':{'required': False}, 'merchant':{'required': False}}
+
+
+class CorporateProjectSerializer(serializers.ModelSerializer):
+    """
+    Serializer to return only project_name from Corporate
+    """
+    class Meta:
+        model = Corporate
+        fields = ['project_name']

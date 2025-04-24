@@ -1,203 +1,259 @@
 {% extends "bopo_admin/base.html" %}
-
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/send_notifications.css' %}">
 
 <div class="send-notification-container">
     {% if message %}
-    <div class="success-message">
-        {{ message }}
-    </div>
+    <div class="success-message">{{ message }}</div>
     {% endif %}
+
     <div class="send-notification-header">
         <h2>Send Notifications</h2>
     </div>
-    <form method="POST" action="{% url 'send_notifications' %}">
+
+    <!-- To Single Merchant -->
+<form method="POST" action="{% url 'send_notifications' %}">
+    {% csrf_token %}
+    <div class="send-notification-item">
+        <input type="checkbox" id="toggle-single" class="toggle-checkbox">
+        <label for="toggle-single" class="send-notification-label">
+            <span class="send-notification-icon">🏢</span> To Single Merchant
+        </label>
+
+        <div class="send-notification-form">
+            <input type="hidden" name="form_type" value="single">
+            <!-- rest of single form inputs here -->
+            <div class="form-group">
+                <label>Select Project:</label>
+                <select id="single_project" name="project" onchange="fetchMerchants()">
+                    <option value="">Select a project</option>
+                    {% for corporate in corporates %}
+                    <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Select Merchant ID:</label>
+                <select id="select-merchant" name="merchant">
+                    <option value="">-- Select a Merchant --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Notification Type:</label>
+                <input type="text" name="notification_type" required>
+            </div>
+
+            <div class="form-group">
+                <label>Title:</label>
+                <input type="text" name="notification_title" required>
+            </div>
+
+            <div class="form-group">
+                <label>Description:</label>
+                <textarea name="description" rows="4" required></textarea>
+            </div>
+            
+            <div class="button-container">
+                <button type="button" class="cancel-btn">Cancel</button>
+                <button type="submit" class="send-btn">Send Notification</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- To All Merchants -->
+<form method="POST" action="{% url 'send_notifications' %}">
+    {% csrf_token %}
+    <div class="send-notification-item">
+        <input type="checkbox" id="toggle-all" class="toggle-checkbox">
+        <label for="toggle-all" class="send-notification-label">
+            <span class="send-notification-icon">👤</span> To All Merchants in a Project
+        </label>
+
+        <div class="send-notification-form">
+            <input type="hidden" name="form_type" value="all">
+            <!-- rest of all form inputs here -->
+            <div class="form-group">
+                <label>Select Project:</label>
+                <select name="project" required>
+                    <option value="">Select a project</option>
+                    {% for corporate in corporates %}
+                    <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Notification Type:</label>
+                <input type="text" name="notification_type" required>
+            </div>
+
+            <div class="form-group">
+                <label>Title:</label>
+                <input type="text" name="notification_title" required>
+            </div>
+
+            <div class="form-group">
+                <label>Description:</label>
+                <textarea name="description" rows="4" required></textarea>
+            </div>
+            
+            <div class="button-container">
+                <button type="button" class="cancel-btn">Cancel</button>
+                <button type="submit" class="send-btn">Send Notification</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+    <!-- <form method="POST" action="{% url 'send_notifications' %}">
         {% csrf_token %}
         <div class="send-notification-list">
-            <!-- To Single Merchants Section -->
+           
             <div class="send-notification-item">
                 <input type="checkbox" id="toggle-single" class="toggle-checkbox">
                 <label for="toggle-single" class="send-notification-label">
-                    <span class="send-notification-icon">🏢</span>
-                    <span>To Single Merchants</span>
-                </label><br>
+                    <span class="send-notification-icon">🏢</span> To Single Merchant
+                </label>
 
                 <div class="send-notification-form">
                     <input type="hidden" name="form_type" value="single">
-                    <!-- Select Project -->
                     <div class="form-group">
-                        <label for="select-project">Select Project:</label>
-                        <select id="select_project" name="project" required>
+                        <label>Select Project:</label>
+                        <select id="single_project" name="project" onchange="fetchMerchants()">
                             <option value="">Select a project</option>
                             {% for corporate in corporates %}
-                                <option value="{{ corporate.project_id }}">{{ corporate.project_name }} ({{ corporate.project_id }})</option>
+                            <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <!-- Select Merchant ID -->
                     <div class="form-group">
-                        <label for="select-merchant">Select Merchant ID:</label>
-                        <select id="select-merchant" name="merchant" class="form-control">
-                            <option value="">-- Select Merchant ID --</option>
-                            {% for merchant in merchants %}
-                                <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }} - ({{ merchant.first_name }} {{ merchant.last_name }})</option>
-                            {% endfor %}
+                        <label>Select Merchant ID:</label>
+                        <select id="select-merchant" name="merchant">
+                            <option value="">-- Select a Merchant --</option>
                         </select>
                     </div>
 
-                    <!-- Notification Type -->
                     <div class="form-group">
-                        <label for="notification-type">Notification Type:</label>
-                        <input type="text" id="notification-type" name="notification_type" class="form-control" placeholder="Enter notification type" required>
+                        <label>Notification Type:</label>
+                        <input type="text" name="notification_type" required>
                     </div>
 
-                    <!-- Title -->
                     <div class="form-group">
-                        <label for="notification-title">Title:</label>
-                        <input type="text" id="notification-title" name="notification_title" class="form-control" placeholder="Enter title" required>
+                        <label>Title:</label>
+                        <input type="text" name="notification_title" required>
                     </div>
 
-                    <!-- Description -->
                     <div class="form-group">
-                        <label for="notification-description">Description:</label>
-                        <textarea id="notification-description" name="description" class="form-control" rows="4" placeholder="Enter description" required></textarea>
+                        <label>Description:</label>
+                        <textarea name="description" rows="4" required></textarea>
                     </div>
 
-                    {% if message %}
-                    <div class="alert alert-success">{{ message }}</div>
-                    {% endif %}
-
-                    <!-- Button Container -->
                     <div class="button-container">
                         <button type="button" class="cancel-btn">Cancel</button>
                         <button type="submit" class="send-btn">Send Notification</button>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
-            <!-- To All Merchants in a Project Section -->
-            <div class="send-notification-item">
+            <!-- To All Merchants in a Project -->
+            <!-- <div class="send-notification-item">
                 <input type="checkbox" id="toggle-all" class="toggle-checkbox">
                 <label for="toggle-all" class="send-notification-label">
-                    <span class="send-notification-icon">👤</span>
-                    <span>To All Merchants in a Project</span>
-                </label><br>
+                    <span class="send-notification-icon">👤</span> To All Merchants in a Project
+                </label>
 
                 <div class="send-notification-form">
                     <input type="hidden" name="form_type" value="all">
-                    <!-- Select Project -->
                     <div class="form-group">
-                        <label for="select-project">Select Project:</label>
-                        <select id="select_project" name="project" required>
+                        <label>Select Project:</label>
+                        <select name="project" required>
                             <option value="">Select a project</option>
                             {% for corporate in corporates %}
-                                <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
+                            <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <!-- Notification Type -->
                     <div class="form-group">
-                        <label for="notification_type">Notification Type:</label>
-                        <input type="text" id="notification_type" name="notification_type" class="form-control" placeholder="Enter notification type" required>
+                        <label>Notification Type:</label>
+                        <input type="text" name="notification_type" required>
                     </div>
 
-                    <!-- Title -->
                     <div class="form-group">
-                        <label for="notification_title">Title:</label>
-                        <input type="text" id="notification_title" name="notification_title" class="form-control" placeholder="Enter title" required>
+                        <label>Title:</label>
+                        <input type="text" name="notification_title" required>
                     </div>
 
-                    <!-- Description -->
                     <div class="form-group">
-                        <label for="notification_description">Description:</label>
-                        <textarea id="notification_description" name="description" class="form-control" rows="4" placeholder="Enter description" required></textarea>
+                        <label>Description:</label>
+                        <textarea name="description" rows="4" required></textarea>
                     </div>
 
-                    {% if message %}
-                    <div class="alert alert-success">{{ message }}</div>
-                    {% endif %}
-
-                    <!-- Button Container -->
                     <div class="button-container">
                         <button type="button" class="cancel-btn">Cancel</button>
                         <button type="submit" class="send-btn">Send Notification</button>
                     </div>
                 </div>
-            </div>
-        </div>
-    </form>
+            </div> -->
 </div>
+    
 
-<!-- JavaScript for Search Filtering -->
 <script>
+    function fetchMerchants() {
+        const projectId = document.getElementById("single_project").value;
+        const merchantDropdown = document.getElementById("select-merchant");
+
+        if (projectId) {
+            fetch(`/get-merchants/?project_id=${projectId}`)
+                .then(response => response.json())
+                .then(data => {
+                    merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
+                    data.merchants.forEach(merchant => {
+                        merchantDropdown.innerHTML += `<option value="${merchant.merchant_id}">${merchant.merchant_id}</option>`;
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching merchants:", error);
+                });
+        } else {
+            merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
-        // Get all toggle checkboxes
         const singleToggle = document.getElementById("toggle-single");
         const allToggle = document.getElementById("toggle-all");
 
-        // Get the corresponding notification forms
         const singleForm = singleToggle.closest(".send-notification-item").querySelector(".send-notification-form");
         const allForm = allToggle.closest(".send-notification-item").querySelector(".send-notification-form");
 
-        // Function to toggle visibility and close others
-        function toggleForm(toggle, form) {
-            // If the form is already open, hide it
-            if (form.style.display === "block") {
-                form.style.display = "none";
-            } else {
-                // Close other forms first
-                singleForm.style.display = "none";
-                allForm.style.display = "none";
-                // Open the selected form
-                form.style.display = "block";
-            }
-        }
+        singleForm.style.display = "none";
+        allForm.style.display = "none";
 
-        // Add event listeners
         singleToggle.addEventListener("change", function () {
-            toggleForm(singleToggle, singleForm);
+            if (this.checked) {
+                allToggle.checked = false;
+                singleForm.style.display = "block";
+                allForm.style.display = "none";
+            } else {
+                singleForm.style.display = "none";
+            }
         });
 
         allToggle.addEventListener("change", function () {
-            toggleForm(allToggle, allForm);
-        });
-
-        // Hide forms initially
-        singleForm.style.display = "none";
-        allForm.style.display = "none";
-    });
-</script>
-
-<script>
-    document.querySelector("form").addEventListener("submit", function (event) {
-        const requiredFields = document.querySelectorAll("[required]");
-        let isValid = true;
-
-        requiredFields.forEach((field) => {
-            // Check if the field is visible and enabled
-            if (field.offsetParent === null || field.disabled) {
-                field.required = false; // Disable validation for hidden/disabled fields
-            } else if (!field.value.trim()) {
-                isValid = false; // Mark the form as invalid
-                field.focus(); // Focus on the first invalid field
+            if (this.checked) {
+                singleToggle.checked = false;
+                allForm.style.display = "block";
+                singleForm.style.display = "none";
+            } else {
+                allForm.style.display = "none";
             }
         });
-
-        if (!isValid) {
-            event.preventDefault(); // Prevent form submission
-            alert("Please fill in all required fields.");
-        }
     });
 </script>
-
-<script>
-    function showAlert() {
-        alert("Notification Sent!");
-    }
-</script>
-
 {% endblock %}
