@@ -118,7 +118,7 @@ def get_terminals(request, merchant_id):
     
     return JsonResponse({'terminals': terminal_data})
 
- 
+
  
 def home(request):
     # Calculate total projects and project progress
@@ -2224,4 +2224,17 @@ def deduct_amount(request):
         except UserBalance.DoesNotExist:
             messages.error(request, "User not found.")
 
-    return render(request, "bopo_admin/Payment/deduct_amount.html")
+    return render(request, "bopo_admin/Superadmin/deduct_amount.html")
+
+def superadmin_functionality(request):
+    return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html')
+ 
+
+# def security_questions(request):
+#     return render(request, 'bopo_admin/Superadmin/security_questions.html')
+
+# def rental_plan(request):
+#     return render(request, 'bopo_admin/Superadmin/rental_plan.html')
+
+# def award_points(request):
+#     return render(request, 'bopo_admin/Superadmin/award_points.html')

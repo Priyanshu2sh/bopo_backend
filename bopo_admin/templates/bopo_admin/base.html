@@ -105,11 +105,22 @@
             </a>
         </div>
 
-        <div id="deduct_amount">
+  <div id="deduct_amount">
             <a href="{% url 'deduct_amount' %}" class="{% if request.path == '/deduct_amount/' %}active{% endif %}">
                 <i class="fas fa-money-bill-wave"></i> Deduct Amount
             </a>
-        </div>
+        </div> 
+
+
+<!-- Superadmin Section -->
+<div id="superadminSection">
+    <a href="{% url 'superadmin_functionality' %}" class="{% if request.path == '/superadmin_functionality/' %}active{% endif %}">
+        <i class="fas fa-user-shield"></i> Superadmin Functionality
+    </a>
+</div>
+
+
+
 
         <!-- Corporate Admin Section -->
         {% comment %} <div id="corporateAdmin">
@@ -212,6 +223,8 @@
     
         setupDropdown("merchantDropdownToggle", "merchantDropdownMenu", "belowMerchant");
         setupDropdown("employeeDropdownToggle", "employeeDropdownMenu", "belowEmployee");
+        setupDropdown("superadminDropdownToggle", "superadminDropdownMenu", "belowSuperadmin");
+
     });
     
     document.addEventListener("DOMContentLoaded", function () {

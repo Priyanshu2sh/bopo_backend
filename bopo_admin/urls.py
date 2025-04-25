@@ -91,7 +91,13 @@ urlpatterns = [
     # path('corporate_admin/', views.corporate_admin, name='corporate_admin'),
     path('terminals/', views.terminals, name='terminals'),
     path('get_terminals/<str:merchant_id>/', views.get_terminals, name='get_terminals'),
-
+    
+    
+    # path('security-questions/', views.security_questions, name='security_questions'),
+    # path('rental-plan/', views.rental_plan, name='rental_plan'),
+    # path('award-points/', views.award_points, name='award_points'),
+    path('deduct-amount/', views.deduct_amount, name='deduct_amount'),
+    path('superadmin_functionality/', views.superadmin_functionality, name='superadmin_functionality'),
 
     
 
@@ -134,6 +140,6 @@ urlpatterns = [
     path('get-payment-details/', views.get_payment_details, name='get_payment_details'),
     path('toggle-status/<int:merchant_id>/', toggle_status, name='toggle_status'),
 
-     path('deduct-amount/', views.deduct_amount, name='deduct_amount'),
+   
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
