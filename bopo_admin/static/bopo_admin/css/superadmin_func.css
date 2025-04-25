@@ -94,183 +94,105 @@ body {
 }
 
 
-
-/* Form Group - Arrange labels and input fields in a row */
+/* Form Group */
 .form-group {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    margin-bottom: 15px;
-    width: 100%; 
+    gap: 8px;
     margin-left: 20%;
-    gap:10px;
+    margin-bottom: 20px;
+    width: 100%;
 }
 
-/* Labels */
 .form-group label {
-    width: 200px; /* Set a fixed width for labels */
-    font-weight: bold;
+    width: auto;
+    font-weight: 600;
+    color: #333;
 }
 
-/* Input fields and select boxes */
-.form-group select,
 .form-group input,
+.form-group select,
 .form-group textarea {
-    width: 50%; /* Make inputs take up 50% of the container */
-    max-width: 50%; /* Ensure they don't exceed 50% */
-    padding: 8px;
+    width: 50%;
+    max-width: 50%;
+    padding: 10px;
+    font-size: 15px;
     border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px
+    border-radius: 6px;
+    background: #fff;
 }
 
-/* Make textarea full width */
 .form-group textarea {
     width: 100%;
-    resize: none;
+    resize: vertical;
 }
-
-
 
 /* Button Container */
 .button-container {
     display: flex;
     justify-content: center;
-    gap: 10px;  /* Removed gap between buttons */
-    margin-top: 20px;
+    gap: 15px;
+    margin-top: 30px;
 }
 
-/* General Button Styles */
 .button-container button {
-    padding: 10px 20px;
+    padding: 12px 24px;
     font-size: 16px;
+    font-weight: 500;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: 0.3s;
+    transition: background-color 0.3s ease;
 }
 
-/* Cancel Button */
 .cancel-btn {
-    background-color: #ccc;
-    color: black;
+    background-color: #e0e0e0;
+    color: #333;
 }
 
 .cancel-btn:hover {
-    background-color: #999;
+    background-color: #c0c0c0;
 }
 
-/* Send (Submit) Button */
 .send-btn {
     background-color: #004080;
     color: white;
 }
 
 .send-btn:hover {
-    background-color: #002d5b;
+    background-color: #002b5c;
 }
-
-/* Responsive Design */
-@media screen and (max-width: 768px) {
-    .send-notification-container {
-        width: 90%; 
-        margin: 10px ; 
-        padding: 15px; 
-        margin-top: 20%;
-    }
-
-    .send-notification-header {
-        font-size: 18px; /* Reduce header font size */
-        text-align: center; /* Center align for better UI */
-     
-    }
-
-    .send-notification-list {
-        padding: 10px; /* Reduce padding */
-    }
-
-    .send-notification-item {
-        padding: 8px; /* Reduce padding for compact design */
-    }
-
-    .form-group {
-        flex-direction: column; /* Stack labels and inputs */
-        align-items: flex-start; /* Align properly */
-        margin-left: 0; /* Remove left margin */
-        width: 100%; /* Full width */
-    }
-
-    .form-group label {
-        width: 100%; /* Full width */
-        font-size: 14px; /* Adjust font size */
-    }
-
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-        width: 100%; /* Full width for mobile */
-        max-width: 100%;
-    }
-
-    .button-container {
-        display: flex;
-        flex-direction: column; /* Stack buttons */
-        align-items: center; /* Center align */
-    }
-
-    .button-container button {
-        width: 100%; /* Full width buttons */
-        margin-bottom: 10px; /* Space between buttons */
-    }
-
-    .send-notification-label {
-        font-size: 16px; /* Adjust font size */
-    }
-
-    .send-notification-icon {
-        font-size: 18px; /* Adjust icon size */
-    }
-}
-/* Container for Model Plans */
-/* .send-notification-form {
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 900px;
-    margin: auto;
-} */
-/* Modal styles */
 .modal-container {
     display: none;
     position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    z-index: 1000;
+    inset: 0;
     background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(3px);
+    animation: fadeIn 0.3s ease-in-out;
 }
 
 .modal-content-box {
-    background-color: #fff;
+    background: linear-gradient(135deg, #ffffff, #f2f7ff);
     margin: 10% auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    width: 70%;
-    max-width: 500px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 35px 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: slideIn 0.3s ease-in-out;
 }
 
 .modal-close-btn {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
+    color: red;
+    font-size: 30px;
     position: absolute;
-    top: 10px;
+    top: 15px;
     right: 20px;
     cursor: pointer;
+    transition: color 0.3s ease;
 }
 
 .modal-close-btn:hover {
@@ -278,8 +200,12 @@ body {
 }
 
 .modal-header {
-    text-align: center;
-    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #004080;
+    margin-left: 38%;
+    margin-bottom: 25px;
+    text-shadow: 1px 1px 2px #dfe9f3;
 }
 
 .input-group {
@@ -288,38 +214,66 @@ body {
 
 .input-group label {
     display: block;
-    margin-bottom: 5px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
 }
 
-.input-field, .textarea-field {
+.input-field,
+.textarea-field {
     width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 12px;
+    border: 1px solid #ccd6dd;
+    border-radius: 8px;
+    font-size: 15px;
+    background-color: #ffffff;
+    transition: box-shadow 0.3s ease;
 }
+
+.input-field:focus,
+.textarea-field:focus {
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.4);
+    outline: none;
+    border-color: #80bdff;
+}
+
 
 .textarea-field {
     height: 120px;
+    resize: vertical;
 }
 
 .btn-save {
     display: block;
-    width: 100%;
-    padding: 12px;
-    background-color: #4CAF50;
+    width: 50%;
+    margin-left: 30%;
+    padding: 14px;
+    background: linear-gradient(178deg, #004080 0%, #2c3e50 100%);
     color: white;
     font-size: 16px;
+    font-weight: bold;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    text-align: center;
+    transition: background 0.3s ease;
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
 }
 
 .btn-save:hover {
-    background-color: #45a049;
+    background: #2c3e50;
 }
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0 }
+    to { opacity: 1 }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0 }
+    to { transform: translateY(0); opacity: 1 }
+}
+
 
 /* Table Styles */
 .plans-table {
@@ -328,51 +282,56 @@ body {
     margin-top: 20px;
 }
 
-.plans-table th, .plans-table td {
+.plans-table th,
+.plans-table td {
+    padding: 14px;
     border: 1px solid #ddd;
-    padding: 12px;
     text-align: center;
 }
 
 .plans-table th {
-    background-color: #f5f5f5;
-    color: #333;
+    background-color:  #f0f0f0;
+    color: #004080;
     font-weight: bold;
 }
 
 .plans-table td {
-    background-color: #fafafa;
+    background-color: #fdfdfd;
 }
 
 .btn-action {
-    background-color: #2196F3;
+    display: block;
+    width: 80%;
+    margin-left: 10%;
+    padding: 10px;
+    background: linear-gradient(178deg, #004080 0%, #2c3e50 100%);
     color: white;
-    padding: 6px 12px;
+    font-size: 16px;
+    font-weight: bold;
     border: none;
+    border-radius: 8px;
     cursor: pointer;
-    border-radius: 4px;
+    transition: background 0.3s ease;
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
 }
 
 .btn-action:hover {
-    background-color: #1976D2;
+    background-color: #002b5c;
+    
 }
 
-/* Section and Container Styles */
+/* Notification Sections */
 .notification-item {
     padding: 20px;
     background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     margin-bottom: 20px;
-}
-
-.checkbox-toggle {
-    margin-right: 10px;
 }
 
 .notification-label {
     font-size: 18px;
-    font-weight: bold;
+    font-weight: 600;
     color: #333;
 }
 
@@ -380,21 +339,215 @@ body {
     margin-right: 8px;
 }
 
-.form-section {
-    margin-top: 20px;
-}
-
+/* Model Card Styles */
 .model-card {
     margin-bottom: 30px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
 }
 
 .model-header {
     font-size: 20px;
-    color: #333;
+    font-weight: bold;
+    color: #004080;
 }
 
 .model-description {
-    color: #555;
     font-size: 16px;
+    color: #555;
+    margin-top: 8px;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .send-notification-header {
+        font-size: 20px;
+        text-align: center;
+        flex-direction: column;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .form-group label,
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .button-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .button-container button {
+        width: 100%;
+    }
+
+    .modal-content-box {
+        width: 90%;
+        margin: 15% auto;
+    }
+}
+.highlight-percentage {
+    color: #007b83;
+    font-weight: bold;
+}
+
+#award-text {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+#award-display {
+    font-size: 15px;
+    line-height: 0;
+}
+
+.awardsend-btn {
+    background: linear-gradient(178deg, #004080 0%, #2c3e50 100%);
+    color: white;
+    margin-top: 5px;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+    width: 16.5%;
+    font-weight: bold;
+
+}
+
+.awardsend-btn:hover {
+     background: #2c3e50;
+}
+
+
+.awardsend-btn1 {
+    background: linear-gradient(178deg, #004080 0%, #2c3e50 100%);
+    color: white;
+    margin-top: 4px;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+    width: 23%;
+    height: 5.1vh;
+    font-weight: bold;
+}
+
+.awardsend-btn1:hover {
+     background: #2c3e50;
+}
+
+.cancel-btn {
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.cancel-btn:hover {
+    background: #ccc;
+    color: black;
+}
+.send-notification-form table.form-control {
+    border-collapse: collapse;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    
+}
+
+/* Table Styles */
+.send-notification-form table.form-control {
+    border-collapse: collapse;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    
+}
+
+.send-notification-form thead th {
+font-weight: bold;
+    color: black;
+    padding: 12px;
+    text-align: left;
+    font-size: 16px;
+    margin-left: 40%;
+}
+
+.send-notification-form tbody td {
+    padding: 12px;
+    font-size: 15px;
+    border-top: 1px solid #eee;
+}
+
+/* Input Field */
+#new-question {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: white;
+}
+
+/* Buttons */
+.send-btn,
+.cancel-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
     margin-top: 10px;
+    margin-right: 8px;
+    transition: background 0.3s;
+    font-weight: bold;
+}
+
+.send-btn {
+    background: linear-gradient(178deg, #004080 0%, #2c3e50 100%);
+    color: white;
+}
+
+.send-btn:hover {
+    background: #2c3e50;
+}
+
+.cancel-btn {
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #ccc;
+    color: black;
 }
