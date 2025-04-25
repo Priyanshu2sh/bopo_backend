@@ -18,6 +18,7 @@ urlpatterns = [
     path('payment-details/<int:pk>/', PaymentDetailsRetrieveUpdateDestroyAPIView.as_view(), name='payment-detail'),
 
     path("customer/profile/<str:customer_id>/", UpdateCustomerProfileAPIView.as_view()),
+    path("merchant/profile/<str:merchant_id>/", UpdateMerchantProfileAPIView.as_view()),
 
 
     path('bank-details/<str:id>/<str:user_type>/', BankDetailByUserAPIView.as_view(), name='bank-detail-by-user'),

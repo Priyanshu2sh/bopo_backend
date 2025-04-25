@@ -246,46 +246,79 @@ class RegisterUserAPIView(APIView):
     def register_merchant(self, request, mobile, user_type, project_name):
         """Handles merchant registration"""
         if user_type not in ["individual"]:
-            return Response({"message": "Invalid user type, only individual merchant can register here", "user_type": "merchant", "merchant_id": None},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        # if not project_name or len(project_name) < 4:
-        #     return Response({"message": "Project name must be at least 4 characters."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "message": "Invalid user type, only individual merchant can register here",
+                "user_type": "merchant",
+                "merchant_id": None
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         prefix = "MEID"
         random_number = ''.join(random.choices(string.digits, k=11))
         merchant_id = f"{prefix}{random_number}"
         otp = random.randint(100000, 999999)
 
+        # Generate Terminal ID (TID)
+        tid_prefix = "TID"
+        while True:
+            tid_number = random.randint(10000001, 99999999)
+            terminal_id = f"{tid_prefix}{tid_number}"
+            if not Merchant.objects.filter(terminal_id=terminal_id).exists():
+                break
+
+        # Generate unique 4-digit PIN
+        while True:
+            pin = random.randint(1000, 9999)
+            if not Merchant.objects.filter(pin=pin).exists():
+                break
+
         try:
             merchant = Merchant.objects.get(mobile=mobile)
             if merchant.verified_at:
-                return Response(
-                    {"message": "Merchant is already registered and verified.", "user_type": "merchant",
-                     "user_id": merchant.merchant_id},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({
+                    "message": "Merchant is already registered and verified.",
+                    "user_type": "merchant",
+                    "user_id": merchant.merchant_id
+                }, status=status.HTTP_400_BAD_REQUEST)
 
             merchant.otp = otp
             merchant.save()
             message = "Merchant exists but not verified. OTP resent successfully."
 
         except Merchant.DoesNotExist:
-            serializer = MerchantSerializer(data={**request.data, "merchant_id": merchant_id, "otp": otp})
+            serializer = MerchantSerializer(data={
+                **request.data,
+                "merchant_id": merchant_id,
+                "otp": otp,
+                "terminal_id": terminal_id,
+                "pin": pin
+            })
             if serializer.is_valid():
                 merchant = serializer.save()
                 message = "Merchant registered & OTP sent successfully."
             else:
-                return Response({"message": "Validation error", "errors": serializer.errors, "user_type": "merchant",
-                                 "merchant_id": None}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "message": "Validation error",
+                    "errors": serializer.errors,
+                    "user_type": "merchant",
+                    "merchant_id": None
+                }, status=status.HTTP_400_BAD_REQUEST)
 
         # Send OTP via SMS
         if OTPService.send_sms_otp(mobile, otp):
-            return Response({"message": message, "user_type": "merchant", "user_id": merchant.merchant_id},
-                            status=status.HTTP_200_OK)
+            return Response({
+                "message": message,
+                "user_type": "merchant",
+                "user_id": merchant.merchant_id
+            }, status=status.HTTP_200_OK)
         else:
-            return Response({"message": "Failed to send OTP.", "user_type": "merchant", "user_id": merchant.merchant_id},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "message": "Failed to send OTP.",
+                "user_type": "merchant",
+                "user_id": merchant.merchant_id
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+            
+            
 
     def update_merchant(self, request, mobile):
         """Update merchant details"""

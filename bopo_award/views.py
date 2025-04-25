@@ -527,6 +527,18 @@ class UpdateCustomerProfileAPIView(APIView):
 
 class UpdateMerchantProfileAPIView(APIView):
     """API to update merchant profile"""
+    
+    def get(self, request, merchant_id):
+        """
+        Get the profile of a specific merchant using merchant_id.
+        """
+        merchant = get_object_or_404(Merchant, merchant_id=merchant_id)
+        serializer = MerchantSerializer(merchant)
+        return Response({
+            "message": "Merchant profile fetched successfully.",
+            "merchant_id": merchant.merchant_id,
+            "profile_data": serializer.data
+        }, status=status.HTTP_200_OK)
 
     def put(self, request, merchant_id):
         """
