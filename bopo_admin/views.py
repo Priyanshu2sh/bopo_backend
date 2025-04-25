@@ -67,6 +67,58 @@ def custom_logout_view(request):
 def profile(request):
     return render(request, 'bopo_admin/profile.html')  # Include the correct path and .html extension
 
+
+def corporate_admin(request):
+    corporates = Corporate.objects.all()
+    corporate_data = []
+
+    for corporate in corporates:
+        # Fetch merchants linked to the corporate
+        merchants = Merchant.objects.filter(corporate_id=corporate.corporate_id, user_type='corporate')
+        corporate_data.append({
+            "corporate": corporate,
+            "merchants": merchants
+        })
+
+    return render(request, 'bopo_admin/Payment/corporate_admin.html', {
+        "corporate_data": corporate_data
+    })
+
+
+# def dashboard(request):
+#     print("User role in session:", request.session.get('user_role'))  # Debug line
+#     user_role = request.session.get('user_role')
+#     return render(request, 'base.html', {'user_role': user_role})
+
+
+from django.shortcuts import render
+from accounts.models import Merchant  # Replace `your_app` and `Merchant` with actual names
+
+def terminals(request):
+    merchants = Merchant.objects.all().order_by('merchant_id')
+    return render(request, 'bopo_admin/Payment/terminals.html', {'merchants': merchants})
+
+from django.http import JsonResponse
+from accounts.models import Merchant, Terminal
+
+def get_terminals(request, merchant_id):
+    # Get the merchant based on merchant_id
+    try:
+        merchant = Merchant.objects.get(merchant_id=merchant_id)
+    except Merchant.DoesNotExist:
+        return JsonResponse({'error': 'Merchant not found'}, status=404)
+
+    # Get terminals for this merchant
+    terminals = Terminal.objects.filter(merchant_id=merchant)
+    
+    # Prepare the terminal data for response
+    terminal_data = [
+        {'terminal_id': terminal.terminal_id, 'password': terminal.password} 
+        for terminal in terminals
+    ]
+    
+    return JsonResponse({'terminals': terminal_data})
+
  
  
 def home(request):
@@ -610,17 +662,20 @@ def update_corporate(request):
 
 
 
+from django.http import JsonResponse
+from accounts.models import Merchant, Corporate
+
+
 def update_copmerchant(request):
     if request.method == "POST":
         merchant_id = request.POST.get('merchant_id')
-
         if not merchant_id:
             return JsonResponse({'success': False, 'error': 'Missing merchant ID'}, status=400)
 
         try:
             merchant = Merchant.objects.get(id=merchant_id)
 
-            # Get and sanitize form fields
+            # Sanitize and update simple fields
             merchant.first_name = request.POST.get('first_name', '').strip()
             merchant.last_name = request.POST.get('last_name', '').strip()
             merchant.email = request.POST.get('email', '').strip()
@@ -634,18 +689,15 @@ def update_copmerchant(request):
             merchant.pincode = request.POST.get('pincode', '').strip()
             merchant.country = request.POST.get("country", "India").strip()
 
-            # Foreign key assignments
+            # Resolve and set foreign key fields using IDs
             state_id = request.POST.get('state')
             city_id = request.POST.get('city')
-            project_name = request.POST.get('project_name', '').strip()
-
             if state_id:
                 try:
                     state = State.objects.get(id=state_id)
                     merchant.state = state.name
                 except State.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'State not found'}, status=404)
-
             if city_id:
                 try:
                     city = City.objects.get(id=city_id)
@@ -653,10 +705,13 @@ def update_copmerchant(request):
                 except City.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'City not found'}, status=404)
 
-            if project_name:
+            # Resolve project_name field (assumed to be a foreign key to Corporate)
+            # Here we assume the submitted value is the corporate_id of the project
+            project_identifier = request.POST.get('project_name', '').strip()
+            if project_identifier:
                 try:
-                    corporate = Corporate.objects.get(corporate_id=project_name)
-                    merchant.project_name = corporate
+                    corporate_obj = Corporate.objects.get(corporate_id=project_identifier)
+                    merchant.project_name = corporate_obj
                 except Corporate.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'Corporate (project) not found'}, status=404)
 
@@ -680,6 +735,7 @@ def update_copmerchant(request):
             return JsonResponse({'success': False, 'error': 'Merchant not found'}, status=404)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+
 
 
 from django.http import JsonResponse
@@ -1738,9 +1794,7 @@ def login(request):
     return render(request, 'bopo_admin/login.html')
 
 
-
-    
-
+  
 def export_projects(request):
     # Create an Excel workbook and sheet
     workbook = openpyxl.Workbook()

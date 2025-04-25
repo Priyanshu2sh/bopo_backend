@@ -1,0 +1,64 @@
+{% extends "bopo_admin/base.html" %}
+{% load static %}
+
+{% block content %}
+  <link rel="stylesheet" href="{% static 'bopo_admin/css/terminals.css' %}">
+
+  <div class="terminal-container">
+    <h2>Terminals</h2>
+
+    <label for="merchant_id">Select Merchant ID:</label>
+    <select id="merchant_id" name="merchant_id">
+      <option value="">--Select Merchant ID--</option>
+      {% for merchant in merchants %}
+        <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }}</option>
+      {% endfor %}
+    </select>
+
+    <!-- Table to display terminal info -->
+    <div id="terminal-info">
+      <table id="terminal-table" style="display: none;">
+        <thead>
+          <tr>
+            <th>Terminal ID</th>
+            <th>Password</th> 
+          </tr>
+        </thead>
+        <tbody id="terminal-body">
+          <!-- Data will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('merchant_id').addEventListener('change', function() {
+      var merchantId = this.value;
+
+      if (merchantId) {
+        // Fetch terminals for the selected merchant using AJAX
+        fetch(`/get_terminals/${merchantId}/`)
+          .then(response => response.json())
+          .then(data => {
+            var tableBody = document.getElementById('terminal-body');
+            tableBody.innerHTML = '';  // Clear previous data
+
+            if (data.terminals.length > 0) {
+              data.terminals.forEach(function(terminal) {
+                var row = document.createElement('tr');
+                row.innerHTML = `<td>${terminal.terminal_id}</td><td>${terminal.password}</td>`;
+                tableBody.appendChild(row);
+              });
+
+              // Show the table
+              document.getElementById('terminal-table').style.display = 'table';
+            } else {
+              document.getElementById('terminal-table').style.display = 'none';
+            }
+          });
+      } else {
+        document.getElementById('terminal-table').style.display = 'none';
+      }
+    });
+  </script>
+{% endblock %}

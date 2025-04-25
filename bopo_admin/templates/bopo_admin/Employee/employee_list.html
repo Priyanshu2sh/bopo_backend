@@ -8,6 +8,7 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+
 <div class="employee-container">
     <div class="employee-header">
         <h2>Employee's List</h2>
@@ -49,7 +50,6 @@
                                 <td>
                                     <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ employee.id }}')">✏️Edit</button>
                                     <button class="btn btn-sm btn-danger" onclick="deleteEmployee('{{ employee.id }}')">🗑️Delete</button>
-
                                 </td>
                             </tr>
                             {% empty %}
@@ -62,6 +62,10 @@
                     <div id="pagination-controls" class="pagination-controls"></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    
 
             <!-- Edit Modal -->
             <div id="editModal" class="modal" style="display: none;">
@@ -177,6 +181,9 @@
         </div>
     </div>
 </div>
+
+
+
 
 
  <!-- Toast Notification -->

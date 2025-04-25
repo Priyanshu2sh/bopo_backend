@@ -13,7 +13,7 @@ body {
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
     margin-left: 13%;
-    min-height: 95vh;
+    min-height: 105vh;
 }
 .heading {
     text-align: center;
@@ -91,7 +91,7 @@ body {
 .addmerchant-btn-submit {
     display: inline-block;
     padding: 10px 20px;
-    margin-top: 7%;
+    margin-top: 14%;
     width: 20%;
     font-size: 16px;
     color: white;
