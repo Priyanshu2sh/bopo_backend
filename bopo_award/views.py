@@ -111,11 +111,6 @@ class RedeemPointsAPIView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-    
-
-from .models import Customer, Merchant, CustomerPoints, MerchantPoints, History
-
-
 class AwardPointsAPIView(APIView):
     """
     API for Merchant to Customer point transfer (No deduction).
@@ -605,6 +600,44 @@ class CustomerMerchantPointsAPIView(APIView):
         return Response({
             "customer_id": customer_id,
             "merchant_points": merchant_points_data
+        }, status=status.HTTP_200_OK)
+        
+        
+class MerchantCustomerPointsAPIView(APIView):
+    """
+    API to fetch all customer-wise points for a given merchant with PIN validation.
+    """
+
+    def post(self, request):
+        merchant_id = request.data.get("merchant_id")
+        pin = request.data.get("pin")
+
+        # Validate merchant
+        merchant = Merchant.objects.filter(merchant_id=merchant_id).first()
+        if not merchant:
+            return Response({"error": "Please enter the correct merchant ID."}, status=status.HTTP_404_NOT_FOUND)
+
+        if str(merchant.pin) != str(pin):
+            return Response({"error": "Please enter the correct PIN."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch customer points related to this merchant
+        customer_points = CustomerPoints.objects.filter(merchant=merchant).values(
+            "customer__customer_id", "customer__first_name", "customer__last_name", "points"
+        )
+
+        # Prepare response
+        customer_points_data = [
+            {
+                "customer_id": cp["customer__customer_id"],
+                "customer_name": f"{cp['customer__first_name']} {cp['customer__last_name']}".strip(),
+                "points": cp["points"]
+            }
+            for cp in customer_points
+        ]
+
+        return Response({
+            "merchant_id": merchant_id,
+            "customer_points": customer_points_data
         }, status=status.HTTP_200_OK)
 
 

@@ -95,11 +95,10 @@ class Merchant(models.Model):
     mobile = models.CharField(max_length=15, unique=True)
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
-    pin = models.IntegerField(unique=True)
+    pin = models.IntegerField(unique=True, null=True)
     age = models.IntegerField(blank=True, null=True)
     reference = models.CharField(max_length=200, choices=REFERENCE_CHOICES, null=True, blank=True)
     employee_id = models.ForeignKey('bopo_admin.Employee', to_field='employee_id', on_delete=models.CASCADE, null=True, blank=True)
-    terminal_id = models.CharField(max_length=20, unique=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
     legal_name = models.CharField(max_length=255, blank=True, null=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
@@ -135,6 +134,7 @@ class Merchant(models.Model):
     
 class Terminal(models.Model):
     terminal_id = models.CharField(max_length=20, unique=True)
+    tid_pin = models.IntegerField(unique=True)
     merchant_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='terminals')
     created_at = models.DateTimeField(auto_now_add=True)
     

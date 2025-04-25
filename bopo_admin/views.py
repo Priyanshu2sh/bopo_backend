@@ -427,12 +427,24 @@ def add_merchant(request):
                 )
 
                 merchant= Merchant.objects.get(merchant_id=merchant_id)
-                # ✅ Create terminal for the new merchant
+                
+                
+               # ✅ Generate Terminal ID and TID PIN
+                def generate_terminal_id():
+                    return "TID" + ''.join(random.choices(string.digits, k=8))
+
                 terminal_id = generate_terminal_id()
                 while Terminal.objects.filter(terminal_id=terminal_id).exists():
                     terminal_id = generate_terminal_id()
 
-                Terminal.objects.create(terminal_id=terminal_id, merchant_id=merchant)
+                tid_pin = random.randint(1000, 9999)
+
+                # ✅ Save terminal info
+                Terminal.objects.create(
+                    terminal_id=terminal_id,
+                    tid_pin=tid_pin,
+                    merchant_id=merchant
+                )
 
             elif project_type == "New Project":
                 if not project_name:
@@ -974,7 +986,6 @@ def add_individual_merchant(request):
     if request.method == "POST":
         try:
             # Get form data
-            merchant_id = request.POST.get("merchant_id")
             first_name = request.POST.get("first_name")
             last_name = request.POST.get("last_name")
             email = request.POST.get("email")
@@ -993,35 +1004,40 @@ def add_individual_merchant(request):
             state = State.objects.get(id=state_id)
             city = City.objects.get(id=city_id)
 
-            print("GST Number Received:", gst_number)
-
             # Uniqueness checks
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
-            # Uniqueness checks
-            # if Merchant.objects.filter(email=email).exists():
                 return JsonResponse({"success": False, "message": "Email ID already exists!"})
             if Merchant.objects.filter(mobile=mobile).exists():
                 return JsonResponse({"success": False, "message": "Mobile number already exists!"})
-
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
                 return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
             if Merchant.objects.filter(pan_number=pan_number).exists():
                 return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
-             # Generate merchant_id
+            # Generate merchant_id
             last_merchant = Merchant.objects.order_by('-id').first()
             next_id = 1 if not last_merchant else last_merchant.id + 1
-            merchant_id = f"MID{str(next_id).zfill(11)}"
+            merchant_id = f"MID{str(next_id).zfill(8)}"
 
+            # Generate Terminal ID and TID PIN
+            def generate_terminal_id():
+                return "TID" + ''.join(random.choices(string.digits, k=8))
 
-            Merchant.objects.create(
+            terminal_id = generate_terminal_id()
+            while Terminal.objects.filter(terminal_id=terminal_id).exists():
+                terminal_id = generate_terminal_id()
+
+            tid_pin = random.randint(1000, 9999)
+
+            # ✅ Create the merchant
+            merchant = Merchant.objects.create(
                 merchant_id=merchant_id,
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
                 mobile=mobile,
                 gst_number=gst_number,
-                aadhaar_number=aadhaar_number,                
+                aadhaar_number=aadhaar_number,
                 pan_number=pan_number,
                 shop_name=shop_name,
                 legal_name=legal_name,
@@ -1030,17 +1046,20 @@ def add_individual_merchant(request):
                 state=state,
                 city=city,
                 country=country,
-                # tid=tid  # Store TID here
-            )
             
+            )
 
-            return JsonResponse({'success': True, 'message': 'Merchant added successfully!', 'merchant_id':merchant_id})
+            # ✅ Save terminal info
+            Terminal.objects.create(
+                terminal_id=terminal_id,
+                tid_pin=tid_pin,
+                merchant_id=merchant
+            )
+
+            return JsonResponse({'success': True, 'message': 'Merchant added successfully!', 'merchant_id': merchant_id})
 
         except Exception as e:
-            # Log the error for debugging purposes
             return JsonResponse({'success': False, 'message': f"An error occurred: {str(e)}"})
-
-    
 
     return render(request, "bopo_admin/Merchant/add_individual_merchant.html")
 
@@ -1792,7 +1811,6 @@ def login(request):
     
     # GET request
     return render(request, 'bopo_admin/login.html')
-
 
   
 def export_projects(request):
