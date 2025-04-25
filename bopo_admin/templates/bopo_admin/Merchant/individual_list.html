@@ -10,11 +10,11 @@
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+
 <!-- DataTables & Buttons CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
 <style>
     /* Hide default DataTables search box */
     div.dataTables_filter {
@@ -34,13 +34,24 @@
         width: 250px;
     }
 
-    /* Custom Button Styling for moving buttons to the right */
     #custom-buttons {
         display: flex;
         justify-content: flex-end; /* Align buttons to the right */
-        margin-bottom: 15px;
+        margin-top: 10px;
     }
 
+    #individual-table tbody tr:hover {
+        background-color: #f8f8f8; /* Light color for whole row */
+        transition: background-color 0.3s ease;
+    }
+
+    /* Bright highlight only for first column (#) on hover */
+    #individual-table tbody tr:hover td:first-child {
+        background-color: #f0f0f0; /* Highlight only '#' column */
+        font-weight: bold;
+        color: #333;
+        transition: background-color 0.3s ease;
+    }
     /* Custom Pagination Styling (Like .pagination-controls) */
     .dataTables_paginate {
         display: flex;
@@ -77,7 +88,6 @@
         border: 2px solid #ff4e00;
         box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
     }
-    
 </style>
 
 <div class="merchant-container">
@@ -95,7 +105,11 @@
                 <span>Individual Merchants List</span>
             </label>
             <div class="merchant-table open">
-                <input type="text" class="search-box" id="search-individual" onkeyup="filterTable()" placeholder="Search individual merchants...">
+                  <!-- Custom Search & Column Toggle Button -->
+            <div class="top-controls">
+                <input type="text" class="search-box" id="search-customer" placeholder="Search merchants...">
+                <div id="custom-buttons"></div>
+            </div>
                 <div class="table-wrapper">
                     <table id="individual-table">
                         <thead>
@@ -134,13 +148,13 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <div id="pagination-controls" class="pagination-controls"></div>
+                    {% comment %} <div id="pagination-controls" class="pagination-controls"></div> {% endcomment %}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- DataTables & Buttons JS -->
+    <!-- DataTables & Buttons JS --> 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
@@ -164,13 +178,14 @@
             // Move buttons to the right
             table.buttons().container().appendTo('#custom-buttons');
 
-            // Custom search box binding
-            $('#search-individual').on('keyup', function () {
-                table.search(this.value).draw();
-            });
+           // Custom search box binding (Corrected ID)
+    $('#search-customer').on('keyup', function () {
+        table.search(this.value).draw();
+    });
         });
     </script>
 </div>
+
 
 
             <!-- Edit Modal -->
