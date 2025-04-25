@@ -45,7 +45,7 @@
         {% comment %} <a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}"><i class="fas fa-terminal"></i> Terminals</a> {% endcomment %}
         <li><a href="{% url 'merchant_credentials' %}"><i class="fas fa-key"></i> Merchant Credentials</a></li>
         {% comment %} <li><a href="{% url 'merchant_topup' %}"><i class="fas fa-wallet"></i> Top-Up Limit</a></li> {% endcomment %}
-        <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li>
+        {% comment %} <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li> {% endcomment %}
         <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Reduce Limit</a></li>
         {% comment %} <li><a href="{% url 'merchant_status' %}"><i class="fas fa-toggle-on"></i> Merchant Status</a></li> {% endcomment %}
         <li><a href="{% url 'login_page_info' %}"><i class="fas fa-info-circle"></i> Login Page Info</a></li>
@@ -105,11 +105,11 @@
             </a>
         </div>
 
-  <div id="deduct_amount">
+  {% comment %} <div id="deduct_amount">
             <a href="{% url 'deduct_amount' %}" class="{% if request.path == '/deduct_amount/' %}active{% endif %}">
                 <i class="fas fa-money-bill-wave"></i> Deduct Amount
             </a>
-        </div> 
+        </div>  {% endcomment %}
 
 
 <!-- Superadmin Section -->

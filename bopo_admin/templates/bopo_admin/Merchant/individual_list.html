@@ -142,7 +142,7 @@
                                 </td>
                                 <td>
                                     <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ merchant.id }}')">✏️ Edit</button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteMerchant('{{ merchant.id }}')">🗑️ Delete</button>
+                                    {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteMerchant('{{ merchant.id }}')">🗑️ Delete</button> {% endcomment %}
                                 </td>
                             </tr>
                             {% endfor %}

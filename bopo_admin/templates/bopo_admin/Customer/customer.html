@@ -132,7 +132,7 @@
                         </td>
                         <td>
                             <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ customer.customer_id }}')">✏️ Edit</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteCustomer('{{ customer.customer_id}}')">🗑️ Delete</button>
+                            {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteCustomer('{{ customer.customer_id}}')">🗑️ Delete</button> {% endcomment %}
                         </td>
                     </tr>
                     {% endfor %}
