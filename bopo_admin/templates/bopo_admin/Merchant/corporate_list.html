@@ -177,27 +177,29 @@
     $(document).ready(function () {
         const table = $('#corporate-table').DataTable({
             dom: 'Bfrtip',
-            pageLength: 6,         // Only 6 rows per page
-            paging: true,          // Enables pagination
+            pageLength: 6,
+            paging: true,
             lengthChange: false,
             buttons: [
                 {
                     extend: 'colvis',
-                    text: '<i class="fas fa-table"></i>',
-                    className: 'btn btn-light'
+                    text: '<i class="fas fa-table"></i> Columns',
+                    className: 'btn btn-light',
+                    columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // explicitly list columns to be toggleable
                 }
             ],
-            stripeClasses: [] , // No row striping
+            stripeClasses: []
         });
     
-        // Move buttons to the right
+        // Move buttons to the custom container
         table.buttons().container().appendTo('#custom-buttons');
     
-        // Custom search box binding
+        // Custom search binding
         $('#search-customer').on('keyup', function () {
             table.search(this.value).draw();
         });
     });
+    
     
 </script>
 
