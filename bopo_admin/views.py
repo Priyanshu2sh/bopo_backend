@@ -102,25 +102,85 @@ from django.http import JsonResponse
 from accounts.models import Merchant, Terminal
 
 def get_terminals(request, merchant_id):
-    # Get the merchant based on merchant_id
     try:
         merchant = Merchant.objects.get(merchant_id=merchant_id)
     except Merchant.DoesNotExist:
         return JsonResponse({'error': 'Merchant not found'}, status=404)
 
-    # Get terminals for this merchant
     terminals = Terminal.objects.filter(merchant_id=merchant)
-    
-    # Prepare the terminal data for response
+
     terminal_data = [
-        {'terminal_id': terminal.terminal_id, 'password': terminal.password} 
+        {'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin}
         for terminal in terminals
     ]
-    
+
     return JsonResponse({'terminals': terminal_data})
 
+import random
+import string
+from django.http import JsonResponse
+from accounts.models import Merchant, Terminal
 
- 
+def generate_terminal_id():
+    """Generate a unique terminal ID."""
+    return "TID" + ''.join(random.choices(string.digits, k=8))
+
+def add_terminal(request, merchant_id):
+    """Generate a new terminal and pin for the merchant."""
+    try:
+        merchant = Merchant.objects.get(merchant_id=merchant_id)
+    except Merchant.DoesNotExist:
+        return JsonResponse({'error': 'Merchant not found'}, status=404)
+
+    # Generate unique terminal ID
+    terminal_id = generate_terminal_id()
+    while Terminal.objects.filter(terminal_id=terminal_id).exists():
+        terminal_id = generate_terminal_id()  # Ensure it's unique
+
+    # Generate a 4-digit PIN
+    tid_pin = random.randint(1000, 9999)
+
+    # Save terminal info to the database
+    terminal = Terminal.objects.create(
+        terminal_id=terminal_id,
+        tid_pin=tid_pin,
+        merchant_id=merchant
+    )
+
+    # Return the newly created terminal details
+    return JsonResponse({'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin})
+
+# In views.py
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+@csrf_exempt
+def update_terminal_pin(request, merchant_id, terminal_id):
+    if request.method == 'POST':
+        body = json.loads(request.body)
+        new_pin = body.get('tid_pin')
+
+        try:
+            # Fetch the merchant by its ID
+            merchant = Merchant.objects.get(merchant_id=merchant_id)
+            
+            # Now fetch the terminal by both merchant and terminal_id
+            terminal = Terminal.objects.get(merchant_id=merchant, terminal_id=terminal_id)
+            
+            terminal.tid_pin = new_pin
+            terminal.save()
+            return JsonResponse({'success': True})
+        except Merchant.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Merchant not found'})
+        except Terminal.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Terminal not found'})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+
 def home(request):
     # Calculate total projects and project progress
     total_projects = Corporate.objects.count()

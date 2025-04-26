@@ -91,6 +91,9 @@ urlpatterns = [
     # path('corporate_admin/', views.corporate_admin, name='corporate_admin'),
     path('terminals/', views.terminals, name='terminals'),
     path('get_terminals/<str:merchant_id>/', views.get_terminals, name='get_terminals'),
+    path('add_terminal/<str:merchant_id>/', views.add_terminal, name='add_terminal'),
+    path('update_terminal_pin/<str:merchant_id>/<str:terminal_id>/', views.update_terminal_pin, name='update_terminal_pin'),
+
     
     
     # path('security-questions/', views.security_questions, name='security_questions'),
