@@ -21,8 +21,8 @@
 
     <div class="send-notification-form"><br>
         <div class="form-group">
-            <label for="deduct-amount">Deduct Amount:</label>
-            <input type="number" id="deduct-amount" class="form-control" placeholder="Enter amount ">
+            <label for="deduct-amount">Deduct Amount Per Transaction:</label>
+            <input type="number" id="deduct-amount" class="form-control" placeholder="Enter percentage ">
         </div>
 
         <div class="button-container">
@@ -76,7 +76,7 @@
     <div class="send-notification-form">
         <!-- Rental Model -->
         <div class="model-card"><br>
-            <h3 class="model-header">1.Rental Model</h3>
+            <h3 class="model-header">Model Plans</h3>
             <table class="plans-table">
                 <thead>
                     <tr>
@@ -89,14 +89,20 @@
                 <tbody>
                     <tr>
                         <td><span class="plan-validity-text">12 months</span></td>
-                        <td><span class="plan-type-text">Standard</span></td>
-                        <td><span class="plan-description-text">Basic rental plan with limited features</span></td>
+                        <td><span class="plan-type-text">Rental</span></td>
+                        <td>
+                        <span class="plan-description-text">
+                            A flexible short-term plan allowing merchants to use services with a monthly fee.
+                        </span>
+                    </td>
                         <td><button class="btn-action" onclick="openEditPlanModal(this)">Chnage</button></td>
                     </tr>
                     <tr>
-                        <td><span class="plan-validity-text">24 months</span></td>
-                        <td><span class="plan-type-text">Premium</span></td>
-                        <td><span class="plan-description-text">Premium rental plan with additional benefits</span></td>
+                        <td><span class="plan-validity-text">12 months</span></td>
+                        <td><span class="plan-type-text">Prepaid</span></td>
+                        <td><span class="plan-description-text">
+                            A one-time payment plan offering full access for the validity period.
+                        </span></td>
                         <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
                     </tr>
                     <!-- More rows can be added -->
@@ -104,13 +110,10 @@
             </table>
         </div>
 
-        <!-- Prepaid Model -->
-        <div class="model-card">
-            <h3 class="model-header">2. Prepaid Model</h3>
-        
-        </div>
-    </div>
+       </div>
 </div>
+
+
 <!-- Edit Plan Modal -->
 <div id="editPlanModal" class="modal-container">
     <div class="modal-content-box">
