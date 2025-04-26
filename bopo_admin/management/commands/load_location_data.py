@@ -13,10 +13,10 @@ class Command(BaseCommand):
         State.objects.all().delete()
 
         # Load JSON data
-        with open('E:\\BOPO\\bopo_backend\\bopo_admin\\data\\states.json', 'r', encoding='utf-8') as f:
+        with open('D:\\Prushal\\Bopo\\bopo_backend\\bopo_admin\\data\\states.json', 'r', encoding='utf-8') as f:
             states_data = json.load(f)
 
-        with open('E:\\BOPO\\bopo_backend\\bopo_admin\\data\\cities.json', 'r', encoding='utf-8') as f:
+        with open('D:\\Prushal\\Bopo\\bopo_backend\\bopo_admin\\data\\cities.json', 'r', encoding='utf-8') as f:
             cities_data = json.load(f)
 
         # 🔄 Filter only Indian states
