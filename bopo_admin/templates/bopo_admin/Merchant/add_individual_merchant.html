@@ -61,6 +61,13 @@
                 <input type="text" name="aadhaar_number" id="aadhaar_number" maxlength="12" required>
             </div>
 
+            
+            <label>GST Number</label>
+            <div class="add_individual_merchant-input-container">
+                <i class="fas fa-file-invoice"></i>
+                <input type="text" name="gst_number" id="gst_number" maxlength="15">
+            </div>
+
             <label>Shop Name</label>
             <div class="add_individual_merchant-input-container">
                 <i class="fas fa-store"></i>
@@ -98,11 +105,16 @@
                 <input type="text" name="mobile" id="mobile" maxlength="10"  required>
             </div>
 
-            <label>GST Number</label>
+            <label>PIN</label>
             <div class="add_individual_merchant-input-container">
-                <i class="fas fa-file-invoice"></i>
-                <input type="text" name="gst_number" id="gst_number" maxlength="15">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="pin" id="pin" maxlength="4" required>
+                <span class="password-toggle" onclick="togglePassword('pin')">
+                    <i class="fas fa-eye-slash"></i> <!-- Closed eye by default -->
+                </span>
             </div>
+
+
            
 
             <label>Pan Number</label>
@@ -140,6 +152,22 @@
 </div>
 
 <script>
+
+     // Toggle password visibility
+ function togglePassword(id) {
+    const input = document.getElementById(id); // Get the input element by ID
+    const icon = input.nextElementSibling.querySelector("i"); // Get the icon inside the toggle span
+
+    if (input.type === "password") {
+        input.type = "text"; // Change input type to text to show the value
+        icon.classList.replace("fa-eye-slash", "fa-eye"); // Show open eye
+    } else {
+        input.type = "password"; // Change input type back to password
+        icon.classList.replace("fa-eye", "fa-eye-slash"); // Show closed eye
+    }
+  }
+
+
     document.addEventListener("DOMContentLoaded", function () {
         fetchStates();
     
@@ -211,7 +239,11 @@
            }
            return "";
        },
-      
+       pin: function (value) {
+        if (value === "") return "PIN is required";
+        if (!/^\d{4}$/.test(value)) return "PIN must be exactly 4 digits";
+        return "";
+    },
        pincode: function (value) {
            if (value === "") return "Pincode is required";
            if (!/^\d{6}$/.test(value)) return "Pincode must be 6 digits";

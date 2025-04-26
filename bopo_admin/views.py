@@ -119,7 +119,7 @@ def get_terminals(request, merchant_id):
     
     return JsonResponse({'terminals': terminal_data})
 
- 
+
  
 def home(request):
     # Calculate total projects and project progress
@@ -2219,34 +2219,17 @@ def deduct_amount(request):
         except UserBalance.DoesNotExist:
             messages.error(request, "User not found.")
 
-    return render(request, "bopo_admin/Payment/deduct_amount.html")
+    return render(request, "bopo_admin/Superadmin/deduct_amount.html")
 
+def superadmin_functionality(request):
+    return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html')
+ 
 
+# def security_questions(request):
+#     return render(request, 'bopo_admin/Superadmin/security_questions.html')
 
-# def has_merchant_access(self):
-#         """Return True if the role has any merchant-related permissions."""
-#         return (
-#             self.coporate_merchant or
-#             self.individual_merchant or
-#             self.merchant_send_credentials or
-#             self.merchant_limit or
-#             self.merchant_login_page_info or
-#             self.merchant_send_notification or
-#             self.merchant_received_offers
-#         )
+# def rental_plan(request):
+#     return render(request, 'bopo_admin/Superadmin/rental_plan.html')
 
-# def has_customer_access(self):
-#         """Return True if the role has any customer-related permissions."""
-#         return (
-#             self.modify_customer_details or
-#             self.customer_send_notification
-#         )
-
-# def granted_permissions(self):
-#         """Return a list of granted permission names (booleans that are True)."""
-#         granted = []
-#         for field in self._meta.fields:
-#             if isinstance(field, models.BooleanField):
-#                 if getattr(self, field.name):
-#                     granted.append(field.name)
-#         return granted
+# def award_points(request):
+#     return render(request, 'bopo_admin/Superadmin/award_points.html')
