@@ -64,25 +64,37 @@ def custom_logout_view(request):
     logout(request)
     return redirect('login')
 
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
+
+
+@login_required
 def profile(request):
-    return render(request, 'bopo_admin/profile.html')  # Include the correct path and .html extension
+    user = request.user
 
+    if request.method == 'POST':
+        # Update the profile
+        email = request.POST.get('email')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
-def corporate_admin(request):
-    corporates = Corporate.objects.all()
-    corporate_data = []
+        if email != user.email:
+            user.email = email
+        if username != user.username:
+            user.username = username
 
-    for corporate in corporates:
-        # Fetch merchants linked to the corporate
-        merchants = Merchant.objects.filter(corporate_id=corporate.corporate_id, user_type='corporate')
-        corporate_data.append({
-            "corporate": corporate,
-            "merchants": merchants
-        })
+        if password:
+            user.set_password(password)
+            update_session_auth_hash(request, user)
 
-    return render(request, 'bopo_admin/Payment/corporate_admin.html', {
-        "corporate_data": corporate_data
-    })
+        user.save()
+        messages.success(request, "Profile updated successfully")
+        return redirect('profile')
+
+    return render(request, 'bopo_admin/profile.html', {'user': user})
 
 
 # def dashboard(request):

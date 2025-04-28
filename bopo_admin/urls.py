@@ -103,8 +103,7 @@ urlpatterns = [
     path('deduct-amount/', views.deduct_amount, name='deduct_amount'),
     path('superadmin_functionality/', views.superadmin_functionality, name='superadmin_functionality'),
 
-    
-
+    path('update-profile/', views.profile, name='update_profile'), 
 
 
 

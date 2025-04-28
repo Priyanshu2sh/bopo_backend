@@ -1,1 +1,35 @@
-<h1>profile</h1>
+{% extends "bopo_admin/base.html" %}
+
+{% block content %}
+<h2>Profile</h2>
+
+<div class="profile-info">
+    <p><strong>Username:</strong> {{ user.username }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>User Type:</strong> {{ user.user_type }}</p>
+</div>
+
+<!-- Add an edit profile form -->
+<h3>Edit Profile</h3>
+<form method="POST" action="{% url 'update_profile' %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="{{ user.email }}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="{{ user.username }}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password">
+        <span class="hint">Leave blank if you don't want to change it</span>
+    </div>
+
+    <button type="submit">Update Profile</button>
+</form>
+
+{% endblock %}
