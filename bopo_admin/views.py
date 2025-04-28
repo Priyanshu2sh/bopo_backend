@@ -1395,37 +1395,76 @@ def get_current_limit(request):
     merchant_id = request.GET.get('merchant_id')
     if merchant_id:
         try:
-            merchant_points = MerchantPoints.objects.get(merchant_id=merchant_id)
+            # Assuming 'merchant_id' is a ForeignKey to the 'Merchant' model
+            merchant_points = MerchantPoints.objects.get(merchant__merchant_id=merchant_id)
             return JsonResponse({'current_limit': merchant_points.points})
         except MerchantPoints.DoesNotExist:
-            return JsonResponse({'current_limit': 0})  # If no record, return 0
-    return JsonResponse({'current_limit': 0})
+            return JsonResponse({'current_limit': 0})  # Return 0 if no points record found
+    return JsonResponse({'current_limit': 0})  # Return 0 if no merchant_id is provided
     
+
 
 def reduce_limit(request):
     corporates = Corporate.objects.all()
     if request.method == "POST":
         project = request.POST.get("project")
-        merchant = request.POST.get("merchant")
-        current_limit = request.POST.get("current_limit")
-        reduce_amount = request.POST.get("reduce_amount")
-        transaction_id = request.POST.get("transaction_id")
+        merchant_id = request.POST.get("merchant")
+        current_limit = float(request.POST.get("current_limit"))
+        reduce_amount = float(request.POST.get("reduce_amount"))
 
         print('project:', project)
-        print('merchant:', merchant)
+        print('merchant:', merchant_id)
         print('current_limit:', current_limit)
         print('reduce limit:', reduce_amount)
-        print('transaction id:', transaction_id)
 
-        # Save to database or perform any other action
-        Reducelimit.objects.create(
-            project=project,
-            merchant=merchant,
-            current_limit=current_limit,
-            reduce_amount=reduce_amount,
-            transaction_id=transaction_id
-        )
-    return render(request, 'bopo_admin/Merchant/reduce_limit.html',  {"corporates": corporates})
+        try:
+            merchant_points = MerchantPoints.objects.get(merchant__merchant_id=merchant_id)
+            
+            if current_limit >= reduce_amount:
+                new_points = current_limit - reduce_amount
+                merchant_points.points = new_points
+                merchant_points.save()
+
+                Reducelimit.objects.create(
+                    project=project,
+                    merchant=merchant_id,
+                    current_limit=current_limit,
+                    reduce_amount=reduce_amount,
+                )
+
+                # Send SMS Notification
+                try:
+                    # Fetch merchant mobile number
+                    merchant = Merchant.objects.get(merchant_id=merchant_id)
+                    mobile= merchant.mobile  # Assume you have mobile_number field
+
+                    # Clean mobile number
+                    if not mobile.startswith("+"):
+                        if mobile.startswith("0"):
+                            mobile = mobile[1:]
+                        mobile = "+91" + mobile
+
+                    # Prepare simple message
+                    sms_body = f"Reduce Amount: {reduce_amount}, Current Limit: {new_points}"
+
+                    # Send SMS
+                    send_sms(mobile, sms_body)
+
+                except Merchant.DoesNotExist:
+                    print("Merchant not found for sending SMS.")
+                except Exception as sms_error:
+                    print(f"Failed to send SMS: {str(sms_error)}")
+
+                return redirect('reduce_limit')
+
+            else:
+                return redirect('reduce_limit')
+
+        except MerchantPoints.DoesNotExist:
+            return redirect('reduce_limit')
+
+    return render(request, 'bopo_admin/Merchant/reduce_limit.html', {"corporates": corporates})
+
 
 
 def get_merchants_by_project(request):

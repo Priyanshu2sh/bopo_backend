@@ -98,8 +98,7 @@ class Reducelimit(models.Model):
     merchant = models.CharField(max_length=200, blank=True, null=True)
     current_limit = models.CharField(max_length=200, blank=True, null=True)
     reduce_amount = models.IntegerField( blank=True, null=True)
-    transaction_id = models.CharField(max_length=200, blank=True, null=True)
-
+    
     def __str__(self):
         return self.project
     

@@ -273,7 +273,7 @@ class HistoryAPIView(APIView):
 
 class CustomerToCustomerTransferAPIView(APIView):
     """
-    API for transferring points from one customer to another (5% deduction).
+    API for transferring points from one customer to another with dynamic deduction percentage (as set by Super Admin).
     """
 
     def post(self, request):
@@ -297,12 +297,6 @@ class CustomerToCustomerTransferAPIView(APIView):
             customer=sender_customer, merchant=merchant
         ).aggregate(total=Sum('points'))['total'] or 0
 
-        # Debugging logs
-        print(f"Sender: {sender_customer.customer_id}, Available Points: {sender_points}")
-        print(f"Receiver: {receiver_customer.customer_id}")
-        print(f"Merchant: {merchant.merchant_id}")
-        print(f"Requested Transfer: {points}")
-
         # Validate points
         if sender_points < points:
             return Response({
@@ -311,8 +305,16 @@ class CustomerToCustomerTransferAPIView(APIView):
                 "requested_points": points
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Apply 5% deduction
-        points_after_deduction = int(points * 0.95)
+        # Fetch dynamic deduction percentage from the DeductSetting table
+        try:
+            setting = DeductSetting.objects.get(id=1)  # Assuming only one setting exists
+            deduct_percentage = setting.deduct_percentage
+        except DeductSetting.DoesNotExist:
+            deduct_percentage = 5.0  # Default fallback if no setting found
+
+        # Apply dynamic deduction
+        deduction_factor = (100 - deduct_percentage) / 100  # e.g., 5% means 95%
+        points_after_deduction = int(points * deduction_factor)
 
         # Deduct points from sender safely
         sender_entry, _ = CustomerPoints.objects.get_or_create(
@@ -330,7 +332,7 @@ class CustomerToCustomerTransferAPIView(APIView):
         receiver_entry.save(update_fields=['points'])
         receiver_entry.refresh_from_db()
 
-        # Save transaction
+        # Save transaction record
         CustomerToCustomer.objects.create(
             sender_customer=sender_customer,
             receiver_customer=receiver_customer,
@@ -339,15 +341,17 @@ class CustomerToCustomerTransferAPIView(APIView):
         )
 
         return Response({
-            "message": "Points transferred successfully",
+            "message": f"Points transferred successfully with {deduct_percentage}% deduction.",
             "points_transferred": points_after_deduction,
             "sender_balance": sender_entry.points,
             "receiver_balance": receiver_entry.points
         }, status=status.HTTP_200_OK)
-   
+        
+        
+
 class MerchantToMerchantTransferAPIView(APIView):
     """
-    API for Merchant to Merchant point transfer (5% deduction).
+    API for Merchant to Merchant point transfer with dynamic deduction percentage (as set by Super Admin).
     """
 
     def post(self, request):
@@ -369,20 +373,30 @@ class MerchantToMerchantTransferAPIView(APIView):
         if not sender_points or sender_points.points < points * 1.05:
             return Response({"error": "Insufficient points for transfer"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Apply deduction
-        points_after_deduction = points * 0.95
+        # Fetch dynamic deduction percentage from DeductSetting
+        try:
+            setting = DeductSetting.objects.get(id=1)  # Assuming only one setting record exists
+            deduct_percentage = setting.deduct_percentage
+        except DeductSetting.DoesNotExist:
+            deduct_percentage = 5.0  # Default deduction if not found
 
-        # Deduct from sender
-        MerchantPoints.objects.filter(merchant=sender_merchant).update(points=F("points") - points * 1.05)
+        # Apply dynamic deduction (ensure integer points)
+        deduction_factor = (100 - deduct_percentage) / 100  # Example: 5% means 95%
+        points_after_deduction = int(points * deduction_factor)  # Ensure integer result
 
-        # Credit to receiver
+        # Deduct from sender (ensure integer)
+        new_sender_points = sender_points.points - int(points * (1 + (deduct_percentage / 100)))
+        sender_points.points = max(new_sender_points, 0)  # Ensure points don't go negative
+        sender_points.save()
+
+        # Credit to receiver (ensure integer)
         receiver_points, created = MerchantPoints.objects.get_or_create(
             merchant=receiver_merchant,
             defaults={"points": points_after_deduction}
         )
-
         if not created:
-            MerchantPoints.objects.filter(merchant=receiver_merchant).update(points=F("points") + points_after_deduction)
+            receiver_points.points = receiver_points.points + points_after_deduction
+            receiver_points.save()
 
         # Update or create transaction history
         merchant_transfer, created = MerchantToMerchant.objects.get_or_create(
@@ -395,12 +409,12 @@ class MerchantToMerchantTransferAPIView(APIView):
             merchant_transfer.points = F("points") + points
             merchant_transfer.save()
 
-        updated_sender_balance = MerchantPoints.objects.get(merchant=sender_merchant).points
-        updated_receiver_balance = MerchantPoints.objects.get(merchant=receiver_merchant).points
+        updated_sender_balance = int(MerchantPoints.objects.get(merchant=sender_merchant).points)
+        updated_receiver_balance = int(MerchantPoints.objects.get(merchant=receiver_merchant).points)
 
         return Response(
             {
-                "message": "Points transferred successfully",
+                "message": f"Points transferred successfully with {deduct_percentage}% deduction.",
                 "sender_balance": updated_sender_balance,
                 "receiver_balance": updated_receiver_balance
             },
@@ -690,28 +704,51 @@ class PaymentDetailsListCreateAPIView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Payment send successfully."}, serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Retrieve, update, or delete a specific payment
 class PaymentDetailsRetrieveUpdateDestroyAPIView(APIView):
-    def get(self, request, pk):
-        payment = get_object_or_404(PaymentDetails, pk=pk)
-        serializer = PaymentDetailsSerializer(payment)
+    def get(self, request, merchant_id):
+        # Try to find the Merchant based on the merchant_id string
+        try:
+            # Assuming 'merchant_id' is a string that can identify the Merchant
+            merchant = Merchant.objects.get(merchant_id=merchant_id)  # 'merchant_id' in Merchant model
+        except Merchant.DoesNotExist:
+            return Response({"error": "Merchant not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Filter the PaymentDetails by the Merchant's ID
+        payments = PaymentDetails.objects.filter(merchant=merchant)
+
+        if not payments:
+            return Response({"error": "No payment details found for this merchant."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Serialize the list of payments
+        serializer = PaymentDetailsSerializer(payments, many=True)
         return Response(serializer.data)
 
-    def put(self, request, pk):
-        payment = get_object_or_404(PaymentDetails, pk=pk)
+    def put(self, request, merchant_id):
+        # Update the payment details using merchant_id (string) and pk in the request
+        try:
+            payment = PaymentDetails.objects.get(merchant_id=merchant_id, pk=request.data.get('pk'))
+        except PaymentDetails.DoesNotExist:
+            return Response({"error": "Payment detail not found for this merchant."}, status=status.HTTP_404_NOT_FOUND)
+        
         serializer = PaymentDetailsSerializer(payment, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
-        payment = get_object_or_404(PaymentDetails, pk=pk)
+    def delete(self, request, merchant_id):
+        # Delete the payment details using merchant_id (string) and pk in the request
+        try:
+            payment = PaymentDetails.objects.get(merchant_id=merchant_id, pk=request.data.get('pk'))
+        except PaymentDetails.DoesNotExist:
+            return Response({"error": "Payment detail not found for this merchant."}, status=status.HTTP_404_NOT_FOUND)
+        
         payment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
 
 class BankDetailByUserAPIView(APIView):
     """
@@ -793,6 +830,8 @@ class BankDetailByUserAPIView(APIView):
                 return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
             except BankDetail.DoesNotExist:
                 return Response({"error": "Bank details not found for this merchant"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Use merchant database ID for updating
             data['merchant'] = merchant.id
             data['customer'] = None
 
@@ -804,15 +843,18 @@ class BankDetailByUserAPIView(APIView):
                 return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
             except BankDetail.DoesNotExist:
                 return Response({"error": "Bank details not found for this customer"}, status=status.HTTP_404_NOT_FOUND)
-            data['customer'] = customer.customer_id
+            
+            # Use customer database ID for updating
+            data['customer'] = customer.id
             data['merchant'] = None
 
         else:
             return Response({"error": "Invalid user_type. Must be 'merchant' or 'customer'."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Update bank details if found
-        serializer = BankDetailSerializer(bank_detail, data=data)
+        # Important: Partial update if not all fields are provided
+        serializer = BankDetailSerializer(bank_detail, data=data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return Response({
@@ -821,6 +863,7 @@ class BankDetailByUserAPIView(APIView):
             }, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
     

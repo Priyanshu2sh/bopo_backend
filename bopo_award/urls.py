@@ -16,7 +16,8 @@ urlpatterns = [
     path('merchant/<str:merchant_id>/', MerchantPointsAPIView.as_view(), name='merchant_points'),
 
     path('payment-details/', PaymentDetailsListCreateAPIView.as_view(), name='payment-list-create'),
-    path('payment-details/<int:pk>/', PaymentDetailsRetrieveUpdateDestroyAPIView.as_view(), name='payment-detail'),
+    path('payment-details/<str:merchant_id>/', PaymentDetailsRetrieveUpdateDestroyAPIView.as_view(), name='payment-detail'),
+
 
     path("customer/profile/<str:customer_id>/", UpdateCustomerProfileAPIView.as_view()),
     path("merchant/profile/<str:merchant_id>/", UpdateMerchantProfileAPIView.as_view()),
