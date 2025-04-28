@@ -179,7 +179,32 @@ def update_terminal_pin(request, merchant_id, terminal_id):
     
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
+import json
+from django.http import JsonResponse
+from datetime import datetime
+from accounts.models import Terminal
 
+def toggle_terminal_status(request, terminal_id):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            is_active = data.get("is_active")
+
+            terminal = Terminal.objects.get(id=terminal_id)
+
+            # Change terminal status based on the checkbox state
+            if is_active:
+                terminal.status = "Active"
+            else:
+                terminal.status = "Inactive"
+
+            terminal.save()
+
+            return JsonResponse({"success": True, "status": terminal.status})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request"})
 
 def home(request):
     # Calculate total projects and project progress
@@ -1871,6 +1896,43 @@ def login(request):
     
     # GET request
     return render(request, 'bopo_admin/login.html')
+
+
+
+# from datetime import timedelta
+# from django.utils import timezone
+
+# def login(request):
+#     if request.method == 'POST': 
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         user_type = request.POST.get('user_type')
+#         remember_me = request.POST.get('remember_me')  # Capture remember_me checkbox
+
+#         try:
+#             user = BopoAdmin.objects.get(username=username)
+
+#             if check_password(password, user.password):
+#                 request.session['admin_id'] = user.id
+#                 request.session['user_type'] = user_type
+
+#                 if remember_me:
+#                     # Set session to expire in 7 days
+#                     request.session.set_expiry(7 * 24 * 60 * 60)  # 7 days in seconds
+#                 else:
+#                     # Session expires when browser is closed
+#                     request.session.set_expiry(0)
+
+#                 return redirect('home')
+#             else:
+#                 error_message = "Incorrect password"
+#         except BopoAdmin.DoesNotExist:
+#             error_message = "User does not exist"
+
+#         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#     return render(request, 'bopo_admin/login.html')
+
 
   
 def export_projects(request):

@@ -93,6 +93,7 @@ urlpatterns = [
     path('get_terminals/<str:merchant_id>/', views.get_terminals, name='get_terminals'),
     path('add_terminal/<str:merchant_id>/', views.add_terminal, name='add_terminal'),
     path('update_terminal_pin/<str:merchant_id>/<str:terminal_id>/', views.update_terminal_pin, name='update_terminal_pin'),
+    path('toggle-terminal-status/<int:terminal_id>/', views.toggle_terminal_status, name='toggle_terminal_status'),
 
     
     

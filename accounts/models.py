@@ -133,11 +133,19 @@ class Merchant(models.Model):
     
     
 class Terminal(models.Model):
+    
+    STATUS_CHOICES = [
+        ('Active', 'Active'),
+        ('Inactive', 'Inactive'),
+    ]
+     
     terminal_id = models.CharField(max_length=20, unique=True)
     tid_pin = models.IntegerField(unique=True)
     merchant_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='terminals')
     created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Active')
     
+   
 
 class Customer(models.Model):
     GENDER_CHOICES = [
