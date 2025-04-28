@@ -56,9 +56,7 @@
                 </tr>
             </thead>
             <tbody id="security-questions-body">
-               <tr><td>What is your pet's name?</td></tr>
-                <tr><td>What is your mother's maiden name?</td></tr>
-                <tr><td>What was the name of your first school?</td></tr>
+                <!-- Security questions will appear here -->
             </tbody>
         </table>
 
@@ -72,6 +70,14 @@
         <button class="send-btn" onclick="showAddQuestion()">Add Question</button>
     </div>
 </div>
+
+
+
+<!-- <tr><td>What is your pet's name?</td></tr>
+                <tr><td>What is your mother's maiden name?</td></tr>
+                <tr><td>What was the name of your first school?</td></tr> -->
+
+
 
 <!-- To Corporate Customers -->
 <div class="send-notification-item">
@@ -231,84 +237,102 @@
         document.getElementById('award-edit').style.display = 'none';
         document.getElementById('award-text').style.display = 'block';
     }
+
+    function showAlert() {
+    const deductAmountInput = document.getElementById('deduct-amount');
+    const deductAmount = parseFloat(deductAmountInput.value);
+
+    if (isNaN(deductAmount) || deductAmount < 0) {
+        alert('Please enter a valid percentage.');
+        return;
+    }
+
+    fetch('/api/set-deduct-amount/', {  // Your Django API endpoint
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify({ deduct_amount: deductAmount }),
+    })
+    .then(response => response.json().then(data => ({status: response.status, body: data})))
+    .then(({status, body}) => {
+        if (status === 200) {
+            alert('Deduct amount saved successfully!');
+        } else {
+            alert(body.error || 'Failed to save deduction.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Something went wrong.');
+    });
+}
+
+
+
 </script>
 
 
 <script>
-    function showAddQuestion() {
-        document.getElementById('add-question-row').style.display = 'block';
+function saveSecurityQuestion() {
+    const questionInput = document.getElementById("new-question");
+    const question = questionInput.value.trim();
+    if (!question) {
+        alert("Please enter a question.");
+        return;
     }
 
-    function saveSecurityQuestion() {
-        const question = document.getElementById('new-question').value.trim();
-        if (question !== '') {
-            const tbody = document.getElementById('security-questions-body');
-            const row = document.createElement('tr');
-            const cell = document.createElement('td');
-            cell.textContent = question;
-            row.appendChild(cell);
-            tbody.appendChild(row);
+    fetch('/api/security-questions/', {  // ✅ Add leading slash `/`
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),  // CSRF token for Django
+        },
+        body: JSON.stringify({ question: question }),
+    })
+    .then(response => response.json().then(data => ({status: response.status, body: data})))
+    .then(({status, body}) => {
+        if (status === 200 && body.id) {
+            const tbody = document.getElementById("security-questions-body");
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${body.question}</td>`;
+            tbody.appendChild(tr);
+
+            questionInput.value = '';
+            document.getElementById("add-question-row").style.display = 'none';
+        } else {
+            alert(body.error || "Failed to add question. Please try again.");
         }
-        cancelSecurityQuestion();
-    }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("Something went wrong. Please check your connection or try again later.");
+    });
+}
 
-    function cancelSecurityQuestion() {
-        document.getElementById('new-question').value = '';
-        document.getElementById('add-question-row').style.display = 'none';
-    }
+function showAddQuestion() {
+    document.getElementById("add-question-row").style.display = 'block';
+}
 
-    let rowToEdit = null; 
+function cancelSecurityQuestion() {
+    document.getElementById("add-question-row").style.display = 'none';
+    document.getElementById("new-question").value = '';
+}
 
-    function openEditPlanModal(button) {
-        // Get the row where the Edit button was clicked
-        const row = button.closest('tr');
-        const validity = row.querySelector('.plan-validity-text').textContent;
-        const type = row.querySelector('.plan-type-text').textContent;
-        const description = row.querySelector('.plan-description-text').textContent;
-    
-        // Pre-fill the modal form with the current values
-        document.getElementById('edit-validity-input').value = validity;
-        document.getElementById('edit-type-input').value = type;
-        document.getElementById('edit-description-input').value = description;
-    
-        // Store the row reference to update later
-        rowToEdit = row;
-    
-        // Show the modal and close button
-        document.getElementById('editPlanModal').style.display = 'block';
-        document.querySelector('.modal-close-btn').style.display = 'block';  // Ensure the close button is visible
-    }
-    
-    function closeEditModal() {
-        // Close the modal
-        document.getElementById('editPlanModal').style.display = 'none';
-        document.querySelector('.modal-close-btn').style.display = 'none';  // Hide the close button when modal is closed
-    }
-    
-    function savePlanChanges() {
-        // Get the new values from the modal form
-        const newValidity = document.getElementById('edit-validity-input').value;
-        const newType = document.getElementById('edit-type-input').value;
-        const newDescription = document.getElementById('edit-description-input').value;
-    
-        // Update the row with the new values
-        rowToEdit.querySelector('.plan-validity-text').textContent = newValidity;
-        rowToEdit.querySelector('.plan-type-text').textContent = newType;
-        rowToEdit.querySelector('.plan-description-text').textContent = newDescription;
-    
-        // Close the modal
-        closeEditModal();
-    }
-    
-    function confirmCancelDeduction() {
-        const userConfirmed = confirm("Are you sure you want to cancel and clear the field?");
-        if (userConfirmed) {
-            document.getElementById("deduct-amount").value = "";
+// CSRF token fetcher for Django
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith(name + '=')) {
+            return decodeURIComponent(cookie.substring(name.length + 1));
         }
     }
-    
-
-    
+    return '';
+}
 </script>
+    
 
 {% endblock %}
