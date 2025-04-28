@@ -1,6 +1,8 @@
 import json
+import os
 from django.core.management.base import BaseCommand
 from bopo_admin.models import State, City
+# Get the directory of the current file (i.e., your command file)
 
 class Command(BaseCommand):
     help = 'Load only Indian states and their cities from JSON files'
@@ -11,12 +13,18 @@ class Command(BaseCommand):
         # First delete cities due to FK constraint
         City.objects.all().delete()
         State.objects.all().delete()
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        bopo_admin_dir = os.path.abspath(os.path.join(base_dir, '..', '..'))
+        data_dir = os.path.join(bopo_admin_dir, 'data')
+        # Construct the full paths to the JSON files
+        states_file = os.path.join(data_dir, 'states.json')
+        cities_file = os.path.join(data_dir, 'cities.json')
 
         # Load JSON data
-        with open('E:\\BOPO\\bopo_backend\\bopo_admin\\data\\states.json', 'r', encoding='utf-8') as f:
+        with open(states_file, 'r', encoding='utf-8') as f:
             states_data = json.load(f)
 
-        with open('E:\\BOPO\\bopo_backend\\bopo_admin\\data\\cities.json', 'r', encoding='utf-8') as f:
+        with open(cities_file, 'r', encoding='utf-8') as f:
             cities_data = json.load(f)
 
         # 🔄 Filter only Indian states

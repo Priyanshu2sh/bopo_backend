@@ -1,6 +1,7 @@
 from datetime import date, datetime, timezone
 from io import BytesIO
 import json
+import os
 import random
 import string
 from tkinter.font import Font
@@ -39,7 +40,7 @@ from django.db import IntegrityError, transaction
 
 # Create your views here.
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
 
 # def login(request):
@@ -202,7 +203,11 @@ def toggle_terminal_status(request, terminal_id):
 
     return JsonResponse({"success": False, "error": "Invalid request"})
 
+ 
+@login_required
 def home(request):
+    user = request.user
+
     # Calculate total projects and project progress
     total_projects = Corporate.objects.count()
     completed_projects = Corporate.objects.filter(status="Completed").count()  # Assuming a 'status' field exists
@@ -228,6 +233,7 @@ def home(request):
 
     # Add context for the dashboard
     context = {
+        "user": user,
         "title": "Welcome to Bopo Admin Dashboard",
         "description": "Manage merchants, customers, and projects efficiently.",
         "total_projects": total_projects,
@@ -238,7 +244,17 @@ def home(request):
         "total_users": total_users,
         "chart_data": chart_data,
     }
-    return render(request, 'bopo_admin/home.html', context)
+    if user.role == 'corporate_admin':
+        return render(request, 'bopo_admin/Corporate/corporate_dashboard.html', context)
+    elif user.role == 'employee':
+        employee = user.employee
+        role_permissions = EmployeeRole.objects.get(employee=employee)
+        context['role_permissions'] = role_permissions
+        if role_permissions.corporate_merchant or role_permissions.individual_merchant or role_permissions.merchant_send_credentials or role_permissions.merchant_limit or role_permissions.merchant_login_page_info or role_permissions.merchant_send_notification or role_permissions.merchant_received_offers:
+            context['merchant'] = True
+        return render(request, 'bopo_admin/home.html', context)
+    else:
+        return render(request, 'bopo_admin/home.html', context)
 
 def about(request):
      return render(request, 'bopo_admin/about.html')
@@ -541,7 +557,7 @@ def add_merchant(request):
                 new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
                 project_id = f"PROJ{new_project_id:06d}"
 
-                Corporate.objects.create(
+                corporate = Corporate.objects.create(
                     select_project=select_project,
                     corporate_id=corporate_id,
                     project_name=project_name,
@@ -561,8 +577,47 @@ def add_merchant(request):
                     state=state,
                     city=city,
                     country=country,
-                    role="admin"
+                    role="admin",
                 )
+
+                bopo_admin = BopoAdmin(username=project_name, role="corporate_admin", corporate=corporate)
+                bopo_admin.set_password(pin)  # Hash the password
+                bopo_admin.save()
+
+                try:
+                    phone_number = corporate.mobile
+                    if not phone_number.startswith('+'):
+                        phone_number = f'+91{phone_number}'
+
+                # Compose the SMS message
+                    message_text = (
+                        f"Dear {corporate.first_name},\n\n"
+                        f"Your BOPO login credentials are as follows:\n"
+                        f"Project Name : {corporate.project_name}\n\n"
+                        f"Password : {corporate.pin}\n"
+                        f"Please use these credentials to access your BOPO admin panel.\n\n"
+                        f"Regards,\n"
+                        f"BOPO Support Team"
+                    )
+                
+                    # Fetch Twilio credentials from Django settings
+                    account_sid = settings.TWILIO_ACCOUNT_SID
+                    auth_token = settings.TWILIO_AUTH_TOKEN
+                    twilio_phone_number = settings.TWILIO_PHONE_NUMBER
+
+                    # Send SMS using Twilio
+                    client = Client(account_sid, auth_token)
+                    client.messages.create(
+                        body=message_text,
+                        from_=twilio_phone_number,
+                        to=phone_number
+                    )
+                
+                    messages.success(request, f"Credentials sent to {merchant.first_name} at {phone_number}")
+
+                except Exception as e:
+                    messages.error(request, f"Error sending SMS: {str(e)}")
+
             else:
                 message = "Invalid project type selected."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
@@ -1784,7 +1839,7 @@ from .models import Employee
 
 def delete_employee(request, employee_id):
     try:
-        employee = Employee.objects.get(id=employee_id)
+        employee = Employee.objects.get(employee_id=employee_id)
         employee.delete()
         return JsonResponse({'success': True})
     except Employee.DoesNotExist:
@@ -1854,7 +1909,7 @@ def add_employee(request):
 
         # Create employee record
         try:
-            Employee.objects.create(
+            employee = Employee(
                 employee_id=employee_id,
                 name=name,
                 email=email,
@@ -1869,10 +1924,15 @@ def add_employee(request):
                 password=password,
                 country=country
             )
+            employee.save()
         except IntegrityError as e:
+            employee.delete()
             # Handle any integrity errors (shouldn't happen, but just in case)
             return JsonResponse({"success": False, "message": f"Error: {str(e)}"})
 
+        bopo_admin = BopoAdmin(username=username, role="employee", employee=employee)
+        bopo_admin.set_password(password)  # Hash the password
+        bopo_admin.save()
         return JsonResponse({"success": True, "message": "Employee added successfully!"})
 
     return render(request, 'bopo_admin/Employee/add_employee.html')
@@ -1979,29 +2039,45 @@ def account_info(request):
 def reports(request):
     return render(request, 'bopo_admin/Payment/reports.html')
 
-def login(request):
+def login_view(request):
     if request.method == 'POST': 
         username = request.POST.get('username')
         password = request.POST.get('password')
-        user_type = request.POST.get('user_type')  # New line to capture the selected role
+        user_type = request.POST.get('user_type')
 
-        try:
-            # Filter user by username and user_type if you are storing type
-            user = BopoAdmin.objects.get(username=username)
+        user = authenticate(request, username=username, password=password)
+        if user_type == "employee":
+            role_permissions = EmployeeRole.objects.filter(employee=user.employee)
+            if not role_permissions.exists():
+                error_message = "You do not have permission to access this page."
+                return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+        if user:
+            login(request, user)
+            return redirect('home')
+        else:
+            error_message = "Invalid credentials"
+            return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+        # try:
+        #     # Filter user by username and user_type if you are storing type
+        #     if user_type == "corporate_admin":
+        #         user = Corporate.objects.get(username=username)
+        #     else:
+        #         user = BopoAdmin.objects.get(username=username)
             
-            # Optional: filter by role too if role is stored
-            # user = BopoAdmin.objects.get(username=username, role=user_type)
+        #     # Optional: filter by role too if role is stored
+        #     # user = BopoAdmin.objects.get(username=username, role=user_type)
 
-            if check_password(password, user.password):
-                request.session['admin_id'] = user.id
-                request.session['user_type'] = user_type  # Store the role in session
-                return redirect('home')
-            else:
-                error_message = "Incorrect password"
-        except BopoAdmin.DoesNotExist:
-            error_message = "User does not exist"
+        #     if check_password(password, user.password):
+        #         request.session['admin_id'] = user.id
+        #         request.session['user_type'] = user_type  # Store the role in session
+        #         return redirect('home')
+        #     else:
+        #         error_message = "Incorrect password"
+        # except BopoAdmin.DoesNotExist:
+        #     error_message = "User does not exist"
 
-        return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+        # return render(request, 'bopo_admin/login.html', {'error_message': error_message})
     
     # GET request
     return render(request, 'bopo_admin/login.html')
