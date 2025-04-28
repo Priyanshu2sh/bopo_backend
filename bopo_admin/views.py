@@ -585,7 +585,7 @@ def add_merchant(request):
                 )
 
                 bopo_admin = BopoAdmin(username=project_name, role="corporate_admin", corporate=corporate)
-                bopo_admin.set_password('1234')  # Hash the password
+                bopo_admin.set_password(pin)  # Hash the password
                 bopo_admin.save()
 
                 try:
@@ -598,7 +598,7 @@ def add_merchant(request):
                         f"Dear {corporate.first_name},\n\n"
                         f"Your BOPO login credentials are as follows:\n"
                         f"Project Name : {corporate.project_name}\n\n"
-                        f"Password : {corporate.password}\n"
+                        f"Password : {corporate.pin}\n"
                         f"Please use these credentials to access your BOPO admin panel.\n\n"
                         f"Regards,\n"
                         f"BOPO Support Team"

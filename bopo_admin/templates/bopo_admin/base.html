@@ -44,13 +44,14 @@
 
         {% if request.user.role == 'super_admin' or role_permissions.individual_merchant == True %}
         <li><a href="{% url 'individual_list' %}"><i class="fas fa-user"></i> Individual Merchant List</a></li>
-        <li><a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}"><i class="fas fa-terminal"></i> Terminals</a></li>
         {% endif %}
-        
+
+        <li><a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}"><i class="fas fa-terminal"></i> Terminals</a></li>
+
         {% if request.user.role == 'super_admin' or role_permissions.merchant_send_credentials == True %}
-        {% comment %} <a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}"><i class="fas fa-terminal"></i> Terminals</a> {% endcomment %}
         <li><a href="{% url 'merchant_credentials' %}"><i class="fas fa-key"></i> Merchant Credentials</a></li>
         {% endif %}
+
         {% comment %} <li><a href="{% url 'merchant_topup' %}"><i class="fas fa-wallet"></i> Top-Up Limit</a></li> {% endcomment %}
         {% if request.user.role == 'super_admin' or role_permissions.merchant_limit == True %}
         {% comment %} <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li> {% endcomment %}
@@ -148,7 +149,6 @@
         </div>
         {% endif %}
         
-        {% if request.user.role == 'super_admin' or role_permissions.deduct_amount == True %}
   {% comment %} <div id="deduct_amount">
             <a href="{% url 'deduct_amount' %}" class="{% if request.path == '/deduct_amount/' %}active{% endif %}">
                 <i class="fas fa-money-bill-wave"></i>  Deduct Amount
@@ -179,11 +179,6 @@
                 <i class="fas fa-terminal"></i> Terminals
             </a>
         </div> {% endcomment %}
-
-
-
-
-        {% endif %}
 
 
     </div>
