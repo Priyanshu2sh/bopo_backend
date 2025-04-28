@@ -1,12 +1,26 @@
 from django.utils import timezone  
 
-from django.db import models, transaction
-
-from accounts.models import Merchant
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.db import models
 from django.contrib.auth.hashers import make_password
 
 # Create your models here.
-class BopoAdmin(models.Model):
+class BopoAdminManager(BaseUserManager):
+    def create_user(self, username, password=None, **extra_fields):
+        if not username:
+            raise ValueError("The Username must be set")
+        user = self.model(username=username, **extra_fields)
+        user.set_password(password)  # handles hashing
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, username, password=None, **extra_fields):
+        extra_fields.setdefault('role', 'super_admin')
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(username, password, **extra_fields)
+
+class BopoAdmin(AbstractBaseUser, PermissionsMixin):
     USER_ROLES = (
         ('super_admin', 'Super Admin'),
         ('corporate_admin', 'Corporate Admin'),
@@ -14,16 +28,21 @@ class BopoAdmin(models.Model):
     )
 
     username = models.CharField(max_length=25, unique=True)
-    password = models.CharField(max_length=128)
+    password = models.CharField(max_length=200)
     role = models.CharField(max_length=20, choices=USER_ROLES)  # <- Add this field
+    employee = models.ForeignKey('bopo_admin.Employee', on_delete=models.CASCADE, null=True, blank=True)
+    corporate = models.ForeignKey('accounts.Corporate', on_delete=models.CASCADE, null=True, blank=True)
 
-    def save(self, *args, **kwargs):
-        if not self.password.startswith('pbkdf2_'):
-            self.password = make_password(self.password)
-        super().save(*args, **kwargs)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    objects = BopoAdminManager()
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = []
 
     def __str__(self):
-        return f"{self.username} ({self.role})"
+        return self.username
 
     
     
@@ -54,7 +73,7 @@ class Topup(models.Model):
     #     ('debit_card', 'debit_card'),
 
     # ]
-    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
+    merchant = models.ForeignKey('accounts.Merchant', on_delete=models.CASCADE)
     topup_amount = models.IntegerField()
     transaction_id = models.CharField(max_length=100)
     topup_points = models.IntegerField()
@@ -197,23 +216,6 @@ class EmployeeRole(models.Model):
 
     def __str__(self):
         return f"Roles for {self.employee.employee_id}"
-
-    def has_merchant_access(self):
-        return any([
-            self.corporate_merchant,
-            self.individual_merchant,
-            self.merchant_send_credentials,
-            self.merchant_limit,
-            self.merchant_login_page_info,
-            self.merchant_send_notification,
-            self.merchant_received_offers
-        ])
-
-    def has_customer_access(self):
-        return self.modify_customer_details or self.customer_send_notification
-
-    def granted_permissions(self):
-        return [f.name for f in self._meta.fields if isinstance(f, models.BooleanField) and getattr(self, f.name)]
     
 
 class UserBalance(models.Model):
