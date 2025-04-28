@@ -142,7 +142,7 @@
                                 </td>
                                 <td>
                                     <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ merchant.id }}')">✏️ Edit</button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteMerchant('{{ merchant.id }}')">🗑️ Delete</button>
+                                    {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteMerchant('{{ merchant.id }}')">🗑️ Delete</button> {% endcomment %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -357,6 +357,7 @@ function openEditModal(merchantId) {
             document.getElementById("edit_shop_name").value = data.shop_name;
             document.getElementById("edit_address").value = data.address;
             document.getElementById("edit_aadhaar_number").value = data.aadhaar_number;
+            document.getElementById("pin").value = data.pin;
             document.getElementById("edit_gst").value = data.gst_number;
             document.getElementById("edit_pan").value = data.pan_number;
             document.getElementById("edit_legal_name").value = data.legal_name;

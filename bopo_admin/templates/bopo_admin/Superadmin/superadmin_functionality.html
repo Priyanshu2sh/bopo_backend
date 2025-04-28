@@ -4,7 +4,15 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/superadmin_func.css' %}">
 
+
+
 <div class="send-notification-container">
+    
+<div class="back-to-list-btn">
+    <a href="{% url 'reports' %}" class="addcustomer-btn-submit">
+        <i class="fa fa-arrow-left"></i> Back
+    </a>
+</div>
     <div class="send-notification-header">
         <h2>Superadmin Functionality</h2>
     </div>
@@ -15,18 +23,18 @@
 <div class="send-notification-item">
     <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
     <label for="toggle-all-customers" class="send-notification-label">
-        <span class="send-notification-icon">🏢</span>
+        <span class="send-notification-icon">💰</span>
         <span>Deduct Amount</span>
     </label>
 
     <div class="send-notification-form"><br>
         <div class="form-group">
-            <label for="deduct-amount">Deduct Amount:</label>
-            <input type="number" id="deduct-amount" class="form-control" placeholder="Enter amount to deduct">
+            <label for="deduct-amount">Deduct Amount Per Transaction:</label>
+            <input type="number" id="deduct-amount" class="form-control" placeholder="Enter percentage ">
         </div>
 
         <div class="button-container">
-            <button class="cancel-btn">Cancel</button>
+            <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
             <button class="send-btn" onclick="showAlert()">Save</button>
         </div>
     </div>
@@ -36,7 +44,7 @@
 <div class="send-notification-item">
     <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
     <label for="toggle-single-customer" class="send-notification-label">
-        <span class="send-notification-icon">👤</span>
+        <span class="send-notification-icon">🔏</span>
         <span>Security Questions</span>
     </label>
 
@@ -48,9 +56,7 @@
                 </tr>
             </thead>
             <tbody id="security-questions-body">
-                {% comment %} <tr><td>What is your pet's name?</td></tr>
-                <tr><td>What is your mother's maiden name?</td></tr>
-                <tr><td>What was the name of your first school?</td></tr> {% endcomment %}
+                <!-- Security questions will appear here -->
             </tbody>
         </table>
 
@@ -65,18 +71,26 @@
     </div>
 </div>
 
+
+
+<!-- <tr><td>What is your pet's name?</td></tr>
+                <tr><td>What is your mother's maiden name?</td></tr>
+                <tr><td>What was the name of your first school?</td></tr> -->
+
+
+
 <!-- To Corporate Customers -->
 <div class="send-notification-item">
     <input type="checkbox" id="toggle-corporate" class="toggle-checkbox">
     <label for="toggle-corporate" class="send-notification-label">
-        <span class="send-notification-icon">🏢</span>
+        <span class="send-notification-icon">📊</span>
         <span>Model Plans</span>
     </label>
 
     <div class="send-notification-form">
         <!-- Rental Model -->
         <div class="model-card"><br>
-            <h3 class="model-header">1.Rental Model</h3>
+            <h3 class="model-header">Model Plans</h3>
             <table class="plans-table">
                 <thead>
                     <tr>
@@ -89,14 +103,20 @@
                 <tbody>
                     <tr>
                         <td><span class="plan-validity-text">12 months</span></td>
-                        <td><span class="plan-type-text">Standard</span></td>
-                        <td><span class="plan-description-text">Basic rental plan with limited features</span></td>
+                        <td><span class="plan-type-text">Rental</span></td>
+                        <td>
+                        <span class="plan-description-text">
+                            A flexible short-term plan allowing merchants to use services with a monthly fee.
+                        </span>
+                    </td>
                         <td><button class="btn-action" onclick="openEditPlanModal(this)">Chnage</button></td>
                     </tr>
                     <tr>
-                        <td><span class="plan-validity-text">24 months</span></td>
-                        <td><span class="plan-type-text">Premium</span></td>
-                        <td><span class="plan-description-text">Premium rental plan with additional benefits</span></td>
+                        <td><span class="plan-validity-text">12 months</span></td>
+                        <td><span class="plan-type-text">Prepaid</span></td>
+                        <td><span class="plan-description-text">
+                            A one-time payment plan offering full access for the validity period.
+                        </span></td>
                         <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
                     </tr>
                     <!-- More rows can be added -->
@@ -104,13 +124,9 @@
             </table>
         </div>
 
-        <!-- Prepaid Model -->
-        <div class="model-card">
-            <h3 class="model-header">2. Prepaid Model</h3>
-        
-        </div>
-    </div>
+       </div>
 </div>
+
 
 <!-- Edit Plan Modal -->
 <div id="editPlanModal" class="modal-container">
@@ -119,18 +135,18 @@
         <h2 class="modal-header">Edit Plan</h2>
         <form id="editPlanForm">
             <div class="input-group">
-                <label for="edit-validity-input">Plan Validity:</label>
-                <input type="text" id="edit-validity-input" class="input-field">
+                <label for="edit-validity-input">Plan Validity</label>
+                <input type="text" id="edit-validity-input" class="input-field" placeholder="Enter plan validity">
             </div>
             <div class="input-group">
-                <label for="edit-type-input">Plan Type:</label>
-                <input type="text" id="edit-type-input" class="input-field">
+                <label for="edit-type-input">Plan Type</label>
+                <input type="text" id="edit-type-input" class="input-field" placeholder="Enter plan type">
             </div>
             <div class="input-group">
-                <label for="edit-description-input">Description:</label>
-                <textarea id="edit-description-input" class="textarea-field"></textarea>
+                <label for="edit-description-input">Description</label>
+                <textarea id="edit-description-input" class="textarea-field" placeholder="Enter description..."></textarea>
             </div>
-            <button type="button" class="btn-save" onclick="savePlanChanges()">Save Changes</button>
+            <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
         </form>
     </div>
 </div>
@@ -140,7 +156,7 @@
 <div class="send-notification-item">
     <input type="checkbox" id="toggle-merchant-wise" class="toggle-checkbox">
     <label for="toggle-merchant-wise" class="send-notification-label">
-        <span class="send-notification-icon">🛒</span>
+        <span class="send-notification-icon">⭐</span>
         <span>Award Points</span>
     </label>
 
@@ -148,14 +164,17 @@
         <div class="form-group">
             <label>Award Points:</label>
             <div id="award-text">
-                <span id="award-display">10% of purchase amount awarded to customer (BBP)</span>
-                <button class="send-btn" onclick="editAward()">Change</button>
+                <span id="award-display">
+                    <span class="highlight-percentage">10%</span> of purchase amount awarded to customer (BBP)
+                </span>
+                <button class="awardsend-btn" onclick="editAward()">Change</button>
             </div>
+            
 
             <div id="award-edit" style="display: none;">
                 <input type="number" id="award-input" class="form-control" placeholder="Enter percentage" value="10" min="0" max="100" style="width: 100px;">
                 <span>% of purchase amount awarded to customer (BBP)</span><br><br>
-                <button class="send-btn" onclick="saveAward()">Save</button>
+                <button class="awardsend-btn1" onclick="saveAward()">Save</button>
                 <button class="cancel-btn" onclick="cancelAward()">Cancel</button>
             </div>
         </div>
@@ -218,75 +237,102 @@
         document.getElementById('award-edit').style.display = 'none';
         document.getElementById('award-text').style.display = 'block';
     }
+
+    function showAlert() {
+    const deductAmountInput = document.getElementById('deduct-amount');
+    const deductAmount = parseFloat(deductAmountInput.value);
+
+    if (isNaN(deductAmount) || deductAmount < 0) {
+        alert('Please enter a valid percentage.');
+        return;
+    }
+
+    fetch('/api/set-deduct-amount/', {  // Your Django API endpoint
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify({ deduct_amount: deductAmount }),
+    })
+    .then(response => response.json().then(data => ({status: response.status, body: data})))
+    .then(({status, body}) => {
+        if (status === 200) {
+            alert('Deduct amount saved successfully!');
+        } else {
+            alert(body.error || 'Failed to save deduction.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Something went wrong.');
+    });
+}
+
+
+
 </script>
 
 
 <script>
-    function showAddQuestion() {
-        document.getElementById('add-question-row').style.display = 'block';
+function saveSecurityQuestion() {
+    const questionInput = document.getElementById("new-question");
+    const question = questionInput.value.trim();
+    if (!question) {
+        alert("Please enter a question.");
+        return;
     }
 
-    function saveSecurityQuestion() {
-        const question = document.getElementById('new-question').value.trim();
-        if (question !== '') {
-            const tbody = document.getElementById('security-questions-body');
-            const row = document.createElement('tr');
-            const cell = document.createElement('td');
-            cell.textContent = question;
-            row.appendChild(cell);
-            tbody.appendChild(row);
+    fetch('/api/security-questions/', {  // ✅ Add leading slash `/`
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),  // CSRF token for Django
+        },
+        body: JSON.stringify({ question: question }),
+    })
+    .then(response => response.json().then(data => ({status: response.status, body: data})))
+    .then(({status, body}) => {
+        if (status === 200 && body.id) {
+            const tbody = document.getElementById("security-questions-body");
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${body.question}</td>`;
+            tbody.appendChild(tr);
+
+            questionInput.value = '';
+            document.getElementById("add-question-row").style.display = 'none';
+        } else {
+            alert(body.error || "Failed to add question. Please try again.");
         }
-        cancelSecurityQuestion();
-    }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("Something went wrong. Please check your connection or try again later.");
+    });
+}
 
-    function cancelSecurityQuestion() {
-        document.getElementById('new-question').value = '';
-        document.getElementById('add-question-row').style.display = 'none';
-    }
+function showAddQuestion() {
+    document.getElementById("add-question-row").style.display = 'block';
+}
 
-    let rowToEdit = null; 
+function cancelSecurityQuestion() {
+    document.getElementById("add-question-row").style.display = 'none';
+    document.getElementById("new-question").value = '';
+}
 
-    function openEditPlanModal(button) {
-        // Get the row where the Edit button was clicked
-        const row = button.closest('tr');
-        const validity = row.querySelector('.plan-validity-text').textContent;
-        const type = row.querySelector('.plan-type-text').textContent;
-        const description = row.querySelector('.plan-description-text').textContent;
-    
-        // Pre-fill the modal form with the current values
-        document.getElementById('edit-validity-input').value = validity;
-        document.getElementById('edit-type-input').value = type;
-        document.getElementById('edit-description-input').value = description;
-    
-        // Store the row reference to update later
-        rowToEdit = row;
-    
-        // Show the modal and close button
-        document.getElementById('editPlanModal').style.display = 'block';
-        document.querySelector('.modal-close-btn').style.display = 'block';  // Ensure the close button is visible
+// CSRF token fetcher for Django
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith(name + '=')) {
+            return decodeURIComponent(cookie.substring(name.length + 1));
+        }
     }
-    
-    function closeEditModal() {
-        // Close the modal
-        document.getElementById('editPlanModal').style.display = 'none';
-        document.querySelector('.modal-close-btn').style.display = 'none';  // Hide the close button when modal is closed
-    }
-    
-    function savePlanChanges() {
-        // Get the new values from the modal form
-        const newValidity = document.getElementById('edit-validity-input').value;
-        const newType = document.getElementById('edit-type-input').value;
-        const newDescription = document.getElementById('edit-description-input').value;
-    
-        // Update the row with the new values
-        rowToEdit.querySelector('.plan-validity-text').textContent = newValidity;
-        rowToEdit.querySelector('.plan-type-text').textContent = newType;
-        rowToEdit.querySelector('.plan-description-text').textContent = newDescription;
-    
-        // Close the modal
-        closeEditModal();
-    }
-    
+    return '';
+}
 </script>
+    
 
 {% endblock %}

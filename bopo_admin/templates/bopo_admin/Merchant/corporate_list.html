@@ -38,6 +38,7 @@
         justify-content: flex-end;
     }
 
+
     /* Custom Pagination Styling (Like .pagination-controls) */
     .dataTables_paginate {
         display: flex;
@@ -97,7 +98,7 @@
             <div class="merchant-table open">  <!-- Add 'open' class here -->
                <!-- Custom Search & Column Toggle Button -->
             <div class="top-controls">
-                <input type="text" class="search-box" id="search-customer" placeholder="Search customers...">
+                <input type="text" class="search-box" id="search-customer" placeholder="Search merchants...">
                 <div id="custom-buttons"></div>
             </div>
 
@@ -112,6 +113,7 @@
                                 <th>Mobile Number</th>
                                 <th>Shop Name</th>
                                 <th>City</th>
+                                <th>BBP</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -126,11 +128,12 @@
                                     <td>{{ data.corporate.mobile }}</td>
                                     <td>{{ data.corporate.shop_name }}</td>
                                     <td>{{ data.corporate.city }}</td>
+                                    <td> </td>
                                     <td><label class="switch"><input type="checkbox" {% if data.corporate.verified_at %}checked{% endif %} data-id="{{ data.corporate.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ data.corporate.corporate_id }}', 'corporate')">✏️ Edit</button>
 
-                                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑️ Delete</button>
+                                    {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑️ Delete</button> {% endcomment %}
                                     </td>
                                 </tr>
                                 {% for merchant in data.merchants %}
@@ -142,10 +145,11 @@
                                     <td>{{ merchant.mobile }}</td>
                                     <td>{{ merchant.shop_name }}</td>
                                     <td>{{ merchant.city }}</td>
+                                    <th> </th>
                                     <td><label class="switch"><input type="checkbox" {% if merchant.verified_at %}checked{% endif %} data-id="{{ merchant.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal({{ merchant.id }}, 'merchant')">✏️ Edit</button>
-                                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button>
+                                      {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button>  {% endcomment %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -173,27 +177,29 @@
     $(document).ready(function () {
         const table = $('#corporate-table').DataTable({
             dom: 'Bfrtip',
-            pageLength: 6,         // Only 6 rows per page
-            paging: true,          // Enables pagination
+            pageLength: 6,
+            paging: true,
             lengthChange: false,
             buttons: [
                 {
                     extend: 'colvis',
-                    text: '<i class="fas fa-table"></i>',
-                    className: 'btn btn-light'
+                    text: '<i class="fas fa-table"></i> Columns',
+                    className: 'btn btn-light',
+                    columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // explicitly list columns to be toggleable
                 }
             ],
-            stripeClasses: [] , // No row striping
+            stripeClasses: []
         });
     
-        // Move buttons to the right
+        // Move buttons to the custom container
         table.buttons().container().appendTo('#custom-buttons');
     
-        // Custom search box binding
+        // Custom search binding
         $('#search-customer').on('keyup', function () {
             table.search(this.value).draw();
         });
     });
+    
     
 </script>
 
@@ -519,95 +525,6 @@
         return cookieValue;
     }
     
-    {% comment %} $('#editMerchantForm').submit(function(e) {
-        e.preventDefault();  // Prevent the form from submitting normally
-    
-        // Get form data
-        let formData = new FormData(this);
-    
-        // Send AJAX request to update merchant
-        $.ajax({
-            url: '/update_copmerchant/',  // Updated URL
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                if (response.success) {
-                    showToast('Merchant updated successfully.', 'success');
-                    closeModal();  // Close the modal
-                    // Optionally, refresh the merchant list or update it dynamically
-                    updateMerchantInList(response.updatedMerchant);
-                } else {
-                    showToast('Failed to update merchant.', 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Error:", error);
-                showToast('An error occurred while updating the merchant.', 'error');
-            }
-        });
-    });
-     {% endcomment %}
-
-
-
-
-
-     {% comment %} 
-
-     function openEditMerchantModal(merchantId) {
-        fetch(`/get_copmerchant/${merchantId}/`)
-            .then(res => res.json())
-            .then(data => {
-                console.log("Merchant Data:", data);
-    
-                document.getElementById('edit_corporate_id').value = data.merchant_id;
-                document.getElementById('edit_first_name').value = data.first_name;
-                document.getElementById('edit_last_name').value = data.last_name;
-                document.getElementById('edit_email').value = data.email;
-                document.getElementById('edit_mobile').value = data.mobile;
-                document.getElementById('edit_address').value = data.address;
-                document.getElementById('edit_shop_name').value = data.shop_name;
-                document.getElementById('edit_aadhaar_number').value = data.aadhaar;
-                document.getElementById('edit_gst_number').value = data.gst_number;
-                document.getElementById('edit_pan').value = data.pan_number;
-                document.getElementById('edit_legal_name').value = data.legal_name;
-                document.getElementById('edit_pincode').value = data.pincode;
-    
-                const stateSelect = document.getElementById("edit_state");
-                stateSelect.innerHTML = `<option value="">Select State</option>`;
-                data.states.forEach(state => {
-                    const option = document.createElement("option");
-                    option.value = state.id;
-                    option.textContent = state.name;
-                    if (state.name === data.state) option.selected = true;
-                    stateSelect.appendChild(option);
-                });
-    
-                const citySelect = document.getElementById("edit_city");
-                citySelect.innerHTML = `<option value="">Select City</option>`;
-                data.cities.forEach(city => {
-                    const option = document.createElement("option");
-                    option.value = city.id;
-                    option.textContent = city.name;
-                    if (city.name === data.city) option.selected = true;
-                    citySelect.appendChild(option);
-                });
-    
-                document.getElementById("editCorporateModal").style.display = "block";
-            })
-            .catch(err => {
-                console.error("Error fetching merchant data:", err);
-            });
-    }
-    
-
-
-
-
- {% endcomment %}
-
 
  function filterTable(tableId, searchBoxId) {
     let input = document.getElementById(searchBoxId);
@@ -615,7 +532,7 @@
     let table = document.getElementById(tableId);
     let rows = table.getElementsByTagName("tr");
 
-    for (let i = 1; i < rows.length; i++) { // Skip header row
+    for (let i = 1; i < rows.length; i++) { 
         let rowText = rows[i].innerText.toLowerCase();
         if (rowText.includes(filter)) {
             rows[i].style.display = "";
