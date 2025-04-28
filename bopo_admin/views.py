@@ -760,6 +760,51 @@ def update_corporate(request):
 
 
 from django.http import JsonResponse
+from accounts.models import Merchant
+
+def get_copmerchant(request, merchant_id):
+    try:
+        merchant = Merchant.objects.get(id=merchant_id)
+
+        state_obj = State.objects.get(name=merchant.state)
+        city_obj = City.objects.get(name=merchant.city)
+
+        cities = City.objects.filter(state=state_obj)
+        city_data = [{"id": city.id, "name": city.name} for city in cities]
+
+        data = {
+            'merchant_id': merchant.id,
+            'first_name': merchant.first_name,
+            'last_name': merchant.last_name,
+            'email': merchant.email,
+            'mobile': merchant.mobile,
+            'aadhaar_number': merchant.aadhaar_number,
+            'pan_number': merchant.pan_number,
+            'gst_number': merchant.gst_number,
+            'legal_name': merchant.legal_name,
+            'project_name': merchant.project_name.project_name if merchant.project_name else None,  # ✅ FIXED
+            'shop_name': merchant.shop_name,
+            'address': merchant.address,
+            'pincode': merchant.pincode,
+            "state": merchant.state,
+            "city": merchant.city,
+            'country': merchant.country,
+            "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],
+            "cities": city_data,
+        }
+
+        return JsonResponse(data)
+
+    except Merchant.DoesNotExist:
+        return JsonResponse({'error': 'Merchant not found'}, status=404)
+    except State.DoesNotExist:
+        return JsonResponse({'error': 'State not found'}, status=404)
+    except City.DoesNotExist:
+        return JsonResponse({'error': 'City not found'}, status=404)
+
+
+
+from django.http import JsonResponse
 from accounts.models import Merchant, Corporate
 
 
@@ -832,51 +877,6 @@ def update_copmerchant(request):
             return JsonResponse({'success': False, 'error': 'Merchant not found'}, status=404)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
-
-
-
-from django.http import JsonResponse
-from accounts.models import Merchant
-
-def get_copmerchant(request, merchant_id):
-    try:
-        merchant = Merchant.objects.get(id=merchant_id)
-
-        state_obj = State.objects.get(name=merchant.state)
-        city_obj = City.objects.get(name=merchant.city)
-
-        cities = City.objects.filter(state=state_obj)
-        city_data = [{"id": city.id, "name": city.name} for city in cities]
-
-        data = {
-            'merchant_id': merchant.id,
-            'first_name': merchant.first_name,
-            'last_name': merchant.last_name,
-            'email': merchant.email,
-            'mobile': merchant.mobile,
-            'aadhaar_number': merchant.aadhaar_number,
-            'pan_number': merchant.pan_number,
-            'gst_number': merchant.gst_number,
-            'legal_name': merchant.legal_name,
-            'project_name': merchant.project_name.project_name if merchant.project_name else None,  # ✅ FIXED
-            'shop_name': merchant.shop_name,
-            'address': merchant.address,
-            'pincode': merchant.pincode,
-            "state": merchant.state,
-            "city": merchant.city,
-            'country': merchant.country,
-            "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],
-            "cities": city_data,
-        }
-
-        return JsonResponse(data)
-
-    except Merchant.DoesNotExist:
-        return JsonResponse({'error': 'Merchant not found'}, status=404)
-    except State.DoesNotExist:
-        return JsonResponse({'error': 'State not found'}, status=404)
-    except City.DoesNotExist:
-        return JsonResponse({'error': 'City not found'}, status=404)
 
 
 
