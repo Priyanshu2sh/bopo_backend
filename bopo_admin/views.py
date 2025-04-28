@@ -64,10 +64,6 @@ def custom_logout_view(request):
     logout(request)
     return redirect('login')
 
-def profile(request):
-    return render(request, 'bopo_admin/profile.html')  # Include the correct path and .html extension
-
-
 def corporate_admin(request):
     corporates = Corporate.objects.all()
     corporate_data = []
@@ -1971,6 +1967,43 @@ def login(request):
     # GET request
     return render(request, 'bopo_admin/login.html')
 
+from django.contrib.auth.hashers import make_password
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import AnonymousUser
+
+
+
+def profile(request):
+    if isinstance(request.user, AnonymousUser):
+        # If the user is not logged in (AnonymousUser), render a profile page without the edit form
+        return render(request, 'bopo_admin/profile.html', {'error_message': 'You must be logged in to edit your profile.'})
+
+    # If the user is logged in (authenticated)
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        user_type = request.POST.get('user_type')  # Getting user type from the form
+        password = request.POST.get('password')
+
+        user = request.user  # Assuming you are using the default user model
+        
+        # Update the user's username and user type
+        user.username = username
+        user.user_type = user_type  # Updating user type
+        
+        # If the password is provided, update it (hashed before saving)
+        if password:
+            user.password = make_password(password)
+
+        user.save()  # Save the updated user information
+
+        # Add a success message
+        success_message = "Profile updated successfully!"
+
+        # Redirect to profile page to see the changes
+        return render(request, 'bopo_admin/profile.html', {'success_message': success_message, 'user': user})
+
+    # If GET request, just render the profile page
+    return render(request, 'bopo_admin/profile.html', {'user': request.user})
 
 
 # from datetime import timedelta
