@@ -44,14 +44,16 @@
 
         {% if request.user.role == 'super_admin' or role_permissions.individual_merchant == True %}
         <li><a href="{% url 'individual_list' %}"><i class="fas fa-user"></i> Individual Merchant List</a></li>
+        <li><a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}"><i class="fas fa-terminal"></i> Terminals</a></li>
         {% endif %}
         
         {% if request.user.role == 'super_admin' or role_permissions.merchant_send_credentials == True %}
+        {% comment %} <a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}"><i class="fas fa-terminal"></i> Terminals</a> {% endcomment %}
         <li><a href="{% url 'merchant_credentials' %}"><i class="fas fa-key"></i> Merchant Credentials</a></li>
         {% endif %}
-        
+        {% comment %} <li><a href="{% url 'merchant_topup' %}"><i class="fas fa-wallet"></i> Top-Up Limit</a></li> {% endcomment %}
         {% if request.user.role == 'super_admin' or role_permissions.merchant_limit == True %}
-        <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li>
+        {% comment %} <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li> {% endcomment %}
         {% endif %}
 
         {% if request.user.role == 'super_admin' %}
@@ -147,11 +149,40 @@
         {% endif %}
         
         {% if request.user.role == 'super_admin' or role_permissions.deduct_amount == True %}
-        <div id="deduct_amount">
+  {% comment %} <div id="deduct_amount">
             <a href="{% url 'deduct_amount' %}" class="{% if request.path == '/deduct_amount/' %}active{% endif %}">
                 <i class="fas fa-money-bill-wave"></i>  Deduct Amount
             </a>
-        </div>
+        </div>  {% endcomment %}
+
+
+<!-- Superadmin Section -->
+<div id="superadminSection">
+    <a href="{% url 'superadmin_functionality' %}" class="{% if request.path == '/superadmin_functionality/' %}active{% endif %}">
+        <i class="fas fa-user-shield"></i> Superadmin Functionality
+    </a>
+</div>
+
+
+
+
+        <!-- Corporate Admin Section -->
+        {% comment %} <div id="corporateAdmin">
+            <a href="{% url 'corporate_admin' %}" class="{% if request.path == '/corporate_admin/' %}active{% endif %}">
+                <i class="fas fa-users-cog"></i> Corporate Admin
+            </a>
+        </div> {% endcomment %}
+
+       <!-- Terminals Section -->
+        {% comment %} <div id="terminalsSection">
+            <a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}">
+                <i class="fas fa-terminal"></i> Terminals
+            </a>
+        </div> {% endcomment %}
+
+
+
+
         {% endif %}
 
 
@@ -238,6 +269,8 @@
     
         setupDropdown("merchantDropdownToggle", "merchantDropdownMenu", "belowMerchant");
         setupDropdown("employeeDropdownToggle", "employeeDropdownMenu", "belowEmployee");
+        setupDropdown("superadminDropdownToggle", "superadminDropdownMenu", "belowSuperadmin");
+
     });
     
     document.addEventListener("DOMContentLoaded", function () {

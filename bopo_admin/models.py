@@ -221,6 +221,16 @@ class EmployeeRole(models.Model):
 class UserBalance(models.Model):
 
     deduction_amount = models.FloatField(default=0.0)  # Default to 5%
+    
+class SecurityQuestion(models.Model):
+    question = models.CharField(max_length=255)
+    
+class DeductSetting(models.Model):
+    deduct_percentage = models.FloatField(default=5.0)  # Default 5% if not set
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Deduct {self.deduct_percentage}%"
 
 
     

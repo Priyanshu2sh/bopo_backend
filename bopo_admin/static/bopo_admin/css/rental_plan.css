@@ -5,9 +5,8 @@ body {
     padding: 0;
 }
 
-
-/* Main Customer Container */
-.customer-container {
+/* Main Rental Plan Container */
+.rental_plan-container {
     background-color: #fff;
     padding: 20px;
     border-radius: 10px;
@@ -18,7 +17,7 @@ body {
 }
 
 /* Header */
-.customer-header {
+.rental_plan-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -31,7 +30,7 @@ body {
 }
 
 /* Buttons */
-.add-customer-btn, .send-customer-btn {
+.add-rental_plan-btn, .send-rental_plan-btn {
     height: 50px; /* Increased size */
     width: 180px; /* Increased width */
     color: white;
@@ -43,17 +42,17 @@ body {
     font-weight: bold;
 }
 
-.add-customer-btn {
-
+.add-rental_plan-btn {
     background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
-    background: linear-gradient(178deg, #e12503 0%, #85060c 100%)
-    
-    }
-.add-customer-btn:hover {     background: linear-gradient(178deg, red 0%, #85060c 100%);}
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+}
+.add-rental_plan-btn:hover { 
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
 
-/* .send-customer-btn { background-color: #1c3a72; } */
-.send-customer-btn { background: linear-gradient(178deg, #004080 0%, #2c3e50 100%); }
-.send-customer-btn:hover { background-color: #7486b7; }
+/* .send-rental_plan-btn { background-color: #1c3a72; } */
+.send-rental_plan-btn { background: linear-gradient(178deg, #004080 0%, #2c3e50 100%); }
+.send-rental_plan-btn:hover { background-color: #7486b7; }
 
 
 .modal-content h2 {
@@ -65,28 +64,28 @@ body {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Customer List */
-.customer-list {
+/* Rental Plan List */
+.rental_plan-list {
     margin-top: 20px;
     background: #e3f2fd;
     padding: 15px;
     border-radius: 8px;
 }
 
-/* Customer Table */
-.customer-table {
+/* Rental Plan Table */
+.rental_plan-table {
     background-color: white;
     padding: 15px;
     border-radius: 8px;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 }
-.customer-buttons {
+.rental_plan-buttons {
     display: flex;
     gap: 10px; /* Adds space between buttons */
     align-items: center; /* Aligns buttons in the center */
 }
 
-.add-customer-btn, .send-customer-btn {
+.add-rental_plan-btn, .send-rental_plan-btn {
     height: 50px; /* Increased height */
     width: 200px; /* Increased width */
     color: white;
@@ -99,13 +98,13 @@ body {
     text-align: center;
 }
 
-.send-customer-btn {
+.send-rental_plan-btn {
     background-color: #1c3a72;
     font-size: 18px; /* Increased font size */
     width: 220px; /* Increased button width */
 }
 
-.send-customer-btn:hover { 
+.send-rental_plan-btn:hover { 
     background-color: #7486b7;
 }
 
@@ -126,7 +125,6 @@ th {
     background-color: #f4f4f4;
 }
 
-
 /* Search box */
 .search-box {
     width: 20%;
@@ -144,7 +142,6 @@ button {
     cursor: pointer;
     font-size: 12px;
 }
-
 
 /* Toast Notification Styling */
 .toast-container {
@@ -189,33 +186,33 @@ button {
 
 /* Responsive adjustments */
 @media screen and (max-width: 768px) {
-    .customer-container {
+    .rental_plan-container {
         padding: 10px;
         max-width: 100%;
         margin-top: 10px;
     }
 
     /* Adjust header */
-    .customer-header {
+    .rental_plan-header {
         flex-direction: column;
         text-align: center;
         gap: 10px;
     }
 
-    .customer-buttons {
+    .rental_plan-buttons {
         display: flex;
         flex-direction: row;
         width: 90%;
     }
 
-    .add-customer-btn, .send-customer-btn {
+    .add-rental_plan-btn, .send-rental_plan-btn {
         width: 100%;
         font-size: 14px;
         padding: 8px;
     }
 
     /* Make table responsive */
-    .customer-table {
+    .rental_plan-table {
         width: 100%;
         overflow-x: auto;
     }
@@ -230,8 +227,6 @@ button {
         width: 70%;
     }
 
-    
-
     .form-container {
         display: flex;
         flex-direction: column;
@@ -245,7 +240,6 @@ button {
         display: flex;
         align-items: center;
     }
-  
 
     /* Adjust Close Button */
     .close {
@@ -253,9 +247,8 @@ button {
         right: 10px;
         font-size: 20px;
     }
- 
-
 }
+
 .select2-container {
     width: 100% !important;
 }
@@ -279,9 +272,6 @@ button {
     height: 100%;
 }
 
-
-
-
 /* Smaller Toggle Button */
 .switch {
     position: relative;
@@ -289,15 +279,15 @@ button {
     width: 40px;  /* Reduced width */
     height: 20px;  /* Reduced height */
     margin-left: 12%;
-  }
-  
-  .switch input {
+}
+
+.switch input {
     opacity: 0;
     width: 0;
     height: 0;
-  }
-  
-  .slider {
+}
+
+.slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -307,9 +297,9 @@ button {
     background-color: #ccc;
     transition: .4s;
     border-radius: 34px;
-  }
-  
-  .slider:before {
+}
+
+.slider:before {
     position: absolute;
     content: "";
     height: 16px;  /* Smaller circle */
@@ -319,209 +309,14 @@ button {
     bottom: 2px;  /* Adjusted for smaller size */
     background-color: white;
     transition: .4s;
-  }
-  
-  input:checked + .slider {
+}
+
+input:checked + .slider {
     background-color: #4CAF50;
-  }
-  
-  input:checked + .slider:before {
+}
+
+input:checked + .slider:before {
     transform: translateX(20px);  /* Adjusted for smaller size */
-  }
-/*  
-.pagination-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-top: 20px;
-    flex-wrap: wrap;
-}
-
-.pagination-controls button {
-    background: linear-gradient(135deg, #ff7b54, #ff4e00);
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(255, 78, 0, 0.3);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-}
-
-.pagination-controls button:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, #ff9a76, #ff6a2d);
-    box-shadow: 0 6px 12px rgba(255, 78, 0, 0.4);
-}
-
-.pagination-controls .active-page {
-    background: linear-gradient(135deg, #333, #111);
-    color: #fff;
-    font-weight: bold;
-    border: 2px solid #ff4e00;
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
-} */
-
-.modal {
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4); /* Slight background */
-}
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    overflow-y: auto;
-    padding: 20px;
-}
-
-.modal-content {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    width: 45%;
-    max-width: 1000px;
-    margin: -1% auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    position: relative;
-}
-
-    
-    .close {
-        margin-left: 95%;
-        font-size: 28px;
-        cursor: pointer;
-    }
-    .close:hover {
-        color: red;
-        font-weight: bold;
-    }
-
-
-
-
-.addcustomer-form-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-}
-
-.addcustomer-form-group {
-    width: 48%;
-    height:70vh;
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 10px;
-}
-.addcustomer-form-group label {
-    display: block;
-    font-size: 14px;
-    margin-bottom: 5px;
-    color: #555;
-}
-.addcustomer-input-container {
-    display: flex;
-    align-items: center;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 8px;
-    margin-bottom: 10px;
-}
-.addcustomer-input-container i {
-    color: #555;
-    margin-right: 10px;
-}
-.addcustomer-input-container input, select {
-    border: none;
-    outline: none;
-    flex: 1;
-    font-size: 14px;
-}
-.addcustomer-form-group label[for="city"] {
-    margin-top: 2.5%;
-    display: block;
-}
-
-.addcustomer-btn-submit {
-    display: inline-block;
-    padding: 10px 20px;
-    margin-top: 3%;
-    width: 20%;
-    font-size: 16px;
-    color: white;
-    background-color: #004080;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    transition: background 0.3s ease;
-    margin-left: 40%;
-}
-
-.addcustomer-btn-submit:hover {
-    background-color: #002b55;
-}
-
-.addcustomer-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
-
-
-custom-dropdown {
-    position: relative;
-    width: 100%;
-}
-
-.custom-dropdown input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-left: 0;
-    gap: 20px;
-}
-
-.dropdown-options {
-    display: none;
-    position: absolute;
-    width: 100%;
-    max-height: 150px;
-    overflow-y: auto;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    z-index: 1000;
-    margin-left: 0;
-}
-
-.dropdown-options div {
-    padding: 10px;
-    cursor: pointer;
-}
-
-.dropdown-options div:hover {
-    background: #f1f1f1;
 }
 
 /* Modal Background */
@@ -536,32 +331,31 @@ custom-dropdown {
     background-color: rgba(0, 0, 0, 0.5);  /* Black with opacity */
     justify-content: center;
     align-items: center;
-  }
-  
-  /* Modal Content */
-  .custom-modal-content {
+}
+
+/* Modal Content */
+.custom-modal-content {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
     text-align: center;
     max-width: 400px;
     width: 80%;
+}
 
-  }
-
-  /* Modal Header Text (Message) */
+/* Modal Header Text (Message) */
 #confirmationMessage {
     font-size: 20px;  /* Reduced font size */
     color: #333;
     font-weight: bold;
-  }
-  
-  /* Modal Buttons */
-  .custom-modal-buttons {
+}
+
+/* Modal Buttons */
+.custom-modal-buttons {
     margin-top: 20px;
-  }
-  
-  .custom-btn {
+}
+
+.custom-btn {
     padding: 10px 20px;
     margin: 5px;
     background-color: #4CAF50; /* Green */
@@ -571,18 +365,16 @@ custom-dropdown {
     font-size: 16px;
     font-weight: bold;
     border-radius: 4px;
-  }
-  
-  .custom-btn:hover {
-    background-color: #80af83;
-  }
-  
-  #cancelDelete {
-    background-color: #f44336; /* Red */
-  }
-  
-  #cancelDelete:hover {
-    background-color: #e53935;
-  }
+}
 
-  
+.custom-btn:hover {
+    background-color: #80af83;
+}
+
+#cancelDelete {
+    background-color: #f44336; /* Red */
+}
+
+#cancelDelete:hover {
+    background-color: #e53935;
+}

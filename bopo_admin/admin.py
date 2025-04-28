@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import AccountInfo, BopoAdmin, Employee, EmployeeRole, MerchantCredential, Notification, Reducelimit, Topup, UploadedFile
+from .models import AccountInfo, BopoAdmin, DeductSetting, Employee, EmployeeRole, MerchantCredential, Notification, Reducelimit, SecurityQuestion, Topup, UploadedFile
 
 class BopoAdminAdmin(UserAdmin):
     model = BopoAdmin
@@ -27,5 +27,11 @@ admin.site.register(AccountInfo)
 admin.site.register(UploadedFile)
 admin.site.register(Notification)
 admin.site.register(EmployeeRole)
+admin.site.register(SecurityQuestion)
+admin.site.register(DeductSetting)
+
+
+
+
 
 

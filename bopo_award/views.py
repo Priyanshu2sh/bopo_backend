@@ -8,6 +8,7 @@ from django.db.models import Sum
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.serializers import CustomerSerializer, MerchantSerializer
+from bopo_admin.models import DeductSetting
 
 from .serializers import BankDetailSerializer, CorporateProjectSerializer, HelpSerializer, PaymentDetailsSerializer
 
@@ -17,30 +18,30 @@ from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
 class RedeemPointsAPIView(APIView):
     """
-    API for Customer to Merchant point transfer (5% deduction).
+    API for Customer to Merchant point transfer (with dynamic deduction % based on Super Admin setting).
     """
 
     def post(self, request):
-        customer_id = request.data.get('customer_id')
-        customer_mobile = request.data.get('customer_mobile')
-        merchant_id = request.data.get('merchant_id')
-        merchant_mobile = request.data.get('merchant_mobile')
+        customer_id = request.data.get('customer_id', '').strip()
+        customer_mobile = request.data.get('customer_mobile', '').strip()
+        merchant_id = request.data.get('merchant_id', '').strip()
+        merchant_mobile = request.data.get('merchant_mobile', '').strip()
         pin = request.data.get('pin')
         points = int(request.data.get('points', 0))
 
         if points <= 0:
             return Response({'error': 'Points must be greater than zero'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # ✅ Fetch customer by ID or mobile
+        # ✅ Fetch customer
         try:
             if customer_id:
-                customer = Customer.objects.get(customer_id=customer_id)
+                customer = Customer.objects.get(customer_id__iexact=customer_id)
             elif customer_mobile:
                 customer = Customer.objects.get(mobile=customer_mobile)
             else:
                 return Response({'error': 'Customer ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
         except Customer.DoesNotExist:
-            return Response({'error': 'Customer not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Customer not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         # ✅ Validate customer's PIN
         if str(customer.pin) != str(pin):
@@ -50,15 +51,13 @@ class RedeemPointsAPIView(APIView):
         merchant = None
         if merchant_id:
             try:
-                merchant = Merchant.objects.get(merchant_id=merchant_id)
+                merchant = Merchant.objects.get(merchant_id__iexact=merchant_id)
             except Merchant.DoesNotExist:
-                return Response({'error': 'Merchant not found.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': f'Merchant not found for ID {merchant_id}'}, status=status.HTTP_404_NOT_FOUND)
         elif merchant_mobile:
             merchant, created = Merchant.objects.get_or_create(
                 mobile=merchant_mobile,
-                defaults={
-                    'merchant_id': f"M{random.randint(100000, 999999)}",
-                }
+                defaults={'merchant_id': f"M{random.randint(100000, 999999)}"}
             )
         else:
             return Response({'error': 'Merchant ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -84,8 +83,16 @@ class RedeemPointsAPIView(APIView):
                 points_to_deduct = 0
             entry.save(update_fields=['points'])
 
-        # ✅ Apply 5% deduction
-        points_after_deduction = round(points * 0.95, 2)
+        # ✅ Fetch dynamic deduction percentage
+        try:
+            setting = DeductSetting.objects.get(id=1)
+            deduct_percentage = setting.deduct_percentage
+        except DeductSetting.DoesNotExist:
+            deduct_percentage = 5.0  # fallback default deduction if setting is not found
+
+        # ✅ Apply dynamic deduction
+        deduction_factor = (100 - deduct_percentage) / 100  # example: 5% means 95%
+        points_after_deduction = round(points * deduction_factor, 2)
 
         # ✅ Update or create MerchantPoints
         merchant_points, created = MerchantPoints.objects.get_or_create(
@@ -105,17 +112,11 @@ class RedeemPointsAPIView(APIView):
         )
 
         return Response({
-            'message': 'Points redeemed successfully',
+            'message': f'Points redeemed successfully with {deduct_percentage}% deduction.',
             'merchant_id': merchant.merchant_id,
             'merchant_mobile': merchant.mobile
         }, status=status.HTTP_200_OK)
-
-
-    
-
-from .models import Customer, Merchant, CustomerPoints, MerchantPoints, History
-
-
+        
 class AwardPointsAPIView(APIView):
     """
     API for Merchant to Customer point transfer (No deduction).
@@ -311,23 +312,25 @@ class CustomerToCustomerTransferAPIView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         # Apply 5% deduction
-        points_after_deduction = int(points * 0.95)  # 5% fee
+        points_after_deduction = int(points * 0.95)
 
-        # Deduct points from sender
+        # Deduct points from sender safely
         sender_entry, _ = CustomerPoints.objects.get_or_create(
             customer=sender_customer, merchant=merchant, defaults={"points": 0}
         )
-        sender_entry.points -= points
-        sender_entry.save()
+        sender_entry.points = F('points') - points
+        sender_entry.save(update_fields=['points'])
+        sender_entry.refresh_from_db()
 
-        # Add points to receiver
+        # Add points to receiver safely
         receiver_entry, _ = CustomerPoints.objects.get_or_create(
             customer=receiver_customer, merchant=merchant, defaults={"points": 0}
         )
-        receiver_entry.points += points_after_deduction
-        receiver_entry.save()
+        receiver_entry.points = F('points') + points_after_deduction
+        receiver_entry.save(update_fields=['points'])
+        receiver_entry.refresh_from_db()
 
-        # Save transaction history
+        # Save transaction
         CustomerToCustomer.objects.create(
             sender_customer=sender_customer,
             receiver_customer=receiver_customer,
@@ -341,7 +344,7 @@ class CustomerToCustomerTransferAPIView(APIView):
             "sender_balance": sender_entry.points,
             "receiver_balance": receiver_entry.points
         }, status=status.HTTP_200_OK)
-    
+   
 class MerchantToMerchantTransferAPIView(APIView):
     """
     API for Merchant to Merchant point transfer (5% deduction).
@@ -527,6 +530,18 @@ class UpdateCustomerProfileAPIView(APIView):
 
 class UpdateMerchantProfileAPIView(APIView):
     """API to update merchant profile"""
+    
+    def get(self, request, merchant_id):
+        """
+        Get the profile of a specific merchant using merchant_id.
+        """
+        merchant = get_object_or_404(Merchant, merchant_id=merchant_id)
+        serializer = MerchantSerializer(merchant)
+        return Response({
+            "message": "Merchant profile fetched successfully.",
+            "merchant_id": merchant.merchant_id,
+            "profile_data": serializer.data
+        }, status=status.HTTP_200_OK)
 
     def put(self, request, merchant_id):
         """
@@ -593,6 +608,44 @@ class CustomerMerchantPointsAPIView(APIView):
         return Response({
             "customer_id": customer_id,
             "merchant_points": merchant_points_data
+        }, status=status.HTTP_200_OK)
+        
+        
+class MerchantCustomerPointsAPIView(APIView):
+    """
+    API to fetch all customer-wise points for a given merchant with PIN validation.
+    """
+
+    def post(self, request):
+        merchant_id = request.data.get("merchant_id")
+        pin = request.data.get("pin")
+
+        # Validate merchant
+        merchant = Merchant.objects.filter(merchant_id=merchant_id).first()
+        if not merchant:
+            return Response({"error": "Please enter the correct merchant ID."}, status=status.HTTP_404_NOT_FOUND)
+
+        if str(merchant.pin) != str(pin):
+            return Response({"error": "Please enter the correct PIN."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch customer points related to this merchant
+        customer_points = CustomerPoints.objects.filter(merchant=merchant).values(
+            "customer__customer_id", "customer__first_name", "customer__last_name", "points"
+        )
+
+        # Prepare response
+        customer_points_data = [
+            {
+                "customer_id": cp["customer__customer_id"],
+                "customer_name": f"{cp['customer__first_name']} {cp['customer__last_name']}".strip(),
+                "points": cp["points"]
+            }
+            for cp in customer_points
+        ]
+
+        return Response({
+            "merchant_id": merchant_id,
+            "customer_points": customer_points_data
         }, status=status.HTTP_200_OK)
 
 

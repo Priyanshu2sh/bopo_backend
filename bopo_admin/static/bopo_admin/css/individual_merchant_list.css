@@ -452,6 +452,7 @@ button {
     color: white;
 }
 
+
 .select2-container {
     width: 100% !important;
 }
@@ -474,7 +475,6 @@ button {
 .select2-selection__arrow {
     height: 100%;
 }
-
 /* Modal Background */
 .custom-modal {
     display: none;  /* Hidden by default */
