@@ -525,95 +525,6 @@
         return cookieValue;
     }
     
-    {% comment %} $('#editMerchantForm').submit(function(e) {
-        e.preventDefault();  // Prevent the form from submitting normally
-    
-        // Get form data
-        let formData = new FormData(this);
-    
-        // Send AJAX request to update merchant
-        $.ajax({
-            url: '/update_copmerchant/',  // Updated URL
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                if (response.success) {
-                    showToast('Merchant updated successfully.', 'success');
-                    closeModal();  // Close the modal
-                    // Optionally, refresh the merchant list or update it dynamically
-                    updateMerchantInList(response.updatedMerchant);
-                } else {
-                    showToast('Failed to update merchant.', 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Error:", error);
-                showToast('An error occurred while updating the merchant.', 'error');
-            }
-        });
-    });
-     {% endcomment %}
-
-
-
-
-
-     {% comment %} 
-
-     function openEditMerchantModal(merchantId) {
-        fetch(`/get_copmerchant/${merchantId}/`)
-            .then(res => res.json())
-            .then(data => {
-                console.log("Merchant Data:", data);
-    
-                document.getElementById('edit_corporate_id').value = data.merchant_id;
-                document.getElementById('edit_first_name').value = data.first_name;
-                document.getElementById('edit_last_name').value = data.last_name;
-                document.getElementById('edit_email').value = data.email;
-                document.getElementById('edit_mobile').value = data.mobile;
-                document.getElementById('edit_address').value = data.address;
-                document.getElementById('edit_shop_name').value = data.shop_name;
-                document.getElementById('edit_aadhaar_number').value = data.aadhaar;
-                document.getElementById('edit_gst_number').value = data.gst_number;
-                document.getElementById('edit_pan').value = data.pan_number;
-                document.getElementById('edit_legal_name').value = data.legal_name;
-                document.getElementById('edit_pincode').value = data.pincode;
-    
-                const stateSelect = document.getElementById("edit_state");
-                stateSelect.innerHTML = `<option value="">Select State</option>`;
-                data.states.forEach(state => {
-                    const option = document.createElement("option");
-                    option.value = state.id;
-                    option.textContent = state.name;
-                    if (state.name === data.state) option.selected = true;
-                    stateSelect.appendChild(option);
-                });
-    
-                const citySelect = document.getElementById("edit_city");
-                citySelect.innerHTML = `<option value="">Select City</option>`;
-                data.cities.forEach(city => {
-                    const option = document.createElement("option");
-                    option.value = city.id;
-                    option.textContent = city.name;
-                    if (city.name === data.city) option.selected = true;
-                    citySelect.appendChild(option);
-                });
-    
-                document.getElementById("editCorporateModal").style.display = "block";
-            })
-            .catch(err => {
-                console.error("Error fetching merchant data:", err);
-            });
-    }
-    
-
-
-
-
- {% endcomment %}
-
 
  function filterTable(tableId, searchBoxId) {
     let input = document.getElementById(searchBoxId);
@@ -621,7 +532,7 @@
     let table = document.getElementById(tableId);
     let rows = table.getElementsByTagName("tr");
 
-    for (let i = 1; i < rows.length; i++) { // Skip header row
+    for (let i = 1; i < rows.length; i++) { 
         let rowText = rows[i].innerText.toLowerCase();
         if (rowText.includes(filter)) {
             rows[i].style.display = "";
