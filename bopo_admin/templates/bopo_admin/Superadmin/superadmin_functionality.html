@@ -1,0 +1,338 @@
+{% extends "bopo_admin/base.html" %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/superadmin_func.css' %}">
+
+
+
+<div class="send-notification-container">
+    
+<div class="back-to-list-btn">
+    <a href="{% url 'reports' %}" class="addcustomer-btn-submit">
+        <i class="fa fa-arrow-left"></i> Back
+    </a>
+</div>
+    <div class="send-notification-header">
+        <h2>Superadmin Functionality</h2>
+    </div>
+
+    <div class="send-notification-list">
+    
+       <!-- To All Customers -->
+<div class="send-notification-item">
+    <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
+    <label for="toggle-all-customers" class="send-notification-label">
+        <span class="send-notification-icon">💰</span>
+        <span>Deduct Amount</span>
+    </label>
+
+    <div class="send-notification-form"><br>
+        <div class="form-group">
+            <label for="deduct-amount">Deduct Amount Per Transaction:</label>
+            <input type="number" id="deduct-amount" class="form-control" placeholder="Enter percentage ">
+        </div>
+
+        <div class="button-container">
+            <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
+            <button class="send-btn" onclick="showAlert()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- To Single Customer -->
+<div class="send-notification-item">
+    <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
+    <label for="toggle-single-customer" class="send-notification-label">
+        <span class="send-notification-icon">🔏</span>
+        <span>Security Questions</span>
+    </label>
+
+    <div class="send-notification-form"><br>
+        <table class="form-control" style="width: 100%; margin-bottom: 15px;">
+            <thead>
+                <tr>
+                    <th>Question</th>
+                </tr>
+            </thead>
+            <tbody id="security-questions-body">
+                <!-- Security questions will appear here -->
+            </tbody>
+        </table>
+
+        <div id="add-question-row" style="display: none; margin-bottom: 15px;">
+            <input type="text" id="new-question" class="form-control" placeholder="Enter new security question">
+            <br>
+            <button class="send-btn" onclick="saveSecurityQuestion()">Save</button>
+            <button class="cancel-btn" onclick="cancelSecurityQuestion()">Cancel</button>
+        </div>
+
+        <button class="send-btn" onclick="showAddQuestion()">Add Question</button>
+    </div>
+</div>
+
+
+
+<!-- <tr><td>What is your pet's name?</td></tr>
+                <tr><td>What is your mother's maiden name?</td></tr>
+                <tr><td>What was the name of your first school?</td></tr> -->
+
+
+
+<!-- To Corporate Customers -->
+<div class="send-notification-item">
+    <input type="checkbox" id="toggle-corporate" class="toggle-checkbox">
+    <label for="toggle-corporate" class="send-notification-label">
+        <span class="send-notification-icon">📊</span>
+        <span>Model Plans</span>
+    </label>
+
+    <div class="send-notification-form">
+        <!-- Rental Model -->
+        <div class="model-card"><br>
+            <h3 class="model-header">Model Plans</h3>
+            <table class="plans-table">
+                <thead>
+                    <tr>
+                        <th>Plan Validity</th>
+                        <th>Plan Type</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="plan-validity-text">12 months</span></td>
+                        <td><span class="plan-type-text">Rental</span></td>
+                        <td>
+                        <span class="plan-description-text">
+                            A flexible short-term plan allowing merchants to use services with a monthly fee.
+                        </span>
+                    </td>
+                        <td><button class="btn-action" onclick="openEditPlanModal(this)">Chnage</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="plan-validity-text">12 months</span></td>
+                        <td><span class="plan-type-text">Prepaid</span></td>
+                        <td><span class="plan-description-text">
+                            A one-time payment plan offering full access for the validity period.
+                        </span></td>
+                        <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
+                    </tr>
+                    <!-- More rows can be added -->
+                </tbody>
+            </table>
+        </div>
+
+       </div>
+</div>
+
+
+<!-- Edit Plan Modal -->
+<div id="editPlanModal" class="modal-container">
+    <div class="modal-content-box">
+        <span class="modal-close-btn" onclick="closeEditModal()">&times;</span>
+        <h2 class="modal-header">Edit Plan</h2>
+        <form id="editPlanForm">
+            <div class="input-group">
+                <label for="edit-validity-input">Plan Validity</label>
+                <input type="text" id="edit-validity-input" class="input-field" placeholder="Enter plan validity">
+            </div>
+            <div class="input-group">
+                <label for="edit-type-input">Plan Type</label>
+                <input type="text" id="edit-type-input" class="input-field" placeholder="Enter plan type">
+            </div>
+            <div class="input-group">
+                <label for="edit-description-input">Description</label>
+                <textarea id="edit-description-input" class="textarea-field" placeholder="Enter description..."></textarea>
+            </div>
+            <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
+        </form>
+    </div>
+</div>
+
+
+       <!-- Merchant Wise -->
+<div class="send-notification-item">
+    <input type="checkbox" id="toggle-merchant-wise" class="toggle-checkbox">
+    <label for="toggle-merchant-wise" class="send-notification-label">
+        <span class="send-notification-icon">⭐</span>
+        <span>Award Points</span>
+    </label>
+
+    <div class="send-notification-form"><br>
+        <div class="form-group">
+            <label>Award Points:</label>
+            <div id="award-text">
+                <span id="award-display">
+                    <span class="highlight-percentage">10%</span> of purchase amount awarded to customer (BBP)
+                </span>
+                <button class="awardsend-btn" onclick="editAward()">Change</button>
+            </div>
+            
+
+            <div id="award-edit" style="display: none;">
+                <input type="number" id="award-input" class="form-control" placeholder="Enter percentage" value="10" min="0" max="100" style="width: 100px;">
+                <span>% of purchase amount awarded to customer (BBP)</span><br><br>
+                <button class="awardsend-btn1" onclick="saveAward()">Save</button>
+                <button class="cancel-btn" onclick="cancelAward()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+    </div>
+</div>
+
+<!-- JavaScript for Toggle Functionality -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
+    
+        toggleCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener("change", function () {
+                const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
+    
+                // Close all other forms before opening the selected one
+                const allForms = document.querySelectorAll(".send-notification-form");
+                allForms.forEach((otherForm) => {
+                    if (otherForm !== form) {
+                        otherForm.style.display = "none";
+                        // Uncheck the other checkboxes to keep them hidden
+                        otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
+                    }
+                });
+    
+                // Toggle the visibility of the selected form
+                if (form) {
+                    form.style.display = this.checked ? "block" : "none";
+                }
+            });
+        });
+    
+        // Initially hide all forms
+        document.querySelectorAll(".send-notification-form").forEach((form) => {
+            form.style.display = "none";
+        });
+    });
+    
+</script>
+
+<script>
+    function editAward() {
+        document.getElementById('award-text').style.display = 'none';
+        document.getElementById('award-edit').style.display = 'block';
+    }
+
+    function saveAward() {
+        const value = document.getElementById('award-input').value;
+        document.getElementById('award-display').innerText = `${value}% of purchase amount awarded to customer (BBP)`;
+        cancelAward();
+    }
+
+    function cancelAward() {
+        document.getElementById('award-edit').style.display = 'none';
+        document.getElementById('award-text').style.display = 'block';
+    }
+
+    function showAlert() {
+    const deductAmountInput = document.getElementById('deduct-amount');
+    const deductAmount = parseFloat(deductAmountInput.value);
+
+    if (isNaN(deductAmount) || deductAmount < 0) {
+        alert('Please enter a valid percentage.');
+        return;
+    }
+
+    fetch('/api/set-deduct-amount/', {  // Your Django API endpoint
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify({ deduct_amount: deductAmount }),
+    })
+    .then(response => response.json().then(data => ({status: response.status, body: data})))
+    .then(({status, body}) => {
+        if (status === 200) {
+            alert('Deduct amount saved successfully!');
+        } else {
+            alert(body.error || 'Failed to save deduction.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Something went wrong.');
+    });
+}
+
+
+
+</script>
+
+
+<script>
+function saveSecurityQuestion() {
+    const questionInput = document.getElementById("new-question");
+    const question = questionInput.value.trim();
+    if (!question) {
+        alert("Please enter a question.");
+        return;
+    }
+
+    fetch('/api/security-questions/', {  // ✅ Add leading slash `/`
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),  // CSRF token for Django
+        },
+        body: JSON.stringify({ question: question }),
+    })
+    .then(response => response.json().then(data => ({status: response.status, body: data})))
+    .then(({status, body}) => {
+        if (status === 200 && body.id) {
+            const tbody = document.getElementById("security-questions-body");
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${body.question}</td>`;
+            tbody.appendChild(tr);
+
+            questionInput.value = '';
+            document.getElementById("add-question-row").style.display = 'none';
+        } else {
+            alert(body.error || "Failed to add question. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("Something went wrong. Please check your connection or try again later.");
+    });
+}
+
+function showAddQuestion() {
+    document.getElementById("add-question-row").style.display = 'block';
+}
+
+function cancelSecurityQuestion() {
+    document.getElementById("add-question-row").style.display = 'none';
+    document.getElementById("new-question").value = '';
+}
+
+// CSRF token fetcher for Django
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith(name + '=')) {
+            return decodeURIComponent(cookie.substring(name.length + 1));
+        }
+    }
+    return '';
+}
+</script>
+    
+
+{% endblock %}

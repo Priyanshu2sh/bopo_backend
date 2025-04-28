@@ -1,7 +1,9 @@
 import logging
 import string
+import requests
 from twilio.rest import Client
 from django.core.mail import send_mail
+from twilio.http.http_client import TwilioHttpClient
 import random
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -40,16 +42,20 @@ class CreateTerminalAPIView(APIView):
 
 class OTPService:
     """ Helper class to handle OTP sending via Twilio """
-    
+
     @staticmethod
     def send_sms_otp(mobile_number, otp):
         """ Sends OTP via SMS using Twilio """
         try:
-            # Ensure Twilio credentials are set in settings
             if not all([settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN, settings.TWILIO_PHONE_NUMBER]):
                 raise ValueError("Twilio credentials are not configured in settings.")
 
-            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            # ✅ Set timeout explicitly
+            http_client = TwilioHttpClient()
+            http_client.session = requests.Session()
+            http_client.session.request = lambda *args, **kwargs: requests.request(*args, timeout=5, **kwargs)
+
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN, http_client=http_client)
             message = client.messages.create(
                 body=f'Your OTP for verification is {otp}',
                 from_=settings.TWILIO_PHONE_NUMBER,
@@ -57,6 +63,9 @@ class OTPService:
             )
             print(f"✅ SMS sent successfully: {message.sid}")
             return True
+        except requests.exceptions.Timeout:
+            print(f"❌ Twilio request timed out.")
+            return False
         except Exception as e:
             print(f"❌ Failed to send OTP via SMS: {e}")
             return False
@@ -245,48 +254,96 @@ class RegisterUserAPIView(APIView):
 
     def register_merchant(self, request, mobile, user_type, project_name):
         """Handles merchant registration"""
-        if user_type not in ["individual"]:
-            return Response({"message": "Invalid user type, only individual merchant can register here", "user_type": "merchant", "merchant_id": None},
-                            status=status.HTTP_400_BAD_REQUEST)
 
-        # if not project_name or len(project_name) < 4:
-        #     return Response({"message": "Project name must be at least 4 characters."}, status=status.HTTP_400_BAD_REQUEST)
+        if user_type != "individual":
+            return Response({
+                "message": "Invalid user type, only individual merchant can register here",
+                "user_type": "merchant",
+                "merchant_id": None
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         prefix = "MEID"
-        random_number = ''.join(random.choices(string.digits, k=11))
-        merchant_id = f"{prefix}{random_number}"
+        merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
         otp = random.randint(100000, 999999)
+
+        terminal_id, tid_pin = self._generate_terminal_info()
 
         try:
             merchant = Merchant.objects.get(mobile=mobile)
             if merchant.verified_at:
-                return Response(
-                    {"message": "Merchant is already registered and verified.", "user_type": "merchant",
-                     "user_id": merchant.merchant_id},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({
+                    "message": "Merchant is already registered and verified.",
+                    "user_type": "merchant",
+                    "user_id": merchant.merchant_id
+                }, status=status.HTTP_400_BAD_REQUEST)
 
             merchant.otp = otp
             merchant.save()
             message = "Merchant exists but not verified. OTP resent successfully."
 
         except Merchant.DoesNotExist:
-            serializer = MerchantSerializer(data={**request.data, "merchant_id": merchant_id, "otp": otp})
+            serializer = MerchantSerializer(data={
+                **request.data,
+                "merchant_id": merchant_id,
+                "otp": otp
+            })
             if serializer.is_valid():
                 merchant = serializer.save()
                 message = "Merchant registered & OTP sent successfully."
             else:
-                return Response({"message": "Validation error", "errors": serializer.errors, "user_type": "merchant",
-                                 "merchant_id": None}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "message": "Validation error",
+                    "errors": serializer.errors,
+                    "user_type": "merchant",
+                    "merchant_id": None
+                }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Send OTP via SMS
+        # ✅ Save terminal info
+        Terminal.objects.create(
+            terminal_id=terminal_id,
+            tid_pin=tid_pin,
+            merchant_id=merchant
+        )
+
+        # ✅ Send OTP
         if OTPService.send_sms_otp(mobile, otp):
-            return Response({"message": message, "user_type": "merchant", "user_id": merchant.merchant_id},
-                            status=status.HTTP_200_OK)
+            return Response({
+                "message": message,
+                "user_type": "merchant",
+                "user_id": merchant.merchant_id,
+                "terminal_id": terminal_id,
+                "tid_pin": tid_pin
+            }, status=status.HTTP_200_OK)
         else:
-            return Response({"message": "Failed to send OTP.", "user_type": "merchant", "user_id": merchant.merchant_id},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "message": "Failed to send OTP.",
+                "user_type": "merchant",
+                "user_id": merchant.merchant_id,
+                "terminal_id": terminal_id,
+                "tid_pin": tid_pin
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    def _generate_terminal_info(self):
+        """Generates a unique terminal ID and PIN"""
+        tid_prefix = "TID"
+        
+        while True:
+            tid_number = random.randint(10000001, 99999999)
+            terminal_id = f"{tid_prefix}{tid_number}"
+            if not Terminal.objects.filter(terminal_id=terminal_id).exists():
+                break
 
+        while True:
+            tid_pin = random.randint(1000, 9999)
+            if not Terminal.objects.filter(tid_pin=tid_pin).exists():
+                break
+
+        return terminal_id, tid_pin
+
+
+
+            
+            
     def update_merchant(self, request, mobile):
         """Update merchant details"""
         merchant = get_object_or_404(Merchant, mobile=mobile)

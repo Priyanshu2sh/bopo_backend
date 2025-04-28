@@ -41,14 +41,17 @@
             <input type="checkbox" id="corporate_merchant" name="roles" value="Corporate Merchant">
            <label for="corporate_merchant">Corporate Merchant</label>
 
-           <input type="checkbox" id="individual_merchant" name="roles" value="Individual Merchant">
-           <label for="individual_merchant">Individual Merchant</label>
-     
-           <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
-           <label for="merchant_send_credentials">Merchant Send Credentials</label>
+                <input type="checkbox" id="individual_merchant" name="roles" value="Individual Merchant">
+                <label for="individual_merchant">Individual Merchant</label>
 
-            <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
-           <label for="merchant_limit">Merchant Limit</label>
+                <input type="checkbox" id="terminals" name="roles" value="Terminals">
+                <label for="terminals">Terminals</label>
+                
+                <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
+                <label for="merchant_send_credentials">Merchant Send Credentials</label>
+                
+                <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
+                <label for="merchant_limit">Merchant Limit</label>
 
            <input type="checkbox" id="merchant_login" name="roles" value="Merchant Login Page-Info">
            <label for="merchant_login">Merchant Login Page-Info</label>
@@ -89,9 +92,11 @@
            <input type="checkbox" id="reports" name="roles" value="Reports">
            <label for="reports">Reports</label>
 
-           <input type="checkbox" id="deduct_amount" name="roles" value="Deduct Amount">
-           <label for="deduct_amount">Deduct Amount</label>
+                {% comment %} <input type="checkbox" id="deduct_amount" name="roles" value="Deduct Amount">
+                <label for="deduct_amount">Deduct Amount</label> {% endcomment %}
 
+                <input type="checkbox" id="superadmin_functionality" name="roles" value="SuperAdmin Functionality">
+                <label for="superadmin_functionality">SuperAdmin Functionality</label>
 
            <input type="checkbox" id="helpdesk_action" name="roles" value="HelpDesk Action">
            <label for="helpdesk_action">HelpDesk Action</label>
