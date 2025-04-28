@@ -1588,15 +1588,17 @@ def employee_list(request):
 
 
 from django.http import JsonResponse
-from .models import Employee 
+from django.shortcuts import get_object_or_404
+from .models import Employee, State, City
 
 def get_employee(request, employee_id):
-    employee = get_object_or_404(Employee, id=employee_id)
+    # Corrected to use 'employee_id' instead of 'id'
+    employee = get_object_or_404(Employee, employee_id=employee_id)
 
     # Retrieve the state object by its name
-    state_obj = State.objects.get(name=employee.state)  # Assuming state is a string, get State object by name
+    state_obj = get_object_or_404(State, name=employee.state)  # Assuming state is a string, get State object by name
 
-    # Retrieve cities based on selected state
+    # Retrieve cities based on the selected state
     cities = City.objects.filter(state=state_obj)  # Now we use the State object
 
     # Convert cities to a dictionary for use in the frontend
@@ -1604,7 +1606,7 @@ def get_employee(request, employee_id):
 
     # Data to send to the frontend
     data = {
-        "id": employee.id,
+        "id": employee.employee_id,  # Assuming employee_id is the identifier
         "name": employee.name,
         "email": employee.email,
         "mobile": employee.mobile,
@@ -1613,7 +1615,7 @@ def get_employee(request, employee_id):
         "pan": employee.pan,
         "pincode": employee.pincode,
         "state": employee.state,  # Assuming state is a string or related field
-        "city": employee.city,    # Assuming city is a string or related field
+        "city": employee.city,
         "username": employee.username,
         "password": employee.password,
         "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],  # List of all states
@@ -1622,13 +1624,14 @@ def get_employee(request, employee_id):
 
     return JsonResponse(data)
 
+
 from django.http import JsonResponse
 from .models import Employee
 
 
 def update_employee(request): 
     if request.method == "POST":
-        employee_id = request.POST.get('employee_id')
+        employee_id = request.POST.get('employee_id')  # Keep 'employee_id'
         name = request.POST.get('employee_name')
         email = request.POST.get('email')
         aadhaar = request.POST.get("aadhaar")
@@ -1643,7 +1646,9 @@ def update_employee(request):
         country = request.POST.get("country", "India")
 
         try:
-            employee = Employee.objects.get(id=employee_id)
+            # Use employee_id instead of id
+            employee = Employee.objects.get(employee_id=employee_id)  # Fixed here
+            
             state_name = State.objects.get(id=state_id).name
             city_name = City.objects.get(id=city_id).name
 

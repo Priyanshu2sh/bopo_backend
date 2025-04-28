@@ -74,7 +74,7 @@ urlpatterns = [
     path('get-merchants/', views.get_merchants, name='get_merchants'),
     
 
-    path('get-employee/<int:employee_id>/', views.get_employee, name='get_employee'),
+    path('get-employee/<str:employee_id>/', views.get_employee, name='get_employee'),
     path('update-employee/', views.update_employee, name='update_employee'),
     path('delete-employee/<int:employee_id>/', delete_employee, name='delete_employee'),
     
