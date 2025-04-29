@@ -104,6 +104,7 @@ urlpatterns = [
     path('superadmin_functionality/', views.superadmin_functionality, name='superadmin_functionality'),
 
     path('update-profile/', views.profile, name='update_profile'), 
+    path('cash-out/', views.cash_out, name='cash_out'),
 
 
 

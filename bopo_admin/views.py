@@ -65,36 +65,8 @@ def custom_logout_view(request):
     return redirect('login')
 
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.contrib.auth import update_session_auth_hash
-
-
-@login_required
 def profile(request):
-    user = request.user
-
-    if request.method == 'POST':
-        # Update the profile
-        email = request.POST.get('email')
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        if email != user.email:
-            user.email = email
-        if username != user.username:
-            user.username = username
-
-        if password:
-            user.set_password(password)
-            update_session_auth_hash(request, user)
-
-        user.save()
-        messages.success(request, "Profile updated successfully")
-        return redirect('profile')
-
-    return render(request, 'bopo_admin/profile.html', {'user': user})
+        return render(request, 'bopo_admin/profile.html')
 
 
 # def dashboard(request):
@@ -2363,6 +2335,24 @@ def deduct_amount(request):
 def superadmin_functionality(request):
     return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html')
  
+
+
+
+
+from django.shortcuts import redirect
+from django.contrib import messages
+
+def cash_out(request):
+    if request.method == 'POST':
+        merchant_id = request.POST.get('merchant_id')
+        transaction_id = request.POST.get('transaction_id')
+        payment_method = request.POST.get('payment_method')
+        payment_date = request.POST.get('payment_date')
+
+        # Save cash-out logic here
+        # Example: CashOut.objects.create(...)
+        messages.success(request, "Cash out recorded successfully.")
+        return redirect('reduce_limit')  # Update with your actual page name
 
 # def security_questions(request):
 #     return render(request, 'bopo_admin/Superadmin/security_questions.html')

@@ -46,7 +46,7 @@
         <li><a href="{% url 'merchant_credentials' %}"><i class="fas fa-key"></i> Merchant Credentials</a></li>
         {% comment %} <li><a href="{% url 'merchant_topup' %}"><i class="fas fa-wallet"></i> Top-Up Limit</a></li> {% endcomment %}
         {% comment %} <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li> {% endcomment %}
-        <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Reduce Limit</a></li>
+        <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Requested Cash-out(BBP) </a></li>
         {% comment %} <li><a href="{% url 'merchant_status' %}"><i class="fas fa-toggle-on"></i> Merchant Status</a></li> {% endcomment %}
         <li><a href="{% url 'login_page_info' %}"><i class="fas fa-info-circle"></i> Login Page Info</a></li>
         <li><a href="{% url 'send_notifications' %}"><i class="fas fa-bell"></i> Send Notifications</a></li>
@@ -86,7 +86,7 @@
         <!-- Payment Details Section -->
         <div id="belowEmployee">
             <a href="{% url 'payment_details' %}" class="{% if request.path == 'payment_details/' %}active{% endif %}">
-                <i class="fas fa-credit-card"></i>  Payment Details
+                <i class="fas fa-credit-card"></i>  Top-Up Request 
             </a>
         </div>
 

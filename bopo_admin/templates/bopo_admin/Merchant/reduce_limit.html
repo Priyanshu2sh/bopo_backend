@@ -1,165 +1,223 @@
 {% extends "bopo_admin/base.html" %}
-
-{% block content %}
 {% load static %}
+{% block content %}
+
 <link rel="stylesheet" href="{% static 'bopo_admin/css/reduce_limit.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<div class="reduce-limit-back-btn">
-    <a href="{% url 'merchant_limit_list' %}" class="reduce-limit-back-btn-submit">
-        <i class="fa fa-arrow-left"></i> Back 
-    </a>
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+
+<style>
+    div.dataTables_filter { display: none !important; }
+
+    .top-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .search-box {
+        padding: 6px 10px;
+        width: 250px;
+    }
+
+    #custom-buttons {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .dataTables_paginate {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .dataTables_paginate .paginate_button {
+        background: linear-gradient(135deg, #ff7b54, #ff4e00);
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(52, 49, 48, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    }
+
+    .dataTables_paginate .paginate_button:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+        box-shadow: 0 6px 12px rgba(41, 39, 38, 0.4);
+    }
+
+    .dataTables_paginate .paginate_button.current {
+        background: linear-gradient(135deg, #333, #111);
+        color: #fff;
+        font-weight: bold;
+        border: 2px solid #ff4e00;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+    }
+
+</style>
+
+<div class="customer-container">
+    <div class="customer-header">
+        <h2>Requested Cash-Out Amount (BBP)</h2>
+        <div class="customer-buttons"></div>
+    </div>
+
+    <div class="customer-list">
+        <div class="customer-table">
+            <div class="top-controls">
+                <input type="text" class="search-box" id="search-customer" placeholder="Search ...">
+                <div id="custom-buttons"></div>
+            </div>
+
+            <table id="customer-table" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Merchant ID</th>
+                        <th>Contact Person</th>
+                        <th>Mobile Number</th>
+                        <th>Request Amount (BBP)</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>MID100001</td>
+                        <td>Shrutika Desai</td>
+                        <td>99999999999</td>
+                        <td>100</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-success" onclick="openCashOutModal(1)">💸 Cash Out</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-<h2>Merchant Reduce Limit</h2>
-<div class="reduce-limit-container">
-   
 
+<!-- Cash Out Modal -->
+<!-- Modal Structure -->
+<div class="modal-container" id="cashOutModal">
+    <div class="modal-content-box">
+        <span class="modal-close-btn" onclick="closeCashOutModal()">&times;</span>
+        <div class="modal-header">Payment Details</div>
 
-    <form method="POST" action="{% url 'reduce_limit' %}">
-        {% csrf_token %}
-        
-        <div class="form-group">
-            <!-- Project Selection -->
-            <label for="project">Select Project</label>
-            <select id="select_project" name="project" onchange="fetchMerchants()">
-                <option value="">Select a project</option>
-                {% for corporate in corporates %}
-                    <option value="{{ corporate.project_id }}">{{ corporate.project_name }} </option>
-                {% endfor %}
+        <div class="input-group">
+            <label for="transactionId">Transaction ID</label>
+            <input type="text" id="transactionId" class="input-field" placeholder="Enter Transaction ID">
+        </div>
+
+        <div class="input-group">
+            <label for="paymentMethod">Payment Method</label>
+            <select id="paymentMethod" class="input-field">
+                <option value="">Select</option>
+                 <option value="Bank Transfer">Bank Transfer</option>
+                <option value="UPI">UPI</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Debit Card">Debit Card</option>
+                      
             </select>
-
-        </div>
-
-        <div class="form-group">
-            <!-- Merchant Selection -->
-            <label for="merchant">Select Merchant</label>
-            <select id="merchant" name="merchant">
-                <option value="">-- Select a Merchant --</option>
-                <!-- Options will be loaded here -->
-            </select>
-        </div>
-
-        <div class="form-group ">
-            <label>Current Limit</label>
-            <div class="input-icon">
-                <span class="icon"><i class="fas fa-money-bill-wave"></i></span>
-                <input type="text" id="current-limit" name= "current_limit" value="" readonly>
-             
-            </div>
-        </div>
-
-        <div class="form-group">
-            <!-- Reduce Amount -->
-            <label for="reduce-amount">Cash-out Amount</label>
-            <div class="input-icon">
-                <span class="icon"><i class="fas fa-coins"></i></span>
-                <input type="number" id="reduce-amount" name="reduce_amount" placeholder="Enter amount">
-            </div>
-        </div>
-
-        <!-- Transaction ID -->
-        <!-- <div class="form-group">
-            
-            <label for="transaction-id">Transaction ID</label>
-            <div class="input-icon">
-                <span class="icon"><i class="fas fa-university"></i></span>
-                <input type="text" id="transaction-id" name="transaction_id" placeholder="Enter Transaction ID">
-            </div>
-        </div> -->
-
-        <div class="button-group">
-            <button type="button" class="cancel-btn" onclick="confirmCancel()">
-                <i class="fa fa-times-circle"></i> Cancel
-            </button>
-            <button type="submit" class="submit-btn">
-                <i class="fa fa-paper-plane"></i>  Submit
-            </button>
         </div>
         
-    </form>
+
+        <div class="input-group">
+            <label for="paymentDate">Payment Date</label>
+            <input type="date" id="paymentDate" class="input-field">
+        </div>
+
+        <button class="btn-save" onclick="submitCashOut()">Save</button>
+    </div>
 </div>
 
- <!-- Toast Notification -->
- <div id="toast" class="toast-container">
-    <i class="fa fa-check-circle"></i>
-    <span class="toast-message">Reduce Limit Submitted successfully!</span>
+
+<!-- Toast -->
+<div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+    <i class="fa fa-exclamation-circle"></i>
+    <span class="toast-message">{{ message }}</span>
 </div>
 
+<!-- Scripts -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
 <script>
-    function fetchMerchants() {
-        const projectId = document.getElementById("select_project").value;
-        const merchantDropdown = document.getElementById("merchant");
-
-        if (projectId) {
-            fetch(`/get-merchants/?project_id=${projectId}`)
-                .then(response => response.json())
-                .then(data => {
-                    merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
-                    data.merchants.forEach(merchant => {
-                        merchantDropdown.innerHTML += `<option value="${merchant.merchant_id}">${merchant.merchant_id}</option>`;
-                    });
-                })
-                .catch(error => {
-                    console.error("Error fetching merchants:", error);
-                });
-        } else {
-            merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
-        }
-    }
-</script>
-    
-
-<script>
-    function confirmCancel() {
-        // Select all input fields and dropdowns inside the form
-        let inputs = document.querySelectorAll("input, select");
-        let emptyFields = false;
-    
-        // Check if any input or dropdown field is empty
-        inputs.forEach(input => {
-            if (input.value.trim() === "select" || input.value.trim() === "") {
-                emptyFields = true;
-            }
+    $(document).ready(function () {
+        const table = $('#customer-table').DataTable({
+            dom: 'Bfrtip',
+            pageLength: 6,
+            lengthChange: false,
+            buttons: [
+                {
+                    extend: 'colvis',
+                    text: '<i class="fas fa-table"></i>',
+                    className: 'btn btn-light'
+                }
+            ],
+            stripeClasses: []
         });
-    
-        // Show alert if fields are empty
-        if (emptyFields) {
-            alert("⚠️ Please fill in all fields before canceling.");
-            return; // Stop further execution
-        }
-    
-        // Show confirmation dialog if all fields are filled
-        let confirmAction = confirm("❗ Are you sure you want to cancel?");
-        if (confirmAction) {
-            window.location.href = "{% url 'home' %}"; // Redirect to Home Page
-        }
-    }
-    
 
+        table.buttons().container().appendTo('#custom-buttons');
 
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelector("form").addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent actual form submission
-
-            let toast = document.getElementById("toast");
-            toast.classList.add("toast-show");
-
-            setTimeout(function () {
-                toast.classList.add("toast-hide");
-                setTimeout(() => {
-                    toast.classList.remove("toast-show", "toast-hide");
-                    document.querySelector("form").submit(); // Uncomment to submit after toast disappears
-                }, 500);
-            }, 3000); // Hide after 3 seconds
+        $('#search-customer').on('keyup', function () {
+            table.search(this.value).draw();
         });
+
+      
     });
 
-
-
+    function openCashOutModal(id) {
+        $('#cashOutModal').fadeIn();
+    }
+    
+    function closeCashOutModal() {
+        $('#cashOutModal').fadeOut();
+    }
+    
+    function submitCashOut() {
+        const transactionId = $('#transactionId').val();
+        const paymentMethod = $('#paymentMethod').val();
+        const paymentDate = $('#paymentDate').val();
+    
+        if (!transactionId || !paymentMethod || !paymentDate) {
+            alert("Please fill in all fields.");
+            return;
+        }
+    
+        // Add your AJAX or form submission logic here
+        console.log("Submitted Cash Out Data:", {
+            transactionId, paymentMethod, paymentDate
+        });
+    
+        closeCashOutModal();
+    }
     
 </script>
+
 
 {% endblock %}
