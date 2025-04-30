@@ -106,8 +106,8 @@ urlpatterns = [
     path('update-profile/', views.profile, name='update_profile'), 
     path('cash-out/', views.cash_out, name='cash_out'),
 
-path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
-
+    path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
+    path('helpdesk/', views.helpdesk, name='helpdesk'),
     
     
     

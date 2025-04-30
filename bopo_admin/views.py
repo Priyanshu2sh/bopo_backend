@@ -2453,6 +2453,11 @@ def cash_out(request):
         messages.success(request, "Cash out recorded successfully.")
         return redirect('reduce_limit')  # Update with your actual page name
 
+def helpdesk(request):
+    return render(request, 'bopo_admin/Helpdesk/helpdesk.html')
+
+
+
 # def security_questions(request):
 #     return render(request, 'bopo_admin/Superadmin/security_questions.html')
 
