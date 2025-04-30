@@ -108,7 +108,8 @@ urlpatterns = [
 
     path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
     path('helpdesk/', views.helpdesk, name='helpdesk'),
-    
+
+
     
     
     # path('edit-corporate/<int:corporate_id>/', views.edit_corporate, name='edit_corporate'),

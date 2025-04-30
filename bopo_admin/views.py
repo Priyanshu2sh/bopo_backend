@@ -2618,6 +2618,7 @@ def helpdesk(request):
 #     return render(request, 'bopo_admin/Superadmin/award_points.html')
 
 
+
 def add_security_question(request):
     if request.method == 'POST':
         data = json.loads(request.body)
