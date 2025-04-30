@@ -13,195 +13,103 @@
     </div>
 
     <!-- To Single Merchant -->
-<form method="POST" action="{% url 'send_notifications' %}">
-    {% csrf_token %}
-    <div class="send-notification-item">
-        <input type="checkbox" id="toggle-single" class="toggle-checkbox">
-        <label for="toggle-single" class="send-notification-label">
-            <span class="send-notification-icon">🏢</span> To Single Merchant
-        </label>
-
-        <div class="send-notification-form">
-            <input type="hidden" name="form_type" value="single">
-            <!-- rest of single form inputs here -->
-            <div class="form-group">
-                <label>Select Project:</label>
-                <select id="single_project" name="project" onchange="fetchMerchants()">
-                    <option value="">Select a project</option>
-                    {% for corporate in corporates %}
-                    <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Select Merchant ID:</label>
-                <select id="select-merchant" name="merchant">
-                    <option value="">-- Select a Merchant --</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Notification Type:</label>
-                <input type="text" name="notification_type" required>
-            </div>
-
-            <div class="form-group">
-                <label>Title:</label>
-                <input type="text" name="notification_title" required>
-            </div>
-
-            <div class="form-group">
-                <label>Description:</label>
-                <textarea name="description" rows="4" required></textarea>
-            </div>
-            
-            <div class="button-container">
-                <button type="button" class="cancel-btn">Cancel</button>
-                <button type="submit" class="send-btn">Send Notification</button>
-            </div>
-        </div>
-    </div>
-</form>
-
-<!-- To All Merchants -->
-<form method="POST" action="{% url 'send_notifications' %}">
-    {% csrf_token %}
-    <div class="send-notification-item">
-        <input type="checkbox" id="toggle-all" class="toggle-checkbox">
-        <label for="toggle-all" class="send-notification-label">
-            <span class="send-notification-icon">👤</span> To All Merchants in a Project
-        </label>
-
-        <div class="send-notification-form">
-            <input type="hidden" name="form_type" value="all">
-            <!-- rest of all form inputs here -->
-            <div class="form-group">
-                <label>Select Project:</label>
-                <select name="project" required>
-                    <option value="">Select a project</option>
-                    {% for corporate in corporates %}
-                    <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Notification Type:</label>
-                <input type="text" name="notification_type" required>
-            </div>
-
-            <div class="form-group">
-                <label>Title:</label>
-                <input type="text" name="notification_title" required>
-            </div>
-
-            <div class="form-group">
-                <label>Description:</label>
-                <textarea name="description" rows="4" required></textarea>
-            </div>
-            
-            <div class="button-container">
-                <button type="button" class="cancel-btn">Cancel</button>
-                <button type="submit" class="send-btn">Send Notification</button>
-            </div>
-        </div>
-    </div>
-</form>
-
-    <!-- <form method="POST" action="{% url 'send_notifications' %}">
+    <form method="POST" action="{% url 'send_notifications' %}">
         {% csrf_token %}
-        <div class="send-notification-list">
-           
-            <div class="send-notification-item">
-                <input type="checkbox" id="toggle-single" class="toggle-checkbox">
-                <label for="toggle-single" class="send-notification-label">
-                    <span class="send-notification-icon">🏢</span> To Single Merchant
-                </label>
+        <div class="send-notification-item">
+            <input type="checkbox" id="toggle-single" class="toggle-checkbox">
+            <label for="toggle-single" class="send-notification-label">
+                <span class="send-notification-icon">🏢</span> To Single Merchant
+            </label>
 
-                <div class="send-notification-form">
-                    <input type="hidden" name="form_type" value="single">
-                    <div class="form-group">
-                        <label>Select Project:</label>
-                        <select id="single_project" name="project" onchange="fetchMerchants()">
-                            <option value="">Select a project</option>
-                            {% for corporate in corporates %}
-                            <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Select Merchant ID:</label>
-                        <select id="select-merchant" name="merchant">
-                            <option value="">-- Select a Merchant --</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Notification Type:</label>
-                        <input type="text" name="notification_type" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Title:</label>
-                        <input type="text" name="notification_title" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Description:</label>
-                        <textarea name="description" rows="4" required></textarea>
-                    </div>
-
-                    <div class="button-container">
-                        <button type="button" class="cancel-btn">Cancel</button>
-                        <button type="submit" class="send-btn">Send Notification</button>
-                    </div>
+            <div class="send-notification-form">
+                <input type="hidden" name="form_type" value="single">
+                <div class="form-group">
+                    <label>Select Project:</label>
+                    <select id="single_project" name="project" onchange="fetchMerchants()">
+                        <option value="">Select a project</option>
+                        {% for corporate in corporates %}
+                        <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-            </div> -->
 
-            <!-- To All Merchants in a Project -->
-            <!-- <div class="send-notification-item">
-                <input type="checkbox" id="toggle-all" class="toggle-checkbox">
-                <label for="toggle-all" class="send-notification-label">
-                    <span class="send-notification-icon">👤</span> To All Merchants in a Project
-                </label>
-
-                <div class="send-notification-form">
-                    <input type="hidden" name="form_type" value="all">
-                    <div class="form-group">
-                        <label>Select Project:</label>
-                        <select name="project" required>
-                            <option value="">Select a project</option>
-                            {% for corporate in corporates %}
-                            <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Notification Type:</label>
-                        <input type="text" name="notification_type" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Title:</label>
-                        <input type="text" name="notification_title" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Description:</label>
-                        <textarea name="description" rows="4" required></textarea>
-                    </div>
-
-                    <div class="button-container">
-                        <button type="button" class="cancel-btn">Cancel</button>
-                        <button type="submit" class="send-btn">Send Notification</button>
-                    </div>
+                <div class="form-group">
+                    <label>Select Merchant ID:</label>
+                    <select id="select-merchant" name="merchant">
+                        <option value="">-- Select a Merchant --</option>
+                    </select>
                 </div>
-            </div> -->
+
+                <div class="form-group">
+                    <label>Notification Type:</label>
+                    <input type="text" name="notification_type" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" name="notification_title" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea name="description" rows="4" required></textarea>
+                </div>
+
+                <div class="button-container">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="send-btn">Send Notification</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- To All Merchants -->
+    <form method="POST" action="{% url 'send_notifications' %}">
+        {% csrf_token %}
+        <div class="send-notification-item">
+            <input type="checkbox" id="toggle-all" class="toggle-checkbox">
+            <label for="toggle-all" class="send-notification-label">
+                <span class="send-notification-icon">👤</span> To All Merchants in a Project
+            </label>
+
+            <div class="send-notification-form">
+                <input type="hidden" name="form_type" value="all">
+
+                <div class="form-group">
+                    <label>Select Project:</label>
+                    <select name="project" required>
+                        <option value="">Select a project</option>
+                        {% for corporate in corporates %}
+                        <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Notification Type:</label>
+                    <input type="text" name="notification_type" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" name="notification_title" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea name="description" rows="4" required></textarea>
+                </div>
+
+                <div class="button-container">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="send-btn">Send Notification</button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
-    
+
+
 
 <script>
     function fetchMerchants() {

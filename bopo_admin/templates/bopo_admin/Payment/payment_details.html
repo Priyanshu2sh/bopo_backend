@@ -3,6 +3,9 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/payment_details.css' %}">
 
+<!-- Font Awesome CDN (add this if not already included in your base.html) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <div class="payment_details-container">
     <div class="payment_details-back-to-list-btn">
         <a href="{% url 'employee_list' %}" class="send_credentials-add_individual_merchant-btn-submit">
@@ -11,7 +14,7 @@
     </div>
 
     <div class="payment_details-header">
-        <h2>Top-Up Request </h2>
+        <h2>Top-Up Request</h2>
     </div>
 
     <div class="payment_details-list">
@@ -37,11 +40,16 @@
                         <td>{{ payment.merchant.first_name }} {{ payment.merchant.last_name }}</td>
                         <td>{{ payment.merchant.mobile }}</td>
                         <td>{{ payment.paid_amount }}</td>
-                        <td>-</td> <!-- Adjust if you later add topup points -->
+                        <td>-</td>
                         <td>{{ payment.created_at|date:"Y-m-d" }}</td>
                         <td>{{ payment.payment_mode }}</td>
                         <td>
-                            <button class="btn btn-sm btn-warning">Top-Up</button>
+                            <button class="btn btn-sm btn-success" onclick="showApproveModal('{{ payment.id }}')">
+                                <i class="fas fa-check-circle"></i> Approve
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="showRejectModal('{{ payment.id }}')">
+                                <i class="fas fa-times-circle"></i> Reject
+                            </button>
                         </td>
                     </tr>
                     {% empty %}
@@ -55,7 +63,78 @@
     </div>
 </div>
 
+<!-- Modal for Approve Confirmation -->
+<div id="approveModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <span class="close" onclick="closeModal('approveModal')">&times;</span>
+        <h3 id="confirmationMessage">Do you want to approve this payment?</h3>
+        <div class="custom-modal-buttons">
+            <button id="approveConfirmBtn" class="custom-btn green-btn">Yes, Approve</button>
+            <button class="custom-btn red-btn" onclick="closeModal('approveModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal for Reject Confirmation -->
+<div id="rejectModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <span class="close" onclick="closeModal('rejectModal')">&times;</span>
+        <h3 id="confirmationMessage">Do you want to reject this<br>payment?</h3>
+        <div class="custom-modal-buttons">
+            <button id="rejectConfirmBtn" class="custom-btn green-btn">Yes, Reject</button>
+            <!-- Apply the new class here -->
+            <button class="custom-btn red-btn" onclick="closeModal('rejectModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
 <script>
+    // Function to open the approve modal
+    function showApproveModal(paymentId) {
+        // Set the payment ID to a hidden variable or pass it to your backend
+        document.getElementById('approveConfirmBtn').onclick = function() {
+            approvePayment(paymentId);
+        };
+        
+        document.getElementById('approveModal').style.display = "flex";
+    }
+
+    // Function to open the reject modal
+    function showRejectModal(paymentId) {
+        // Set the payment ID to a hidden variable or pass it to your backend
+        document.getElementById('rejectConfirmBtn').onclick = function() {
+            rejectPayment(paymentId);
+        };
+        
+        document.getElementById('rejectModal').style.display = "flex";
+    }
+
+    // Function to close the modal
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+    }
+
+    // Function to approve the payment (you can modify this to call an API or handle approval logic)
+    function approvePayment(paymentId) {
+        // Here, you can send the paymentId to the server to mark the payment as approved
+        console.log("Payment Approved: " + paymentId);
+
+        // After approval, close the modal
+        closeModal('approveModal');
+    }
+
+    // Function to reject the payment (you can modify this to call an API or handle rejection logic)
+    function rejectPayment(paymentId) {
+        // Here, you can send the paymentId to the server to mark the payment as rejected
+        console.log("Payment Rejected: " + paymentId);
+
+        // After rejection, close the modal
+        closeModal('rejectModal');
+    }
+
+    // Function to filter the table based on search input
     function filterTable(tableId, searchBoxId) {
         let input = document.getElementById(searchBoxId);
         let filter = input.value.toLowerCase();
@@ -78,4 +157,7 @@
         }
     }
 </script>
+
+
+
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends "bopo_admin/base.html" %}
-
-{% block content %}
 {% load static %}
+{% block content %}
+
 <link rel="stylesheet" href="{% static 'bopo_admin/css/send_notification_customer.css' %}">
 
 <div class="send-notification-container">
@@ -42,46 +42,53 @@
             </div>
         </div>
 
-        <!-- To Single Customer -->
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
             <label for="toggle-single-customer" class="send-notification-label">
                 <span class="send-notification-icon">👤</span>
                 <span>To Single Customer</span>
             </label>
-
-            <div class="send-notification-form"><br>
-                <div class="form-group">
-                    <label for="select-customer">Select Customer ID:</label>
-                    <select id="select-customer" class="form-control">
-                        <option value="">-- Select Customer --</option>
-                        <option value="customer1">Customer 1</option>
-                        <option value="customer2">Customer 2</option>
-                        <option value="customer3">Customer 3</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="notification-type-single">Notification Type:</label>
-                    <input type="text" id="notification-type-single" class="form-control" placeholder="Enter notification type">
-                </div>
-
-                <div class="form-group">
-                    <label for="notification-title-single">Title:</label>
-                    <input type="text" id="notification-title-single" class="form-control" placeholder="Enter title">
-                </div>
-
-                <div class="form-group">
-                    <label for="notification-description-single">Description:</label>
-                    <textarea id="notification-description-single" class="form-control" rows="4" placeholder="Enter description"></textarea>
-                </div>
-
-                <div class="button-container">
-                    <button class="cancel-btn">Cancel</button>
-                    <button class="send-btn" onclick="showAlert()">Send Notification</button>
-                </div>
+        
+            <div class="send-notification-form">
+                <br>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="select-customer">Select Customer:</label>
+                        <select id="select-customer" name="customer_id" class="form-control">
+                            <option value="">-- Select Customer --</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.customer_id }}">{{ customer.customer_id }}</option>
+                        {% endfor %}
+                        
+                        </select>
+                        
+                    </div>
+                
+                    <div class="form-group">
+                        <label for="notification-type-single">Notification Type:</label>
+                        <input type="text" id="notification-type-single" name="notification_type" class="form-control" placeholder="Enter notification type">
+                    </div>
+                
+                    <div class="form-group">
+                        <label for="notification-title-single">Title:</label>
+                        <input type="text" id="notification-title-single" name="notification_title" class="form-control" placeholder="Enter title">
+                    </div>
+                
+                    <div class="form-group">
+                        <label for="notification-description-single">Description:</label>
+                        <textarea id="notification-description-single" name="notification_description" class="form-control" rows="4" placeholder="Enter description"></textarea>
+                    </div>
+                
+                    <div class="button-container">
+                        <button class="cancel-btn" type="reset">Cancel</button>
+                        <button class="send-btn" type="submit">Send Notification</button>
+                    </div>
+                </form>
+                
             </div>
         </div>
+        
 
         <!-- To Corporate Customers -->
         {% comment %} <div class="send-notification-item">
