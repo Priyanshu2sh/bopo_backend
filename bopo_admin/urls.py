@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import  assign_employee_role, custom_logout_view, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+from .views import  add_security_question, assign_employee_role, custom_logout_view, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -11,7 +11,7 @@ from .views import home, about, merchant, customer, project_onboarding,merchant_
 
 urlpatterns = [
     # NEW (correct)
-    path('login/', views.login, name='login'),
+    path('login/', views.login_view, name='login'),
     path('logout/', custom_logout_view, name='logout'),
     path('profile/', views.profile, name='profile'),
     path('', home, name='home'),
@@ -76,7 +76,7 @@ urlpatterns = [
 
     path('get-employee/<str:employee_id>/', views.get_employee, name='get_employee'),
     path('update-employee/', views.update_employee, name='update_employee'),
-    path('delete-employee/<int:employee_id>/', delete_employee, name='delete_employee'),
+    path('delete-employee/<str:employee_id>/', delete_employee, name='delete_employee'),
     
     path('edit-merchants/<int:merchant_id>/', views.edit_merchants, name='edit_merchants'),
     path('update-merchant/', views.update_merchant, name='update_merchant'),
@@ -146,6 +146,11 @@ urlpatterns = [
      path('deduct-amount/', views.deduct_amount, name='deduct_amount'),
 
     path('assign-employee-role/', assign_employee_role, name='assign_employee_role'),
+    
+    path('api/security-questions/', add_security_question, name='add_security_question'),
+    path('api/set-deduct-amount/', set_deduct_amount, name='set_deduct_amount'),
+    
+    path('get-current-limit/', views.get_current_limit, name='get_current_limit'),
 
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
