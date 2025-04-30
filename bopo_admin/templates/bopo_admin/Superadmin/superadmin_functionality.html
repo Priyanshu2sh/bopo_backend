@@ -40,7 +40,7 @@
     </div>
 </div>
 
-<!-- To Single Customer -->
+
 <div class="send-notification-item">
     <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
     <label for="toggle-single-customer" class="send-notification-label">
@@ -267,63 +267,87 @@
 
 
 <script>
-function saveSecurityQuestion() {
-    const questionInput = document.getElementById("new-question");
-    const question = questionInput.value.trim();
-    if (!question) {
-        alert("Please enter a question.");
-        return;
+
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) {
+                return decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        }
+        return '';
     }
 
-    fetch('/api/security-questions/', {  // ✅ Add leading slash `/`
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),  // CSRF token for Django
-        },
-        body: JSON.stringify({ question: question }),
-    })
-    .then(response => response.json().then(data => ({status: response.status, body: data})))
-    .then(({status, body}) => {
-        if (status === 200 && body.id) {
+    function loadSecurityQuestions() {
+        fetch('/api/security-questions/', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
             const tbody = document.getElementById("security-questions-body");
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${body.question}</td>`;
-            tbody.appendChild(tr);
-
-            questionInput.value = '';
-            document.getElementById("add-question-row").style.display = 'none';
-        } else {
-            alert(body.error || "Failed to add question. Please try again.");
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        alert("Something went wrong. Please check your connection or try again later.");
-    });
-}
-
-function showAddQuestion() {
-    document.getElementById("add-question-row").style.display = 'block';
-}
-
-function cancelSecurityQuestion() {
-    document.getElementById("add-question-row").style.display = 'none';
-    document.getElementById("new-question").value = '';
-}
-
-// CSRF token fetcher for Django
-function getCSRFToken() {
-    const name = 'csrftoken';
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.startsWith(name + '=')) {
-            return decodeURIComponent(cookie.substring(name.length + 1));
-        }
+            tbody.innerHTML = '';
+            data.forEach(question => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${question.question}</td>`;
+                tbody.appendChild(tr);
+            });
+        })
+        .catch(error => {
+            console.error("Error loading questions:", error);
+        });
     }
-    return '';
-}
+
+    function saveSecurityQuestion() {
+        const questionInput = document.getElementById("new-question");
+        const question = questionInput.value.trim();
+        if (!question) {
+            alert("Please enter a question.");
+            return;
+        }
+
+        fetch('/api/security-questions/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ question: question }),
+        })
+        .then(response => response.json().then(data => ({status: response.status, body: data})))
+        .then(({status, body}) => {
+            if (status === 200 && body.id) {
+                loadSecurityQuestions();  // Refresh the table
+                questionInput.value = '';
+                document.getElementById("add-question-row").style.display = 'none';
+            } else {
+                alert(body.error || "Failed to add question. Please try again.");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Something went wrong.");
+        });
+    }
+
+    function showAddQuestion() {
+        document.getElementById("add-question-row").style.display = 'block';
+    }
+
+    function cancelSecurityQuestion() {
+        document.getElementById("add-question-row").style.display = 'none';
+        document.getElementById("new-question").value = '';
+    }
+
+    document.getElementById("toggle-single-customer").addEventListener("change", function () {
+        if (this.checked) {
+            loadSecurityQuestions();
+        } else {
+            document.getElementById("security-questions-body").innerHTML = '';
+        }
+    });
 </script>
     
 

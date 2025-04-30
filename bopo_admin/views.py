@@ -2617,6 +2617,23 @@ def helpdesk(request):
 # def award_points(request):
 #     return render(request, 'bopo_admin/Superadmin/award_points.html')
 
+def security_questions_view(request):
+    if request.method == 'GET':
+        questions = list(SecurityQuestion.objects.all().values('id', 'question'))
+        return JsonResponse(questions, safe=False)
+    
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            question_text = data.get('question', '').strip()
+            if question_text:
+                question = SecurityQuestion.objects.create(question=question_text)
+                return JsonResponse({'id': question.id, 'question': question.question})
+            return JsonResponse({'error': 'Invalid question'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 def add_security_question(request):
