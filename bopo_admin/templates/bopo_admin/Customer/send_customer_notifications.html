@@ -10,10 +10,60 @@
     </div>
 
     <div class="send-notification-list">
+
+          <!-- To Single Customers -->
+        <div class="send-notification-item">
+            <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
+            <label for="toggle-single-customer" class="send-notification-label">
+                <span class="send-notification-icon">👤</span>
+                <span>To Single Customer</span>
+            </label>
+        
+            <div class="send-notification-form">
+                <br>
+                <form method="POST" action="{% url 'send_notification_customer' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="select-customer">Select Customer:</label>
+                        <select id="select-customer" name="customer_id" class="form-control">
+                            <option value="">-- Select Customer --</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.customer_id }}">{{ customer.customer_id }}</option>
+
+                        {% endfor %}
+                        
+                        </select>
+                        
+                    </div>
+                
+                    <div class="form-group">
+                        <label for="notification-type-single">Notification Type:</label>
+                        <input type="text" id="notification-type-single" name="notification_type" class="form-control" placeholder="Enter notification type">
+                    </div>
+                
+                    <div class="form-group">
+                        <label for="notification-title-single">Title:</label>
+                        <input type="text" id="notification-title-single" name="notification_title" class="form-control" placeholder="Enter title">
+                    </div>
+                
+                    <div class="form-group">
+                        <label for="notification-description-single">Description:</label>
+                        <textarea id="notification-description-single" name="notification_description" class="form-control" rows="4" placeholder="Enter description"></textarea>
+                    </div>
+                
+                    <div class="button-container">
+                        <button class="cancel-btn" type="reset">Cancel</button>
+                        <button class="send-btn" onclick="showAlert()">Send Notification</button>
+                    </div>
+                </form>
+                
+            </div>
+        </div>
+        
         
         <!-- To All Customers -->
         <div class="send-notification-item">
-            <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
+            <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox"name="send_to_all" id="send_to_all">
             <label for="toggle-all-customers" class="send-notification-label">
                 <span class="send-notification-icon">🏢</span>
                 <span>To All Customers</span>
@@ -42,53 +92,7 @@
             </div>
         </div>
 
-        <div class="send-notification-item">
-            <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
-            <label for="toggle-single-customer" class="send-notification-label">
-                <span class="send-notification-icon">👤</span>
-                <span>To Single Customer</span>
-            </label>
-        
-            <div class="send-notification-form">
-                <br>
-                <form method="POST">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="select-customer">Select Customer:</label>
-                        <select id="select-customer" name="customer_id" class="form-control">
-                            <option value="">-- Select Customer --</option>
-                            {% for customer in customers %}
-                            <option value="{{ customer.customer_id }}">{{ customer.customer_id }}</option>
-                        {% endfor %}
-                        
-                        </select>
-                        
-                    </div>
-                
-                    <div class="form-group">
-                        <label for="notification-type-single">Notification Type:</label>
-                        <input type="text" id="notification-type-single" name="notification_type" class="form-control" placeholder="Enter notification type">
-                    </div>
-                
-                    <div class="form-group">
-                        <label for="notification-title-single">Title:</label>
-                        <input type="text" id="notification-title-single" name="notification_title" class="form-control" placeholder="Enter title">
-                    </div>
-                
-                    <div class="form-group">
-                        <label for="notification-description-single">Description:</label>
-                        <textarea id="notification-description-single" name="notification_description" class="form-control" rows="4" placeholder="Enter description"></textarea>
-                    </div>
-                
-                    <div class="button-container">
-                        <button class="cancel-btn" type="reset">Cancel</button>
-                        <button class="send-btn" type="submit">Send Notification</button>
-                    </div>
-                </form>
-                
-            </div>
-        </div>
-        
+      
 
         <!-- To Corporate Customers -->
         {% comment %} <div class="send-notification-item">
@@ -176,37 +180,44 @@
 </div>
 
 <!-- JavaScript for Toggle Functionality -->
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
+
+    <script>
+        function showAlert() {
+            alert("Notification sent!");
+        }
     
-        toggleCheckboxes.forEach((checkbox) => {
-            checkbox.addEventListener("change", function () {
-                const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
     
-                // Close all other forms before opening the selected one
-                const allForms = document.querySelectorAll(".send-notification-form");
-                allForms.forEach((otherForm) => {
-                    if (otherForm !== form) {
-                        otherForm.style.display = "none";
-                        // Uncheck the other checkboxes to keep them hidden
-                        otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
+            toggleCheckboxes.forEach((checkbox) => {
+                checkbox.addEventListener("change", function () {
+                    const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
+    
+                    // Close all other forms before opening the selected one
+                    const allForms = document.querySelectorAll(".send-notification-form");
+                    allForms.forEach((otherForm) => {
+                        if (otherForm !== form) {
+                            otherForm.style.display = "none";
+                            // Uncheck the other checkboxes to keep them hidden
+                            otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
+                        }
+                    });
+    
+                    // Toggle the visibility of the selected form
+                    if (form) {
+                        form.style.display = this.checked ? "block" : "none";
                     }
                 });
+            });
     
-                // Toggle the visibility of the selected form
-                if (form) {
-                    form.style.display = this.checked ? "block" : "none";
-                }
+            // Initially hide all forms
+            document.querySelectorAll(".send-notification-form").forEach((form) => {
+                form.style.display = "none";
             });
         });
+    </script>
     
-        // Initially hide all forms
-        document.querySelectorAll(".send-notification-form").forEach((form) => {
-            form.style.display = "none";
-        });
-    });
     
-</script>
+
 
 {% endblock %}

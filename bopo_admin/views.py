@@ -1875,24 +1875,58 @@ def add_customer(request):
 
 
 from accounts.models import Customer 
-
 def send_notification_customer(request):
     if request.method == "POST":
+        # Checkbox handling
+        send_to_all = request.POST.get("send_to_all") == "on"
         customer_id = request.POST.get("customer_id")
         notification_type = request.POST.get("notification_type")
         notification_title = request.POST.get("notification_title")
         notification_description = request.POST.get("notification_description")
 
-        # Logic to send/save notification goes here
+        message = (
+            f"{notification_type}\n"
+            f"Title: {notification_title}\n"
+            f"Description: {notification_description}"
+        )
 
-        return JsonResponse({"status": "success", "message": "Notification sent successfully!"})
+        Notification.objects.create(
+            notification_type=notification_type,
+            title=notification_title,
+            description=notification_description
+        )
 
-    customers = Customer.objects.all()  # Fetch all customers
+        if send_to_all:
+            customers = Customer.objects.all()
+            for customer in customers:
+                send_sms(customer.mobile, message)
+                print(f"[INFO] Notification sent to Customer ID: {customer.customer_id}, Mobile: {customer.mobile}")
+            return render(request, 'bopo_admin/Customer/send_customer_notifications.html', {
+                'customers': Customer.objects.all(),
+                'message': 'Notification sent successfully to all customers!'
+            })
+
+        elif customer_id:
+            try:
+                customer = Customer.objects.get(customer_id=customer_id)
+                send_sms(customer.mobile, message)
+                print(f"[INFO] Notification sent to single Customer ID: {customer.customer_id}, Mobile: {customer.mobile}")
+                return render(request, 'bopo_admin/Customer/send_customer_notifications.html', {
+                    'customers': Customer.objects.all(),
+                    'message': 'Notification sent successfully to the selected customer!'
+                })
+            except Customer.DoesNotExist:
+                print(f"[ERROR] Customer with ID {customer_id} not found.")
+                return render(request, 'bopo_admin/Customer/send_customer_notifications.html', {
+                    'customers': Customer.objects.all(),
+                    'message': 'Customer not found.'
+                })
+
     return render(request, 'bopo_admin/Customer/send_customer_notifications.html', {
-    'customers': customers
-})
+        'customers': Customer.objects.all()
+    })
 
-    
+
 def employee_list(request):
     employees = Employee.objects.all()
     return render(request, 'bopo_admin/Employee/employee_list.html', {'employees': employees})

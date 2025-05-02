@@ -40,7 +40,7 @@
                         <td>{{ payment.merchant.first_name }} {{ payment.merchant.last_name }}</td>
                         <td>{{ payment.merchant.mobile }}</td>
                         <td>{{ payment.paid_amount }}</td>
-                        <td>-</td>
+                        <td>{{ payment.topup_amount }}</td>  <!-- for Top-Up -->
                         <td>{{ payment.created_at|date:"Y-m-d" }}</td>
                         <td>{{ payment.payment_mode }}</td>
                         <td>

@@ -65,43 +65,78 @@
         </div>
 
         <!-- Model Plans -->
-        <div class="send-notification-item">
-            <input type="checkbox" id="toggle-corporate" class="toggle-checkbox">
-            <label for="toggle-corporate" class="send-notification-label">
-                <span class="send-notification-icon">📊</span>
-                <span>Model Plans</span>
-            </label>
+       <!-- To Corporate Customers -->
+<div class="send-notification-item">
+    <input type="checkbox" id="toggle-corporate" class="toggle-checkbox">
+    <label for="toggle-corporate" class="send-notification-label">
+        <span class="send-notification-icon">📊</span>
+        <span>Model Plans</span>
+    </label>
 
-            <div class="send-notification-form"><br>
-                <div class="model-card">
-                    <h3 class="model-header">Model Plans</h3>
-                    <table class="plans-table">
-                        <thead>
-                            <tr>
-                                <th>Plan Validity</th>
-                                <th>Plan Type</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="plan-validity-text">12 months</span></td>
-                                <td><span class="plan-type-text">Rental</span></td>
-                                <td><span class="plan-description-text">A flexible short-term plan allowing merchants to use services with a monthly fee.</span></td>
-                                <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
-                            </tr>
-                            <tr>
-                                <td><span class="plan-validity-text">12 months</span></td>
-                                <td><span class="plan-type-text">Prepaid</span></td>
-                                <td><span class="plan-description-text">A one-time payment plan offering full access for the validity period.</span></td>
-                                <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="send-notification-form">
+        <!-- Rental Model -->
+        <div class="model-card"><br>
+            <h3 class="model-header">Model Plans</h3>
+            <table class="plans-table">
+                <thead>
+                    <tr>
+                        <th>Plan Validity</th>
+                        <th>Plan Type</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="plan-validity-text">12 months</span></td>
+                        <td><span class="plan-type-text">Rental</span></td>
+                        <td>
+                        <span class="plan-description-text">
+                            A flexible short-term plan allowing merchants to use services with a monthly fee.
+                        </span>
+                    </td>
+                        <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="plan-validity-text">12 months</span></td>
+                        <td><span class="plan-type-text">Prepaid</span></td>
+                        <td><span class="plan-description-text">
+                            A one-time payment plan offering full access for the validity period.
+                        </span></td>
+                        <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
+                    </tr>
+                    <!-- More rows can be added -->
+                </tbody>
+            </table>
         </div>
+
+       </div>
+</div>
+
+
+<!-- Edit Plan Modal -->
+<div id="editPlanModal" class="modal-container">
+    <div class="modal-content-box">
+        <span class="modal-close-btn" onclick="closeEditModal()">&times;</span>
+        <h2 class="modal-header">Edit Plan</h2>
+        <form id="editPlanForm">
+            <div class="input-group">
+                <label for="edit-validity-input">Plan Validity</label>
+                <input type="text" id="edit-validity-input" class="input-field" placeholder="Enter plan validity">
+            </div>
+            <div class="input-group">
+                <label for="edit-type-input">Plan Type</label>
+                <input type="text" id="edit-type-input" class="input-field" placeholder="Enter plan type">
+            </div>
+            <div class="input-group">
+                <label for="edit-description-input">Description</label>
+                <textarea id="edit-description-input" class="textarea-field" placeholder="Enter description..."></textarea>
+            </div>
+            <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
+        </form>
+    </div>
+</div>
+
 
         <!-- Award Points -->
         <div class="send-notification-item">
@@ -134,7 +169,7 @@
 </div>
 
 <!-- Edit Plan Modal -->
-<div id="editPlanModal" class="modal-container">
+{% comment %} <div id="editPlanModal" class="modal-container">
     <div class="modal-content-box">
         <span class="modal-close-btn" onclick="closeEditModal()">&times;</span>
         <h2 class="modal-header">Edit Plan</h2>
@@ -154,7 +189,7 @@
             <button type="button" class="btn-save" onclick="savePlanChanges()">Save Changes</button>
         </form>
     </div>
-</div>
+</div> {% endcomment %}
 
 <!-- JavaScript -->
 <script>
@@ -264,19 +299,26 @@
     }
 
     function openEditPlanModal(button) {
-        const row = button.closest('tr');
-        document.getElementById('edit-validity-input').value = row.querySelector('.plan-validity-text').innerText;
-        document.getElementById('edit-type-input').value = row.querySelector('.plan-type-text').innerText;
-        document.getElementById('edit-description-input').value = row.querySelector('.plan-description-text').innerText;
-        document.getElementById('editPlanModal').style.display = 'block';
+        const row = button.closest("tr");
+        const validity = row.querySelector(".plan-validity-text").textContent.trim();
+        const type = row.querySelector(".plan-type-text").textContent.trim();
+        const description = row.querySelector(".plan-description-text").textContent.trim();
+    
+        document.getElementById("edit-validity-input").value = validity;
+        document.getElementById("edit-type-input").value = type;
+        document.getElementById("edit-description-input").value = description;
+    
+        document.getElementById("editPlanModal").style.display = "block";
+
     }
+    
 
     function closeEditModal() {
         document.getElementById('editPlanModal').style.display = 'none';
     }
 
     function savePlanChanges() {
-        alert("Plan changes saved (functionality can be extended to backend)");
+        alert("Plan changes saved successfully!");
         closeEditModal();
     }
 

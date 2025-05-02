@@ -93,6 +93,13 @@ class PaymentDetails(models.Model):
     ])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+     # Property to return the top-up value
+    @property
+    def topup_amount(self):
+        return self.paid_amount
+    
+    
 
 class BankDetail(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
