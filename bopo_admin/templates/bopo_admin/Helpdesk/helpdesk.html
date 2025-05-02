@@ -101,7 +101,7 @@
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         {% if help_request.merchant %}
-                        <td>{{help_request.merchant_id}}</td>
+                        <td>{{help_request.merchant.merchant_id}}</td>
                         <td>{{help_request.merchant.first_name}} {{help_request.merchant.last_name}}</td>
                         <td>Merchant</td>
                         <td>{{help_request.issue_description}}</td>

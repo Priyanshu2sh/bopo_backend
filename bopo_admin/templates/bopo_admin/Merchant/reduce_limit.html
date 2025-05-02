@@ -98,28 +98,27 @@
                     </thead>
                     <tbody>
                         {% for cash_out in cash_outs %}
-                        {% if cash_out.merchant %} 
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{cash_out.merchant_id}}</td>
-                            <td>{{cash_out.merchant.first_name}} {{cash_out.merchant.last_name}}</td>
-                            <td>{{cash_out.merchant.mobile}}</td>
-                            <td>{{cash_out.amount}}</td>
-                            <td>
-                                <label class="switch">
-                                    <input type="checkbox" checked>
-                                    <span class="slider round"></span>
-                                </label>
-                            </td>
-                         
-                            <td>
-                                <button class="btn btn-sm btn-success open-merchant-modal-btn" data-id="1">💸 Cash Out</button>
-                            </td>
-                            
-                        </tr>
-                           {% endif %}
+                            {% if cash_out.merchant %} 
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{cash_out.merchant.merchant_id}}</td>
+                                <td>{{cash_out.merchant.first_name}} {{cash_out.merchant.last_name}}</td>
+                                <td>{{cash_out.merchant.mobile}}</td>
+                                <td>{{cash_out.amount}}</td>
+                                <td>
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider round"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-success open-merchant-modal-btn" data-id="1">💸 Cash Out</button>
+                                </td>
+                            </tr>
+                            {% endif %}
                         {% endfor %}
                     </tbody>
+                    
                 </table>
             </div>
         </div>
@@ -195,13 +194,13 @@
                             </thead>
                             <tbody>
                                 {% for cash_out in cash_outs %}
-                                    {% if cash_out.customer %}  <!-- This filters only the customer entries -->
+                                    {% if cash_out.customer %}
                                         <tr>
                                             <td>{{ forloop.counter }}</td>
                                             <td>{{ cash_out.customer_id }}</td>
                                             <td>{{ cash_out.customer.first_name }} {{ cash_out.customer.last_name }}</td>
                                             <td>{{ cash_out.customer.mobile }}</td>
-                                            <td>{{ cash_out.amount }}</td> <!-- Display customer-specific amount -->
+                                            <td>{{ cash_out.amount }}</td>
                                             <td>
                                                 <label class="switch">
                                                     <input type="checkbox" {% if cash_out.status == 'Active' %}checked{% endif %}>
@@ -215,6 +214,7 @@
                                     {% endif %}
                                 {% endfor %}
                             </tbody>
+                            
                         </table>
                     </div>
                 </div>
