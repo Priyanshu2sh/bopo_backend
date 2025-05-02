@@ -180,9 +180,7 @@
         <span>Award Points</span>
     </label>
 
-    <div class="send-notification-form"><br>
-        <div class="form-group">
-            <label>Award Points:</label>
+  
             <div id="award-text">
                 <span id="award-display">
                     <span class="highlight-percentage">10%</span> of purchase amount awarded to customer (BBP)
@@ -191,12 +189,12 @@
             </div>
             
 
-            <div id="award-edit" style="display: none;">
+            {% comment %} <div id="award-edit" style="display: none;">
                 <input type="number" id="award-input" class="form-control" placeholder="Enter percentage" value="10" min="0" max="100" style="width: 100px;">
                 <span>% of purchase amount awarded to customer (BBP)</span><br><br>
                 <button class="awardsend-btn1" onclick="saveAward()">Save</button>
                 <button class="cancel-btn" onclick="cancelAward()">Cancel</button>
-            </div>
+            </div> {% endcomment %}
         </div>
     </div>
 </div>
