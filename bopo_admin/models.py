@@ -4,6 +4,8 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 from django.db import models
 from django.contrib.auth.hashers import make_password
 
+from bopo_award.models import CashOut
+
 # Create your models here.
 class BopoAdminManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -230,6 +232,12 @@ class DeductSetting(models.Model):
 
     def __str__(self):
         return f"Deduct {self.deduct_percentage}%"
+    
+# class SuperAdminPayment(models.Model):
+#     Transaction_id = models.CharField(max_length=200, blank=True, null=True)
+#     payment_method = models.CharField(max_length=200, blank=True, null=True)
+#     date = models.DateTimeField(auto_now_add=True)
+#     cashout = models.ForeignKey(CashOut, on_delete=models.CASCADE, blank=True, null=True)
 
 
     

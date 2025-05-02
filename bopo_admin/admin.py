@@ -29,6 +29,7 @@ admin.site.register(Notification)
 admin.site.register(EmployeeRole)
 admin.site.register(SecurityQuestion)
 admin.site.register(DeductSetting)
+# admin.site.register(SuperAdminPayment)
 
 
 
