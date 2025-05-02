@@ -19,7 +19,7 @@
 
     <div class="payment_details-list">
         <div class="payment_details-table">
-            <input type="text" class="search-box" id="search-payment-details" onkeyup="filterTable('payment-table', 'search-payment-details')" placeholder="Search by MID, Project Name, Contact Person, Mobile Number, Paid Amount, Top-Up, Date, Payment Method...">
+            <input type="text" class="search-box" id="search-payment-details" onkeyup="filterTable('payment-table', 'search-payment-details')" placeholder="Search...">
             <table id="payment-table">
                 <thead>
                     <tr>
@@ -37,12 +37,22 @@
                     {% for payment in topups %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
+                        {% if payment.merchant %}
                         <td>{{ payment.merchant.first_name }} {{ payment.merchant.last_name }}</td>
                         <td>{{ payment.merchant.mobile }}</td>
                         <td>{{ payment.paid_amount }}</td>
                         <td>{{ payment.topup_amount }}</td>  <!-- for Top-Up -->
                         <td>{{ payment.created_at|date:"Y-m-d" }}</td>
                         <td>{{ payment.payment_mode }}</td>
+
+                        {% elif payment.customer %}
+                        <td>{{ payment.customer.first_name }} {{ payment.customer.last_name }}</td>
+                        <td>{{ payment.customer.mobile }}</td>
+                        <td>{{ payment.paid_amount }}</td>
+                        <td>{{ payment.topup_amount }}</td>
+                        <td>{{ payment.created_at|date:"Y-m-d" }}</td>
+                        <td>{{ payment.payment_mode }}</td>
+                        {% endif %}
                         <td>
                             <button class="btn btn-sm btn-success" onclick="showApproveModal('{{ payment.id }}')">
                                 <i class="fas fa-check-circle"></i> Approve

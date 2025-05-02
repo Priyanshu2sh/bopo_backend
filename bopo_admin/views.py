@@ -24,7 +24,7 @@ from accounts.models import Corporate, Customer, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
-from bopo_award.models import CustomerPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails
+from bopo_award.models import CashOut, CustomerPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
@@ -1556,66 +1556,6 @@ def get_current_limit(request):
     
 
 
-def reduce_limit(request):
-    corporates = Corporate.objects.all()
-    if request.method == "POST":
-        project = request.POST.get("project")
-        merchant_id = request.POST.get("merchant")
-        current_limit = float(request.POST.get("current_limit"))
-        reduce_amount = float(request.POST.get("reduce_amount"))
-
-        print('project:', project)
-        print('merchant:', merchant_id)
-        print('current_limit:', current_limit)
-        print('reduce limit:', reduce_amount)
-
-        try:
-            merchant_points = MerchantPoints.objects.get(merchant__merchant_id=merchant_id)
-            
-            if current_limit >= reduce_amount:
-                new_points = current_limit - reduce_amount
-                merchant_points.points = new_points
-                merchant_points.save()
-
-                Reducelimit.objects.create(
-                    project=project,
-                    merchant=merchant_id,
-                    current_limit=current_limit,
-                    reduce_amount=reduce_amount,
-                )
-
-                # Send SMS Notification
-                try:
-                    # Fetch merchant mobile number
-                    merchant = Merchant.objects.get(merchant_id=merchant_id)
-                    mobile= merchant.mobile  # Assume you have mobile_number field
-
-                    # Clean mobile number
-                    if not mobile.startswith("+"):
-                        if mobile.startswith("0"):
-                            mobile = mobile[1:]
-                        mobile = "+91" + mobile
-
-                    # Prepare simple message
-                    sms_body = f"Reduce Amount: {reduce_amount}, Current Limit: {new_points}"
-
-                    # Send SMS
-                    send_sms(mobile, sms_body)
-
-                except Merchant.DoesNotExist:
-                    print("Merchant not found for sending SMS.")
-                except Exception as sms_error:
-                    print(f"Failed to send SMS: {str(sms_error)}")
-
-                return redirect('reduce_limit')
-
-            else:
-                return redirect('reduce_limit')
-
-        except MerchantPoints.DoesNotExist:
-            return redirect('reduce_limit')
-
-    return render(request, 'bopo_admin/Merchant/reduce_limit.html', {"corporates": corporates})
 
 # from bopo_award.models import CashOut
 
@@ -2883,6 +2823,9 @@ def helpdesk(request):
     return render(request, 'bopo_admin/Helpdesk/helpdesk.html', {'help_requests': help_requests})
 
 
+def reduce_limit(request):
+    cash_outs = CashOut.objects.all()
+    return render(request, 'bopo_admin/Merchant/reduce_limit.html', {'cash_outs': cash_outs})
 
 
 # def security_questions(request):

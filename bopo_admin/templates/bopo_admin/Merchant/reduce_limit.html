@@ -97,22 +97,28 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% for cash_out in cash_outs %}
+                        {% if cash_out.merchant %} 
                         <tr>
-                            <td>1</td>
-                            <td>MID100001</td>
-                            <td>Shrutika Desai</td>
-                            <td>9999999999</td>
-                            <td>100</td>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{cash_out.merchant_id}}</td>
+                            <td>{{cash_out.merchant.first_name}} {{cash_out.merchant.last_name}}</td>
+                            <td>{{cash_out.merchant.mobile}}</td>
+                            <td>{{cash_out.amount}}</td>
                             <td>
                                 <label class="switch">
                                     <input type="checkbox" checked>
                                     <span class="slider round"></span>
                                 </label>
                             </td>
+                         
                             <td>
                                 <button class="btn btn-sm btn-success open-merchant-modal-btn" data-id="1">💸 Cash Out</button>
                             </td>
+                            
                         </tr>
+                        {% endif %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -176,6 +182,7 @@
 
                         <table id="customer-table" class="display" style="width:100%">
                             <thead>
+                                {% for cash_out in cash_outs %}
                                 <tr>
                                     <th>#</th>
                                     <th>Customer ID</th>
@@ -185,24 +192,29 @@
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
+                                {% endfor %}
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>CUST100001</td>
-                                    <td>Aishwarya Desai</td>
-                                    <td>8888888888</td>
-                                    <td>100</td>
-                                    <td>
-                                        <label class="switch">
-                                            <input type="checkbox" checked>
-                                            <span class="slider round"></span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-success open-modal-btn" data-id="1">💸 Cash Out</button>
-                                    </td>
-                                </tr>
+                                {% for cash_out in cash_outs %}
+                                    {% if cash_out.customer %}  <!-- This filters only the customer entries -->
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ cash_out.customer_id }}</td>
+                                            <td>{{ cash_out.customer.first_name }} {{ cash_out.customer.last_name }}</td>
+                                            <td>{{ cash_out.customer.mobile }}</td>
+                                            <td>{{ cash_out.amount }}</td> <!-- Display customer-specific amount -->
+                                            <td>
+                                                <label class="switch">
+                                                    <input type="checkbox" {% if cash_out.status == 'Active' %}checked{% endif %}>
+                                                    <span class="slider round"></span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-success open-modal-btn" data-id="{{ cash_out.id }}">💸 Cash Out</button>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
