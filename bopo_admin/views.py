@@ -20,11 +20,11 @@ from django.contrib.auth.hashers import check_password
 
 
 from accounts import models
-from accounts.models import Corporate, Customer, Merchant, Terminal
+from accounts.models import Corporate, Customer, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
-from bopo_award.models import CustomerPoints, History, MerchantPoints, ModelPlan, PaymentDetails
+from bopo_award.models import CustomerPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
@@ -1617,6 +1617,11 @@ def reduce_limit(request):
 
     return render(request, 'bopo_admin/Merchant/reduce_limit.html', {"corporates": corporates})
 
+# from bopo_award.models import CashOut
+
+# def reduce_limit(request):
+#     cashout_requests = CashOut.objects.select_related('user', 'store').all().order_by('-id')
+#     return render(request, 'reduce_limit.html', {'cashout_requests': cashout_requests})
 
 
 def get_merchants_by_project(request):
@@ -2223,17 +2228,61 @@ def assign_employee_role(request):
 
 
 
+# def payment_details(request):
+#     topups = PaymentDetails.objects.all().order_by('-created_at')  # or any custom ordering
+
+#     if request.method == "POST":
+#         # Handle any POST data if needed
+#         pass
+
+#     return render(request, 'bopo_admin/Payment/payment_details.html', {
+#         'topups': topups
+#     })
+
+
+
 def payment_details(request):
-    topups = PaymentDetails.objects.all().order_by('-created_at')  # or any custom ordering
-
     if request.method == "POST":
-        # Handle any POST data if needed
-        pass
+        payment_id = request.POST.get("payment_id")
+        action = request.POST.get("action")
 
-    return render(request, 'bopo_admin/Payment/payment_details.html', {
-        'topups': topups
-    })
-    
+        if not payment_id or not action:
+            return JsonResponse({"success": False, "message": "Missing payment ID or action."})
+
+        # Get payment by ID
+        payment = get_object_or_404(PaymentDetails, id=payment_id)
+
+        if action == "approve":
+            # Approve logic
+            topup_value = payment.topup_amount
+            if topup_value is None:
+                return JsonResponse({"success": False, "message": "Top-up amount is invalid."})
+
+            # Update merchant points
+            merchant = payment.merchant
+            points_obj, created = MerchantPoints.objects.get_or_create(merchant=merchant, defaults={'points': 0})
+            points_obj.points += float(topup_value)
+            points_obj.save()
+
+            # Update payment status
+            payment.status = "approved"
+            payment.save()
+
+            return JsonResponse({"success": True, "message": "Payment approved succesfully"})
+
+        elif action == "reject":
+            # Reject logic
+            payment.status = "rejected"
+            payment.save()
+
+            return JsonResponse({"success": True, "message": "Payment has been rejected."})
+
+        return JsonResponse({"success": False, "message": "Invalid action."})
+
+    # Handle GET request
+    topups = PaymentDetails.objects.all().order_by('-created_at')
+    return render(request, 'bopo_admin/Payment/payment_details.html', {'topups': topups})
+
 
 
 def account_info(request):
@@ -2828,8 +2877,11 @@ def cash_out(request):
         messages.success(request, "Cash out recorded successfully.")
         return redirect('reduce_limit')  # Update with your actual page name
 
+
 def helpdesk(request):
-    return render(request, 'bopo_admin/Helpdesk/helpdesk.html')
+    help_requests = Help.objects.all()
+    return render(request, 'bopo_admin/Helpdesk/helpdesk.html', {'help_requests': help_requests})
+
 
 
 

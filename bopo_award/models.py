@@ -87,6 +87,10 @@ class PaymentDetails(models.Model):
     PLAN_CHOICES = [
         ('prepaid', 'Prepaid'),
         ('rental', 'Rental'),
+    ] 
+    STATUS_CHOICES = [
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
     ]
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     paid_amount = models.IntegerField()
@@ -100,6 +104,7 @@ class PaymentDetails(models.Model):
     plan_type = models.CharField(max_length=255, null=True, blank=True, choices=PLAN_CHOICES,  help_text='Select plan type: Prepaid or Rental')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=255, null=True, blank=True, choices=STATUS_CHOICES)
     
      # Property to return the top-up value
     @property

@@ -97,16 +97,27 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {%for help_request in help_requests %}
                     <tr>
                         <td>1</td>
-                        <td>MID100001</td>
-                        <td>Shrutika Desai</td>
+                        {% if help_request.merchant %}
+                        <td>{{help_request.merchant_id}}</td>
+                        <td>{{help_request.merchant.first_name}} {{help_request.merchant.last_name}}</td>
                         <td>Merchant</td>
-                        <td>Please sovle my issue</td>
+                        <td>{{help_request.issue_description}}</td>
+
+                        {% elif help_request.customer %}
+                        <td>{{help_request.customer_id}}</td>
+                        <td>{{help_request.customer.first_name}} {{help_request.customer.last_name}}</td>
+                        <td>Customer</td>
+                        <td>{{help_request.issue_description}}</td>
+                        {% endif %}
+                        
                         <td>
-                            <button class="btn btn-sm btn-success" >Edit</button>
+                            <button class="btn btn-sm btn-success" >Resolve</button>
                         </td>
                     </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>

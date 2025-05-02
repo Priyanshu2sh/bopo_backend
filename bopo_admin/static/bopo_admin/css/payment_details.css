@@ -204,6 +204,8 @@ button {
 .close:hover {
     color: red;
 }
+
+
 /* Responsive Styles */
 @media screen and (max-width: 768px) {
     .payment_details-header {

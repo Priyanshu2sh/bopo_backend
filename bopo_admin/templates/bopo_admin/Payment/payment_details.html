@@ -89,6 +89,12 @@
     </div>
 </div>
 
+<!-- Toast container -->
+<div id="toast-container" class="toast-container">
+    <i id="toast-icon" class=""></i>
+    <span id="toast-message"></span>
+</div>
+
 
 <script>
     // Function to open the approve modal
@@ -156,6 +162,73 @@
             rows[i].style.display = rowMatch ? "" : "none";
         }
     }
+
+
+// Function to approve the payment
+function approvePayment(paymentId) {
+    fetch("{% url 'payment_details' %}", {  // Use URL from Django's URL routing
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCookie("csrftoken")  // Ensure CSRF is included
+        },
+        body: "payment_id=" + encodeURIComponent(paymentId) + "&action=approve"  // Pass action as 'approve'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload(); // Reload to reflect changes
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(error => console.error("Error approving payment:", error));
+
+    closeModal('approveModal');
+}
+
+// Function to reject the payment
+function rejectPayment(paymentId) {
+    fetch("{% url 'payment_details' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: "payment_id=" + encodeURIComponent(paymentId) + "&action=reject"  // Pass action as 'reject'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload(); // Reload to reflect changes
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(error => console.error("Error rejecting payment:", error));
+
+    closeModal('rejectModal');
+}
+
+
+// CSRF Token helper function
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 </script>
 
 
