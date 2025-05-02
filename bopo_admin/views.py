@@ -2882,7 +2882,7 @@ def set_deduct_amount(request):
     
     return JsonResponse({'error': 'Invalid method.'}, status=405)
 
-@csrf_exempt
+
 def save_model_plan(request):
     if request.method == "POST":
         data = json.loads(request.body)
