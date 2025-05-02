@@ -370,76 +370,89 @@ class RegisterUserAPIView(APIView):
 
 
 class LoginAPIView(APIView):
-    """API for Customer and Merchant Login"""
+    """API for Customer, Merchant, and Terminal Login"""
 
     def post(self, request):
         try:
-            identifier = request.data.get("mobile") or request.data.get("merchant_id")  # Mobile or Merchant ID
-            pin = request.data.get("pin")
+            # Detect user type from request
+            identifier = request.data.get("mobile") or request.data.get("merchant_id") or request.data.get("terminal_id")
+            pin = request.data.get("pin") or request.data.get("tid_pin")
             user_category = request.data.get("user_category")
 
             logger.info(f"Login attempt - Identifier: {identifier}, User Category: {user_category}")
 
             if not identifier or not pin or not user_category:
                 return Response({
-                    "error": "Mobile/Merchant ID, PIN, and user_category are required."
+                    "error": "Identifier, PIN, and user_category are required."
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            user = None
+            response_data = {}
 
-            # ✅ Identify the user based on category
             if user_category == "customer":
                 user = Customer.objects.filter(mobile=str(identifier)).first()
+                if not user:
+                    return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+                if not user.verified_at:
+                    return Response({"error": "Customer not verified. Please verify OTP before logging in."}, status=status.HTTP_400_BAD_REQUEST)
+                if not user.pin or str(user.pin) != str(pin):
+                    return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
+
+                response_data = {
+                    "message": "Login successful",
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "pin": user.pin,
+                    "user_category": "customer",
+                    "customer_id": user.customer_id,
+                    "is_profile_updated": user.is_profile_updated,
+                }
+
             elif user_category == "merchant":
                 if str(identifier).isdigit() and len(str(identifier)) == 10:
-                    # Login with mobile
                     user = Merchant.objects.filter(mobile=str(identifier)).first()
                 else:
-                    # Login with merchant_id
                     user = Merchant.objects.filter(merchant_id=identifier).first()
+
+                if not user:
+                    return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+
+                if not user.verified_at and user.user_type != "corporate":
+                    return Response({"error": "Merchant not verified. Please verify OTP before logging in."}, status=status.HTTP_400_BAD_REQUEST)
+
+                if not user.pin or str(user.pin) != str(pin):
+                    return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
+
+                response_data = {
+                    "message": "Login successful",
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "pin": user.pin,
+                    "user_category": "merchant",
+                    "merchant_id": user.merchant_id,
+                    "is_profile_updated": user.is_profile_updated,
+                    "user_type": user.user_type,
+                }
+
+                if user.user_type == "corporate":
+                    response_data["corporate_id"] = user.corporate_id if user.corporate_id else None
+
+            elif user_category == "terminal":
+                terminal = Terminal.objects.filter(terminal_id=identifier).first()
+                if not terminal:
+                    return Response({"error": "Invalid Terminal ID."}, status=status.HTTP_400_BAD_REQUEST)
+
+                if not terminal.tid_pin or str(terminal.tid_pin) != str(pin):
+                    return Response({"error": "Invalid Terminal PIN."}, status=status.HTTP_400_BAD_REQUEST)
+
+                response_data = {
+                    "message": "Login successful",
+                    "user_category": "terminal",
+                    "terminal_id": terminal.terminal_id,
+                    "merchant_id": terminal.merchant_id.merchant_id  # Assuming ForeignKey to Merchant
+                }
+
             else:
                 return Response({"error": "Invalid user category."}, status=status.HTTP_400_BAD_REQUEST)
-
-            if not user:
-                logger.warning("User not found")
-                return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
-
-            if not user.verified_at:
-                logger.warning("User not verified")
-                return Response({"error": "User not verified. Please verify OTP before logging in."}, status=status.HTTP_400_BAD_REQUEST)
-
-            # 🔐 Compare PINs safely
-            if user.pin is None:
-                logger.warning("PIN not set for user")
-                return Response({"error": "PIN not set for user."}, status=status.HTTP_400_BAD_REQUEST)
-
-            try:
-                stored_pin = int(user.pin)
-                input_pin = int(pin)
-            except (ValueError, TypeError):
-                logger.warning("Invalid PIN format")
-                return Response({"error": "PIN must be a valid number."}, status=status.HTTP_400_BAD_REQUEST)
-
-            if stored_pin != input_pin:
-                logger.warning("Invalid PIN")
-                return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
-
-            # ✅ Prepare response
-            response_data = {
-                "message": "Login successful",
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "pin": user.pin,
-                "user_category": user_category
-            }
-
-            # 🔍 Add ID and profile status
-            if user_category == "customer":
-                response_data["customer_id"] = user.customer_id
-                response_data["is_profile_updated"] = user.is_profile_updated
-            elif user_category == "merchant":
-                response_data["merchant_id"] = user.merchant_id
-                response_data["is_profile_updated"] = user.is_profile_updated
 
             logger.info("Login successful")
             return Response(response_data, status=status.HTTP_200_OK)
@@ -447,6 +460,7 @@ class LoginAPIView(APIView):
         except Exception as e:
             logger.error(f"Login error: {str(e)}", exc_info=True)
             return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
 class VerifyOTPAPIView(APIView):
     """API to verify OTP for Customer or Merchant"""
@@ -684,6 +698,7 @@ class FetchAllUsersAPIView(APIView):
                     "email": merchant.email,
                     "shop_name": merchant.shop_name,
                     "address": merchant.address,
+                    "corporate_id": merchant.corporate_id,
                     "created_at": merchant.created_at,
                 }
                 for merchant in merchants

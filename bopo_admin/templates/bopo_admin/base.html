@@ -30,38 +30,67 @@
             <i class="fas fa-tasks"></i> Project Onboarding
         </a> {% endcomment %}
 
-           
+        {% if request.user.role == 'super_admin' or merchant == True %}
          <!-- Merchant Dropdown -->
 <div class="dropdown">
     <a class="dropdown-link" id="merchantDropdownToggle">
         <i class="fas fa-store"></i>  Merchant
     </a>
     <ul class="dropdown-menu" id="merchantDropdownMenu">
-        {% comment %} <li><a href="{% url 'merchant_list' %}"><i class="fas fa-list"></i> Merchant List</a></li> {% endcomment %}
+
+        {% if request.user.role == 'super_admin' or role_permissions.corporate_merchant == True %}
         <li><a href="{% url 'corporate_list' %}"><i class="fas fa-building"></i> Corporate Merchant List</a></li>
+        {% endif %}
+
+        {% if request.user.role == 'super_admin' or role_permissions.individual_merchant == True %}
         <li><a href="{% url 'individual_list' %}"><i class="fas fa-user"></i> Individual Merchant List</a></li>
+        {% endif %}
+
         <li><a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}"><i class="fas fa-terminal"></i> Terminals</a></li>
-        {% comment %} <li><a href="{% url 'add_merchant' %}"><i class="fas fa-user-plus"></i> Add Merchant</a></li> {% endcomment %}
-        {% comment %} <a href="{% url 'terminals' %}" class="{% if request.path == '/terminals/' %}active{% endif %}"><i class="fas fa-terminal"></i> Terminals</a> {% endcomment %}
+
+        {% if request.user.role == 'super_admin' or role_permissions.merchant_send_credentials == True %}
         <li><a href="{% url 'merchant_credentials' %}"><i class="fas fa-key"></i> Merchant Credentials</a></li>
+        {% endif %}
+
         {% comment %} <li><a href="{% url 'merchant_topup' %}"><i class="fas fa-wallet"></i> Top-Up Limit</a></li> {% endcomment %}
+        {% if request.user.role == 'super_admin' or role_permissions.merchant_limit == True %}
         {% comment %} <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li> {% endcomment %}
+        {% endif %}
+
+        {% if request.user.role == 'super_admin' %}
         <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Reduce Limit</a></li>
+        {% endif %}
+        
         {% comment %} <li><a href="{% url 'merchant_status' %}"><i class="fas fa-toggle-on"></i> Merchant Status</a></li> {% endcomment %}
+        
+        {% if request.user.role == 'super_admin' or role_permissions.merchant_login_page_info == True %}
         <li><a href="{% url 'login_page_info' %}"><i class="fas fa-info-circle"></i> Login Page Info</a></li>
+        {% endif %}
+        
+        {% if request.user.role == 'super_admin' or role_permissions.merchant_send_notification == True %}
         <li><a href="{% url 'send_notifications' %}"><i class="fas fa-bell"></i> Send Notifications</a></li>
+        {% endif %}
+        
+        {% if request.user.role == 'super_admin' or role_permissions.merchant_received_offers == True %}
         <li><a href="{% url 'received_offers' %}"><i class="fas fa-gift"></i> Received Offers</a></li>
+        {% endif %}
+        
+        {% if request.user.role == 'super_admin' %}
         <li><a href="{% url 'uploads' %}"><i class="fas fa-upload"></i> Uploads</a></li>
+        {% endif %}
         
     </ul>
 </div>
+{% endif %}
 
-      
-         <div id="belowMerchant">
+
+        {% if request.user.role == 'super_admin' or role_permissions.modify_customer_details == True %}
+        <div id="belowMerchant">
             <a href="{% url 'customer' %}" class="{% if request.path == 'customer/' %}active{% endif %}">
                 <i class="fas fa-users"></i>  Customer
             </a>
         </div>  
+        {% endif %}
 
         <!-- Employee Section -->
         {% comment %} <div id="belowCustomer">
@@ -70,9 +99,18 @@
             </a>
         </div> {% endcomment %}
 
+        {% if role_permissions.create_employee == True %}
+        <div id="belowMerchant">
+            <a href="{% url 'add_employee' %}">
+                <i class="fas fa-users"></i>  Add Employee
+            </a>
+        </div>  
+        {% endif %}
+
         <!-- Employee Dropdown -->
-        <div class="dropdown" >
-            <a class="dropdown-link" id="employeeDropdownToggle">
+         {% if request.user.role == 'super_admin' %}
+         <div class="dropdown" >
+             <a class="dropdown-link" id="employeeDropdownToggle">
                 <i class="fas fa-user-tie"></i>  Employee
             </a>
             <ul class="dropdown-menu"  id="employeeDropdownMenu">
@@ -80,31 +118,37 @@
                 <li><a href="{% url 'employee_role' %}"><i class="fas fa-user-tag"></i> Employee Role</a></li>
             </ul>
         </div>
+        {% endif %}
 
-
-
+        
+        {% if request.user.role == 'super_admin' or role_permissions.payment_details == True %}
         <!-- Payment Details Section -->
         <div id="belowEmployee">
             <a href="{% url 'payment_details' %}" class="{% if request.path == 'payment_details/' %}active{% endif %}">
                 <i class="fas fa-credit-card"></i>  Payment Details
             </a>
         </div>
-
+        {% endif %}
+        
+        {% if request.user.role == 'super_admin' or role_permissions.account_info == True %}
         <!-- Account Info Section -->
         <div id="accountInfo">
             <a href="{% url 'account_info' %}" class="{% if request.path == '/account_info/' %}active{% endif %}">
                 <i class="fas fa-user-circle"></i>  Account Info
             </a>
         </div>  
-
-
+        {% endif %}
+        
+        
+        {% if request.user.role == 'super_admin' or role_permissions.reports == True %}
         <!-- Reports Section -->
         <div id="reportsSection">
             <a href="{% url 'reports' %}" class="{% if request.path == '/reports/' %}active{% endif %}">
                 <i class="fas fa-chart-line"></i>  Reports
             </a>
         </div>
-
+        {% endif %}
+        
   {% comment %} <div id="deduct_amount">
             <a href="{% url 'deduct_amount' %}" class="{% if request.path == '/deduct_amount/' %}active{% endif %}">
                 <i class="fas fa-money-bill-wave"></i>  Deduct Amount
@@ -135,9 +179,6 @@
                 <i class="fas fa-terminal"></i> Terminals
             </a>
         </div> {% endcomment %}
-
-
-
 
 
     </div>

@@ -88,6 +88,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'bopo_admin.context_processors.employee_permissions',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -129,7 +130,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
+LOGIN_URL = '/login/'
 
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = "ACefc2b57333c60eaaea16e2ba775ade3c"

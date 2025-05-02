@@ -1,6 +1,7 @@
 from datetime import date, datetime, timezone
 from io import BytesIO
 import json
+import os
 import random
 import string
 from tkinter.font import Font
@@ -23,7 +24,7 @@ from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
-from bopo_award.models import CustomerPoints, History, MerchantPoints, PaymentDetails
+from bopo_award.models import CustomerPoints, History, MerchantPoints, ModelPlan, PaymentDetails
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
@@ -39,7 +40,7 @@ from django.db import IntegrityError, transaction
 
 # Create your views here.
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
 
 # def login(request):
@@ -202,7 +203,11 @@ def toggle_terminal_status(request, terminal_id):
 
     return JsonResponse({"success": False, "error": "Invalid request"})
 
+ 
+@login_required
 def home(request):
+    user = request.user
+
     # Calculate total projects and project progress
     total_projects = Corporate.objects.count()
     completed_projects = Corporate.objects.filter(status="Completed").count()  # Assuming a 'status' field exists
@@ -228,6 +233,7 @@ def home(request):
 
     # Add context for the dashboard
     context = {
+        "user": user,
         "title": "Welcome to Bopo Admin Dashboard",
         "description": "Manage merchants, customers, and projects efficiently.",
         "total_projects": total_projects,
@@ -238,7 +244,17 @@ def home(request):
         "total_users": total_users,
         "chart_data": chart_data,
     }
-    return render(request, 'bopo_admin/home.html', context)
+    if user.role == 'corporate_admin':
+        return render(request, 'bopo_admin/Corporate/corporate_dashboard.html', context)
+    elif user.role == 'employee':
+        employee = user.employee
+        role_permissions = EmployeeRole.objects.get(employee=employee)
+        context['role_permissions'] = role_permissions
+        if role_permissions.corporate_merchant or role_permissions.individual_merchant or role_permissions.merchant_send_credentials or role_permissions.merchant_limit or role_permissions.merchant_login_page_info or role_permissions.merchant_send_notification or role_permissions.merchant_received_offers:
+            context['merchant'] = True
+        return render(request, 'bopo_admin/home.html', context)
+    else:
+        return render(request, 'bopo_admin/home.html', context)
 
 def about(request):
      return render(request, 'bopo_admin/about.html')
@@ -541,7 +557,7 @@ def add_merchant(request):
                 new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
                 project_id = f"PROJ{new_project_id:06d}"
 
-                Corporate.objects.create(
+                corporate = Corporate.objects.create(
                     select_project=select_project,
                     corporate_id=corporate_id,
                     project_name=project_name,
@@ -561,8 +577,47 @@ def add_merchant(request):
                     state=state,
                     city=city,
                     country=country,
-                    role="admin"
+                    role="admin",
                 )
+
+                bopo_admin = BopoAdmin(username=project_name, role="corporate_admin", corporate=corporate)
+                bopo_admin.set_password(pin)  # Hash the password
+                bopo_admin.save()
+
+                try:
+                    phone_number = corporate.mobile
+                    if not phone_number.startswith('+'):
+                        phone_number = f'+91{phone_number}'
+
+                # Compose the SMS message
+                    message_text = (
+                        f"Dear {corporate.first_name},\n\n"
+                        f"Your BOPO login credentials are as follows:\n"
+                        f"Project Name : {corporate.project_name}\n\n"
+                        f"Password : {corporate.pin}\n"
+                        f"Please use these credentials to access your BOPO admin panel.\n\n"
+                        f"Regards,\n"
+                        f"BOPO Support Team"
+                    )
+                
+                    # Fetch Twilio credentials from Django settings
+                    account_sid = settings.TWILIO_ACCOUNT_SID
+                    auth_token = settings.TWILIO_AUTH_TOKEN
+                    twilio_phone_number = settings.TWILIO_PHONE_NUMBER
+
+                    # Send SMS using Twilio
+                    client = Client(account_sid, auth_token)
+                    client.messages.create(
+                        body=message_text,
+                        from_=twilio_phone_number,
+                        to=phone_number
+                    )
+                
+                    messages.success(request, f"Credentials sent to {merchant.first_name} at {phone_number}")
+
+                except Exception as e:
+                    messages.error(request, f"Error sending SMS: {str(e)}")
+
             else:
                 message = "Invalid project type selected."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
@@ -1268,6 +1323,7 @@ def merchant_credentials(request):
     }
     return render(request, 'bopo_admin/Merchant/merchant_credentials.html', context)
 
+
 def merchant_topup(request):
     if request.method == "POST":
         merchant_id = request.POST.get("merchant_id")
@@ -1391,37 +1447,76 @@ def get_current_limit(request):
     merchant_id = request.GET.get('merchant_id')
     if merchant_id:
         try:
-            merchant_points = MerchantPoints.objects.get(merchant_id=merchant_id)
+            # Assuming 'merchant_id' is a ForeignKey to the 'Merchant' model
+            merchant_points = MerchantPoints.objects.get(merchant__merchant_id=merchant_id)
             return JsonResponse({'current_limit': merchant_points.points})
         except MerchantPoints.DoesNotExist:
-            return JsonResponse({'current_limit': 0})  # If no record, return 0
-    return JsonResponse({'current_limit': 0})
+            return JsonResponse({'current_limit': 0})  # Return 0 if no points record found
+    return JsonResponse({'current_limit': 0})  # Return 0 if no merchant_id is provided
     
+
 
 def reduce_limit(request):
     corporates = Corporate.objects.all()
     if request.method == "POST":
         project = request.POST.get("project")
-        merchant = request.POST.get("merchant")
-        current_limit = request.POST.get("current_limit")
-        reduce_amount = request.POST.get("reduce_amount")
-        transaction_id = request.POST.get("transaction_id")
+        merchant_id = request.POST.get("merchant")
+        current_limit = float(request.POST.get("current_limit"))
+        reduce_amount = float(request.POST.get("reduce_amount"))
 
         print('project:', project)
-        print('merchant:', merchant)
+        print('merchant:', merchant_id)
         print('current_limit:', current_limit)
         print('reduce limit:', reduce_amount)
-        print('transaction id:', transaction_id)
 
-        # Save to database or perform any other action
-        Reducelimit.objects.create(
-            project=project,
-            merchant=merchant,
-            current_limit=current_limit,
-            reduce_amount=reduce_amount,
-            transaction_id=transaction_id
-        )
-    return render(request, 'bopo_admin/Merchant/reduce_limit.html',  {"corporates": corporates})
+        try:
+            merchant_points = MerchantPoints.objects.get(merchant__merchant_id=merchant_id)
+            
+            if current_limit >= reduce_amount:
+                new_points = current_limit - reduce_amount
+                merchant_points.points = new_points
+                merchant_points.save()
+
+                Reducelimit.objects.create(
+                    project=project,
+                    merchant=merchant_id,
+                    current_limit=current_limit,
+                    reduce_amount=reduce_amount,
+                )
+
+                # Send SMS Notification
+                try:
+                    # Fetch merchant mobile number
+                    merchant = Merchant.objects.get(merchant_id=merchant_id)
+                    mobile= merchant.mobile  # Assume you have mobile_number field
+
+                    # Clean mobile number
+                    if not mobile.startswith("+"):
+                        if mobile.startswith("0"):
+                            mobile = mobile[1:]
+                        mobile = "+91" + mobile
+
+                    # Prepare simple message
+                    sms_body = f"Reduce Amount: {reduce_amount}, Current Limit: {new_points}"
+
+                    # Send SMS
+                    send_sms(mobile, sms_body)
+
+                except Merchant.DoesNotExist:
+                    print("Merchant not found for sending SMS.")
+                except Exception as sms_error:
+                    print(f"Failed to send SMS: {str(sms_error)}")
+
+                return redirect('reduce_limit')
+
+            else:
+                return redirect('reduce_limit')
+
+        except MerchantPoints.DoesNotExist:
+            return redirect('reduce_limit')
+
+    return render(request, 'bopo_admin/Merchant/reduce_limit.html', {"corporates": corporates})
+
 
 
 def get_merchants_by_project(request):
@@ -1745,7 +1840,7 @@ from .models import Employee
 
 def delete_employee(request, employee_id):
     try:
-        employee = Employee.objects.get(id=employee_id)
+        employee = Employee.objects.get(employee_id=employee_id)
         employee.delete()
         return JsonResponse({'success': True})
     except Employee.DoesNotExist:
@@ -1815,7 +1910,7 @@ def add_employee(request):
 
         # Create employee record
         try:
-            Employee.objects.create(
+            employee = Employee(
                 employee_id=employee_id,
                 name=name,
                 email=email,
@@ -1830,10 +1925,15 @@ def add_employee(request):
                 password=password,
                 country=country
             )
+            employee.save()
         except IntegrityError as e:
+            employee.delete()
             # Handle any integrity errors (shouldn't happen, but just in case)
             return JsonResponse({"success": False, "message": f"Error: {str(e)}"})
 
+        bopo_admin = BopoAdmin(username=username, role="employee", employee=employee)
+        bopo_admin.set_password(password)  # Hash the password
+        bopo_admin.save()
         return JsonResponse({"success": True, "message": "Employee added successfully!"})
 
     return render(request, 'bopo_admin/Employee/add_employee.html')
@@ -1940,29 +2040,45 @@ def account_info(request):
 def reports(request):
     return render(request, 'bopo_admin/Payment/reports.html')
 
-def login(request):
+def login_view(request):
     if request.method == 'POST': 
         username = request.POST.get('username')
         password = request.POST.get('password')
-        user_type = request.POST.get('user_type')  # New line to capture the selected role
+        user_type = request.POST.get('user_type')
 
-        try:
-            # Filter user by username and user_type if you are storing type
-            user = BopoAdmin.objects.get(username=username)
+        user = authenticate(request, username=username, password=password)
+        if user_type == "employee":
+            role_permissions = EmployeeRole.objects.filter(employee=user.employee)
+            if not role_permissions.exists():
+                error_message = "You do not have permission to access this page."
+                return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+        if user:
+            login(request, user)
+            return redirect('home')
+        else:
+            error_message = "Invalid credentials"
+            return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+        # try:
+        #     # Filter user by username and user_type if you are storing type
+        #     if user_type == "corporate_admin":
+        #         user = Corporate.objects.get(username=username)
+        #     else:
+        #         user = BopoAdmin.objects.get(username=username)
             
-            # Optional: filter by role too if role is stored
-            # user = BopoAdmin.objects.get(username=username, role=user_type)
+        #     # Optional: filter by role too if role is stored
+        #     # user = BopoAdmin.objects.get(username=username, role=user_type)
 
-            if check_password(password, user.password):
-                request.session['admin_id'] = user.id
-                request.session['user_type'] = user_type  # Store the role in session
-                return redirect('home')
-            else:
-                error_message = "Incorrect password"
-        except BopoAdmin.DoesNotExist:
-            error_message = "User does not exist"
+        #     if check_password(password, user.password):
+        #         request.session['admin_id'] = user.id
+        #         request.session['user_type'] = user_type  # Store the role in session
+        #         return redirect('home')
+        #     else:
+        #         error_message = "Incorrect password"
+        # except BopoAdmin.DoesNotExist:
+        #     error_message = "User does not exist"
 
-        return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+        # return render(request, 'bopo_admin/login.html', {'error_message': error_message})
     
     # GET request
     return render(request, 'bopo_admin/login.html')
@@ -2489,3 +2605,32 @@ def set_deduct_amount(request):
         return JsonResponse({'message': 'Deduct amount updated successfully.', 'deduct_percentage': setting.deduct_percentage})
     
     return JsonResponse({'error': 'Invalid method.'}, status=405)
+
+@csrf_exempt
+def save_model_plan(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        plan_validity = data.get("plan_validity")
+        plan_type = data.get("plan_type")
+        description = data.get("description")
+        merchant_id = data.get("merchant_id")
+
+        if not all([plan_validity, plan_type, description]):
+            return JsonResponse({"error": "Missing fields"}, status=400)
+
+        try:
+            merchant_obj = Merchant.objects.get(id=merchant_id) if merchant_id else None
+        except Merchant.DoesNotExist:
+            return JsonResponse({"error": "Merchant not found"}, status=404)
+
+        plan, created = ModelPlan.objects.update_or_create(
+            plan_type=plan_type,
+            merchant=merchant_obj,
+            defaults={
+                "plan_validity": plan_validity,
+                "description": description
+            }
+        )
+        return JsonResponse({"message": "Model plan saved successfully."})
+    return JsonResponse({"error": "Invalid method"}, status=405)

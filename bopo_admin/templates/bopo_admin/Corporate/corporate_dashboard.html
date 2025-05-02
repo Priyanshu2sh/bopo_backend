@@ -1,0 +1,142 @@
+{% extends "bopo_admin/base.html" %}
+
+{% block content %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'bopo_admin/css/home.css' %}">
+
+    <div class="dashboard-container">
+        <h2 class="title">Dashboard Overview</h2>
+
+        <!-- Card Container -->
+        <div class="card-container">
+            <!-- <div class="card">
+                <div class="card-header">PROJECTS</div>
+                <div class="card-body">
+                    <span class="value">{{ total_projects }}</span>
+                    <div class="progress-container">
+                        <span class="progress-text">{{ project_progress|floatformat:2 }}% ⬆</span>
+                    </div>
+                    <div class="progress-bar">
+                        <span style="width: {{ project_progress }}%;"></span>
+                    </div>
+                </div>
+            </div> -->
+
+            <div class="card">
+                <div class="card-header">MERCHANTS</div>
+                <div class="card-body">
+                    <span class="value">{{ total_merchants }}</span>
+                    <div class="progress-container">
+                        <span class="progress-text">{{ merchant_progress|floatformat:2 }}% ⬆</span>
+                    </div>
+                    <div class="progress-bar">
+                        <span style="width: {{ merchant_progress }}%;"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- <div class="card">
+                <div class="card-header">CUSTOMERS</div>
+                <div class="card-body">
+                    <span class="value">{{ total_customers }}</span>
+                    <div class="progress-container">
+                        <span class="progress-text">{{ customer_progress|floatformat:2 }}% ⬆</span>
+                    </div>
+                    <div class="progress-bar">
+                        <span style="width: {{ customer_progress }}%;"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">TOTAL USERS</div>
+                <div class="card-body">
+                    <span class="value">{{ total_users }}</span>
+                    <div class="progress-container">
+                        <span class="progress-text">100% ⬆</span>
+                    </div>
+                    <div class="progress-bar">
+                        <span style="width: 100%;"></span>
+                    </div>
+                </div>
+            </div> -->
+        </div>
+
+        <!-- Analysis Section -->
+        <div class="analysis-section">
+            <h2 class="title">Analysis</h2>
+            <div class="graph-container">
+                <canvas id="dashboardChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        var ctx = document.getElementById('dashboardChart').getContext('2d');
+        var dashboardChart = new Chart(ctx, {
+            type: 'bar',  // Bar chart
+            data: {
+                labels: ['Projects', 'Merchants', 'Customers'],
+                datasets: [
+                    {
+                        label: 'Total',
+                        data: [{{ chart_data.projects.0 }}, {{ chart_data.merchants.0 }}, {{ chart_data.customers.0 }}],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.5)',  // Blue for Projects
+                            'rgba(46, 204, 113, 0.5)',  // Green for Merchants
+                            'rgba(231, 76, 60, 0.5)'    // Red for Customers
+                        ],
+                        borderColor: [
+                            'rgba(52, 152, 219, 1)',  // Blue for Projects
+                            'rgba(46, 204, 113, 1)',  // Green for Merchants
+                            'rgba(231, 76, 60, 1)'    // Red for Customers
+                        ],
+                        borderWidth: 2,
+                    },
+                    {
+                        label: 'Active',
+                        data: [{{ chart_data.projects.1 }}, {{ chart_data.merchants.1 }}, 0],
+                        backgroundColor: [
+                            'rgba(155, 89, 182, 0.5)',  // Purple for Projects
+                            // 'rgba(241, 196, 15, 0.5)',  // Yellow for Merchants
+                            // 'rgba(52, 73, 94, 0.5)'     // Gray for Customers
+                        ],
+                        borderColor: [
+                            'rgba(155, 89, 182, 1)',  // Purple for Projects
+                            // 'rgba(241, 196, 15, 1)',  // Yellow for Merchants
+                            // 'rgba(52, 73, 94, 1)'     // Gray for Customers
+                        ],
+                        borderWidth: 2,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Categories'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <p>A Trademark Product Of Miraasiv Onpay Technologies Pvt Ltd. All rights reserved.</p>
+    </footer>
+{% endblock %}

@@ -11,7 +11,7 @@ from .views import home, about, merchant, customer, project_onboarding,merchant_
 
 urlpatterns = [
     # NEW (correct)
-    path('login/', views.login, name='login'),
+    path('login/', views.login_view, name='login'),
     path('logout/', custom_logout_view, name='logout'),
     path('profile/', views.profile, name='profile'),
     path('', home, name='home'),
@@ -76,7 +76,7 @@ urlpatterns = [
 
     path('get-employee/<int:employee_id>/', views.get_employee, name='get_employee'),
     path('update-employee/', views.update_employee, name='update_employee'),
-    path('delete-employee/<int:employee_id>/', delete_employee, name='delete_employee'),
+    path('delete-employee/<str:employee_id>/', delete_employee, name='delete_employee'),
     
     path('edit-merchants/<int:merchant_id>/', views.edit_merchants, name='edit_merchants'),
     path('update-merchant/', views.update_merchant, name='update_merchant'),
@@ -153,6 +153,8 @@ urlpatterns = [
     path('api/set-deduct-amount/', set_deduct_amount, name='set_deduct_amount'),
     
     path('get-current-limit/', views.get_current_limit, name='get_current_limit'),
+    
+    path('save-model-plan/', views.save_model_plan, name='save-model-plan'),
 
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

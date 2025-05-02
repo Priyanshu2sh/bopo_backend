@@ -41,23 +41,22 @@
             </select>
         </div>
 
-        <div class="form-group ">
+        <div class="form-group">
             <label>Current Limit</label>
             <div class="input-icon">
                 <span class="icon"><i class="fas fa-money-bill-wave"></i></span>
-                <input type="text" id="current-limit" name= "current_limit" value="" readonly>
-             
+                <input type="text" id="current-limit" name="current_limit" value="" readonly>
             </div>
         </div>
-
+        
         <div class="form-group">
-            <!-- Reduce Amount -->
             <label for="reduce-amount">Cash-out Amount</label>
             <div class="input-icon">
                 <span class="icon"><i class="fas fa-coins"></i></span>
                 <input type="number" id="reduce-amount" name="reduce_amount" placeholder="Enter amount">
             </div>
         </div>
+        
 
         <!-- Transaction ID -->
         <!-- <div class="form-group">
@@ -119,6 +118,7 @@ function fetchCurrentLimit() {
         fetch(`/get-current-limit/?merchant_id=${merchantId}`)
             .then(response => response.json())
             .then(data => {
+                // Set the current limit in the form
                 document.getElementById("current-limit").value = data.current_limit;
             })
             .catch(error => {
@@ -128,6 +128,7 @@ function fetchCurrentLimit() {
         document.getElementById("current-limit").value = "";
     }
 }
+
 
 </script>
     
