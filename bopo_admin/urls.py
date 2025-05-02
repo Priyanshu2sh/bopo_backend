@@ -127,6 +127,9 @@ urlpatterns = [
     path('delete-customer/<str:customer_id>/', views.delete_customer, name='delete_customer'),
     
     path('logout/', custom_logout_view, name='logout'),
+     path('update-model-plan/', views.update_model_plan, name='update_model_plan'),
+      path('save-award-points/', views.save_award_points, name='save_award_points'),
+
 
  
   

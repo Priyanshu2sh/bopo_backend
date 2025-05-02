@@ -152,6 +152,11 @@ class CashOut(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
-  
+ 
 
+class AwardPoints(models.Model):
+    percentage = models.IntegerField()  # No default value set
+
+    def __str__(self):
+        return f"{self.percentage}% of purchase amount awarded to customer"
 

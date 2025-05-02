@@ -24,7 +24,7 @@ from accounts.models import Corporate, Customer, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
-from bopo_award.models import CashOut, CustomerPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails
+from bopo_award.models import AwardPoints, CashOut, CustomerPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
@@ -2910,3 +2910,47 @@ def save_model_plan(request):
         )
         return JsonResponse({"message": "Model plan saved successfully."})
     return JsonResponse({"error": "Invalid method"}, status=405)
+
+
+def update_model_plan(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        plan_validity = data.get('plan_validity')
+        plan_type = data.get('plan_type')
+        description = data.get('description')
+
+        try:
+            # Assuming you are updating based on plan_type
+            plan = ModelPlan.objects.filter(plan_type=plan_type).first()
+            if plan:
+                plan.plan_validity = plan_validity
+                plan.description = description
+                plan.save()
+            else:
+                ModelPlan.objects.create(
+                    plan_validity=plan_validity,
+                    plan_type=plan_type,
+                    description=description
+                )
+            return JsonResponse({'success': True, 'message': 'Plan updated successfully.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+def save_award_points(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        award_percentage = data.get('award_percentage')
+
+        try:
+            # Update the award percentage or create a new record if none exists
+            award, created = AwardPoints.objects.update_or_create(
+                id=1,  # Assuming you only have one award entry, so use a fixed ID
+                defaults={'percentage': award_percentage}
+            )
+            return JsonResponse({'success': True, 'message': 'Award points updated successfully.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
