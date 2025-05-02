@@ -1,3 +1,4 @@
+from datetime import timedelta, timezone
 import random
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -5,6 +6,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from django.db.models import F
 from django.db.models import Sum
+from django.utils.timezone import now
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.serializers import CustomerSerializer, MerchantSerializer
@@ -13,7 +15,7 @@ from django.db import transaction
 
 from .serializers import BankDetailSerializer, CashOutSerializer, CorporateProjectSerializer, CustomerCashOutSerializer, HelpSerializer, MerchantCashOutSerializer, PaymentDetailsSerializer
 
-from .models import BankDetail, CashOut, CustomerToCustomer, Help, MerchantToMerchant, PaymentDetails
+from .models import BankDetail, CashOut, CustomerToCustomer, Help, MerchantToMerchant, ModelPlan, PaymentDetails
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
@@ -455,7 +457,7 @@ class CustomerToCustomerTransferAPIView(APIView):
 class MerchantToMerchantTransferAPIView(APIView):
     """
     API for Merchant to Merchant point transfer.
-    Only allowed if BOTH sender and receiver have 'prepaid' plan (fetched from PaymentDetails).
+    Only allowed if BOTH sender and receiver have valid plans (checked from the ModelPlan table).
     """
 
     def post(self, request):
@@ -483,18 +485,42 @@ class MerchantToMerchantTransferAPIView(APIView):
         sender_plan = sender_payment.plan_type.lower()  # 'prepaid' or 'rental'
         receiver_plan = receiver_payment.plan_type.lower()
 
-        # Only allow transfer if BOTH are prepaid
+        # Only allow transfer if BOTH have valid plans from ModelPlan
         if sender_plan != "prepaid" and receiver_plan != "prepaid":
             return Response({"error": "Both sender and receiver have rental plans, so points cannot be transferred."},
                             status=status.HTTP_400_BAD_REQUEST)
         elif sender_plan != "prepaid":
-            return Response({"error": "You have a rental plan, so cannot transfer points."},
+            return Response({"error": "Sender has a rental plan, so cannot transfer points."},
                             status=status.HTTP_400_BAD_REQUEST)
         elif receiver_plan != "prepaid":
             return Response({"error": "Receiver merchant has a rental plan, so points cannot be transferred."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Both prepaid → allow transfer
+        # Validate that both merchants have a valid plan from ModelPlan
+        current_date = timezone.now()
+
+        try:
+            sender_plan_info = ModelPlan.objects.get(plan_type=sender_payment.plan_type)
+            receiver_plan_info = ModelPlan.objects.get(plan_type=receiver_payment.plan_type)
+        except ModelPlan.DoesNotExist:
+            return Response({"error": "Invalid plan type for one or both merchants."}, status=status.HTTP_404_NOT_FOUND)
+
+        sender_plan_validity = sender_plan_info.plan_validity
+        receiver_plan_validity = receiver_plan_info.plan_validity
+
+        # Assuming the plan_validity field stores a string like "12 months", "24 months", etc.
+        # Parse the validity period and calculate expiration date
+
+        sender_expiry_date = current_date + timedelta(days=int(sender_plan_validity.split()[0]) * 30)  # Assuming months
+        receiver_expiry_date = current_date + timedelta(days=int(receiver_plan_validity.split()[0]) * 30)  # Assuming months
+
+        if sender_expiry_date < current_date:
+            return Response({"error": "Sender's plan has expired."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if receiver_expiry_date < current_date:
+            return Response({"error": "Receiver's plan has expired."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Both plans are valid → proceed with transfer
         sender_points = MerchantPoints.objects.filter(merchant=sender_merchant).first()
         if not sender_points:
             return Response({"error": "Sender has no points available"}, status=status.HTTP_400_BAD_REQUEST)
@@ -548,8 +574,10 @@ class MerchantToMerchantTransferAPIView(APIView):
                 "receiver_balance": updated_receiver_balance
             },
             status=status.HTTP_200_OK
-        )       
+        )   
         
+        
+           
 class CheckPointsAPIView(APIView):
     """
     API to check:
@@ -831,31 +859,110 @@ class PaymentDetailsListCreateAPIView(APIView):
         serializer = PaymentDetailsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                {"message": "Payment send successfully.", "data": serializer.data},
+                status=status.HTTP_201_CREATED
+            )
         return Response(
             {"errors": serializer.errors, "message": "Payment send failed."},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class TerminalCustomerPointsAPIView(APIView):
+    """
+    API to fetch all customer-wise points for a given terminal (under merchant) with TID and PIN validation (PIN from Terminal).
+    """
+    
+    def get(self, request):
+        terminal_id = request.query_params.get('terminal_id')
+
+        if not terminal_id:
+            return Response({"error": "terminal_id is required as query parameter."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Step 1: Validate Terminal and fetch associated Merchant
+        terminal = Terminal.objects.select_related('merchant_id').filter(terminal_id=terminal_id).first()
+        if not terminal:
+            return Response({"error": "Terminal not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        merchant = terminal.merchant_id
+
+        # Step 2: Calculate total customer points related to this merchant
+        total_points = CustomerPoints.objects.filter(merchant=merchant).aggregate(total_points=Sum('points'))['total_points'] or 0
+
+        return Response({
+            "terminal_id": terminal.terminal_id,
+            "merchant_id": merchant.merchant_id,
+            "total_points": total_points
+        }, status=status.HTTP_200_OK)
+        
+        
+    def post(self, request):
+        terminal_id = request.data.get('terminal_id')
+        merchant_identifier = request.data.get('merchant_id')
+        pin = request.data.get('tid_pin')   # <-- use tid_pin here
+
+        if not terminal_id or not merchant_identifier or not pin:
+            return Response(
+                {"error": "terminal_id, merchant_id, and tid_pin are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Step 1: Validate Merchant
+        try:
+            merchant = Merchant.objects.get(merchant_id=merchant_identifier)
+        except Merchant.DoesNotExist:
+            return Response({"error": "Please enter the correct merchant ID."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Step 2: Validate Terminal under Merchant
+        terminal = Terminal.objects.filter(terminal_id=terminal_id, merchant_id=merchant.id).first()
+        if not terminal:
+            return Response({"error": "Terminal not found for this merchant."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Step 3: Validate PIN from Terminal
+        if str(terminal.tid_pin) != str(pin):
+            return Response({"error": "Please enter the correct Terminal PIN."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Step 4: Fetch Customer Points related to this merchant
+        customer_points = CustomerPoints.objects.filter(merchant=merchant).values(
+            "customer__customer_id", "customer__first_name", "customer__last_name", "points"
+        )
+
+        customer_points_data = [
+            {
+                "customer_id": cp["customer__customer_id"],
+                "customer_name": f"{cp['customer__first_name']} {cp['customer__last_name']}".strip(),
+                "points": cp["points"]
+            }
+            for cp in customer_points
+        ]
+
+        return Response({
+            "merchant_id": merchant.merchant_id,
+            "terminal_id": terminal.terminal_id,
+            "tid_pin": terminal.tid_pin,
+            "customer_points": customer_points_data
+        }, status=status.HTTP_200_OK)
 
 # Retrieve, update, or delete a specific payment
 class PaymentDetailsRetrieveUpdateDestroyAPIView(APIView):
     def get(self, request, merchant_id):
         # Try to find the Merchant based on the merchant_id string
         try:
-            # Assuming 'merchant_id' is a string that can identify the Merchant
-            merchant = Merchant.objects.get(merchant_id=merchant_id)  # 'merchant_id' in Merchant model
+            merchant = Merchant.objects.get(merchant_id=merchant_id)
         except Merchant.DoesNotExist:
             return Response({"error": "Merchant not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        # Filter the PaymentDetails by the Merchant's ID
-        payments = PaymentDetails.objects.filter(merchant=merchant)
 
-        if not payments:
+        # Filter the PaymentDetails by the Merchant's ID and order by newest first
+        payments = PaymentDetails.objects.filter(merchant=merchant).order_by('-created_at')
+
+        if not payments.exists():  # Better than `if not payments:`
             return Response({"error": "No payment details found for this merchant."}, status=status.HTTP_404_NOT_FOUND)
-        
+
         # Serialize the list of payments
         serializer = PaymentDetailsSerializer(payments, many=True)
         return Response(serializer.data)
+
 
     def put(self, request, merchant_id):
         # Update the payment details using merchant_id (string) and pk in the request
