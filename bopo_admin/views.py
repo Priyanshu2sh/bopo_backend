@@ -2837,7 +2837,7 @@ def reduce_limit(request):
 # def award_points(request):
 #     return render(request, 'bopo_admin/Superadmin/award_points.html')
 
-def security_questions_view(request):
+def security_questions(request):
     if request.method == 'GET':
         questions = list(SecurityQuestion.objects.all().values('id', 'question'))
         return JsonResponse(questions, safe=False)
@@ -2882,7 +2882,7 @@ def set_deduct_amount(request):
     
     return JsonResponse({'error': 'Invalid method.'}, status=405)
 
-@csrf_exempt
+
 def save_model_plan(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -2890,19 +2890,15 @@ def save_model_plan(request):
         plan_validity = data.get("plan_validity")
         plan_type = data.get("plan_type")
         description = data.get("description")
-        merchant_id = data.get("merchant_id")
+        
 
         if not all([plan_validity, plan_type, description]):
             return JsonResponse({"error": "Missing fields"}, status=400)
 
-        try:
-            merchant_obj = Merchant.objects.get(id=merchant_id) if merchant_id else None
-        except Merchant.DoesNotExist:
-            return JsonResponse({"error": "Merchant not found"}, status=404)
+        
 
         plan, created = ModelPlan.objects.update_or_create(
             plan_type=plan_type,
-            merchant=merchant_obj,
             defaults={
                 "plan_validity": plan_validity,
                 "description": description

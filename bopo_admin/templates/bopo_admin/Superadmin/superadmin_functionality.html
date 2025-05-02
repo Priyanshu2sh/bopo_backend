@@ -169,7 +169,7 @@
     </div>
 </div>
 
-<!-- JavaScript -->
+<!-- JavaScript for Toggle Functionality -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const checkboxes = document.querySelectorAll(".toggle-checkbox");
@@ -360,7 +360,17 @@
     }
 
     function savePlanChanges() {
-        alert("Plan changes saved successfully!");
+        // Get the new values from the modal form
+        const newValidity = document.getElementById('edit-validity-input').value;
+        const newType = document.getElementById('edit-type-input').value;
+        const newDescription = document.getElementById('edit-description-input').value;
+    
+        // Update the row with the new values
+        rowToEdit.querySelector('.plan-validity-text').textContent = newValidity;
+        rowToEdit.querySelector('.plan-type-text').textContent = newType;
+        rowToEdit.querySelector('.plan-description-text').textContent = newDescription;
+    
+        // Close the modal
         closeEditModal();
     }
 
