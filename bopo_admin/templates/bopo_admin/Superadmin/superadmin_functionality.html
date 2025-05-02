@@ -109,7 +109,7 @@
                             A flexible short-term plan allowing merchants to use services with a monthly fee.
                         </span>
                     </td>
-                        <td><button class="btn-action" onclick="openEditPlanModal(this)">Chnage</button></td>
+                        <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
                     </tr>
                     <tr>
                         <td><span class="plan-validity-text">12 months</span></td>
@@ -125,6 +125,30 @@
         </div>
 
        </div>
+</div>
+
+
+<!-- Edit Plan Modal -->
+<div id="editPlanModal" class="modal-container">
+    <div class="modal-content-box">
+        <span class="modal-close-btn" onclick="closeEditModal()">&times;</span>
+        <h2 class="modal-header">Edit Plan</h2>
+        <form id="editPlanForm">
+            <div class="input-group">
+                <label for="edit-validity-input">Plan Validity</label>
+                <input type="text" id="edit-validity-input" class="input-field" placeholder="Enter plan validity">
+            </div>
+            <div class="input-group">
+                <label for="edit-type-input">Plan Type</label>
+                <input type="text" id="edit-type-input" class="input-field" placeholder="Enter plan type">
+            </div>
+            <div class="input-group">
+                <label for="edit-description-input">Description</label>
+                <textarea id="edit-description-input" class="textarea-field" placeholder="Enter description..."></textarea>
+            </div>
+            <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
+        </form>
+    </div>
 </div>
 
 
@@ -269,6 +293,50 @@
     });
 }
 
+let rowToEdit = null; 
+
+    function openEditPlanModal(button) {
+        // Get the row where the Edit button was clicked
+        const row = button.closest('tr');
+        const validity = row.querySelector('.plan-validity-text').textContent;
+        const type = row.querySelector('.plan-type-text').textContent;
+        const description = row.querySelector('.plan-description-text').textContent;
+    
+        // Pre-fill the modal form with the current values
+        document.getElementById('edit-validity-input').value = validity;
+        document.getElementById('edit-type-input').value = type;
+        document.getElementById('edit-description-input').value = description;
+    
+        // Store the row reference to update later
+        rowToEdit = row;
+    
+        // Show the modal and close button
+        document.getElementById('editPlanModal').style.display = 'block';
+        document.querySelector('.modal-close-btn').style.display = 'block';  // Ensure the close button is visible
+    }
+    
+    function closeEditModal() {
+        // Close the modal
+        document.getElementById('editPlanModal').style.display = 'none';
+        document.querySelector('.modal-close-btn').style.display = 'none';  // Hide the close button when modal is closed
+    }
+    
+    function savePlanChanges() {
+        // Get the new values from the modal form
+        const newValidity = document.getElementById('edit-validity-input').value;
+        const newType = document.getElementById('edit-type-input').value;
+        const newDescription = document.getElementById('edit-description-input').value;
+    
+        // Update the row with the new values
+        rowToEdit.querySelector('.plan-validity-text').textContent = newValidity;
+        rowToEdit.querySelector('.plan-type-text').textContent = newType;
+        rowToEdit.querySelector('.plan-description-text').textContent = newDescription;
+    
+        // Close the modal
+        closeEditModal();
+    }
+
+
 
 
 </script>
@@ -333,6 +401,56 @@ function getCSRFToken() {
     return '';
 }
 </script>
+
+<script>
+    function saveEditedPlan() {
+        const validity = document.getElementById('edit-validity-input').value;
+        const type = document.getElementById('edit-type-input').value;
+        const description = document.getElementById('edit-description-input').value;
+    
+        fetch('/save-model-plan/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                plan_validity: validity,
+                plan_type: type,
+                description: description,
+                merchant_id: 1  // Replace with actual merchant ID logic
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || data.error);
+            // Optionally update the table row if needed
+            if (rowToEdit) {
+                rowToEdit.querySelector('.plan-validity-text').textContent = validity;
+                rowToEdit.querySelector('.plan-type-text').textContent = type;
+                rowToEdit.querySelector('.plan-description-text').textContent = description;
+            }
+            document.getElementById('editPlanModal').style.display = 'none';
+        });
+    }
+    
+    // Utility to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    </script>
+    
     
 
 {% endblock %}

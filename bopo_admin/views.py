@@ -24,7 +24,7 @@ from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
-from bopo_award.models import CustomerPoints, History, MerchantPoints, PaymentDetails
+from bopo_award.models import CustomerPoints, History, MerchantPoints, ModelPlan, PaymentDetails
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
@@ -1323,6 +1323,7 @@ def merchant_credentials(request):
     }
     return render(request, 'bopo_admin/Merchant/merchant_credentials.html', context)
 
+
 def merchant_topup(request):
     if request.method == "POST":
         merchant_id = request.POST.get("merchant_id")
@@ -2604,3 +2605,32 @@ def set_deduct_amount(request):
         return JsonResponse({'message': 'Deduct amount updated successfully.', 'deduct_percentage': setting.deduct_percentage})
     
     return JsonResponse({'error': 'Invalid method.'}, status=405)
+
+@csrf_exempt
+def save_model_plan(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        plan_validity = data.get("plan_validity")
+        plan_type = data.get("plan_type")
+        description = data.get("description")
+        merchant_id = data.get("merchant_id")
+
+        if not all([plan_validity, plan_type, description]):
+            return JsonResponse({"error": "Missing fields"}, status=400)
+
+        try:
+            merchant_obj = Merchant.objects.get(id=merchant_id) if merchant_id else None
+        except Merchant.DoesNotExist:
+            return JsonResponse({"error": "Merchant not found"}, status=404)
+
+        plan, created = ModelPlan.objects.update_or_create(
+            plan_type=plan_type,
+            merchant=merchant_obj,
+            defaults={
+                "plan_validity": plan_validity,
+                "description": description
+            }
+        )
+        return JsonResponse({"message": "Model plan saved successfully."})
+    return JsonResponse({"error": "Invalid method"}, status=405)

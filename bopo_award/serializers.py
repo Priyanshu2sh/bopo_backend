@@ -16,7 +16,7 @@ from rest_framework import serializers
 
 from accounts.models import Corporate, Customer, Merchant
 from bopo_admin.models import EmployeeRole
-from .models import BankDetail, CustomerPoints, Help, MerchantPoints, History, PaymentDetails
+from .models import BankDetail, CashOut, CustomerPoints, Help, MerchantPoints, History, PaymentDetails
 
 
 class CustomerPointsSerializer(serializers.ModelSerializer):
@@ -46,7 +46,7 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = PaymentDetails
-        fields = ['merchant', 'paid_amount', 'transaction_id', 'payment_mode', 'created_at']
+        fields = ['merchant', 'paid_amount', 'transaction_id', 'payment_mode', 'plan_type', 'created_at']
         
 
 class BankDetailSerializer(serializers.ModelSerializer):
@@ -82,3 +82,40 @@ class EmployeeRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeeRole
         fields = '__all__'
+        
+        
+class CashOutSerializer(serializers.ModelSerializer):
+    customer_id = serializers.CharField(required=False, allow_null=True)
+    merchant_id = serializers.CharField(required=False, allow_null=True)
+
+    class Meta:
+        model = CashOut
+        fields = ['id', 'user_category', 'customer_id', 'merchant_id', 'amount', 'created_at']
+        # read_only_fields = ['id', 'created_at']
+
+    def validate_customer_id(self, value):
+        if value:
+            try:
+                customer = Customer.objects.get(customer_id=value)
+                return customer
+            except Customer.DoesNotExist:
+                raise serializers.ValidationError("Invalid customer_id")
+        return None
+
+    def validate_merchant_id(self, value):
+        if value:
+            try:
+                merchant = Merchant.objects.get(merchant_id=value)
+                return merchant
+            except Merchant.DoesNotExist:
+                raise serializers.ValidationError("Invalid merchant_id")
+        return None
+    
+class CustomerCashOutSerializer(serializers.Serializer):
+    customer_id = serializers.CharField()
+    merchant_id = serializers.CharField()
+    amount = serializers.IntegerField()
+
+class MerchantCashOutSerializer(serializers.Serializer):
+    merchant_id = serializers.CharField()
+    amount = serializers.IntegerField()
