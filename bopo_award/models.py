@@ -22,6 +22,7 @@ class CustomerPoints(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     points = models.IntegerField()
     corporate_id = models.ForeignKey(Corporate, on_delete=models.CASCADE, null=True, blank=True)  # Reference to Corporate model
+    terminal = models.ForeignKey(Terminal, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -138,7 +139,7 @@ class Help(models.Model):
     
     
 class ModelPlan(models.Model):
-    # merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
+    
     plan_validity = models.CharField(max_length=255)
     plan_type = models.CharField(max_length=255)
     description = models.TextField()
