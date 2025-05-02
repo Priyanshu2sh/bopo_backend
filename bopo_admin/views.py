@@ -24,7 +24,7 @@ from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
-from bopo_award.models import CustomerPoints, History, MerchantPoints, PaymentDetails
+from bopo_award.models import CustomerPoints, History, MerchantPoints, ModelPlan, PaymentDetails
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
@@ -65,6 +65,21 @@ def custom_logout_view(request):
     logout(request)
     return redirect('login')
 
+def corporate_admin(request):
+    corporates = Corporate.objects.all()
+    corporate_data = []
+
+    for corporate in corporates:
+        # Fetch merchants linked to the corporate
+        merchants = Merchant.objects.filter(corporate_id=corporate.corporate_id, user_type='corporate')
+        corporate_data.append({
+            "corporate": corporate,
+            "merchants": merchants
+        })
+
+    return render(request, 'bopo_admin/Payment/corporate_admin.html', {
+        "corporate_data": corporate_data
+    })
 
 def profile(request):
         return render(request, 'bopo_admin/profile.html')
@@ -1408,6 +1423,7 @@ def get_individual_merchants(request):
 
 
 
+
 def merchant_topup(request):
     if request.method == "POST":
         merchant_id = request.POST.get("merchant_id")
@@ -1531,37 +1547,76 @@ def get_current_limit(request):
     merchant_id = request.GET.get('merchant_id')
     if merchant_id:
         try:
-            merchant_points = MerchantPoints.objects.get(merchant_id=merchant_id)
+            # Assuming 'merchant_id' is a ForeignKey to the 'Merchant' model
+            merchant_points = MerchantPoints.objects.get(merchant__merchant_id=merchant_id)
             return JsonResponse({'current_limit': merchant_points.points})
         except MerchantPoints.DoesNotExist:
-            return JsonResponse({'current_limit': 0})  # If no record, return 0
-    return JsonResponse({'current_limit': 0})
+            return JsonResponse({'current_limit': 0})  # Return 0 if no points record found
+    return JsonResponse({'current_limit': 0})  # Return 0 if no merchant_id is provided
     
+
 
 def reduce_limit(request):
     corporates = Corporate.objects.all()
     if request.method == "POST":
         project = request.POST.get("project")
-        merchant = request.POST.get("merchant")
-        current_limit = request.POST.get("current_limit")
-        reduce_amount = request.POST.get("reduce_amount")
-        transaction_id = request.POST.get("transaction_id")
+        merchant_id = request.POST.get("merchant")
+        current_limit = float(request.POST.get("current_limit"))
+        reduce_amount = float(request.POST.get("reduce_amount"))
 
         print('project:', project)
-        print('merchant:', merchant)
+        print('merchant:', merchant_id)
         print('current_limit:', current_limit)
         print('reduce limit:', reduce_amount)
-        print('transaction id:', transaction_id)
 
-        # Save to database or perform any other action
-        Reducelimit.objects.create(
-            project=project,
-            merchant=merchant,
-            current_limit=current_limit,
-            reduce_amount=reduce_amount,
-            transaction_id=transaction_id
-        )
-    return render(request, 'bopo_admin/Merchant/reduce_limit.html',  {"corporates": corporates})
+        try:
+            merchant_points = MerchantPoints.objects.get(merchant__merchant_id=merchant_id)
+            
+            if current_limit >= reduce_amount:
+                new_points = current_limit - reduce_amount
+                merchant_points.points = new_points
+                merchant_points.save()
+
+                Reducelimit.objects.create(
+                    project=project,
+                    merchant=merchant_id,
+                    current_limit=current_limit,
+                    reduce_amount=reduce_amount,
+                )
+
+                # Send SMS Notification
+                try:
+                    # Fetch merchant mobile number
+                    merchant = Merchant.objects.get(merchant_id=merchant_id)
+                    mobile= merchant.mobile  # Assume you have mobile_number field
+
+                    # Clean mobile number
+                    if not mobile.startswith("+"):
+                        if mobile.startswith("0"):
+                            mobile = mobile[1:]
+                        mobile = "+91" + mobile
+
+                    # Prepare simple message
+                    sms_body = f"Reduce Amount: {reduce_amount}, Current Limit: {new_points}"
+
+                    # Send SMS
+                    send_sms(mobile, sms_body)
+
+                except Merchant.DoesNotExist:
+                    print("Merchant not found for sending SMS.")
+                except Exception as sms_error:
+                    print(f"Failed to send SMS: {str(sms_error)}")
+
+                return redirect('reduce_limit')
+
+            else:
+                return redirect('reduce_limit')
+
+        except MerchantPoints.DoesNotExist:
+            return redirect('reduce_limit')
+
+    return render(request, 'bopo_admin/Merchant/reduce_limit.html', {"corporates": corporates})
+
 
 
 def get_merchants_by_project(request):
@@ -2268,6 +2323,43 @@ def login_view(request):
     # GET request
     return render(request, 'bopo_admin/login.html')
 
+from django.contrib.auth.hashers import make_password
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import AnonymousUser
+
+
+
+def profile(request):
+    if isinstance(request.user, AnonymousUser):
+        # If the user is not logged in (AnonymousUser), render a profile page without the edit form
+        return render(request, 'bopo_admin/profile.html', {'error_message': 'You must be logged in to edit your profile.'})
+
+    # If the user is logged in (authenticated)
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        user_type = request.POST.get('user_type')  # Getting user type from the form
+        password = request.POST.get('password')
+
+        user = request.user  # Assuming you are using the default user model
+        
+        # Update the user's username and user type
+        user.username = username
+        user.user_type = user_type  # Updating user type
+        
+        # If the password is provided, update it (hashed before saving)
+        if password:
+            user.password = make_password(password)
+
+        user.save()  # Save the updated user information
+
+        # Add a success message
+        success_message = "Profile updated successfully!"
+
+        # Redirect to profile page to see the changes
+        return render(request, 'bopo_admin/profile.html', {'success_message': success_message, 'user': user})
+
+    # If GET request, just render the profile page
+    return render(request, 'bopo_admin/profile.html', {'user': request.user})
 
 
 # from datetime import timedelta
@@ -2794,3 +2886,32 @@ def set_deduct_amount(request):
         return JsonResponse({'message': 'Deduct amount updated successfully.', 'deduct_percentage': setting.deduct_percentage})
     
     return JsonResponse({'error': 'Invalid method.'}, status=405)
+
+@csrf_exempt
+def save_model_plan(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        plan_validity = data.get("plan_validity")
+        plan_type = data.get("plan_type")
+        description = data.get("description")
+        merchant_id = data.get("merchant_id")
+
+        if not all([plan_validity, plan_type, description]):
+            return JsonResponse({"error": "Missing fields"}, status=400)
+
+        try:
+            merchant_obj = Merchant.objects.get(id=merchant_id) if merchant_id else None
+        except Merchant.DoesNotExist:
+            return JsonResponse({"error": "Merchant not found"}, status=404)
+
+        plan, created = ModelPlan.objects.update_or_create(
+            plan_type=plan_type,
+            merchant=merchant_obj,
+            defaults={
+                "plan_validity": plan_validity,
+                "description": description
+            }
+        )
+        return JsonResponse({"message": "Model plan saved successfully."})
+    return JsonResponse({"error": "Invalid method"}, status=405)
