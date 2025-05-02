@@ -110,7 +110,7 @@ def get_terminals(request, merchant_id):
     terminals = Terminal.objects.filter(merchant_id=merchant)
 
     terminal_data = [
-        {'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin}
+        {'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin, 'status': terminal.status }
         for terminal in terminals
     ]
 
