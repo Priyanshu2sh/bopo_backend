@@ -1,40 +1,94 @@
 {% extends "bopo_admin/base.html" %}
+
 {% load static %}
 
 {% block content %}
+
 <link rel="stylesheet" href="{% static 'bopo_admin/css/profile.css' %}">
-<h2>Profile</h2>
 
-{% if success_message %}
-    <p class="success">{{ success_message }}</p>
-{% endif %}
 
-<div class="profile-info">
-    <p><strong>Username:</strong> {{ user.username }}</p>
-    <p><strong>User Type:</strong> {{ user.user_type }}</p>
+<div class="profile-wrapper">
+    <h2 class="heading">Profile</h2>
+
+    <div class="profile-container">
+        <!-- Left Side: Profile Image (outside the card) -->
+        <div class="profile-image">
+            {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" alt="Profile Image" class="profile-img">
+            {% else %}
+                <img src="{% static 'bopo_admin/css/images/profile.jpg' %}" alt="Default Profile Image" class="profile-img">
+            {% endif %}
+        </div>
+
+        <!-- Right Side: Profile Card with User Info -->
+        <div class="profile-card">
+            <div class="profile-info">
+                <p><strong>Username:</strong>  {{ user.username }}</p>
+                <p><strong>Email:</strong> prushaltech12@gmail.com</p>
+                <p><strong>Phone:</strong> 9876666666</p>
+                <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Add an edit profile form -->
-<h3>Edit Profile</h3>       
-<form method="POST" >
-    {% csrf_token %}
-    <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" value="{{ user.username }}" required>
-    </div>
 
-    <div class="form-group">
-        <label for="user_type">User Type</label>
-        <input type="text" id="user_type" name="user_type" value="{{ user.user_type }}" required>
-    </div>
 
-    <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password">
-        <span class="hint">Leave blank if you don't want to change it</span>
+<!-- Edit Profile Modal -->
+<div id="edit-profile-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="close-modal">&times;</span>
+        <h3>Edit Profile</h3>
+        <form method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Username Field -->
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" value="{{ user.username }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" value="{{ user.email }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="text" name="phone" id="phone" value="{{ user.phone }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="profile_image">Profile Image</label>
+                <input type="file" name="profile_image" id="profile_image" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
     </div>
+</div>
 
-    <button type="submit">Update Profile</button>
-</form>
+
+
+<script>
+    // JavaScript to handle modal functionality
+    var modal = document.getElementById("edit-profile-modal");
+    var btn = document.getElementById("edit-profile-btn");
+    var closeBtn = document.getElementById("close-modal");
+
+    // Open the modal when the "Edit Profile" button is clicked
+    btn.onclick = function() {
+        modal.style.display = "block";
+    }
+
+    // Close the modal when the close button is clicked
+    closeBtn.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    // Close the modal if the user clicks anywhere outside the modal
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
 
 {% endblock %}

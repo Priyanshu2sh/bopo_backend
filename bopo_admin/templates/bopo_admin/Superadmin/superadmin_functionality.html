@@ -1,85 +1,71 @@
 {% extends "bopo_admin/base.html" %}
-
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/superadmin_func.css' %}">
 
-
-
 <div class="send-notification-container">
-    
-<div class="back-to-list-btn">
-    <a href="{% url 'reports' %}" class="addcustomer-btn-submit">
-        <i class="fa fa-arrow-left"></i> Back
-    </a>
-</div>
+    <div class="back-to-list-btn">
+        <a href="{% url 'reports' %}" class="addcustomer-btn-submit">
+            <i class="fa fa-arrow-left"></i> Back
+        </a>
+    </div>
+
     <div class="send-notification-header">
         <h2>Superadmin Functionality</h2>
     </div>
 
     <div class="send-notification-list">
-    
-       <!-- To All Customers -->
-<div class="send-notification-item">
-    <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
-    <label for="toggle-all-customers" class="send-notification-label">
-        <span class="send-notification-icon">💰</span>
-        <span>Deduct percentage</span>
-    </label>
+        
+        <!-- Deduct Amount -->
+        <div class="send-notification-item">
+            <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
+            <label for="toggle-all-customers" class="send-notification-label">
+                <span class="send-notification-icon">💰</span>
+                <span>Deduct Percentage</span>
+            </label>
 
-    <div class="send-notification-form"><br>
-        <div class="form-group">
-            <label for="deduct-amount">Deduct percentage Per Transaction:</label>
-            <input type="number" id="deduct-amount" class="form-control" placeholder="Enter percentage ">
+            <div class="send-notification-form"><br>
+                <div class="form-group">
+                    <label for="deduct-amount">Deduct Amount Per Transaction:</label>
+                    <input type="number" id="deduct-amount" class="form-control" placeholder="Enter percentage ">
+                </div>
+
+                <div class="button-container">
+                    <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
+                    <button class="send-btn" onclick="showAlert()">Save</button>
+                </div>
+            </div>
         </div>
 
-        <div class="button-container">
-            <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
-            <button class="send-btn" onclick="showAlert()">Save</button>
-        </div>
-    </div>
-</div>
+        <!-- Security Questions -->
+        <div class="send-notification-item">
+            <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
+            <label for="toggle-single-customer" class="send-notification-label">
+                <span class="send-notification-icon">🔏</span>
+                <span>Security Questions</span>
+            </label>
 
-<!-- To Single Customer -->
-<div class="send-notification-item">
-    <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
-    <label for="toggle-single-customer" class="send-notification-label">
-        <span class="send-notification-icon">🔏</span>
-        <span>Security Questions</span>
-    </label>
+            <div class="send-notification-form"><br>
+                <table class="form-control" style="width: 100%; margin-bottom: 15px;">
+                    <thead>
+                        <tr><th>Question</th></tr>
+                    </thead>
+                    <tbody id="security-questions-body"></tbody>
+                </table>
 
-    <div class="send-notification-form"><br>
-        <table class="form-control" style="width: 100%; margin-bottom: 15px;">
-            <thead>
-                <tr>
-                    <th>Question</th>
-                </tr>
-            </thead>
-            <tbody id="security-questions-body">
-                <!-- Security questions will appear here -->
-            </tbody>
-        </table>
+                <div id="add-question-row" style="display: none; margin-bottom: 15px;">
+                    <input type="text" id="new-question" class="form-control" placeholder="Enter new security question">
+                    <br>
+                    <button class="send-btn" onclick="saveSecurityQuestion()">Save</button>
+                    <button class="cancel-btn" onclick="cancelSecurityQuestion()">Cancel</button>
+                </div>
 
-        <div id="add-question-row" style="display: none; margin-bottom: 15px;">
-            <input type="text" id="new-question" class="form-control" placeholder="Enter new security question">
-            <br>
-            <button class="send-btn" onclick="saveSecurityQuestion()">Save</button>
-            <button class="cancel-btn" onclick="cancelSecurityQuestion()">Cancel</button>
+                <button class="send-btn" onclick="showAddQuestion()">Add Question</button>
+            </div>
         </div>
 
-        <button class="send-btn" onclick="showAddQuestion()">Add Question</button>
-    </div>
-</div>
-
-
-
-<!-- <tr><td>What is your pet's name?</td></tr>
-                <tr><td>What is your mother's maiden name?</td></tr>
-                <tr><td>What was the name of your first school?</td></tr> -->
-
-
-
-<!-- To Corporate Customers -->
+        <!-- Model Plans -->
+       <!-- To Corporate Customers -->
 <div class="send-notification-item">
     <input type="checkbox" id="toggle-corporate" class="toggle-checkbox">
     <label for="toggle-corporate" class="send-notification-label">
@@ -110,6 +96,7 @@
                         </span>
                     </td>
                         <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
+                       
                     </tr>
                     <tr>
                         <td><span class="plan-validity-text">12 months</span></td>
@@ -152,79 +139,142 @@
 </div>
 
 
+        <!-- Award Points -->
+        <div class="send-notification-item">
+            <input type="checkbox" id="toggle-merchant-wise" class="toggle-checkbox">
+            <label for="toggle-merchant-wise" class="send-notification-label">
+                <span class="send-notification-icon">⭐</span>
+                <span>Award Points</span>
+            </label>
 
+            <div class="send-notification-form"><br>
+                <div class="form-group">
+                    <label>Award Points:</label>
+                    <div id="award-text">
+                        <span id="award-display">
+                            <span class="highlight-percentage">10%</span> of purchase amount awarded to customer (BBP)
+                        </span>
+                        <button class="awardsend-btn" onclick="editAward()">Change</button>
+                    </div>
 
-
-       <!-- Merchant Wise -->
-<div class="send-notification-item">
-    <input type="checkbox" id="toggle-merchant-wise" class="toggle-checkbox">
-    <label for="toggle-merchant-wise" class="send-notification-label">
-        <span class="send-notification-icon">⭐</span>
-        <span>Award Points</span>
-    </label>
-
-    <div class="send-notification-form"><br>
-        <div class="form-group">
-            <label>Award Points:</label>
-            <div id="award-text">
-                <span id="award-display">
-                    <span class="highlight-percentage">10%</span> of purchase amount awarded to customer (BBP)
-                </span>
-                <button class="awardsend-btn" onclick="editAward()">Change</button>
-            </div>
-            
-
-            <div id="award-edit" style="display: none;">
-                <input type="number" id="award-input" class="form-control" placeholder="Enter percentage" value="10" min="0" max="100" style="width: 100px;">
-                <span>% of purchase amount awarded to customer (BBP)</span><br><br>
-                <button class="awardsend-btn1" onclick="saveAward()">Save</button>
-                <button class="cancel-btn" onclick="cancelAward()">Cancel</button>
+                    <div id="award-edit" style="display: none;">
+                        <input type="number" id="award-input" class="form-control" placeholder="Enter percentage" value="10" min="0" max="100" style="width: 100px;">
+                        <span>% of purchase amount awarded to customer (BBP)</span><br><br>
+                        <button class="awardsend-btn1" onclick="saveAward()">Save</button>
+                        <button class="cancel-btn" onclick="cancelAward()">Cancel</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-
-
-
-
     </div>
 </div>
 
 <!-- JavaScript for Toggle Functionality -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
-    
-        toggleCheckboxes.forEach((checkbox) => {
+        const checkboxes = document.querySelectorAll(".toggle-checkbox");
+        checkboxes.forEach(checkbox => {
             checkbox.addEventListener("change", function () {
                 const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
-    
-                // Close all other forms before opening the selected one
-                const allForms = document.querySelectorAll(".send-notification-form");
-                allForms.forEach((otherForm) => {
-                    if (otherForm !== form) {
-                        otherForm.style.display = "none";
-                        // Uncheck the other checkboxes to keep them hidden
-                        otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
+                document.querySelectorAll(".send-notification-form").forEach(f => {
+                    if (f !== form) {
+                        f.style.display = "none";
+                        f.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
                     }
                 });
-    
-                // Toggle the visibility of the selected form
-                if (form) {
-                    form.style.display = this.checked ? "block" : "none";
-                }
+                form.style.display = this.checked ? "block" : "none";
             });
         });
-    
-        // Initially hide all forms
-        document.querySelectorAll(".send-notification-form").forEach((form) => {
-            form.style.display = "none";
-        });
+        document.querySelectorAll(".send-notification-form").forEach(form => form.style.display = "none");
+        loadSecurityQuestions();
     });
-    
-</script>
 
-<script>
+    function showAlert() {
+        const input = document.getElementById('deduct-amount');
+        const value = parseFloat(input.value);
+        if (isNaN(value) || value < 0) return alert("Please enter a valid percentage.");
+    
+        fetch('/api/set-deduct-amount/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: JSON.stringify({ deduct_amount: value }),
+        })
+        .then(res => res.json().then(data => ({ status: res.status, body: data })))
+        .then(({ status, body }) => {
+            if (status === 200) {
+                alert("Deduct amount saved successfully!");
+                
+                // Reload the page and close the form container
+                document.getElementById('deduct-amount').value = ''; // Clear the input
+                const formContainer = document.querySelector('.send-notification-form');
+                if (formContainer) formContainer.style.display = 'none';  // Hide the form container
+    
+                // Optionally, reload the page after a short delay (1 second here)
+                setTimeout(() => {
+                    location.reload();  // Reload the page
+                }, 1000);
+            } else {
+                alert(body.error || "Failed to save deduction.");
+            }
+        })
+        .catch(() => alert("Something went wrong."));
+    }
+    
+
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) return decodeURIComponent(cookie.substring(name.length + 1));
+        }
+        return '';
+    }
+
+    function loadSecurityQuestions() {
+        fetch('/api/security-questions/')
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById("security-questions-body");
+            tbody.innerHTML = '';
+            data.forEach(q => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${q.question}</td>`;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    function showAddQuestion() {
+        document.getElementById("add-question-row").style.display = "block";
+    }
+
+    function cancelSecurityQuestion() {
+        document.getElementById("new-question").value = '';
+        document.getElementById("add-question-row").style.display = "none";
+    }
+
+    function saveSecurityQuestion() {
+        const question = document.getElementById("new-question").value;
+        if (!question) return alert("Please enter a question.");
+        fetch('/api/security-questions/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: JSON.stringify({ question })
+        })
+        .then(res => res.json())
+        .then(() => {
+            cancelSecurityQuestion();
+            loadSecurityQuestions();
+        });
+    }
+
     function editAward() {
         document.getElementById('award-text').style.display = 'none';
         document.getElementById('award-edit').style.display = 'block';
@@ -240,213 +290,150 @@
         document.getElementById('award-edit').style.display = 'none';
         document.getElementById('award-text').style.display = 'block';
     }
-
-    function showAlert() {
-    const deductAmountInput = document.getElementById('deduct-amount');
-    const deductAmount = parseFloat(deductAmountInput.value);
-
-    if (isNaN(deductAmount) || deductAmount < 0) {
-        alert('Please enter a valid percentage.');
-        return;
+    function confirmCancelDeduction() {
+        document.getElementById("deduct-amount").value = '';
     }
 
-    fetch('/api/set-deduct-amount/', {  // Your Django API endpoint
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-        },
-        body: JSON.stringify({ deduct_amount: deductAmount }),
-    })
-    .then(response => response.json().then(data => ({status: response.status, body: data})))
-    .then(({status, body}) => {
-        if (status === 200) {
-            alert('Deduct amount saved successfully!');
-        } else {
-            alert(body.error || 'Failed to save deduction.');
+    function saveAward() {
+        const awardPercentage = document.getElementById("award-input").value.trim();
+    
+        if (awardPercentage === "") {
+            alert("Please enter a valid percentage.");
+            return;
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Something went wrong.');
-    });
-}
-
-let rowToEdit = null; 
-
-    function openEditPlanModal(button) {
-        // Get the row where the Edit button was clicked
-        const row = button.closest('tr');
-        const validity = row.querySelector('.plan-validity-text').textContent;
-        const type = row.querySelector('.plan-type-text').textContent;
-        const description = row.querySelector('.plan-description-text').textContent;
     
-        // Pre-fill the modal form with the current values
-        document.getElementById('edit-validity-input').value = validity;
-        document.getElementById('edit-type-input').value = type;
-        document.getElementById('edit-description-input').value = description;
-    
-        // Store the row reference to update later
-        rowToEdit = row;
-    
-        // Show the modal and close button
-        document.getElementById('editPlanModal').style.display = 'block';
-        document.querySelector('.modal-close-btn').style.display = 'block';  // Ensure the close button is visible
-    }
-    
-    function closeEditModal() {
-        // Close the modal
-        document.getElementById('editPlanModal').style.display = 'none';
-        document.querySelector('.modal-close-btn').style.display = 'none';  // Hide the close button when modal is closed
-    }
-    
-    function savePlanChanges() {
-    const validity = document.getElementById('edit-validity-input').value;
-    const type = document.getElementById('edit-type-input').value;
-    const description = document.getElementById('edit-description-input').value;
-
-    const merchantId = 1; // Replace with actual merchant ID (get dynamically if needed)
-
-    fetch('/save-model-plan/', {  // Ensure URL matches your Django path
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')  // CSRF token required
-        },
-        body: JSON.stringify({
-            plan_validity: validity,
-            plan_type: type,
-            description: description,
-            
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert(data.message);
-            closeEditModal();  // Close modal after success
-            location.reload(); // Reload page to see updated plans
-        } else {
-            alert('Error: ' + (data.error || 'Unknown error'));
-        }
-    });
-}
-
-
-
-
-</script>
-
-
-<script>
-function saveSecurityQuestion() {
-    const questionInput = document.getElementById("new-question");
-    const question = questionInput.value.trim();
-    if (!question) {
-        alert("Please enter a question.");
-        return;
-    }
-
-    fetch('/api/security-questions/', {  // ✅ Add leading slash `/`
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),  // CSRF token for Django
-        },
-        body: JSON.stringify({ question: question }),
-    })
-    .then(response => response.json().then(data => ({status: response.status, body: data})))
-    .then(({status, body}) => {
-        if (status === 200 && body.id) {
-            const tbody = document.getElementById("security-questions-body");
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${body.question}</td>`;
-            tbody.appendChild(tr);
-
-            questionInput.value = '';
-            document.getElementById("add-question-row").style.display = 'none';
-        } else {
-            alert(body.error || "Failed to add question. Please try again.");
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        alert("Something went wrong. Please check your connection or try again later.");
-    });
-}
-
-function showAddQuestion() {
-    document.getElementById("add-question-row").style.display = 'block';
-}
-
-function cancelSecurityQuestion() {
-    document.getElementById("add-question-row").style.display = 'none';
-    document.getElementById("new-question").value = '';
-}
-
-// CSRF token fetcher for Django
-function getCSRFToken() {
-    const name = 'csrftoken';
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.startsWith(name + '=')) {
-            return decodeURIComponent(cookie.substring(name.length + 1));
-        }
-    }
-    return '';
-}
-</script>
-
-<script>
-    function saveEditedPlan() {
-        const validity = document.getElementById('edit-validity-input').value;
-        const type = document.getElementById('edit-type-input').value;
-        const description = document.getElementById('edit-description-input').value;
-    
-        fetch('/save-model-plan/', {
-            method: 'POST',
+        fetch("/save-award-points/", {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken(),
             },
             body: JSON.stringify({
-                plan_validity: validity,
-                plan_type: type,
-                description: description,
-                merchant_id: 1  // Replace with actual merchant ID logic
-            })
+                award_percentage: awardPercentage,
+            }),
         })
         .then(response => response.json())
         .then(data => {
-            alert(data.message || data.error);
-            // Optionally update the table row if needed
-            if (rowToEdit) {
-                rowToEdit.querySelector('.plan-validity-text').textContent = validity;
-                rowToEdit.querySelector('.plan-type-text').textContent = type;
-                rowToEdit.querySelector('.plan-description-text').textContent = description;
+            if (data.success) {
+                document.getElementById("award-display").innerHTML = `<span class="highlight-percentage">${awardPercentage}%</span> of purchase amount awarded to customer (BBP)`;
+                cancelAward();
+            } else {
+                alert("Error: " + data.error);
             }
-            document.getElementById('editPlanModal').style.display = 'none';
         });
     }
     
-    // Utility to get CSRF token
-    function getCookie(name) {
+    // Helper to get CSRF token from cookie
+    function getCSRFToken() {
         let cookieValue = null;
+        const name = 'csrftoken';
         if (document.cookie && document.cookie !== '') {
             const cookies = document.cookie.split(';');
             for (let cookie of cookies) {
                 cookie = cookie.trim();
                 if (cookie.startsWith(name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
                 }
             }
         }
         return cookieValue;
     }
-    </script>
+
+    function openEditPlanModal(button) {
+        const row = button.closest("tr");
+        const validity = row.querySelector(".plan-validity-text").textContent.trim();
+        const type = row.querySelector(".plan-type-text").textContent.trim();
+        const description = row.querySelector(".plan-description-text").textContent.trim();
     
+        document.getElementById("edit-validity-input").value = validity;
+        document.getElementById("edit-type-input").value = type;
+        document.getElementById("edit-description-input").value = description;
+    
+        document.getElementById("editPlanModal").style.display = "block";
+
+    }
     
 
+    function closeEditModal() {
+        document.getElementById('editPlanModal').style.display = 'none';
+    }
+
+    function savePlanChanges() {
+        // Get the new values from the modal form
+        const newValidity = document.getElementById('edit-validity-input').value;
+        const newType = document.getElementById('edit-type-input').value;
+        const newDescription = document.getElementById('edit-description-input').value;
+    
+        // Update the row with the new values
+        rowToEdit.querySelector('.plan-validity-text').textContent = newValidity;
+        rowToEdit.querySelector('.plan-type-text').textContent = newType;
+        rowToEdit.querySelector('.plan-description-text').textContent = newDescription;
+    
+        // Close the modal
+        closeEditModal();
+    }
+
+ 
+
+    function savePlanChanges() {
+        const validity = document.getElementById("edit-validity-input").value.trim();
+        const type = document.getElementById("edit-type-input").value.trim();
+        const description = document.getElementById("edit-description-input").value.trim();
+    
+        fetch("/update-model-plan/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken(),
+            },
+            body: JSON.stringify({
+                plan_validity: validity,
+                plan_type: type,
+                description: description,
+            }),
+        })
+        .then(response => response.json())
+        .then((data) => {
+            if (data.success) {
+                alert("Plan changes saved successfully!");
+                updateExistingModelPlanRow(type, validity, description); // Pass updated data
+                closeEditModal();  // Close the modal after saving changes
+            } else {
+                alert("Error: " + data.error);
+            }
+        });
+    }
+    
+    function updateExistingModelPlanRow(plan_type, plan_validity, description) {
+        const rows = document.querySelectorAll(".plans-table tbody tr");
+    
+        rows.forEach((row) => {
+            const currentType = row.querySelector(".plan-type-text")?.textContent.trim();
+            if (currentType === plan_type.trim()) {
+                row.querySelector(".plan-validity-text").textContent = plan_validity;
+                row.querySelector(".plan-description-text").textContent = description;
+            }
+        });
+    }
+    
+    
+    
+    // Helper to get CSRF token from cookie
+    function getCSRFToken() {
+        let cookieValue = null;
+        const name = 'csrftoken';
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
 {% endblock %}

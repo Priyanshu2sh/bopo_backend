@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import  add_security_question, assign_employee_role, custom_logout_view, get_model_plans, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+from .views import  add_security_question, assign_employee_role, custom_logout_view, get_model_plans, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_model_plan, security_questions,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -42,7 +42,6 @@ urlpatterns = [
     path('uploads/', uploads, name='uploads'),
     
     path('modify_customer_details/',modify_customer_details, name='modify_customer_details'),
-    path('send_customer_notifications/',send_customer_notifications, name='send_customer_notifications'),
     path('customer_uploads/',customer_uploads, name='customer_uploads'),
     path('add_customer/',add_customer, name='add_customer'),
     
@@ -74,7 +73,7 @@ urlpatterns = [
     path('get-merchants/', views.get_merchants, name='get_merchants'),
     
 
-    path('get-employee/<int:employee_id>/', views.get_employee, name='get_employee'),
+    path('get-employee/<str:employee_id>/', views.get_employee, name='get_employee'),
     path('update-employee/', views.update_employee, name='update_employee'),
     path('delete-employee/<str:employee_id>/', delete_employee, name='delete_employee'),
     
@@ -103,15 +102,17 @@ urlpatterns = [
     path('deduct-amount/', views.deduct_amount, name='deduct_amount'),
     path('superadmin_functionality/', views.superadmin_functionality, name='superadmin_functionality'),
 
-    # path('update-profile/', views.profile, name='update_profile'), 
+    path('update-profile/', views.profile, name='update_profile'), 
+    path('cash-out/', views.cash_out, name='cash_out'),
+
+    path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
+    path('helpdesk/', views.helpdesk, name='helpdesk'),
     
+    # path('api/security-questions/', views.get_security_questions, name='get_security_questions'),
 
-
-
-
-
-    
-    
+    path('api/security-questions/', security_questions, name='security_questions'),
+    path('send_customer_notifications/', views.send_notification_customer, name='send_customer_notifications'),
+   path('send_customer_notifications/', views.send_notification_customer, name='send_notification_customer'),
     
     # path('edit-corporate/<int:corporate_id>/', views.edit_corporate, name='edit_corporate'),
     # path('update_copmerchant/', views.update_merchant, name='update_copmerchant'),
@@ -126,6 +127,9 @@ urlpatterns = [
     path('delete-customer/<str:customer_id>/', views.delete_customer, name='delete_customer'),
     
     path('logout/', custom_logout_view, name='logout'),
+     path('update-model-plan/', views.update_model_plan, name='update_model_plan'),
+      path('save-award-points/', views.save_award_points, name='save_award_points'),
+
 
  
   

@@ -58,7 +58,7 @@
         {% endif %}
 
         {% if request.user.role == 'super_admin' %}
-        <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Reduce Limit</a></li>
+        <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Requested Cash-Out</a></li>
         {% endif %}
         
         {% comment %} <li><a href="{% url 'merchant_status' %}"><i class="fas fa-toggle-on"></i> Merchant Status</a></li> {% endcomment %}
@@ -125,7 +125,7 @@
         <!-- Payment Details Section -->
         <div id="belowEmployee">
             <a href="{% url 'payment_details' %}" class="{% if request.path == 'payment_details/' %}active{% endif %}">
-                <i class="fas fa-credit-card"></i>  Payment Details
+                <i class="fas fa-credit-card"></i>  Top-Up Request 
             </a>
         </div>
         {% endif %}
@@ -164,6 +164,12 @@
 </div>
 
 
+<!-- Helpdesk Section -->
+<div id="helpdeskSection">
+    <a href="{% url 'helpdesk' %}" class="{% if request.path == '/helpdesk/' %}active{% endif %}">
+        <i class="fas fa-headset"></i> Helpdesk
+    </a>
+</div>
 
 
         <!-- Corporate Admin Section -->
