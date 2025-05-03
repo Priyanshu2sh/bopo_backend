@@ -113,10 +113,15 @@
                         <td>{{help_request.issue_description}}</td>
                         {% endif %}
                         
-                        <td>
-                            <button class="btn btn-sm btn-success" >Resolve</button>
-                        </td>
-                    </tr>
+                    
+                            <td>
+                                {% if help_request.status == "resolved" %}
+                                    <button class="btn btn-sm btn-success" disabled>Resolved</button>
+                                {% else %}
+                                    <button class="btn btn-sm btn-warning status-btn" data-id="{{ help_request.id }}">Pending</button>
+                                {% endif %}
+                            </td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -161,6 +166,38 @@
     });
 
     
+
+    $(document).on('click', '.status-btn', function () {
+        const helpId = $(this).data('id');
+        const button = $(this);
+    
+        if (confirm("Mark this issue as resolved?")) {
+            $.ajax({
+                url: `/resolve-help/${helpId}/`,
+                type: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        button.removeClass('btn-warning status-btn')
+                              .addClass('btn-secondary')
+                              .text('Resolved')
+                              .prop('disabled', true);
+    
+                        // Optional toast
+                        $('.toast-message').text(response.message);
+                        $('#toast').addClass('toast-show');
+                        setTimeout(() => $('#toast').removeClass('toast-show'), 3000);
+                    }
+                },
+                error: function () {
+                    alert('Error resolving help request.');
+                }
+            });
+        }
+    });
 </script>
 
 

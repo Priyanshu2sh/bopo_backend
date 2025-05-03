@@ -3011,3 +3011,29 @@ def save_superadmin_payment(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+def resolve_help(request, help_id):
+    if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        try:
+            help_obj = Help.objects.get(id=help_id)
+            if help_obj.status != 'resolved':
+                help_obj.status = 'resolved'
+                help_obj.save()
+                return JsonResponse({'success': True, 'message': 'Marked as Resolved'})
+            else:
+                return JsonResponse({'success': False, 'message': 'Already resolved'})
+        except Help.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Help request not found'}, status=404)
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+    if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        try:
+            help_obj = Help.objects.get(id=help_id)
+            if help_obj.status != 'resolved':
+                help_obj.status = 'resolved'
+                help_obj.save()
+                return JsonResponse({'success': True, 'message': 'Marked as Resolved'})
+            else:
+                return JsonResponse({'success': False, 'message': 'Already resolved'})
+        except Help.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Help request not found'}, status=404)
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)

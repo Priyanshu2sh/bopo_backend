@@ -126,11 +126,16 @@ class BankDetail(models.Model):
     
 
 class Help(models.Model):
+    STATUS_CHOICES = [
+        ('resolved', 'Resolved'),
+        ('pending', 'Pending'),
+    ]
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
     terminal = models.ForeignKey(Terminal, on_delete=models.CASCADE, null=True, blank=True)
     issue_description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=255, null=True, blank=True, choices=STATUS_CHOICES,  default='pending' )
     
 
     def __str__(self):

@@ -130,6 +130,7 @@ urlpatterns = [
     path('update-model-plan/', views.update_model_plan, name='update_model_plan'),
     path('save-award-points/', views.save_award_points, name='save_award_points'),
     path('superadmin/payment/save/', save_superadmin_payment, name='save_superadmin_payment'),
+    path('resolve-help/<int:help_id>/', views.resolve_help, name='resolve_help'),
 
 
  
