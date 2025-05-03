@@ -24,7 +24,7 @@ from accounts.models import Corporate, Customer, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
-from bopo_award.models import AwardPoints, CashOut, CustomerPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails
+from bopo_award.models import AwardPoints, CashOut, CustomerPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails, SuperAdminPayment
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
@@ -2827,6 +2827,30 @@ def reduce_limit(request):
     cash_outs = CashOut.objects.all()
     return render(request, 'bopo_admin/Merchant/reduce_limit.html', {'cash_outs': cash_outs})
 
+def save_cash_out_payment(request):
+    if request.method == 'POST':
+        transaction_id = request.POST.get('transaction_id')
+        payment_method = request.POST.get('payment_method')
+        payment_date = request.POST.get('payment_date')
+
+        # You may need to retrieve the relevant CashOut instance here, adjust as per your model
+        cash_out = CashOut.objects.filter(transaction_id=transaction_id).first()
+
+        if not cash_out:
+            return JsonResponse({'success': False, 'message': 'Cash Out not found.'})
+
+        # Create a new payment record
+        payment = SuperAdminPayment.objects.create(
+            transaction_id=transaction_id,
+            payment_method=payment_method,
+            cashout=cash_out,
+            created_at=payment_date
+        )
+
+        return JsonResponse({'success': True, 'message': 'Payment details saved successfully.'})
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
 
 # def security_questions(request):
 #     return render(request, 'bopo_admin/Superadmin/security_questions.html')
@@ -2882,7 +2906,7 @@ def set_deduct_amount(request):
     
     return JsonResponse({'error': 'Invalid method.'}, status=405)
 
-@csrf_exempt
+
 def save_model_plan(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -2954,3 +2978,36 @@ def save_award_points(request):
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+def save_superadmin_payment(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            transaction_id = data.get('transactionId')
+            payment_method = data.get('paymentMethod')
+            cash_out_id = data.get('cashOutId')
+
+            # Ensure the transaction ID is unique
+            if SuperAdminPayment.objects.filter(transaction_id=transaction_id).exists():
+                return JsonResponse({"error": "Transaction ID already exists"}, status=400)
+
+            cash_out_instance = CashOut.objects.get(id=cash_out_id)
+
+            SuperAdminPayment.objects.create(
+                transaction_id=transaction_id,
+                payment_method=payment_method,
+                cashout=cash_out_instance
+            )
+
+            # Optionally update CashOut status
+            cash_out_instance.status = "Completed"
+            cash_out_instance.save()
+
+            return JsonResponse({"message": "Payment recorded successfully"}, status=201)
+
+        except CashOut.DoesNotExist:
+            return JsonResponse({"error": "CashOut record not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)

@@ -337,24 +337,33 @@
     function closeCashOutModal() {
         $('#cashOutModal').fadeOut();
     }
-
     function submitCashOut() {
-        const transactionId = $('#transactionId').val();
-        const paymentMethod = $('#paymentMethod').val();
-        const paymentDate = $('#paymentDate').val();
-
-        if (!transactionId || !paymentMethod || !paymentDate) {
-            alert("Please fill in all fields.");
-            return;
-        }
-
-        console.log("Submitted Cash Out Data:", {
-            transactionId, paymentMethod, paymentDate
+        const transactionId = document.getElementById("transactionId").value;
+        const paymentMethod = document.getElementById("paymentMethod").value;
+        const cashOutId = $('.open-modal-btn').data('id'); // Ensure this retrieves correct ID
+    
+        fetch("/superadmin/payment/save/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({
+                transactionId,
+                paymentMethod,
+                cashOutId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || data.error);
+            if (data.message) {
+                closeCashOutModal();
+                location.reload(); // Refresh to show updated data
+            }
         });
-
-        closeCashOutModal();
     }
-
+    
     // Toggle section logic
     document.addEventListener("DOMContentLoaded", function () {
         const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
