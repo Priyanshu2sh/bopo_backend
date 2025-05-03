@@ -141,6 +141,12 @@ class CashOut(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
+    
+class SuperAdminPayment(models.Model):
+    transaction_id = models.CharField(max_length=100, unique=True)
+    payment_method = models.CharField(max_length=50)
+    cashout = models.ForeignKey(CashOut, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
   
 
 

@@ -230,6 +230,9 @@ class DeductSetting(models.Model):
 
     def __str__(self):
         return f"Deduct {self.deduct_percentage}%"
+    
+
+    
 
 
     

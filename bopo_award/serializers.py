@@ -16,7 +16,7 @@ from rest_framework import serializers
 
 from accounts.models import Corporate, Customer, Merchant
 from bopo_admin.models import EmployeeRole
-from .models import BankDetail, CashOut, CustomerPoints, Help, MerchantPoints, History, PaymentDetails
+from .models import BankDetail, CashOut, CustomerPoints, Help, MerchantPoints, History, PaymentDetails, SuperAdminPayment
 
 
 class CustomerPointsSerializer(serializers.ModelSerializer):
@@ -119,3 +119,11 @@ class CustomerCashOutSerializer(serializers.Serializer):
 class MerchantCashOutSerializer(serializers.Serializer):
     merchant_id = serializers.CharField()
     amount = serializers.IntegerField()
+    
+class SuperAdminPaymentSerializer(serializers.Serializer):
+    """
+    Serializer for Super Admin Payment API
+    """
+    class Meta:
+        model = SuperAdminPayment
+        fields = ['transaction_id', 'payment_method', 'cashout', 'created_at']
