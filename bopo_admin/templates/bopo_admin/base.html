@@ -176,15 +176,19 @@
 
 {% if request.user.role == 'corporate_admin' %}
 <div id="belowMerchant">
-    <a href="{% url 'add_employee' %}">
-        <i class="fas fa-users"></i>  Add Employee
+    <a href="{% url 'merchant_list' %}">
+        <i class="fas fa-building"></i> Merchant List
     </a>
-</div>  
+ </div>  
+ 
+<div> 
+    <a href="{% url 'corporate_terminals' %}" >
+        <i class="fas fa-terminal"></i> Terminals</a>
+</div> 
 
-<div id="belowMerchant">
-    <a href="{% url 'add_employee' %}">
-        <i class="fas fa-users"></i>  Add Employee
-    </a>
+ <div>
+    <a href="{% url 'corporate_credentials' %}">
+        <i class="fas fa-key"></i> Merchant Credentials</a>
 </div> 
 
 {% endif %}

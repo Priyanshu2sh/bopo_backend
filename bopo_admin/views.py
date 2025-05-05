@@ -248,6 +248,8 @@ def home(request):
         "chart_data": chart_data,
     }
     if user.role == 'corporate_admin':
+        
+             
         return render(request, 'bopo_admin/Corporate/corporate_dashboard.html', context)
     elif user.role == 'employee':
         employee = user.employee
@@ -637,11 +639,6 @@ def add_merchant(request):
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
 
 
-
-
-
-
-
 def redirect_with_error(request, message):
     from django.contrib import messages
     messages.error(request, message)
@@ -652,66 +649,6 @@ def redirect_with_success(request, message):
     messages.success(request, message)
     return redirect("add_merchant")
 
-# from django.http import JsonResponse
-# from accounts.models import Corporate  # or whatever your model is named
-
-# def edit_cop(request, corporate_id):
-#     try:
-#         merchant = Corporate.objects.get(id=corporate_id)
-#         data = {
-#             "customer_id": corporate.id,
-#             "first_name": corporate.first_name,
-#             "last_name": corporate.last_name,
-#             "email": corporate.email,
-#             "aadhaar": merchant.aadhaar,
-#             "shop_name": merchant.shop_name,
-#             "address": merchant.address,
-#             "state": merchant.state.id if merchant.state else "",
-#             "city": merchant.city.id if merchant.city else "",
-#             "mobile": merchant.mobile,
-#             "gst_number": merchant.gst_number,
-#             "pan_number": merchant.pan_number,
-#             "legal_name": merchant.legal_name,
-#             "pincode": merchant.pincode,
-#             "project_name": merchant.project.project_name if merchant.project else "",
-#         }
-#         return JsonResponse(data)
-#     except Corporate.DoesNotExist:
-#         return JsonResponse({'error': 'Corporate merchant not found'}, status=404)
-
-
-
-
-
-# In your Django views.py
-# from django.http import JsonResponse
-# from accounts.models import Merchant,Corporate
-
-
-# def edit_copmerchant(request, merchant_id):
-#     try:
-#         merchant = Merchant.objects.get(id=merchant_id)
-#         data = {
-#             'id': merchant.merchant_id,
-#             'first_name': merchant.first_name,
-#             'last_name': merchant.last_name,
-#             'email': merchant.email,
-#             'aadhaar_number': merchant.aadhaar_number,
-#             'shop_name': merchant.shop_name,
-#             'address': merchant.address,
-#             'state': merchant.state,
-#             'city': merchant.city,
-#             'pincode': merchant.pincode,
-#             'mobile': merchant.mobile,
-#             'gst_number': merchant.gst_number,
-#             'pan_number': merchant.pan_number,
-#             'legal_name': merchant.legal_name,
-#             'project_name': merchant.project_name,
-#         }
-#         return JsonResponse(data)
-
-#     except Merchant.DoesNotExist:
-#         return JsonResponse({'error': 'Merchant not found'}, status=404)
 
 def get_corporate(request, corporate_id):
     try:
@@ -3053,15 +2990,97 @@ def resolve_help(request, help_id):
         except Help.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Help request not found'}, status=404)
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
-    if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        try:
-            help_obj = Help.objects.get(id=help_id)
-            if help_obj.status != 'resolved':
-                help_obj.status = 'resolved'
-                help_obj.save()
-                return JsonResponse({'success': True, 'message': 'Marked as Resolved'})
-            else:
-                return JsonResponse({'success': False, 'message': 'Already resolved'})
-        except Help.DoesNotExist:
-            return JsonResponse({'success': False, 'message': 'Help request not found'}, status=404)
-    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+   
+   
+   
+   
+def merchant_list(request):
+    merchants = Merchant.objects.filter(project_name=request.user.corporate_id)
+    if request.method == 'POST':
+        pass
+ 
+
+    return render(request, 'bopo_admin/Corporate/merchant_list.html', {'merchants': merchants})
+
+def corporate_terminals(request):
+    user = request.user
+    project_id = user.corporate_id  # Still coming from user
+
+    # Use the correct field name in the filter
+    merchants = Merchant.objects.filter(project_name_id=project_id)
+
+    print("Project ID:", project_id)
+    print("Merchants:", merchants)
+
+    selected_merchant_id = request.GET.get('merchant_id')
+
+    if selected_merchant_id:
+        terminals = Terminal.objects.filter(merchant_id=selected_merchant_id)
+    else:
+        terminals = Terminal.objects.none()
+
+    return render(request, 'bopo_admin/Corporate/corporate_terminals.html', {
+        'merchants': merchants,
+        'terminals': terminals
+    })
+
+
+
+def get_admin_merchant(request, merchant_id):
+    try:
+        # Fetch the merchant object
+        merchant = Merchant.objects.get(id=merchant_id)
+
+        # Fetch the state and city objects
+        state_obj = State.objects.get(name=merchant.state)
+        city_obj = City.objects.get(name=merchant.city)
+
+        # Get cities based on the merchant's state
+        cities = City.objects.filter(state=state_obj)
+        city_data = [{"id": city.id, "name": city.name} for city in cities]
+
+        # Prepare the response data
+        data = {
+            "id": merchant.id,
+            "first_name": merchant.first_name,
+            "last_name": merchant.last_name,
+            "email": merchant.email,
+            "mobile": merchant.mobile,
+            "aadhaar_number": merchant.aadhaar_number,
+            "shop_name": merchant.shop_name,
+            "address": merchant.address,
+            "state": merchant.state,
+            "city": merchant.city,
+            "pincode": merchant.pincode,
+            "gst_number": merchant.gst_number,
+            "pan_number": merchant.pan_number,
+            "legal_name": merchant.legal_name,
+            # Provide the list of all states
+            "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],
+            # Provide the list of cities based on the merchant's state
+            "cities": city_data,
+        }
+
+        return JsonResponse(data)
+
+    except Merchant.DoesNotExist:
+        return JsonResponse({"error": "Merchant not found"}, status=404)
+    except State.DoesNotExist:
+        return JsonResponse({"error": "State not found"}, status=404)
+    except City.DoesNotExist:
+        return JsonResponse({"error": "City not found"}, status=404)
+
+
+def corporate_credentials(request):
+    if request.method == 'POST':
+        # Handle your form submission here
+        pass
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # AJAX call to fetch merchants
+        project_id = request.user.corporate_id  # Assuming this is how project ID is tied
+        merchants = Merchant.objects.filter(project_name=project_id).values('merchant_id', 'first_name', 'last_name')
+        return JsonResponse({'merchants': list(merchants)})
+
+    # Initial page load
+    return render(request, 'bopo_admin/Corporate/corporate_credentials.html')
