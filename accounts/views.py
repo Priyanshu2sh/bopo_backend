@@ -448,6 +448,7 @@ class LoginAPIView(APIView):
                     "message": "Login successful",
                     "user_category": "terminal",
                     "terminal_id": terminal.terminal_id,
+                    "tid_pin": terminal.tid_pin,
                     "merchant_id": terminal.merchant_id.merchant_id  # Assuming ForeignKey to Merchant
                 }
 

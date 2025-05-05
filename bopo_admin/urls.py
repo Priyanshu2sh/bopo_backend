@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import  add_security_question, assign_employee_role, custom_logout_view, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_superadmin_payment, security_questions_view,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+from .views import  add_security_question, assign_employee_role, custom_logout_view, get_model_plans, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -161,6 +161,7 @@ urlpatterns = [
     path('get-current-limit/', views.get_current_limit, name='get_current_limit'),
     
     path('save-model-plan/', views.save_model_plan, name='save-model-plan'),
+    path('get-model-plans/', get_model_plans, name='get_model_plans'),
 
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
