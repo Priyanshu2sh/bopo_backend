@@ -2180,6 +2180,7 @@ def assign_employee_role(request):
 #     })
 
 
+
 def payment_details(request):
     if request.method == "POST":
         payment_id = request.POST.get("payment_id")
@@ -2190,10 +2191,25 @@ def payment_details(request):
 
         payment = get_object_or_404(PaymentDetails, id=payment_id)
 
+        # Check for duplicate plan assignment
+        existing_payment = PaymentDetails.objects.filter(merchant=payment.merchant).exclude(id=payment.id).first()
+        if existing_payment:
+            return JsonResponse({"success": False, "message": f"Merchant already has a {existing_payment.plan_type} plan."})
+
         if action == "approve":
             if payment.plan_type == "rental":
-                return JsonResponse({"success": False, "message": "Cannot approve payments for rental plans."})
+                validity = request.POST.get("validity")
+                if not validity or not validity.isdigit() or int(validity) <= 0:
+                    return JsonResponse({"success": False, "message": "Invalid rental validity provided."})
 
+                # Assume RentalPlan model or field exists to store validity or handle logic accordingly
+                payment.validity_days = int(validity)  # If such a field exists
+                payment.status = "approved"
+                payment.save()
+
+                return JsonResponse({"success": True, "message": f"Rental plan approved for {validity} days."})
+
+            # Prepaid logic
             topup_value = payment.topup_amount
             if topup_value is None:
                 return JsonResponse({"success": False, "message": "Top-up amount is invalid."})
@@ -2211,7 +2227,6 @@ def payment_details(request):
         elif action == "reject":
             payment.status = "rejected"
             payment.save()
-
             return JsonResponse({"success": True, "message": "Payment has been rejected."})
 
         return JsonResponse({"success": False, "message": "Invalid action."})

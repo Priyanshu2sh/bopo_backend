@@ -131,7 +131,7 @@ button {
 }
 
 /* Modal Header Text (Message) */
-#confirmationMessage {
+#rentalMessage,#rejectMessage,#approveMessage {
     font-size: 22px;  /* Increased font size */
     color: #444;
     font-weight: bold;
@@ -255,6 +255,67 @@ button {
 
     button {
         font-size: 18px;
+    }
+}
+
+/* Toast Container */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 300px;
+    padding: 15px;
+    background-color: #333;
+    color: white;
+    border-radius: 8px;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+    animation: fadeInOut 5s ease-in-out;
+    opacity: 0;  /* Ensure opacity is zero by default */
+}
+
+/* Toast Icon */
+.toast-container i {
+    margin-right: 10px;
+    font-size: 20px;
+    vertical-align: middle;
+}
+
+/* Toast Message */
+.toast-container span {
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+/* Success Toast Style */
+.toast-container.success {
+    background-color: #4caf50;
+}
+
+/* Error Toast Style */
+.toast-container.error {
+    background-color: #f44336;
+}
+
+/* Toast Fade In and Out Animation */
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    90% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(10px);
     }
 }
 
