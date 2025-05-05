@@ -91,13 +91,13 @@
                             <th>Merchant ID</th>
                             <th>Contact Person</th>
                             <th>Mobile Number</th>
-                            <th>Request Amount (BBP)</th>
+                            <th>Requested Amount (BBP)</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for cash_out in cash_outs %}
+                        {% for cash_out in merchant_cash_outs %}
                             {% if cash_out.merchant %} 
                             <tr>
                                 <td>{{ forloop.counter }}</td>
@@ -112,7 +112,8 @@
                                     </label>
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-success open-merchant-modal-btn" data-id="1">💸 Cash Out</button>
+                                    <button class="btn btn-sm btn-success open-merchant-modal-btn" data-id="{{ cash_out.id }}">💸 Cash Out</button>
+
                                 </td>
                             </tr>
                             {% endif %}
@@ -152,7 +153,7 @@
             <input type="date" id="merchantPaymentDate" class="input-field">
         </div>
 
-        <button class="btn-save" onclick="submitMerchantCashOut()">Save</button>
+        <button class="btn-save" onclick="submitCashOut()">Save</button>
     </div>
 </div>
 
@@ -186,14 +187,14 @@
                                     <th>Customer ID</th>
                                     <th>Contact Person</th>
                                     <th>Mobile Number</th>
-                                    <th>Request Amount (BBP)</th>
+                                    <th>Requested Amount (BBP)</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
                          
                             </thead>
                             <tbody>
-                                {% for cash_out in cash_outs %}
+                                {% for cash_out in customer_cash_outs %}
                                     {% if cash_out.customer %}
                                         <tr>
                                             <td>{{ forloop.counter }}</td>
@@ -337,32 +338,37 @@
     function closeCashOutModal() {
         $('#cashOutModal').fadeOut();
     }
-    function submitCashOut() {
-        const transactionId = document.getElementById("transactionId").value;
-        const paymentMethod = document.getElementById("paymentMethod").value;
-        const cashOutId = $('.open-modal-btn').data('id'); // Ensure this retrieves correct ID
-    
-        fetch("/superadmin/payment/save/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCookie("csrftoken")
-            },
-            body: JSON.stringify({
-                transactionId,
-                paymentMethod,
-                cashOutId
-            })
+
+
+  function submitCashOut() {
+    const transactionId = document.getElementById("transactionId").value;
+    const paymentMethod = document.getElementById("paymentMethod").value;
+    const paymentDate = document.getElementById("paymentDate").value;
+    const cashOutId = $('.open-modal-btn').data('id'); // Ensure this retrieves correct ID
+
+    fetch("/superadmin/payment/save/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+            transactionId,
+            paymentMethod,
+            paymentDate,  // Include paymentDate in the request
+            cashOutId
         })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message || data.error);
-            if (data.message) {
-                closeCashOutModal();
-                location.reload(); // Refresh to show updated data
-            }
-        });
-    }
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || data.error);
+        if (data.message) {
+            closeCashOutModal();
+            location.reload();  // Refresh to show updated data
+        }
+    });
+}
+
     
     // Toggle section logic
     document.addEventListener("DOMContentLoaded", function () {
@@ -389,6 +395,23 @@
             form.style.display = "none";
         });
     });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === name + "=") {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
 </script>
 
 {% endblock %}

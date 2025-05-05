@@ -112,7 +112,7 @@ urlpatterns = [
 
     path('api/security-questions/', security_questions_view, name='security_questions'),
     path('send_customer_notifications/', views.send_notification_customer, name='send_customer_notifications'),
-   path('send_customer_notifications/', views.send_notification_customer, name='send_notification_customer'),
+    path('send_customer_notifications/', views.send_notification_customer, name='send_notification_customer'),
     
     # path('edit-corporate/<int:corporate_id>/', views.edit_corporate, name='edit_corporate'),
     # path('update_copmerchant/', views.update_merchant, name='update_copmerchant'),

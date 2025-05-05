@@ -20,8 +20,6 @@
 
         </h4>
         
-        
-
         <a href="{% url 'home' %}" class="{% if request.path == 'home/' %}active{% endif %}">
             <i class="fas fa-home"></i>  Home
         </a>
@@ -157,6 +155,7 @@
 
 
 <!-- Superadmin Section -->
+{% if request.user.role == 'super_admin' %}
 <div id="superadminSection">
     <a href="{% url 'superadmin_functionality' %}" class="{% if request.path == '/superadmin_functionality/' %}active{% endif %}">
         <i class="fas fa-user-shield"></i> Superadmin Functionality
@@ -165,11 +164,30 @@
 
 
 <!-- Helpdesk Section -->
+ 
 <div id="helpdeskSection">
     <a href="{% url 'helpdesk' %}" class="{% if request.path == '/helpdesk/' %}active{% endif %}">
         <i class="fas fa-headset"></i> Helpdesk
     </a>
 </div>
+{% endif %}
+
+{% comment %} for corporate_admin {% endcomment %}
+
+{% if request.user.role == 'corporate_admin' %}
+<div id="belowMerchant">
+    <a href="{% url 'add_employee' %}">
+        <i class="fas fa-users"></i>  Add Employee
+    </a>
+</div>  
+
+<div id="belowMerchant">
+    <a href="{% url 'add_employee' %}">
+        <i class="fas fa-users"></i>  Add Employee
+    </a>
+</div> 
+
+{% endif %}
 
 
         <!-- Corporate Admin Section -->

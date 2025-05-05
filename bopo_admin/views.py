@@ -2322,6 +2322,10 @@ def login_view(request):
     # GET request
     return render(request, 'bopo_admin/login.html')
 
+
+
+
+
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import AnonymousUser
@@ -2834,32 +2838,50 @@ def helpdesk(request):
 
 
 def reduce_limit(request):
-    cash_outs = CashOut.objects.all()
-    return render(request, 'bopo_admin/Merchant/reduce_limit.html', {'cash_outs': cash_outs})
+    # Fetch cash-out records for merchants
+    merchant_cash_outs = CashOut.objects.filter(user_category='merchant')
+    
+    # Fetch cash-out records for customers
+    customer_cash_outs = CashOut.objects.filter(user_category='customer')
+
+    return render(request, 'bopo_admin/Merchant/reduce_limit.html', {
+        'merchant_cash_outs': merchant_cash_outs,
+        'customer_cash_outs': customer_cash_outs,
+    })
+
+from django.utils import timezone
 
 def save_cash_out_payment(request):
     if request.method == 'POST':
-        transaction_id = request.POST.get('transaction_id')
-        payment_method = request.POST.get('payment_method')
-        payment_date = request.POST.get('payment_date')
+        try:
+            data = json.loads(request.body)
+            transaction_id = data.get('transactionId')
+            payment_method = data.get('paymentMethod')
+            cash_out_id = data.get('cashOutId')
+            payment_date = data.get('paymentDate')  # Now getting payment_date from JSON
 
-        # You may need to retrieve the relevant CashOut instance here, adjust as per your model
-        cash_out = CashOut.objects.filter(transaction_id=transaction_id).first()
+            # Retrieve the CashOut instance using the ID
+            cash_out = CashOut.objects.filter(id=cash_out_id).first()
 
-        if not cash_out:
-            return JsonResponse({'success': False, 'message': 'Cash Out not found.'})
+            if not cash_out:
+                return JsonResponse({'success': False, 'message': 'Cash Out not found.'})
 
-        # Create a new payment record
-        payment = SuperAdminPayment.objects.create(
-            transaction_id=transaction_id,
-            payment_method=payment_method,
-            cashout=cash_out,
-            created_at=payment_date
-        )
+            # Create a new payment record
+            payment = SuperAdminPayment.objects.create(
+                transaction_id=transaction_id,
+                payment_method=payment_method,
+                cashout=cash_out,
+                created_at=payment_date or timezone.now()  # Default to current time if not provided
+            )
 
-        return JsonResponse({'success': True, 'message': 'Payment details saved successfully.'})
+            return JsonResponse({'success': True, 'message': 'Payment details saved successfully.'})
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
 
     return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
 
 
 # def security_questions(request):
