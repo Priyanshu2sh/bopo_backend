@@ -54,9 +54,10 @@
                         <td>{{ payment.payment_mode }}</td>
                         {% endif %}
                         <td>
-                            <button class="btn btn-sm btn-success" onclick="showApproveModal('{{ payment.id }}')">
+                            <button class="btn btn-sm btn-success" onclick="showApproveModal('{{ payment.id }}', '{{ payment.plan_type }}')">
                                 <i class="fas fa-check-circle"></i> Approve
                             </button>
+                            
                             <button class="btn btn-sm btn-danger" onclick="showRejectModal('{{ payment.id }}')">
                                 <i class="fas fa-times-circle"></i> Reject
                             </button>
@@ -107,13 +108,16 @@
 
 
 <script>
-    // Function to open the approve modal
-    function showApproveModal(paymentId) {
-        // Set the payment ID to a hidden variable or pass it to your backend
-        document.getElementById('approveConfirmBtn').onclick = function() {
+    function showApproveModal(paymentId, planType) {
+        if (planType === "rental") {
+            alert("Approval is not allowed for Rental plans.");
+            return;
+        }
+
+        document.getElementById('approveConfirmBtn').onclick = function () {
             approvePayment(paymentId);
         };
-        
+
         document.getElementById('approveModal').style.display = "flex";
     }
 

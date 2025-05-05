@@ -2180,7 +2180,6 @@ def assign_employee_role(request):
 #     })
 
 
-
 def payment_details(request):
     if request.method == "POST":
         payment_id = request.POST.get("payment_id")
@@ -2189,29 +2188,27 @@ def payment_details(request):
         if not payment_id or not action:
             return JsonResponse({"success": False, "message": "Missing payment ID or action."})
 
-        # Get payment by ID
         payment = get_object_or_404(PaymentDetails, id=payment_id)
 
         if action == "approve":
-            # Approve logic
+            if payment.plan_type == "rental":
+                return JsonResponse({"success": False, "message": "Cannot approve payments for rental plans."})
+
             topup_value = payment.topup_amount
             if topup_value is None:
                 return JsonResponse({"success": False, "message": "Top-up amount is invalid."})
 
-            # Update merchant points
             merchant = payment.merchant
             points_obj, created = MerchantPoints.objects.get_or_create(merchant=merchant, defaults={'points': 0})
             points_obj.points += float(topup_value)
             points_obj.save()
 
-            # Update payment status
             payment.status = "approved"
             payment.save()
 
-            return JsonResponse({"success": True, "message": "Payment approved succesfully"})
+            return JsonResponse({"success": True, "message": "Payment approved successfully"})
 
         elif action == "reject":
-            # Reject logic
             payment.status = "rejected"
             payment.save()
 
@@ -2219,10 +2216,8 @@ def payment_details(request):
 
         return JsonResponse({"success": False, "message": "Invalid action."})
 
-    # Handle GET request
     topups = PaymentDetails.objects.all().order_by('-created_at')
     return render(request, 'bopo_admin/Payment/payment_details.html', {'topups': topups})
-
 
 
 def account_info(request):
