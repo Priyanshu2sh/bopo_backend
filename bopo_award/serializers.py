@@ -16,7 +16,7 @@ from rest_framework import serializers
 
 from accounts.models import Corporate, Customer, Merchant
 from bopo_admin.models import EmployeeRole
-from .models import BankDetail, CashOut, CustomerPoints, Help, MerchantPoints, History, PaymentDetails, SuperAdminPayment
+from .models import BankDetail, CashOut, CustomerPoints, Help, MerchantPoints, History, ModelPlan, PaymentDetails, SuperAdminPayment
 
 
 class CustomerPointsSerializer(serializers.ModelSerializer):
@@ -44,6 +44,10 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
         queryset=Merchant.objects.all(),
         slug_field='merchant_id'  # Use your unique merchant code field
     )
+    # plan_type = serializers.SlugRelatedField(
+    #     queryset=ModelPlan.objects.all(),
+    #     slug_field='plan_type'  # Assuming `name` is like 'rental', 'monthly', etc.
+    # )
     class Meta:
         model = PaymentDetails
         fields = ['merchant', 'paid_amount', 'transaction_id', 'payment_mode', 'plan_type', 'created_at']

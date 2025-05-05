@@ -15,7 +15,7 @@ from django.db import transaction
 
 from .serializers import BankDetailSerializer, CashOutSerializer, CorporateProjectSerializer, CustomerCashOutSerializer, HelpSerializer, MerchantCashOutSerializer, PaymentDetailsSerializer
 
-from .models import BankDetail, CashOut, CustomerToCustomer, Help, MerchantToMerchant, ModelPlan, PaymentDetails
+from .models import AwardPoints, BankDetail, CashOut, CustomerToCustomer, Help, MerchantToMerchant, ModelPlan, PaymentDetails
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
@@ -120,10 +120,20 @@ class RedeemPointsAPIView(APIView):
             'merchant_mobile': merchant.mobile
         }, status=status.HTTP_200_OK)
         
+        
+        
 class AwardPointsAPIView(APIView):
     """
-    API for Merchant to Customer point transfer (No deduction).
+    API for Merchant to Customer point transfer (No deduction for rental plan merchants).
+    Dynamically fetches % conversion from AwardPoints model (fallback: 10%)
     """
+
+    def get_conversion_percentage(self):
+        config = AwardPoints.objects.first()
+        try:
+            return float(config.percentage) if config and config.percentage > 0 else 10
+        except:
+            return 10  # fallback
 
     def generate_unique_customer_id(self):
         while True:
@@ -137,17 +147,33 @@ class AwardPointsAPIView(APIView):
             if not Customer.objects.filter(pin=pin).exists():
                 return pin
 
+    def get_merchant_plan_type(self, merchant):
+        payment_detail = PaymentDetails.objects.filter(merchant=merchant).first()
+        if payment_detail and payment_detail.plan_type:
+            return payment_detail.plan_type.lower()
+        return "prepaid"  # default to prepaid if no payment detail found
+
     def post(self, request):
         customer_id = request.data.get('customer_id')
         customer_mobile = request.data.get('customer_mobile')
         merchant_id = request.data.get('merchant_id')
         merchant_mobile = request.data.get('merchant_mobile')
-        points = int(request.data.get('points', 0))
+        purchased_amt = request.data.get('purchased_amt')
 
-        if points <= 0:
-            return Response({'error': 'Points must be greater than zero'}, status=status.HTTP_400_BAD_REQUEST)
+        # Validate purchased_amt
+        try:
+            purchased_amt = float(purchased_amt)
+        except (ValueError, TypeError):
+            return Response({'error': 'Purchased amount must be a valid number'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # ✅ Fetch or create customer
+        if purchased_amt <= 0:
+            return Response({'error': 'Purchased amount must be greater than zero'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch conversion percentage from config
+        conversion_percentage = self.get_conversion_percentage()
+        points = int(purchased_amt * conversion_percentage / 100)
+
+        # ✅ Fetch or create Customer
         customer = None
         if customer_id:
             try:
@@ -171,7 +197,7 @@ class AwardPointsAPIView(APIView):
         else:
             return Response({'error': 'Customer ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # ✅ Fetch or create merchant
+        # ✅ Fetch or create Merchant
         merchant = None
         if merchant_id:
             try:
@@ -179,7 +205,7 @@ class AwardPointsAPIView(APIView):
             except Merchant.DoesNotExist:
                 return Response({'error': 'Merchant not found.'}, status=status.HTTP_404_NOT_FOUND)
         elif merchant_mobile:
-            merchant, _ = Merchant.objects.get_or_create(
+            merchant, created = Merchant.objects.get_or_create(
                 mobile=merchant_mobile,
                 defaults={
                     'merchant_id': f"M{random.randint(100000, 999999)}",
@@ -191,13 +217,17 @@ class AwardPointsAPIView(APIView):
         else:
             return Response({'error': 'Merchant ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # ✅ Check if merchant has enough points
-        merchant_points = MerchantPoints.objects.filter(merchant=merchant).first()
-        if not merchant_points or merchant_points.points < points:
-            return Response({'error': 'Merchant does not have enough points to award'}, status=status.HTTP_400_BAD_REQUEST)
+        # ✅ Check merchant's plan type
+        plan_type = self.get_merchant_plan_type(merchant)
 
-        # ✅ Deduct points from Merchant
-        MerchantPoints.objects.filter(merchant=merchant).update(points=F('points') - points)
+        if plan_type == "prepaid":
+            # ✅ Check if merchant has enough points
+            merchant_points = MerchantPoints.objects.filter(merchant=merchant).first()
+            if not merchant_points or merchant_points.points < points:
+                return Response({'error': 'Merchant does not have enough points to award'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # ✅ Deduct points from Merchant
+            MerchantPoints.objects.filter(merchant=merchant).update(points=F('points') - points)
 
         # ✅ Update or create CustomerPoints
         customer_points, created = CustomerPoints.objects.get_or_create(
@@ -221,10 +251,12 @@ class AwardPointsAPIView(APIView):
             'merchant_id': merchant.merchant_id,
             'merchant_mobile': merchant.mobile,
             'customer_id': customer.customer_id,
-            'customer_mobile': customer.mobile
-        }, status=status.HTTP_200_OK)
-        
-        
+            'customer_mobile': customer.mobile,
+            'points_awarded': points,
+            'conversion_percentage': conversion_percentage,
+            'merchant_plan_type': plan_type
+        }, status=status.HTTP_200_OK)     
+              
 class TransferPointsMerchantToCustomerAPIView(APIView):
     """
     API for transferring points from Merchant to Customer (NO deduction),
@@ -313,6 +345,7 @@ class HistoryAPIView(APIView):
 
         if user_type == 'customer':
             transactions = all_transactions.filter(customer__customer_id=id)
+            
         elif user_type == 'merchant':
             transactions = all_transactions.filter(merchant__merchant_id=id)
         else:

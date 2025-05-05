@@ -45,7 +45,7 @@ class History(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
     points = models.IntegerField()
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
-    created_at = models.DateTimeField(default=now)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.transaction_type} - {self.points} points"
@@ -83,12 +83,7 @@ class MerchantToMerchant(models.Model):
         return f"{self.sender_merchant.merchant_id} -> {self.receiver_merchant.merchant_id}: {self.points} points"
     
 
-class PaymentDetails(models.Model):
-    
-    PLAN_CHOICES = [
-        ('prepaid', 'Prepaid'),
-        ('rental', 'Rental'),
-    ] 
+class PaymentDetails(models.Model): 
     STATUS_CHOICES = [
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
@@ -102,7 +97,7 @@ class PaymentDetails(models.Model):
         ('Debit Card', 'Debit Card'),
         ('Net Banking', 'Net Banking'),
     ])
-    plan_type = models.CharField(max_length=255, null=True, blank=True, choices=PLAN_CHOICES,  help_text='Select plan type: Prepaid or Rental')
+    plan_type = models.ForeignKey('ModelPlan', on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=255, null=True, blank=True, choices=STATUS_CHOICES)
@@ -139,11 +134,19 @@ class Help(models.Model):
     
     
 class ModelPlan(models.Model):
+    PLAN_CHOICES = [
+    
+        ('rental', 'Rental'),
+        ('prepaid', 'Prepaid'),
+    ]
     
     plan_validity = models.CharField(max_length=255)
-    plan_type = models.CharField(max_length=255)
+    plan_type = models.CharField(max_length=255, null=True, choices=PLAN_CHOICES)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.plan_type} - {self.id}"
     
 
 class CashOut(models.Model):
