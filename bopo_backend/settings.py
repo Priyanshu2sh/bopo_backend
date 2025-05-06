@@ -100,7 +100,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bopo_backend.wsgi.application'
 
-
+# Timezone settings
+USE_TZ = True  # This enables time zone support
+TIME_ZONE = 'Asia/Kolkata'  # Set your preferred timezone (replace if needed)
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 

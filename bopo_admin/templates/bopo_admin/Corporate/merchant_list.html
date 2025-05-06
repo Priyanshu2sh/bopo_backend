@@ -192,14 +192,20 @@
 <script>
     function openEditMerchantModal(merchantId) {
         const modal = document.getElementById('editCorporateModal');
-        modal.style.display = 'block'; // Make sure the modal is displayed
-        
+        const modalContent = modal.querySelector('.modal-content');
+    
+        // Make sure the modal is displayed
+        modal.style.display = 'block'; // Ensure modal is visible
+        modalContent.style.display = 'block'; // Ensure modal content is visible
+    
         // Fetch merchant data
         fetch(`/get_admin_merchant/${merchantId}/`)
+
             .then(response => response.json())
             .then(data => {
+                console.log(data);
                 // Populate the form with merchant data
-                document.getElementById('edit_merchant_id').value = data.id;
+                document.getElementById('edit_merchant_id').value = data.merchant_id; // Adjusted to use 'merchant_id'
                 document.getElementById('edit_first_name').value = data.first_name;
                 document.getElementById('edit_last_name').value = data.last_name;
                 document.getElementById('edit_email').value = data.email;
@@ -209,34 +215,34 @@
                 document.getElementById('edit_address').value = data.address;
                 document.getElementById('edit_pincode').value = data.pincode;
                 document.getElementById('edit_gst_number').value = data.gst_number;
-                document.getElementById('edit_pan_number').value = data.pan_number;
+                document.getElementById('edit_pan').value = data.pan_number;
                 document.getElementById('edit_legal_name').value = data.legal_name;
     
-                // Populate the state dropdown
-                const stateSelect = document.getElementById('edit_state');
-                stateSelect.innerHTML = '<option value="">Select State</option>';
-                data.states.forEach(state => {
-                    const option = document.createElement('option');
-                    option.value = state.id;
-                    option.text = state.name;
-                    if (state.name === data.state) {
-                        option.selected = true;
-                    }
-                    stateSelect.appendChild(option);
-                });
+                // Populate states dropdown
+                const stateSelect = document.getElementById("edit_state");
+                stateSelect.innerHTML = `<option value="">Select State</option>`;
+                if (data.states) {
+                    data.states.forEach(state => {
+                        const option = document.createElement("option");
+                        option.value = state.id;
+                        option.textContent = state.name;
+                        if (state.name === data.state) option.selected = true;
+                        stateSelect.appendChild(option);
+                    });
+                }
     
-                // Populate the city dropdown
-                const citySelect = document.getElementById('edit_city');
-                citySelect.innerHTML = '<option value="">Select City</option>';
-                data.cities.forEach(city => {
-                    const option = document.createElement('option');
-                    option.value = city.id;
-                    option.text = city.name;
-                    if (city.name === data.city) {
-                        option.selected = true;
-                    }
-                    citySelect.appendChild(option);
-                });
+                // Populate cities dropdown
+                const citySelect = document.getElementById("edit_city");
+                citySelect.innerHTML = `<option value="">Select City</option>`;
+                if (data.cities) {
+                    data.cities.forEach(city => {
+                        const option = document.createElement("option");
+                        option.value = city.id;
+                        option.textContent = city.name;
+                        if (city.name === data.city) option.selected = true;
+                        citySelect.appendChild(option);
+                    });
+                }
             })
             .catch(error => {
                 console.error("Error:", error);
@@ -249,7 +255,14 @@ function closeModal() {
     document.getElementById('editCorporateModal').style.display = 'none';
 }
 
-    
+
+window.onclick = function(event) {
+    const modal = document.getElementById('editCorporateModal');
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
 
 document.addEventListener("DOMContentLoaded", function () {
     $('.select2').select2({
@@ -258,6 +271,38 @@ document.addEventListener("DOMContentLoaded", function () {
         width: '100%'
     });
 });
+
+
+
+    document.getElementById('editCorporateForm').addEventListener('submit', function(event) {
+        event.preventDefault();  // Prevent default form submission
+    
+        const form = this;
+        const formData = new FormData(form);
+    
+        fetch('/update_admin_merchant/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeModal();
+    
+                // Optionally reload table or update row dynamically
+                location.reload();  // Reload page to reflect changes
+            } else {
+                alert("Failed to update merchant. Please try again.");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    });
+    
 
     function fetchStates() {
         return fetch("/bopo_admin/get-states/")

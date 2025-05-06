@@ -16,6 +16,8 @@ from openpyxl.styles import Font
 from twilio.rest import Client
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
+from django.utils.timezone import now
+from datetime import datetime
 
 
 
@@ -206,60 +208,145 @@ def toggle_terminal_status(request, terminal_id):
 
     return JsonResponse({"success": False, "error": "Invalid request"})
 
- 
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.utils.timezone import now
+from datetime import timedelta
+
+
+
 @login_required
 def home(request):
     user = request.user
+    today = now().date()
+    yesterday = today - timedelta(days=1)
 
-    # Calculate total projects and project progress
+    # Total counts
     total_projects = Corporate.objects.count()
-    completed_projects = Corporate.objects.filter(status="Completed").count()  # Assuming a 'status' field exists
+    completed_projects = Corporate.objects.filter(status="Completed").count()
     project_progress = (completed_projects / total_projects * 100) if total_projects > 0 else 0
 
-    # Calculate total merchants and merchant progress
     total_merchants = Merchant.objects.count()
-    active_merchants = Merchant.objects.filter(status="Active").count()  # Assuming a 'status' field exists
+    active_merchants = Merchant.objects.filter(status="Active").count()
     merchant_progress = (active_merchants / total_merchants * 100) if total_merchants > 0 else 0
 
-    # Calculate total customers
     total_customers = Customer.objects.count()
-
-    # Calculate total users (sum of customers, merchants, and corporates)
     total_users = total_customers + total_merchants + total_projects
 
-     # Prepare data for the bar chart
+    # Daily counts
+    daily_projects = Corporate.objects.filter(created_at__date=today).count()
+    daily_merchants = Merchant.objects.filter(created_at__date=today).count()
+    daily_customers = Customer.objects.filter(created_at__date=today).count()
+
+    # Yesterday counts
+    yesterday_projects = Corporate.objects.filter(created_at__date=yesterday).count()
+    yesterday_merchants = Merchant.objects.filter(created_at__date=yesterday).count()
+    yesterday_customers = Customer.objects.filter(created_at__date=yesterday).count()
+
+    # Growth compared to yesterday
+    daily_project_growth = ((daily_projects - yesterday_projects) / yesterday_projects * 100) if yesterday_projects > 0 else 0
+    daily_merchant_growth = ((daily_merchants - yesterday_merchants) / yesterday_merchants * 100) if yesterday_merchants > 0 else 0
+    daily_customer_growth = ((daily_customers - yesterday_customers) / yesterday_customers * 100) if yesterday_customers > 0 else 0
+
+    # Chart data for bar graph
     chart_data = {
         "projects": [total_projects, completed_projects],
         "merchants": [total_merchants, active_merchants],
         "customers": [total_customers],
     }
 
-    # Add context for the dashboard
     context = {
         "user": user,
         "title": "Welcome to Bopo Admin Dashboard",
         "description": "Manage merchants, customers, and projects efficiently.",
+
+        # Total values
         "total_projects": total_projects,
         "project_progress": project_progress,
         "total_merchants": total_merchants,
         "merchant_progress": merchant_progress,
         "total_customers": total_customers,
         "total_users": total_users,
+
+        # Daily values
+        "daily_projects": daily_projects,
+        "daily_merchants": daily_merchants,
+        "daily_customers": daily_customers,
+
+        # Daily growth
+        "daily_project_growth": daily_project_growth,
+        "daily_merchant_growth": daily_merchant_growth,
+        "daily_customer_growth": daily_customer_growth,
+
+        # Chart data
         "chart_data": chart_data,
     }
+
     if user.role == 'corporate_admin':
-        
-             
+        corporate = user.corporate
+
+        # Merchants under corporate
+        project_merchants = Merchant.objects.filter(project_name=corporate)
+        total_project_merchants = project_merchants.count()
+        active_project_merchants = project_merchants.filter(status="Active").count()
+        project_merchant_progress = (active_project_merchants / total_project_merchants * 100) if total_project_merchants > 0 else 0
+
+        # Daily merchants under corporate project
+        daily_project_merchants = project_merchants.filter(created_at__date=today).count()
+        yesterday_project_merchants = project_merchants.filter(created_at__date=yesterday).count()
+        daily_project_merchant_growth = ((daily_project_merchants - yesterday_project_merchants) / yesterday_project_merchants * 100) if yesterday_project_merchants > 0 else 0
+
+        # ----- Terminals Data -----
+        project_terminals = Terminal.objects.filter(merchant_id__project_name=corporate)
+        total_project_terminals = project_terminals.count()
+        active_project_terminals = project_terminals.filter(status="Active").count()
+        project_terminal_progress = (active_project_terminals / total_project_terminals * 100) if total_project_terminals > 0 else 0
+
+        # Chart data for corporate view
+        chart_data = {
+            "merchants": [total_project_merchants, active_project_merchants],
+            "customers": [0],
+            "terminals": [total_project_terminals, active_project_terminals],
+        }
+
+        chart_labels = ["Merchants", "Customers", "Terminals"]
+
+        context.update({
+            "total_merchants": total_project_merchants,
+            "merchant_progress": project_merchant_progress,
+            "daily_merchants": daily_project_merchants,
+            "daily_merchant_growth": daily_project_merchant_growth,
+
+            "total_terminals": total_project_terminals,
+            "terminal_progress": project_terminal_progress,
+
+            "chart_data": chart_data,
+            "chart_labels": chart_labels,
+        })
+
         return render(request, 'bopo_admin/Corporate/corporate_dashboard.html', context)
+
     elif user.role == 'employee':
         employee = user.employee
         role_permissions = EmployeeRole.objects.get(employee=employee)
         context['role_permissions'] = role_permissions
-        if role_permissions.corporate_merchant or role_permissions.individual_merchant or role_permissions.merchant_send_credentials or role_permissions.merchant_limit or role_permissions.merchant_login_page_info or role_permissions.merchant_send_notification or role_permissions.merchant_received_offers:
+        if (
+            role_permissions.corporate_merchant or
+            role_permissions.individual_merchant or
+            role_permissions.merchant_send_credentials or
+            role_permissions.merchant_limit or
+            role_permissions.merchant_login_page_info or
+            role_permissions.merchant_send_notification or
+            role_permissions.merchant_received_offers
+        ):
             context['merchant'] = True
         return render(request, 'bopo_admin/home.html', context)
+
     else:
         return render(request, 'bopo_admin/home.html', context)
+
 
 def about(request):
      return render(request, 'bopo_admin/about.html')
@@ -3025,51 +3112,77 @@ def corporate_terminals(request):
     })
 
 
-
 def get_admin_merchant(request, merchant_id):
     try:
-        # Fetch the merchant object
+        # Use merchant_id to get the Merchant
         merchant = Merchant.objects.get(id=merchant_id)
 
-        # Fetch the state and city objects
+        # Fetch the state and city using the merchant data
         state_obj = State.objects.get(name=merchant.state)
         city_obj = City.objects.get(name=merchant.city)
 
-        # Get cities based on the merchant's state
+        # Fetch cities related to the state
         cities = City.objects.filter(state=state_obj)
         city_data = [{"id": city.id, "name": city.name} for city in cities]
 
-        # Prepare the response data
+        # Prepare the data to send as response
         data = {
-            "id": merchant.id,
-            "first_name": merchant.first_name,
-            "last_name": merchant.last_name,
-            "email": merchant.email,
-            "mobile": merchant.mobile,
-            "aadhaar_number": merchant.aadhaar_number,
-            "shop_name": merchant.shop_name,
-            "address": merchant.address,
+            'merchant_id': merchant.id,  # Make sure you send 'merchant_id' key
+            'first_name': merchant.first_name,
+            'last_name': merchant.last_name,
+            'email': merchant.email,
+            'mobile': merchant.mobile,
+            'aadhaar_number': merchant.aadhaar_number,
+            'pan_number': merchant.pan_number,
+            'gst_number': merchant.gst_number,
+            'legal_name': merchant.legal_name,
+            'project_name': merchant.project_name.project_name if merchant.project_name else None,
+            'shop_name': merchant.shop_name,
+            'address': merchant.address,
+            'pincode': merchant.pincode,
             "state": merchant.state,
             "city": merchant.city,
-            "pincode": merchant.pincode,
-            "gst_number": merchant.gst_number,
-            "pan_number": merchant.pan_number,
-            "legal_name": merchant.legal_name,
-            # Provide the list of all states
+            'country': merchant.country,
             "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],
-            # Provide the list of cities based on the merchant's state
             "cities": city_data,
         }
 
         return JsonResponse(data)
 
     except Merchant.DoesNotExist:
-        return JsonResponse({"error": "Merchant not found"}, status=404)
+        return JsonResponse({'error': 'Merchant not found'}, status=404)
     except State.DoesNotExist:
-        return JsonResponse({"error": "State not found"}, status=404)
+        return JsonResponse({'error': 'State not found'}, status=404)
     except City.DoesNotExist:
-        return JsonResponse({"error": "City not found"}, status=404)
+        return JsonResponse({'error': 'City not found'}, status=404)
 
+
+def update_admin_merchant(request):
+    if request.method == 'POST':
+        merchant_id = request.POST.get('merchant_id')
+        try:
+            merchant = Merchant.objects.get(merchant_id=merchant_id)
+
+            merchant.first_name = request.POST.get('first_name')
+            merchant.last_name = request.POST.get('last_name')
+            merchant.email = request.POST.get('email')
+            merchant.mobile = request.POST.get('mobile')
+            merchant.aadhaar_number = request.POST.get('aadhaar_number')
+            merchant.shop_name = request.POST.get('shop_name')
+            merchant.address = request.POST.get('address')
+            merchant.pincode = request.POST.get('pincode')
+            merchant.gst_number = request.POST.get('gst_number')
+            merchant.pan_number = request.POST.get('pan_number')
+            merchant.legal_name = request.POST.get('legal_name')
+            merchant.state_id = request.POST.get('state')
+            merchant.city_id = request.POST.get('city')
+
+            merchant.save()
+
+            return JsonResponse({'success': True})
+        except Merchant.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Merchant not found'})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 def corporate_credentials(request):
     if request.method == 'POST':

@@ -99,9 +99,9 @@ urlpatterns = [
     path('toggle-terminal-status/<int:terminal_id>/', views.toggle_terminal_status, name='toggle_terminal_status'),
 
 
+    path('get_admin_merchant/<str:merchant_id>/', views.get_admin_merchant, name='get_admin_merchant'),
+    path('update_admin_merchant/', views.update_admin_merchant, name='update_admin_merchant'),
 
-    path('get_admin_merchant/<int:merchant_id>/', views.get_admin_merchant, name='get_admin_merchant'),
-    # path('update_admin_merchant/', views.update_admin_merchant, name='update_admin_merchant'),
     
     # path('security-questions/', views.security_questions, name='security_questions'),
     # path('rental-plan/', views.rental_plan, name='rental_plan'),
