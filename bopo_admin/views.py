@@ -147,10 +147,11 @@ def add_terminal(request, merchant_id):
         terminal_id=terminal_id,
         tid_pin=tid_pin,
         merchant_id=merchant
+        
     )
 
     # Return the newly created terminal details
-    return JsonResponse({'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin})
+    return JsonResponse({'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin, 'status':terminal.status})
 
 # In views.py
 
@@ -3013,6 +3014,9 @@ def update_model_plan(request):
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
+def model_plan_list(request):
+    plans = ModelPlan.objects.all()
+    return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html', {'plans': plans})
 
 def save_award_points(request):
     if request.method == 'POST':
@@ -3079,14 +3083,10 @@ def resolve_help(request, help_id):
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
    
    
-   
+  
    
 def merchant_list(request):
     merchants = Merchant.objects.filter(project_name=request.user.corporate_id)
-    if request.method == 'POST':
-        pass
- 
-
     return render(request, 'bopo_admin/Corporate/merchant_list.html', {'merchants': merchants})
 
 def corporate_terminals(request):
@@ -3113,56 +3113,74 @@ def corporate_terminals(request):
 
 
 def get_admin_merchant(request, merchant_id):
+    # Get the merchant object or return 404 if not found
+    merchant = get_object_or_404(Merchant, id=merchant_id)
+
+    # Retrieve the state object by its name (merchant.state is a string, so use name)
     try:
-        # Use merchant_id to get the Merchant
-        merchant = Merchant.objects.get(id=merchant_id)
-
-        # Fetch the state and city using the merchant data
-        state_obj = State.objects.get(name=merchant.state)
-        city_obj = City.objects.get(name=merchant.city)
-
-        # Fetch cities related to the state
-        cities = City.objects.filter(state=state_obj)
-        city_data = [{"id": city.id, "name": city.name} for city in cities]
-
-        # Prepare the data to send as response
-        data = {
-            'merchant_id': merchant.id,  # Make sure you send 'merchant_id' key
-            'first_name': merchant.first_name,
-            'last_name': merchant.last_name,
-            'email': merchant.email,
-            'mobile': merchant.mobile,
-            'aadhaar_number': merchant.aadhaar_number,
-            'pan_number': merchant.pan_number,
-            'gst_number': merchant.gst_number,
-            'legal_name': merchant.legal_name,
-            'project_name': merchant.project_name.project_name if merchant.project_name else None,
-            'shop_name': merchant.shop_name,
-            'address': merchant.address,
-            'pincode': merchant.pincode,
-            "state": merchant.state,
-            "city": merchant.city,
-            'country': merchant.country,
-            "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],
-            "cities": city_data,
-        }
-
-        return JsonResponse(data)
-
-    except Merchant.DoesNotExist:
-        return JsonResponse({'error': 'Merchant not found'}, status=404)
+        state_obj = State.objects.get(name=merchant.state)  # Now query by name
     except State.DoesNotExist:
-        return JsonResponse({'error': 'State not found'}, status=404)
-    except City.DoesNotExist:
-        return JsonResponse({'error': 'City not found'}, status=404)
+        return JsonResponse({'error': f'State "{merchant.state}" not found'}, status=404)
 
+    states = State.objects.all().order_by('name')
+    state_data = [{"id": state.id, "name": state.name} for state in states]
+    # Retrieve cities based on selected state
+    cities = City.objects.filter(state=state_obj)  # Now we use the State object
+
+    # Convert cities to a dictionary for use in the frontend
+    city_data = [{"id": city.id, "name": city.name} for city in cities]
+
+    # Data to send to the frontend
+    data = {
+        "id": merchant.id,
+        "first_name": merchant.first_name,
+        "last_name": merchant.last_name,
+        "email": merchant.email,
+        "mobile": merchant.mobile,
+        "shop_name": merchant.shop_name,
+        "address": merchant.address,
+        "aadhaar_number": merchant.aadhaar_number,
+        "pin": merchant.pin,
+        "gst_number": merchant.gst_number,
+        "pan_number": merchant.pan_number,
+        "legal_name": merchant.legal_name,
+        "state": merchant.state,
+        "city": merchant.city,
+        "pincode": merchant.pincode,
+        "cities": city_data,  # Include cities data
+        "states": state_data 
+    }
+
+    return JsonResponse(data)
 
 def update_admin_merchant(request):
     if request.method == 'POST':
         merchant_id = request.POST.get('merchant_id')
         try:
-            merchant = Merchant.objects.get(merchant_id=merchant_id)
-
+            merchant = Merchant.objects.get(id=merchant_id)
+            
+            # Get and debug state ID from frontend
+            state_id = request.POST.get('state')  # Expecting state ID here (e.g., "4010")
+            print(f"State ID from Frontend: {state_id}")  # Debugging line
+            
+            # Fetch the state object by its ID
+            try:
+                state_obj = State.objects.get(id=state_id)  # Now using ID to query
+            except State.DoesNotExist:
+                return JsonResponse({'success': False, 'message': f'State with ID "{state_id}" not found'})
+            
+            # Update the state and city fields
+            merchant.state = state_obj.name  # Store the state name (not the ID)
+            
+            # Handle city
+            city_id = request.POST.get('city')
+            try:
+                city_obj = City.objects.get(id=city_id)
+                merchant.city = city_obj.name  # Store city name (not the model instance)
+            except City.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'City not found'})
+            
+            # Update other merchant fields
             merchant.first_name = request.POST.get('first_name')
             merchant.last_name = request.POST.get('last_name')
             merchant.email = request.POST.get('email')
@@ -3174,16 +3192,17 @@ def update_admin_merchant(request):
             merchant.gst_number = request.POST.get('gst_number')
             merchant.pan_number = request.POST.get('pan_number')
             merchant.legal_name = request.POST.get('legal_name')
-            merchant.state_id = request.POST.get('state')
-            merchant.city_id = request.POST.get('city')
-
+            
+            # Save the updated merchant information
             merchant.save()
 
-            return JsonResponse({'success': True})
+            return JsonResponse({'success': True ,'massage': 'Merchant updated successfully'})
         except Merchant.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Merchant not found'})
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
+            return JsonResponse({'success': False, 'message': 'Merchant not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
 
+        
 def corporate_credentials(request):
     if request.method == 'POST':
         # Handle your form submission here

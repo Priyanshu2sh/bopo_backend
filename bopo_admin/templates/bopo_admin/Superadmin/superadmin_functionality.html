@@ -87,26 +87,14 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% for plan in plans %}
                     <tr>
-                        <td><span class="plan-validity-text">12 months</span></td>
-                        <td><span class="plan-type-text">Rental</span></td>
-                        <td>
-                        <span class="plan-description-text">
-                            A flexible short-term plan allowing merchants to use services with a monthly fee.
-                        </span>
-                    </td>
-                        <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
-                       
-                    </tr>
-                    <tr>
-                        <td><span class="plan-validity-text">12 months</span></td>
-                        <td><span class="plan-type-text">Prepaid</span></td>
-                        <td><span class="plan-description-text">
-                            A one-time payment plan offering full access for the validity period.
-                        </span></td>
+                        <td><span class="plan-validity-text">{{ plan.plan_validity }}</span></td>
+                        <td><span class="plan-type-text">{{ plan.plan_type }}</span></td>
+                        <td><span class="plan-description-text">{{ plan.description }}</span></td>
                         <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
                     </tr>
-         
+                    {% endfor %}
                 </tbody>
             </table>
         </div>

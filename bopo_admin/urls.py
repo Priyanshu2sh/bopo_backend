@@ -138,7 +138,7 @@ urlpatterns = [
     path('save-award-points/', views.save_award_points, name='save_award_points'),
     path('superadmin/payment/save/', save_superadmin_payment, name='save_superadmin_payment'),
     path('resolve-help/<int:help_id>/', views.resolve_help, name='resolve_help'),
-
+    path('model-plans/list/', views.model_plan_list, name='model_plan_list'),
 
  
   

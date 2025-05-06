@@ -193,19 +193,21 @@
     function openEditMerchantModal(merchantId) {
         const modal = document.getElementById('editCorporateModal');
         const modalContent = modal.querySelector('.modal-content');
-    
-        // Make sure the modal is displayed
+        
+        console.log(merchantId);
         modal.style.display = 'block'; // Ensure modal is visible
         modalContent.style.display = 'block'; // Ensure modal content is visible
     
         // Fetch merchant data
         fetch(`/get_admin_merchant/${merchantId}/`)
-
             .then(response => response.json())
             .then(data => {
                 console.log(data);
+                console.log("State from DB:", data.state);
+                console.log("City from DB:", data.city); // Added for debugging city data
+    
                 // Populate the form with merchant data
-                document.getElementById('edit_merchant_id').value = data.merchant_id; // Adjusted to use 'merchant_id'
+                document.getElementById('edit_merchant_id').value = data.id;
                 document.getElementById('edit_first_name').value = data.first_name;
                 document.getElementById('edit_last_name').value = data.last_name;
                 document.getElementById('edit_email').value = data.email;
@@ -221,27 +223,50 @@
                 // Populate states dropdown
                 const stateSelect = document.getElementById("edit_state");
                 stateSelect.innerHTML = `<option value="">Select State</option>`;
-                if (data.states) {
+    
+                // Check if states data exists and is an array
+                if (Array.isArray(data.states) && data.states.length > 0) {
                     data.states.forEach(state => {
                         const option = document.createElement("option");
                         option.value = state.id;
                         option.textContent = state.name;
+    
+                        // Compare state names for selection
                         if (state.name === data.state) option.selected = true;
+    
                         stateSelect.appendChild(option);
                     });
+                } else if (data.state) {
+                    const option = document.createElement("option");
+                    option.value = data.state;
+                    option.textContent = data.state;
+                    option.selected = true; // Mark the state as selected
+                    stateSelect.appendChild(option);
+                } else {
+                    console.error("States data is not available or not an array.");
+                    stateSelect.innerHTML = "<option>No states available</option>";
                 }
     
                 // Populate cities dropdown
                 const citySelect = document.getElementById("edit_city");
                 citySelect.innerHTML = `<option value="">Select City</option>`;
-                if (data.cities) {
+    
+                // Check if cities data exists and is an array
+                if (Array.isArray(data.cities) && data.cities.length > 0) {
                     data.cities.forEach(city => {
+                        console.log("City from list:", city.name); // Log city name
                         const option = document.createElement("option");
-                        option.value = city.id;
+                        option.value = city.id; // Assuming city.id is the unique identifier
                         option.textContent = city.name;
+    
+                        // Compare city names for selection (if city is a name instead of an ID)
                         if (city.name === data.city) option.selected = true;
+    
                         citySelect.appendChild(option);
                     });
+                } else {
+                    console.error("Cities data is not available or not an array.");
+                    citySelect.innerHTML = "<option>No cities available</option>";
                 }
             })
             .catch(error => {
@@ -273,36 +298,80 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+document.getElementById("editCorporateForm").addEventListener("submit", function(e) {
+    e.preventDefault();
 
-    document.getElementById('editCorporateForm').addEventListener('submit', function(event) {
-        event.preventDefault();  // Prevent default form submission
-    
-        const form = this;
-        const formData = new FormData(form);
-    
-        fetch('/update_admin_merchant/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                closeModal();
-    
-                // Optionally reload table or update row dynamically
-                location.reload();  // Reload page to reflect changes
-            } else {
-                alert("Failed to update merchant. Please try again.");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-        });
+    const formData = new FormData(this);
+
+    // Log form data to check if everything is being captured
+    for (let [key, value] of formData.entries()) {
+        console.log(key + ": " + value);
+    }
+
+    fetch("/update_admin_merchant/", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": formData.get("csrfmiddlewaretoken") // Ensure CSRF token is sent
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Server response:", data);
+        if (data.success) {
+            showToast("Merchant updated successfully");
+            closeModal();
+            location.reload(); // Optional: refresh list
+        } else {
+            showToast("Failed to update merchant");
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        showToast("An error occurred");
     });
+});
+
+// Function to display a toast message
+function showToast(message) {
+    // Create a div element for the toast
+    const toast = document.createElement('div');
+    toast.className = 'toast';  // You can customize this class with styles
+    toast.innerText = message;
     
+    // Append the toast to the body
+    document.body.appendChild(toast);
+    
+    // Remove the toast after 3 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerText = message;
+
+    // Apply styles directly
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px';
+    toast.style.right = '20px';
+    toast.style.backgroundColor = '#4BB543';
+    toast.style.color = 'white';
+    toast.style.padding = '10px 20px';
+    toast.style.borderRadius = '5px';
+    toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+    toast.style.zIndex = '9999';
+    toast.style.fontSize = '14px';
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
 
     function fetchStates() {
         return fetch("/bopo_admin/get-states/")
