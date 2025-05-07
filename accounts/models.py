@@ -109,6 +109,7 @@ class Merchant(models.Model):
     plan_type = models.CharField(max_length=20, choices=PLAN_CHOICES, default='prepaid')
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
+    logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
     email = models.EmailField(unique=False, null=True, blank=True)
     mobile = models.CharField(max_length=15, unique=True)
     otp = models.IntegerField(null=True, blank=True)
@@ -222,5 +223,12 @@ class SecurityQue(models.Model):
 
     def __str__(self):
         return self.security_question
+    
+class Logo(models.Model):
+    logo = models.ImageField(upload_to='logos/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Logo {self.id}"
 
   
