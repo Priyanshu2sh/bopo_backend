@@ -1,5 +1,6 @@
 import logging
 import string
+from unittest import result
 import requests
 from twilio.rest import Client
 from django.core.mail import send_mail
@@ -194,7 +195,7 @@ class RegisterUserAPIView(APIView):
 
             if customer.verified_at:
                 return Response({"message": "Customer is already registered and verified.",
-                                 "user_type": "customer", "customer_id": customer.customer_id},
+                                "user_type": "customer", "customer_id": customer.customer_id},
                                 status=status.HTTP_400_BAD_REQUEST)
 
             customer.otp = otp
@@ -212,20 +213,22 @@ class RegisterUserAPIView(APIView):
                 if age is None:
                     request.data["age"] = None 
                 customer = serializer.save()
+                print("OTP Send Result:", result) 
                 message = "Customer registered & OTP sent successfully."
+                
             else:
                 return Response({"message": "Validation error", "errors": serializer.errors, "user_type": "customer",
-                                 "customer_id": None}, status=status.HTTP_400_BAD_REQUEST)
+                                "customer_id": None}, status=status.HTTP_400_BAD_REQUEST)
 
         # Send OTP via SMS
         if OTPService.send_sms_otp(mobile, otp):
-            return Response({"message": message, "user_type": "customer", "user_id": customer.customer_id},
+            return Response({"message": message, "user_type": "customer", "customer_id": customer.customer_id},
                             status=status.HTTP_200_OK)
+
         else:
-            return Response({"message": "Failed to send OTP.", "user_type": "customer", "customer_id": None},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    
+            return Response({"message": "Failed to send OTP.", "user_type": "customer", "customer_id": customer.customer_id},
+                            status=status.HTTP_400_BAD_REQUEST)
+
 
     def update_customer(self, request, mobile):
         """Update customer details"""
@@ -371,6 +374,41 @@ class RegisterUserAPIView(APIView):
 
 class LoginAPIView(APIView):
     """API for Customer, Merchant, and Terminal Login"""
+    
+    @staticmethod
+    def is_customer_profile_complete(customer):
+        required_fields = [
+            customer.first_name,
+            customer.last_name,
+            customer.mobile,
+            customer.age,
+            customer.gender,
+            customer.pin,
+            customer.pan_number,
+            customer.address,
+            customer.city,
+            customer.country,
+            customer.state,
+            customer.pincode
+        ]
+        return all(required_fields)
+    
+    @staticmethod
+    def is_merchant_profile_complete(merchant):
+        required_fields = [
+            merchant.first_name,
+            merchant.last_name,
+            merchant.mobile,
+            merchant.pin,
+            merchant.aadhaar_number,
+            merchant.pan_number,
+            merchant.shop_name,
+            merchant.address,
+            merchant.city,
+            merchant.state,
+            merchant.pincode
+        ]
+        return all(required_fields)
 
     def post(self, request):
         try:
@@ -405,7 +443,9 @@ class LoginAPIView(APIView):
                     "pin": user.pin,
                     "user_category": "customer",
                     "customer_id": user.customer_id,
-                    "is_profile_updated": user.is_profile_updated,
+                    "is_profile_updated": self.is_customer_profile_complete(user)
+
+
                 }
 
             elif user_category == "merchant":
@@ -431,7 +471,7 @@ class LoginAPIView(APIView):
                     "pin": user.pin,
                     "user_category": "merchant",
                     "merchant_id": user.merchant_id,
-                    "is_profile_updated": user.is_profile_updated,
+                    "is_profile_updated" : self.is_merchant_profile_complete(user),
                     "user_type": user.user_type,
                 }
 

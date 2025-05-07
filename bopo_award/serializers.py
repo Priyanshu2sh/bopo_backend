@@ -101,7 +101,7 @@ class CashOutSerializer(serializers.ModelSerializer):
         if value:
             try:
                 customer = Customer.objects.get(customer_id=value)
-                return customer
+                return customer.customer_id
             except Customer.DoesNotExist:
                 raise serializers.ValidationError("Invalid customer_id")
         return None
