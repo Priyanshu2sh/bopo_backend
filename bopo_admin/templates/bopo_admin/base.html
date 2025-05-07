@@ -20,8 +20,6 @@
 
         </h4>
         
-        
-
         <a href="{% url 'home' %}" class="{% if request.path == 'home/' %}active{% endif %}">
             <i class="fas fa-home"></i>  Home
         </a>
@@ -62,18 +60,18 @@
         {% endif %}
         
         {% comment %} <li><a href="{% url 'merchant_status' %}"><i class="fas fa-toggle-on"></i> Merchant Status</a></li> {% endcomment %}
-        
+{% comment %}         
         {% if request.user.role == 'super_admin' or role_permissions.merchant_login_page_info == True %}
         <li><a href="{% url 'login_page_info' %}"><i class="fas fa-info-circle"></i> Login Page Info</a></li>
-        {% endif %}
+        {% endif %} {% endcomment %}
         
         {% if request.user.role == 'super_admin' or role_permissions.merchant_send_notification == True %}
         <li><a href="{% url 'send_notifications' %}"><i class="fas fa-bell"></i> Send Notifications</a></li>
         {% endif %}
-        
+{% comment %}         
         {% if request.user.role == 'super_admin' or role_permissions.merchant_received_offers == True %}
         <li><a href="{% url 'received_offers' %}"><i class="fas fa-gift"></i> Received Offers</a></li>
-        {% endif %}
+        {% endif %} {% endcomment %}
         
         {% if request.user.role == 'super_admin' %}
         <li><a href="{% url 'uploads' %}"><i class="fas fa-upload"></i> Uploads</a></li>
@@ -157,6 +155,7 @@
 
 
 <!-- Superadmin Section -->
+{% if request.user.role == 'super_admin' %}
 <div id="superadminSection">
     <a href="{% url 'superadmin_functionality' %}" class="{% if request.path == '/superadmin_functionality/' %}active{% endif %}">
         <i class="fas fa-user-shield"></i> Superadmin Functionality
@@ -165,11 +164,34 @@
 
 
 <!-- Helpdesk Section -->
+ 
 <div id="helpdeskSection">
     <a href="{% url 'helpdesk' %}" class="{% if request.path == '/helpdesk/' %}active{% endif %}">
         <i class="fas fa-headset"></i> Helpdesk
     </a>
 </div>
+{% endif %}
+
+{% comment %} for corporate_admin {% endcomment %}
+
+{% if request.user.role == 'corporate_admin' %}
+<div id="belowMerchant">
+    <a href="{% url 'merchant_list' %}">
+        <i class="fas fa-building"></i> Merchant List
+    </a>
+ </div>  
+ 
+<div> 
+    <a href="{% url 'corporate_terminals' %}" >
+        <i class="fas fa-terminal"></i> Terminals</a>
+</div> 
+
+ <div>
+    <a href="{% url 'corporate_credentials' %}">
+        <i class="fas fa-key"></i> Merchant Credentials</a>
+</div> 
+
+{% endif %}
 
 
         <!-- Corporate Admin Section -->
@@ -203,7 +225,7 @@
     <!-- Right side -->
     <div class="navbar-right">
         <div class="profile-section" id="profileDropdownToggle">
-            <span class="me-2">{{ request.session.admin_name|default:"Prushaltech" }}</span>
+            <span class="me-2">{{ request.session.admin_name|default:"Admin" }}</span>
             <i class="fas fa-user-circle fa-lg"></i>
         
             <div class="profile-dropdown" id="profileDropdownMenu">

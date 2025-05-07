@@ -70,7 +70,7 @@
                                     <td><label class="switch"><input type="checkbox" {% if merchant.verified_at %}checked{% endif %} data-id="{{ merchant.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal({{ merchant.id }}, 'merchant')">✏️ Edit</button>
-                                        {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button> {% endcomment %}
+                                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button> 
                                     </td>
                                 </tr>
                                 {% endfor %}

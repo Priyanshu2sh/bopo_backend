@@ -1,6 +1,8 @@
 from django.db import models
+from django.forms import ValidationError
 from accounts.models import Corporate, Customer, Merchant, Terminal  # Import Customer and Merchant
 from django.utils.timezone import now
+from datetime import timedelta, date
 
 # class TransferPoint(models.Model):
 #     TRANSACTION_TYPES = (
@@ -101,11 +103,33 @@ class PaymentDetails(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=255, null=True, blank=True, choices=STATUS_CHOICES)
+    validity_days = models.PositiveIntegerField(null=True, blank=True, help_text="Validity in days (for rental plans)")
+    expiry_date = models.DateField(null=True, blank=True, editable=False)
+    
+    def clean(self):
+        existing = PaymentDetails.objects.filter(merchant=self.merchant).exclude(id=self.id)
+        if existing.exists():
+            existing_plan = existing.first().plan_type
+            if existing_plan != self.plan_type:
+                raise ValidationError(f"This merchant already has a '{existing_plan}' plan. Duplicate plan types are not allowed.")
+
+    def save(self, *args, **kwargs):
+        self.clean()  # Run the validation
     
      # Property to return the top-up value
     @property
     def topup_amount(self):
         return self.paid_amount
+    
+    def save(self, *args, **kwargs):
+        if self.plan_type == 'rental' and self.validity_days:
+            self.expiry_date = date.today() + timedelta(days=self.validity_days)
+        elif self.plan_type == 'prepaid':
+            self.validity_days = 360  # Prepaid plans always have 360 days validity
+            self.expiry_date = date.today() + timedelta(days=self.validity_days)
+        else:
+            self.expiry_date = None  # Clear expiry if not rental or prepaid
+        super().save(*args, **kwargs)
     
     
 
@@ -122,11 +146,16 @@ class BankDetail(models.Model):
     
 
 class Help(models.Model):
+    STATUS_CHOICES = [
+        ('resolved', 'Resolved'),
+        ('pending', 'Pending'),
+    ]
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
     terminal = models.ForeignKey(Terminal, on_delete=models.CASCADE, null=True, blank=True)
     issue_description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=255, null=True, blank=True, choices=STATUS_CHOICES,  default='pending' )
     
 
     def __str__(self):
@@ -169,4 +198,12 @@ class AwardPoints(models.Model):
 
     def __str__(self):
         return f"{self.percentage}% of purchase amount awarded to customer"
+    
+
+
+class SuperAdminPayment(models.Model):
+    transaction_id = models.CharField(max_length=100, unique=True)
+    payment_method = models.CharField(max_length=50)
+    cashout = models.ForeignKey(CashOut, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 

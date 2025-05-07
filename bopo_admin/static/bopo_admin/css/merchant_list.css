@@ -227,3 +227,293 @@ button {
     font-size: 20px;
     color: white;
 }
+
+/* Smaller Toggle Button */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;  /* Reduced width */
+    height: 20px;  /* Reduced height */
+    margin-left: 12%;
+  }
+  
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;  /* Smaller circle */
+    width: 16px;   /* Smaller circle */
+    border-radius: 50%;
+    left: 2px;  /* Adjusted for smaller size */
+    bottom: 2px;  /* Adjusted for smaller size */
+    background-color: white;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #4CAF50;
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(20px);  /* Adjusted for smaller size */
+  }
+  .toggle-checkbox {
+    display: none;
+}
+
+.merchant-table {
+    overflow: hidden;
+    max-height: 1000px;
+    opacity: 1;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.toggle-checkbox:not(:checked) ~ .merchant-table {
+    max-height: 0;
+    opacity: 0;
+    padding: 0;
+}
+
+.merchant-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.merchant-icon {
+    margin-right: 10px;
+}
+
+
+.addmerchant-form-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+.addmerchant-form-group {
+    width: 48%;
+    height:70vh;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+}
+.addmerchant-form-group label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #555;
+}
+.addmerchant-input-container {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+.addmerchant-input-container i {
+    color: #555;
+    margin-right: 10px;
+}
+.addmerchant-input-container input, select {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 14px;
+}
+
+
+.addmerchant-btn-submit {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 7%;
+    width: 20%;
+    font-size: 16px;
+    color: white;
+    background-color: #004080; /* Primary Blue */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 40%;
+}
+
+.addmerchant-btn-submit:hover {
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
+
+
+
+.addmerchant-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+
+/* Centered Project Type Section */
+.project-type-container {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #004080;
+}
+
+/* Inline Radio Buttons */
+.addmerchant-radio-group {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.addmerchant-radio-group label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #555;
+    cursor: pointer;
+    gap: 5px; /* Space between radio and label text */
+}
+
+.addmerchant-radio-group input[type="radio"] {
+    accent-color: #004080; /* Blue color */
+    transform: scale(1.2); /* Slightly bigger radio buttons */
+    margin-right: 5px;
+}
+
+
+
+
+/* Toast Notification Styling */
+.toast-container {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #28a745; /* Green Color */
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    padding: 16px;
+    position: fixed;
+    top: 20px; /* Move to top */
+    left: 50%; /* Align to right */
+    font-size: 17px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(-50%); /* Initial hidden position */
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+.toast-success {
+    background-color: #4CAF50; /* green */
+    color: white;
+}
+.toast-error {
+    background-color: #ff4d4d; /* red (error) */
+    color: white;
+}
+/* Show Toast */
+.toast-show {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Fade Out Animation */
+.toast-hide {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+/* Toast Icon */
+.toast-container i {
+    font-size: 20px;
+    color: white;
+}
+
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-selection--single {
+    height: 38px !important;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-selection__rendered {
+    font-size: 14px;
+    color: #555;
+    line-height: 26px;
+}
+
+.select2-selection__arrow {
+    height: 100%;
+}
+
+
+.modal-content h2 {
+    margin-bottom: 20px; /* Adjust the value as needed */
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+.modal {
+
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 120%;
+    height: 120%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 40%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.close {
+    margin-left: 95%;
+    font-size: 28px;
+    cursor: pointer;
+}
+.close:hover {
+    color: red;
+    font-weight: bold;
+}

@@ -35,6 +35,21 @@
                 </div>
             </div>
 
+
+            <div class="card">
+                <div class="card-header">TERMINALS</div>
+                <div class="card-body">
+                    <span class="value">{{ total_terminals }}</span>
+                    <div class="progress-container">
+                        <span class="progress-text">{{ terminal_progress|floatformat:2 }}% ⬆</span>
+                    </div>
+                    <div class="progress-bar">
+                        <span style="width: {{ terminal_progress }}%;"></span>
+                    </div>
+                </div>
+            </div>
+            
+            
             <!-- <div class="card">
                 <div class="card-header">CUSTOMERS</div>
                 <div class="card-body">
@@ -79,11 +94,11 @@
         var dashboardChart = new Chart(ctx, {
             type: 'bar',  // Bar chart
             data: {
-                labels: ['Projects', 'Merchants', 'Customers'],
+                labels: [ 'Merchants', 'Customers', 'Terminals'],
                 datasets: [
                     {
                         label: 'Total',
-                        data: [{{ chart_data.projects.0 }}, {{ chart_data.merchants.0 }}, {{ chart_data.customers.0 }}],
+                        data: [ {{ chart_data.merchants.0 }}, {{ chart_data.customers.0 }},{{ chart_data.terminals.0 }}],
                         backgroundColor: [
                             'rgba(52, 152, 219, 0.5)',  // Blue for Projects
                             'rgba(46, 204, 113, 0.5)',  // Green for Merchants
@@ -98,7 +113,7 @@
                     },
                     {
                         label: 'Active',
-                        data: [{{ chart_data.projects.1 }}, {{ chart_data.merchants.1 }}, 0],
+                        data: [ {{ chart_data.merchants.1 }}, 0],
                         backgroundColor: [
                             'rgba(155, 89, 182, 0.5)',  // Purple for Projects
                             // 'rgba(241, 196, 15, 0.5)',  // Yellow for Merchants

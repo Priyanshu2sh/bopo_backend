@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import  add_security_question, assign_employee_role, custom_logout_view, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_model_plan, security_questions,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+from .views import  add_security_question, assign_employee_role, custom_logout_view, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_superadmin_payment, security_questions_view,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -81,11 +81,15 @@ urlpatterns = [
     path('update-merchant/', views.update_merchant, name='update_merchant'),
     path('delete-merchant/<int:merchant_id>/', views.delete_merchant, name='delete_merchant'),
     
+    
+       
     # path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
     path('get-corporate/<str:corporate_id>/', views.get_corporate, name='get_corporate'),
     path('get-copmerchant/<str:merchant_id>/', views.get_copmerchant, name='get_copmerchant'),
     path('update-corporate/', views.update_corporate, name='update_corporate'),
     path('update-copmerchant/', views.update_copmerchant, name='update_copmerchant'),
+       
+    
     
     # path('corporate_admin/', views.corporate_admin, name='corporate_admin'),
     path('terminals/', views.terminals, name='terminals'),
@@ -94,7 +98,10 @@ urlpatterns = [
     path('update_terminal_pin/<str:merchant_id>/<str:terminal_id>/', views.update_terminal_pin, name='update_terminal_pin'),
     path('toggle-terminal-status/<int:terminal_id>/', views.toggle_terminal_status, name='toggle_terminal_status'),
 
-    
+
+    path('get_admin_merchant/<str:merchant_id>/', views.get_admin_merchant, name='get_admin_merchant'),
+    path('update_admin_merchant/', views.update_admin_merchant, name='update_admin_merchant'),
+
     
     # path('security-questions/', views.security_questions, name='security_questions'),
     # path('rental-plan/', views.rental_plan, name='rental_plan'),
@@ -112,7 +119,7 @@ urlpatterns = [
 
     path('api/security-questions/', security_questions, name='security_questions'),
     path('send_customer_notifications/', views.send_notification_customer, name='send_customer_notifications'),
-   path('send_customer_notifications/', views.send_notification_customer, name='send_notification_customer'),
+    path('send_customer_notifications/', views.send_notification_customer, name='send_notification_customer'),
     
     # path('edit-corporate/<int:corporate_id>/', views.edit_corporate, name='edit_corporate'),
     # path('update_copmerchant/', views.update_merchant, name='update_copmerchant'),
@@ -127,9 +134,11 @@ urlpatterns = [
     path('delete-customer/<str:customer_id>/', views.delete_customer, name='delete_customer'),
     
     path('logout/', custom_logout_view, name='logout'),
-     path('update-model-plan/', views.update_model_plan, name='update_model_plan'),
-      path('save-award-points/', views.save_award_points, name='save_award_points'),
-
+    path('update-model-plan/', views.update_model_plan, name='update_model_plan'),
+    path('save-award-points/', views.save_award_points, name='save_award_points'),
+    path('superadmin/payment/save/', save_superadmin_payment, name='save_superadmin_payment'),
+    path('resolve-help/<int:help_id>/', views.resolve_help, name='resolve_help'),
+    path('model-plans/list/', views.model_plan_list, name='model_plan_list'),
 
  
   
