@@ -16,6 +16,8 @@ from openpyxl.styles import Font
 from twilio.rest import Client
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
+from django.utils.timezone import now
+from datetime import datetime
 
 
 
@@ -24,7 +26,7 @@ from accounts.models import Corporate, Customer, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
-from bopo_award.models import AwardPoints, CashOut, CustomerPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails
+from bopo_award.models import AwardPoints, CashOut, CustomerPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails, SuperAdminPayment
 
 # from django.contrib.auth import authenticate 
 # from django.shortcuts import redirect
@@ -145,10 +147,11 @@ def add_terminal(request, merchant_id):
         terminal_id=terminal_id,
         tid_pin=tid_pin,
         merchant_id=merchant
+        
     )
 
     # Return the newly created terminal details
-    return JsonResponse({'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin})
+    return JsonResponse({'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin, 'status':terminal.status})
 
 # In views.py
 
@@ -206,58 +209,145 @@ def toggle_terminal_status(request, terminal_id):
 
     return JsonResponse({"success": False, "error": "Invalid request"})
 
- 
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.utils.timezone import now
+from datetime import timedelta
+
+
+
 @login_required
 def home(request):
     user = request.user
+    today = now().date()
+    yesterday = today - timedelta(days=1)
 
-    # Calculate total projects and project progress
+    # Total counts
     total_projects = Corporate.objects.count()
-    completed_projects = Corporate.objects.filter(status="Completed").count()  # Assuming a 'status' field exists
+    completed_projects = Corporate.objects.filter(status="Completed").count()
     project_progress = (completed_projects / total_projects * 100) if total_projects > 0 else 0
 
-    # Calculate total merchants and merchant progress
     total_merchants = Merchant.objects.count()
-    active_merchants = Merchant.objects.filter(status="Active").count()  # Assuming a 'status' field exists
+    active_merchants = Merchant.objects.filter(status="Active").count()
     merchant_progress = (active_merchants / total_merchants * 100) if total_merchants > 0 else 0
 
-    # Calculate total customers
     total_customers = Customer.objects.count()
-
-    # Calculate total users (sum of customers, merchants, and corporates)
     total_users = total_customers + total_merchants + total_projects
 
-     # Prepare data for the bar chart
+    # Daily counts
+    daily_projects = Corporate.objects.filter(created_at__date=today).count()
+    daily_merchants = Merchant.objects.filter(created_at__date=today).count()
+    daily_customers = Customer.objects.filter(created_at__date=today).count()
+
+    # Yesterday counts
+    yesterday_projects = Corporate.objects.filter(created_at__date=yesterday).count()
+    yesterday_merchants = Merchant.objects.filter(created_at__date=yesterday).count()
+    yesterday_customers = Customer.objects.filter(created_at__date=yesterday).count()
+
+    # Growth compared to yesterday
+    daily_project_growth = ((daily_projects - yesterday_projects) / yesterday_projects * 100) if yesterday_projects > 0 else 0
+    daily_merchant_growth = ((daily_merchants - yesterday_merchants) / yesterday_merchants * 100) if yesterday_merchants > 0 else 0
+    daily_customer_growth = ((daily_customers - yesterday_customers) / yesterday_customers * 100) if yesterday_customers > 0 else 0
+
+    # Chart data for bar graph
     chart_data = {
         "projects": [total_projects, completed_projects],
         "merchants": [total_merchants, active_merchants],
         "customers": [total_customers],
     }
 
-    # Add context for the dashboard
     context = {
         "user": user,
         "title": "Welcome to Bopo Admin Dashboard",
         "description": "Manage merchants, customers, and projects efficiently.",
+
+        # Total values
         "total_projects": total_projects,
         "project_progress": project_progress,
         "total_merchants": total_merchants,
         "merchant_progress": merchant_progress,
         "total_customers": total_customers,
         "total_users": total_users,
+
+        # Daily values
+        "daily_projects": daily_projects,
+        "daily_merchants": daily_merchants,
+        "daily_customers": daily_customers,
+
+        # Daily growth
+        "daily_project_growth": daily_project_growth,
+        "daily_merchant_growth": daily_merchant_growth,
+        "daily_customer_growth": daily_customer_growth,
+
+        # Chart data
         "chart_data": chart_data,
     }
+
     if user.role == 'corporate_admin':
+        corporate = user.corporate
+
+        # Merchants under corporate
+        project_merchants = Merchant.objects.filter(project_name=corporate)
+        total_project_merchants = project_merchants.count()
+        active_project_merchants = project_merchants.filter(status="Active").count()
+        project_merchant_progress = (active_project_merchants / total_project_merchants * 100) if total_project_merchants > 0 else 0
+
+        # Daily merchants under corporate project
+        daily_project_merchants = project_merchants.filter(created_at__date=today).count()
+        yesterday_project_merchants = project_merchants.filter(created_at__date=yesterday).count()
+        daily_project_merchant_growth = ((daily_project_merchants - yesterday_project_merchants) / yesterday_project_merchants * 100) if yesterday_project_merchants > 0 else 0
+
+        # ----- Terminals Data -----
+        project_terminals = Terminal.objects.filter(merchant_id__project_name=corporate)
+        total_project_terminals = project_terminals.count()
+        active_project_terminals = project_terminals.filter(status="Active").count()
+        project_terminal_progress = (active_project_terminals / total_project_terminals * 100) if total_project_terminals > 0 else 0
+
+        # Chart data for corporate view
+        chart_data = {
+            "merchants": [total_project_merchants, active_project_merchants],
+            "customers": [0],
+            "terminals": [total_project_terminals, active_project_terminals],
+        }
+
+        chart_labels = ["Merchants", "Customers", "Terminals"]
+
+        context.update({
+            "total_merchants": total_project_merchants,
+            "merchant_progress": project_merchant_progress,
+            "daily_merchants": daily_project_merchants,
+            "daily_merchant_growth": daily_project_merchant_growth,
+
+            "total_terminals": total_project_terminals,
+            "terminal_progress": project_terminal_progress,
+
+            "chart_data": chart_data,
+            "chart_labels": chart_labels,
+        })
+
         return render(request, 'bopo_admin/Corporate/corporate_dashboard.html', context)
+
     elif user.role == 'employee':
         employee = user.employee
         role_permissions = EmployeeRole.objects.get(employee=employee)
         context['role_permissions'] = role_permissions
-        if role_permissions.corporate_merchant or role_permissions.individual_merchant or role_permissions.merchant_send_credentials or role_permissions.merchant_limit or role_permissions.merchant_login_page_info or role_permissions.merchant_send_notification or role_permissions.merchant_received_offers:
+        if (
+            role_permissions.corporate_merchant or
+            role_permissions.individual_merchant or
+            role_permissions.merchant_send_credentials or
+            role_permissions.merchant_limit or
+            role_permissions.merchant_login_page_info or
+            role_permissions.merchant_send_notification or
+            role_permissions.merchant_received_offers
+        ):
             context['merchant'] = True
         return render(request, 'bopo_admin/home.html', context)
+
     else:
         return render(request, 'bopo_admin/home.html', context)
+
 
 def about(request):
      return render(request, 'bopo_admin/about.html')
@@ -637,11 +727,6 @@ def add_merchant(request):
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
 
 
-
-
-
-
-
 def redirect_with_error(request, message):
     from django.contrib import messages
     messages.error(request, message)
@@ -652,66 +737,6 @@ def redirect_with_success(request, message):
     messages.success(request, message)
     return redirect("add_merchant")
 
-# from django.http import JsonResponse
-# from accounts.models import Corporate  # or whatever your model is named
-
-# def edit_cop(request, corporate_id):
-#     try:
-#         merchant = Corporate.objects.get(id=corporate_id)
-#         data = {
-#             "customer_id": corporate.id,
-#             "first_name": corporate.first_name,
-#             "last_name": corporate.last_name,
-#             "email": corporate.email,
-#             "aadhaar": merchant.aadhaar,
-#             "shop_name": merchant.shop_name,
-#             "address": merchant.address,
-#             "state": merchant.state.id if merchant.state else "",
-#             "city": merchant.city.id if merchant.city else "",
-#             "mobile": merchant.mobile,
-#             "gst_number": merchant.gst_number,
-#             "pan_number": merchant.pan_number,
-#             "legal_name": merchant.legal_name,
-#             "pincode": merchant.pincode,
-#             "project_name": merchant.project.project_name if merchant.project else "",
-#         }
-#         return JsonResponse(data)
-#     except Corporate.DoesNotExist:
-#         return JsonResponse({'error': 'Corporate merchant not found'}, status=404)
-
-
-
-
-
-# In your Django views.py
-# from django.http import JsonResponse
-# from accounts.models import Merchant,Corporate
-
-
-# def edit_copmerchant(request, merchant_id):
-#     try:
-#         merchant = Merchant.objects.get(id=merchant_id)
-#         data = {
-#             'id': merchant.merchant_id,
-#             'first_name': merchant.first_name,
-#             'last_name': merchant.last_name,
-#             'email': merchant.email,
-#             'aadhaar_number': merchant.aadhaar_number,
-#             'shop_name': merchant.shop_name,
-#             'address': merchant.address,
-#             'state': merchant.state,
-#             'city': merchant.city,
-#             'pincode': merchant.pincode,
-#             'mobile': merchant.mobile,
-#             'gst_number': merchant.gst_number,
-#             'pan_number': merchant.pan_number,
-#             'legal_name': merchant.legal_name,
-#             'project_name': merchant.project_name,
-#         }
-#         return JsonResponse(data)
-
-#     except Merchant.DoesNotExist:
-#         return JsonResponse({'error': 'Merchant not found'}, status=404)
 
 def get_corporate(request, corporate_id):
     try:
@@ -2189,40 +2214,50 @@ def payment_details(request):
         if not payment_id or not action:
             return JsonResponse({"success": False, "message": "Missing payment ID or action."})
 
-        # Get payment by ID
         payment = get_object_or_404(PaymentDetails, id=payment_id)
 
+        # Check for duplicate plan assignment
+        existing_payment = PaymentDetails.objects.filter(merchant=payment.merchant).exclude(id=payment.id).first()
+        if existing_payment:
+            return JsonResponse({"success": False, "message": f"Merchant already has a {existing_payment.plan_type} plan."})
+
         if action == "approve":
-            # Approve logic
+            if payment.plan_type == "rental":
+                validity = request.POST.get("validity")
+                if not validity or not validity.isdigit() or int(validity) <= 0:
+                    return JsonResponse({"success": False, "message": "Invalid rental validity provided."})
+
+                # Assume RentalPlan model or field exists to store validity or handle logic accordingly
+                payment.validity_days = int(validity)  # If such a field exists
+                payment.status = "approved"
+                payment.save()
+
+                return JsonResponse({"success": True, "message": f"Rental plan approved for {validity} days."})
+
+            # Prepaid logic
             topup_value = payment.topup_amount
             if topup_value is None:
                 return JsonResponse({"success": False, "message": "Top-up amount is invalid."})
 
-            # Update merchant points
             merchant = payment.merchant
             points_obj, created = MerchantPoints.objects.get_or_create(merchant=merchant, defaults={'points': 0})
             points_obj.points += float(topup_value)
             points_obj.save()
 
-            # Update payment status
             payment.status = "approved"
             payment.save()
 
-            return JsonResponse({"success": True, "message": "Payment approved succesfully"})
+            return JsonResponse({"success": True, "message": "Payment approved successfully"})
 
         elif action == "reject":
-            # Reject logic
             payment.status = "rejected"
             payment.save()
-
             return JsonResponse({"success": True, "message": "Payment has been rejected."})
 
         return JsonResponse({"success": False, "message": "Invalid action."})
 
-    # Handle GET request
     topups = PaymentDetails.objects.all().order_by('-created_at')
     return render(request, 'bopo_admin/Payment/payment_details.html', {'topups': topups})
-
 
 
 def account_info(request):
@@ -2311,6 +2346,10 @@ def login_view(request):
     
     # GET request
     return render(request, 'bopo_admin/login.html')
+
+
+
+
 
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, redirect
@@ -2824,8 +2863,50 @@ def helpdesk(request):
 
 
 def reduce_limit(request):
-    cash_outs = CashOut.objects.all()
-    return render(request, 'bopo_admin/Merchant/reduce_limit.html', {'cash_outs': cash_outs})
+    # Fetch cash-out records for merchants
+    merchant_cash_outs = CashOut.objects.filter(user_category='merchant')
+    
+    # Fetch cash-out records for customers
+    customer_cash_outs = CashOut.objects.filter(user_category='customer')
+
+    return render(request, 'bopo_admin/Merchant/reduce_limit.html', {
+        'merchant_cash_outs': merchant_cash_outs,
+        'customer_cash_outs': customer_cash_outs,
+    })
+
+from django.utils import timezone
+
+def save_cash_out_payment(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            transaction_id = data.get('transactionId')
+            payment_method = data.get('paymentMethod')
+            cash_out_id = data.get('cashOutId')
+            payment_date = data.get('paymentDate')  # Now getting payment_date from JSON
+
+            # Retrieve the CashOut instance using the ID
+            cash_out = CashOut.objects.filter(id=cash_out_id).first()
+
+            if not cash_out:
+                return JsonResponse({'success': False, 'message': 'Cash Out not found.'})
+
+            # Create a new payment record
+            payment = SuperAdminPayment.objects.create(
+                transaction_id=transaction_id,
+                payment_method=payment_method,
+                cashout=cash_out,
+                created_at=payment_date or timezone.now()  # Default to current time if not provided
+            )
+
+            return JsonResponse({'success': True, 'message': 'Payment details saved successfully.'})
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
 
 
 # def security_questions(request):
@@ -2883,6 +2964,7 @@ def set_deduct_amount(request):
     return JsonResponse({'error': 'Invalid method.'}, status=405)
 
 
+
 def save_model_plan(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -2933,6 +3015,9 @@ def update_model_plan(request):
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
+def model_plan_list(request):
+    plans = ModelPlan.objects.all()
+    return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html', {'plans': plans})
 
 def save_award_points(request):
     if request.method == 'POST':
@@ -2950,3 +3035,185 @@ def save_award_points(request):
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+def save_superadmin_payment(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            transaction_id = data.get('transactionId')
+            payment_method = data.get('paymentMethod')
+            cash_out_id = data.get('cashOutId')
+
+            # Ensure the transaction ID is unique
+            if SuperAdminPayment.objects.filter(transaction_id=transaction_id).exists():
+                return JsonResponse({"error": "Transaction ID already exists"}, status=400)
+
+            cash_out_instance = CashOut.objects.get(id=cash_out_id)
+
+            SuperAdminPayment.objects.create(
+                transaction_id=transaction_id,
+                payment_method=payment_method,
+                cashout=cash_out_instance
+            )
+
+            # Optionally update CashOut status
+            cash_out_instance.status = "Completed"
+            cash_out_instance.save()
+
+            return JsonResponse({"message": "Payment recorded successfully"}, status=201)
+
+        except CashOut.DoesNotExist:
+            return JsonResponse({"error": "CashOut record not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+def resolve_help(request, help_id):
+    if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        try:
+            help_obj = Help.objects.get(id=help_id)
+            if help_obj.status != 'resolved':
+                help_obj.status = 'resolved'
+                help_obj.save()
+                return JsonResponse({'success': True, 'message': 'Marked as Resolved'})
+            else:
+                return JsonResponse({'success': False, 'message': 'Already resolved'})
+        except Help.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Help request not found'}, status=404)
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+   
+   
+  
+   
+def merchant_list(request):
+    merchants = Merchant.objects.filter(project_name=request.user.corporate_id)
+    return render(request, 'bopo_admin/Corporate/merchant_list.html', {'merchants': merchants})
+
+def corporate_terminals(request):
+    user = request.user
+    project_id = user.corporate_id  # Still coming from user
+
+    # Use the correct field name in the filter
+    merchants = Merchant.objects.filter(project_name_id=project_id)
+
+    print("Project ID:", project_id)
+    print("Merchants:", merchants)
+
+    selected_merchant_id = request.GET.get('merchant_id')
+
+    if selected_merchant_id:
+        terminals = Terminal.objects.filter(merchant_id=selected_merchant_id)
+    else:
+        terminals = Terminal.objects.none()
+
+    return render(request, 'bopo_admin/Corporate/corporate_terminals.html', {
+        'merchants': merchants,
+        'terminals': terminals
+    })
+
+
+def get_admin_merchant(request, merchant_id):
+    # Get the merchant object or return 404 if not found
+    merchant = get_object_or_404(Merchant, id=merchant_id)
+
+    # Retrieve the state object by its name (merchant.state is a string, so use name)
+    try:
+        state_obj = State.objects.get(name=merchant.state)  # Now query by name
+    except State.DoesNotExist:
+        return JsonResponse({'error': f'State "{merchant.state}" not found'}, status=404)
+
+    states = State.objects.all().order_by('name')
+    state_data = [{"id": state.id, "name": state.name} for state in states]
+    # Retrieve cities based on selected state
+    cities = City.objects.filter(state=state_obj)  # Now we use the State object
+
+    # Convert cities to a dictionary for use in the frontend
+    city_data = [{"id": city.id, "name": city.name} for city in cities]
+
+    # Data to send to the frontend
+    data = {
+        "id": merchant.id,
+        "first_name": merchant.first_name,
+        "last_name": merchant.last_name,
+        "email": merchant.email,
+        "mobile": merchant.mobile,
+        "shop_name": merchant.shop_name,
+        "address": merchant.address,
+        "aadhaar_number": merchant.aadhaar_number,
+        "pin": merchant.pin,
+        "gst_number": merchant.gst_number,
+        "pan_number": merchant.pan_number,
+        "legal_name": merchant.legal_name,
+        "state": merchant.state,
+        "city": merchant.city,
+        "pincode": merchant.pincode,
+        "cities": city_data,  # Include cities data
+        "states": state_data 
+    }
+
+    return JsonResponse(data)
+
+def update_admin_merchant(request):
+    if request.method == 'POST':
+        merchant_id = request.POST.get('merchant_id')
+        try:
+            merchant = Merchant.objects.get(id=merchant_id)
+            
+            # Get and debug state ID from frontend
+            state_id = request.POST.get('state')  # Expecting state ID here (e.g., "4010")
+            print(f"State ID from Frontend: {state_id}")  # Debugging line
+            
+            # Fetch the state object by its ID
+            try:
+                state_obj = State.objects.get(id=state_id)  # Now using ID to query
+            except State.DoesNotExist:
+                return JsonResponse({'success': False, 'message': f'State with ID "{state_id}" not found'})
+            
+            # Update the state and city fields
+            merchant.state = state_obj.name  # Store the state name (not the ID)
+            
+            # Handle city
+            city_id = request.POST.get('city')
+            try:
+                city_obj = City.objects.get(id=city_id)
+                merchant.city = city_obj.name  # Store city name (not the model instance)
+            except City.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'City not found'})
+            
+            # Update other merchant fields
+            merchant.first_name = request.POST.get('first_name')
+            merchant.last_name = request.POST.get('last_name')
+            merchant.email = request.POST.get('email')
+            merchant.mobile = request.POST.get('mobile')
+            merchant.aadhaar_number = request.POST.get('aadhaar_number')
+            merchant.shop_name = request.POST.get('shop_name')
+            merchant.address = request.POST.get('address')
+            merchant.pincode = request.POST.get('pincode')
+            merchant.gst_number = request.POST.get('gst_number')
+            merchant.pan_number = request.POST.get('pan_number')
+            merchant.legal_name = request.POST.get('legal_name')
+            
+            # Save the updated merchant information
+            merchant.save()
+
+            return JsonResponse({'success': True ,'massage': 'Merchant updated successfully'})
+        except Merchant.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Merchant not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+
+        
+def corporate_credentials(request):
+    if request.method == 'POST':
+        # Handle your form submission here
+        pass
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # AJAX call to fetch merchants
+        project_id = request.user.corporate_id  # Assuming this is how project ID is tied
+        merchants = Merchant.objects.filter(project_name=project_id).values('merchant_id', 'first_name', 'last_name')
+        return JsonResponse({'merchants': list(merchants)})
+
+    # Initial page load
+    return render(request, 'bopo_admin/Corporate/corporate_credentials.html')

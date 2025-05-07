@@ -1,0 +1,422 @@
+{% extends "bopo_admin/base.html" %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_list.css' %}">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+<div class="merchant-container">
+    <div class="merchant-header">
+        <h2>Merchants List</h2>
+    </div>
+
+    <div class="merchant-list">
+        <div class="merchant-item">
+            <!-- Checkbox to control visibility -->
+            <input type="checkbox" id="toggle-corporate" class="toggle-checkbox" checked>
+
+            <!-- Label that toggles the checkbox -->
+            <label for="toggle-corporate" class="merchant-label">
+                <span class="merchant-icon">🏢</span>
+                <span>Merchants List</span>
+            </label>
+
+            <!-- Section to toggle -->
+            <div class="merchant-table" id="merchant-table-section">
+                <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table', 'search-corporate')" placeholder="Search merchants...">
+                
+                <table id="corporate-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Merchant ID</th>
+                            <th>Contact Person</th>
+                            <th>Mobile Number</th>
+                            <th>Shop Name</th>
+                            <th>City</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for merchant in merchants %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ merchant.merchant_id }}</td>
+                            <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
+                            <td>{{ merchant.mobile }}</td>
+                            <td>{{ merchant.shop_name }}</td>
+                            <td>{{ merchant.city }}</td>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox" class="status-toggle" {% if merchant.status == "Active" %}checked{% endif %} data-id="{{ merchant.id }}">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span class="status-label {% if merchant.status == 'Active' %}text-success{% else %}text-danger{% endif %}" id="status-label-{{ merchant.id }}"></span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="openEditMerchantModal({{ merchant.id }})">✏️ Edit</button>
+
+
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8">No merchants found for this project.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<!-- Edit Merchant Modal -->
+<div id="editCorporateModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle">Edit Merchant</h2>
+        <form id="editCorporateForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="merchant_id" id="edit_merchant_id">
+
+            <!-- Form Fields (Left & Right Columns) -->
+            <div class="addmerchant-form-container">
+                <!-- Left Column -->
+                <div class="addmerchant-form-group">
+                    <label>First Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="first_name" id='edit_first_name' required>
+                    </div>
+                    <label>Email ID</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" id="edit_email" required>
+                    </div>
+                    <label>Aadhaar Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="aadhaar_number" id ="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
+                    </div>
+                    <label>Shop Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-store"></i>
+                        <input type="text" name="shop_name" id="edit_shop_name" required>
+                    </div>
+                    <label>Address</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" name="address" id="edit_address" required>
+                    </div>
+                    <label>Select State</label>
+                        <select id="edit_state" name="state" class="select2"  onchange="fetchCities()">
+                             <option value="">Select State</option>
+                        </select>
+                                
+                    <label>Country</label>
+                    <div class="addmerchant-input-container">
+                        <input type="text" name="country" value="India" disabled>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="addmerchant-form-group">
+                    <label>Last Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="last_name" id ="edit_last_name" required>
+                    </div>
+                    <label>Mobile Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-mobile-alt"></i>
+                        <input type="text" name="mobile" id="edit_mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
+                    </div>
+                    <label>GST Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-file-invoice"></i>
+                        <input type="text" name="gst_number" id="edit_gst_number" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" required>
+                    </div>
+                    <div id="gst_error" style="display: none; margin-top: 10px;">
+                        <div style="background-color: #ffe6e6; border: 1px solid #ff4d4d; color: #d8000c; padding: 10px; border-radius: 5px; font-size: 14px; display: flex; align-items: center;">
+                            <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
+                            Please enter a valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)
+                        </div>
+                    </div>
+
+                    <label>Pan Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" required>
+                    </div>
+                    <label>Legal Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-building"></i>
+                        <input type="text" name="legal_name" id="edit_legal_name" required>
+                    </div>
+
+                    <label>Select City</label>
+                        <select id="edit_city" name="city" class="select2">
+                             <option value="">Select City</option>
+                        </select>
+
+                    <label>Pincode</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-home"></i>
+                        <input type="text" name="pincode" id="edit_pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="addmerchant-btn-submit">Submit</button>
+        </form>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+    <i class="fa fa-exclamation-circle"></i>
+    <span class="toast-message">{{ message }}</span>
+</div>
+
+
+
+<script>
+    function openEditMerchantModal(merchantId) {
+        const modal = document.getElementById('editCorporateModal');
+        const modalContent = modal.querySelector('.modal-content');
+        
+        console.log(merchantId);
+        modal.style.display = 'block'; // Ensure modal is visible
+        modalContent.style.display = 'block'; // Ensure modal content is visible
+    
+        // Fetch merchant data
+        fetch(`/get_admin_merchant/${merchantId}/`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                console.log("State from DB:", data.state);
+                console.log("City from DB:", data.city); // Added for debugging city data
+    
+                // Populate the form with merchant data
+                document.getElementById('edit_merchant_id').value = data.id;
+                document.getElementById('edit_first_name').value = data.first_name;
+                document.getElementById('edit_last_name').value = data.last_name;
+                document.getElementById('edit_email').value = data.email;
+                document.getElementById('edit_mobile').value = data.mobile;
+                document.getElementById('edit_aadhaar_number').value = data.aadhaar_number;
+                document.getElementById('edit_shop_name').value = data.shop_name;
+                document.getElementById('edit_address').value = data.address;
+                document.getElementById('edit_pincode').value = data.pincode;
+                document.getElementById('edit_gst_number').value = data.gst_number;
+                document.getElementById('edit_pan').value = data.pan_number;
+                document.getElementById('edit_legal_name').value = data.legal_name;
+    
+                // Populate states dropdown
+                const stateSelect = document.getElementById("edit_state");
+                stateSelect.innerHTML = `<option value="">Select State</option>`;
+    
+                // Check if states data exists and is an array
+                if (Array.isArray(data.states) && data.states.length > 0) {
+                    data.states.forEach(state => {
+                        const option = document.createElement("option");
+                        option.value = state.id;
+                        option.textContent = state.name;
+    
+                        // Compare state names for selection
+                        if (state.name === data.state) option.selected = true;
+    
+                        stateSelect.appendChild(option);
+                    });
+                } else if (data.state) {
+                    const option = document.createElement("option");
+                    option.value = data.state;
+                    option.textContent = data.state;
+                    option.selected = true; // Mark the state as selected
+                    stateSelect.appendChild(option);
+                } else {
+                    console.error("States data is not available or not an array.");
+                    stateSelect.innerHTML = "<option>No states available</option>";
+                }
+    
+                // Populate cities dropdown
+                const citySelect = document.getElementById("edit_city");
+                citySelect.innerHTML = `<option value="">Select City</option>`;
+    
+                // Check if cities data exists and is an array
+                if (Array.isArray(data.cities) && data.cities.length > 0) {
+                    data.cities.forEach(city => {
+                        console.log("City from list:", city.name); // Log city name
+                        const option = document.createElement("option");
+                        option.value = city.id; // Assuming city.id is the unique identifier
+                        option.textContent = city.name;
+    
+                        // Compare city names for selection (if city is a name instead of an ID)
+                        if (city.name === data.city) option.selected = true;
+    
+                        citySelect.appendChild(option);
+                    });
+                } else {
+                    console.error("Cities data is not available or not an array.");
+                    citySelect.innerHTML = "<option>No cities available</option>";
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+    }
+    
+    
+    // Close modal function
+function closeModal() {
+    document.getElementById('editCorporateModal').style.display = 'none';
+}
+
+
+window.onclick = function(event) {
+    const modal = document.getElementById('editCorporateModal');
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    $('.select2').select2({
+        placeholder: "Select an option",
+        allowClear: true,
+        width: '100%'
+    });
+});
+
+
+document.getElementById("editCorporateForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    // Log form data to check if everything is being captured
+    for (let [key, value] of formData.entries()) {
+        console.log(key + ": " + value);
+    }
+
+    fetch("/update_admin_merchant/", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": formData.get("csrfmiddlewaretoken") // Ensure CSRF token is sent
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Server response:", data);
+        if (data.success) {
+            showToast("Merchant updated successfully");
+            closeModal();
+            location.reload(); // Optional: refresh list
+        } else {
+            showToast("Failed to update merchant");
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        showToast("An error occurred");
+    });
+});
+
+// Function to display a toast message
+function showToast(message) {
+    // Create a div element for the toast
+    const toast = document.createElement('div');
+    toast.className = 'toast';  // You can customize this class with styles
+    toast.innerText = message;
+    
+    // Append the toast to the body
+    document.body.appendChild(toast);
+    
+    // Remove the toast after 3 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerText = message;
+
+    // Apply styles directly
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px';
+    toast.style.right = '20px';
+    toast.style.backgroundColor = '#4BB543';
+    toast.style.color = 'white';
+    toast.style.padding = '10px 20px';
+    toast.style.borderRadius = '5px';
+    toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+    toast.style.zIndex = '9999';
+    toast.style.fontSize = '14px';
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+    function fetchStates() {
+        return fetch("/bopo_admin/get-states/")
+            .then(response => response.json())
+            .then(states => {
+                const stateDropdown = document.getElementById("edit_state");
+                stateDropdown.innerHTML = '<option value="">Select State</option>';
+                states.forEach(state => {
+                    let option = document.createElement("option");
+                    option.value = state.id;
+                    option.textContent = state.name;
+                    stateDropdown.appendChild(option);
+                });
+            });
+    }
+    
+    function fetchCities(state) {
+        const stateId = state || document.getElementById("edit_state").value;
+        return fetch(`/bopo_admin/get-cities/${stateId}/`)
+            .then(res => res.json())
+            .then(cities => {
+                const cityDropdown = document.getElementById("edit_city");
+                cityDropdown.innerHTML = '<option value="">Select City</option>';
+                cities.forEach(city => {
+                    let option = document.createElement("option");
+                    option.value = city.id;
+                    option.textContent = city.name;
+                    cityDropdown.appendChild(option);
+                });
+            });
+    }
+
+
+    
+function filterTable(tableId, searchBoxId) {
+    const input = document.getElementById(searchBoxId);
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById(tableId);
+    const rows = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < rows.length; i++) {
+        const rowText = rows[i].innerText.toLowerCase();
+        rows[i].style.display = rowText.includes(filter) ? "" : "none";
+    }
+}
+</script>
+
+{% endblock %}
