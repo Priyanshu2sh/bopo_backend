@@ -292,13 +292,18 @@
         openMerchantCashOutModal(id);
     });
     
-    function openMerchantCashOutModal(id) {
-        console.log("Opening Merchant Modal for ID:", id);
-        $('#merchantCashOutModal').fadeIn();
+  
+
+    
+    function closeCashOutModal() {
+        $('#cashOutModal').fadeOut();
     }
     
-    function closeMerchantCashOutModal() {
-        $('#merchantCashOutModal').fadeOut();
+    function showToast(message) {
+        const toast = $('#toast');
+        toast.find('.toast-message').text(message);
+        toast.addClass('toast-show');
+        setTimeout(() => toast.removeClass('toast-show'), 3000);
     }
     
     
@@ -340,34 +345,6 @@
     }
 
 
-  function submitCashOut() {
-    const transactionId = document.getElementById("transactionId").value;
-    const paymentMethod = document.getElementById("paymentMethod").value;
-    const paymentDate = document.getElementById("paymentDate").value;
-    const cashOutId = $('.open-modal-btn').data('id'); // Ensure this retrieves correct ID
-
-    fetch("/superadmin/payment/save/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken")
-        },
-        body: JSON.stringify({
-            transactionId,
-            paymentMethod,
-            paymentDate,  // Include paymentDate in the request
-            cashOutId
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert(data.message || data.error);
-        if (data.message) {
-            closeCashOutModal();
-            location.reload();  // Refresh to show updated data
-        }
-    });
-}
 
     
     // Toggle section logic
@@ -396,14 +373,129 @@
         });
     });
 
+
+    $(document).ready(function () {
+        $('#merchantTable').DataTable();
+        $('#customerTable').DataTable();
+
+        $('.open-modal-btn').click(function () {
+            const id = $(this).data('id');
+            $('#cashOutModal').data('cashOutId', id).fadeIn();
+        });
+
+        $('.open-merchant-modal-btn').click(function () {
+            const id = $(this).data('id');
+            openMerchantCashOutModal(id);
+        });
+    });
+
+    function closeCashOutModal() {
+        $('#cashOutModal').fadeOut();
+    }
+
+    function openMerchantCashOutModal(id) {
+        console.log("Opening Merchant Modal for ID:", id);
+        $('#merchantCashOutModal').data('cashOutId', id).fadeIn();
+        $('#merchantTransactionId').val('');
+        $('#merchantPaymentMethod').val('');
+        $('#merchantPaymentDate').val('');
+    }
+
+    function closeMerchantCashOutModal() {
+        $('#merchantCashOutModal').fadeOut();
+    }
+
+    function submitCashOut() {
+        const isMerchant = $('#merchantCashOutModal').is(':visible');
+        let id, transactionId, paymentMethod, paymentDate;
+
+        if (isMerchant) {
+            id = $('#merchantCashOutModal').data('cashOutId');
+            transactionId = $('#merchantTransactionId').val();
+            paymentMethod = $('#merchantPaymentMethod').val();
+            paymentDate = $('#merchantPaymentDate').val();
+        } else {
+            id = $('#cashOutModal').data('cashOutId');
+            transactionId = $('#transactionId').val();
+            paymentMethod = $('#paymentMethod').val();
+            paymentDate = $('#paymentDate').val();
+        }
+
+        console.log("Submitting for ID:", id);
+        console.log("Transaction ID:", transactionId);
+        console.log("Payment Method:", paymentMethod);
+        console.log("Payment Date:", paymentDate);
+
+        // TODO: Use AJAX to send this data to your Django view
+
+        if (isMerchant) {
+            closeMerchantCashOutModal();
+        } else {
+            closeCashOutModal();
+        }
+
+        // Show toast message
+        $('#toast .toast-message').text("Payment submitted successfully!");
+        $('#toast').addClass('toast-show');
+
+        setTimeout(() => {
+            $('#toast').removeClass('toast-show');
+
+        }, 3000);
+    }
+
+    function submitCashOut() {
+        const isMerchant = $('#merchantCashOutModal').is(':visible');
+        let id, transactionId, paymentMethod;
+    
+        if (isMerchant) {
+            id = $('#merchantCashOutModal').data('cashOutId');
+            transactionId = $('#merchantTransactionId').val();
+            paymentMethod = $('#merchantPaymentMethod').val();
+        } else {
+            id = $('#cashOutModal').data('cashOutId');
+            transactionId = $('#transactionId').val();
+            paymentMethod = $('#paymentMethod').val();
+        }
+    
+        fetch('/save-cash-out/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                cashout_id: id,
+                transaction_id: transactionId,
+                payment_method: paymentMethod
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast("Payment saved successfully!");
+            } else {
+                showToast("Error: " + data.message);
+            }
+        })
+        .catch(err => {
+            showToast("Error: " + err.message);
+        });
+    
+        if (isMerchant) {
+            closeMerchantCashOutModal();
+        } else {
+            closeCashOutModal();
+        }
+    }
+    
     function getCookie(name) {
         let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-            const cookies = document.cookie.split(";");
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
             for (let i = 0; i < cookies.length; i++) {
                 const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === name + "=") {
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
                 }
@@ -412,6 +504,8 @@
         return cookieValue;
     }
     
+    
+
 </script>
 
 {% endblock %}

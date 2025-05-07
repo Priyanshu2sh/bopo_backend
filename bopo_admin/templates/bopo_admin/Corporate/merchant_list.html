@@ -10,8 +10,13 @@
 
 <div class="merchant-container">
     <div class="merchant-header">
-        <h2>Merchants List</h2>
+
+        <button class="add-merchant-btn" onclick="window.location.href='{% url 'corporate_add_merchant' %}'">
+            + Add Merchant
+        </button>
+     
     </div>
+    <h2>Merchants List</h2>
 
     <div class="merchant-list">
         <div class="merchant-item">
@@ -332,21 +337,6 @@ document.getElementById("editCorporateForm").addEventListener("submit", function
     });
 });
 
-// Function to display a toast message
-function showToast(message) {
-    // Create a div element for the toast
-    const toast = document.createElement('div');
-    toast.className = 'toast';  // You can customize this class with styles
-    toast.innerText = message;
-    
-    // Append the toast to the body
-    document.body.appendChild(toast);
-    
-    // Remove the toast after 3 seconds
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
-}
 
 
 function showToast(message) {
@@ -370,7 +360,7 @@ function showToast(message) {
 
     setTimeout(() => {
         toast.remove();
-    }, 3000);
+    }, 2000);
 }
 
     function fetchStates() {

@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import  add_security_question, assign_employee_role, custom_logout_view, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_superadmin_payment, security_questions_view,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+from .views import  add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_superadmin_payment, security_questions_view,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -99,8 +99,6 @@ urlpatterns = [
     path('toggle-terminal-status/<int:terminal_id>/', views.toggle_terminal_status, name='toggle_terminal_status'),
 
 
-    path('get_admin_merchant/<str:merchant_id>/', views.get_admin_merchant, name='get_admin_merchant'),
-    path('update_admin_merchant/', views.update_admin_merchant, name='update_admin_merchant'),
 
     
     # path('security-questions/', views.security_questions, name='security_questions'),
@@ -135,7 +133,11 @@ urlpatterns = [
     
     path('logout/', custom_logout_view, name='logout'),
     path('update-model-plan/', views.update_model_plan, name='update_model_plan'),
-    path('save-award-points/', views.save_award_points, name='save_award_points'),
+    # path('save-award-points/', views.save_award_points, name='save_award_points'),
+    
+    path('get-award-point/', views.get_award_point, name='get_award_point'),
+    path('update-award-point/', views.update_award_point, name='update_award_point'),
+
     path('superadmin/payment/save/', save_superadmin_payment, name='save_superadmin_payment'),
     path('resolve-help/<int:help_id>/', views.resolve_help, name='resolve_help'),
     path('model-plans/list/', views.model_plan_list, name='model_plan_list'),
@@ -169,10 +171,14 @@ urlpatterns = [
     
     path('save-model-plan/', views.save_model_plan, name='save-model-plan'),
     # path('get-model-plans/', views.get_model_plans, name='get_model_plans'),
+    path('save-cash-out/', views.save_cash_out, name='save_cash_out'),
     
     
     
     
+    path('get_admin_merchant/<str:merchant_id>/', views.get_admin_merchant, name='get_admin_merchant'),
+    path('update_admin_merchant/', views.update_admin_merchant, name='update_admin_merchant'),
+    path('corporate/add/', views.corporate_add_merchant, name='corporate_add_merchant'),
     
     path('merchant/list/', views.merchant_list, name='merchant_list'),
     path('corporate/terminals/', views.corporate_terminals, name='corporate_terminals'),

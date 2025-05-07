@@ -65,7 +65,6 @@
         </div>
 
         <!-- Model Plans -->
-       <!-- To Corporate Customers -->
 <div class="send-notification-item">
     <input type="checkbox" id="toggle-corporate" class="toggle-checkbox">
     <label for="toggle-corporate" class="send-notification-label">
@@ -80,6 +79,7 @@
             <table class="plans-table">
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th>Plan Validity</th>
                         <th>Plan Type</th>
                         <th>Description</th>
@@ -89,10 +89,11 @@
                 <tbody>
                     {% for plan in plans %}
                     <tr>
+                        <td>{{ forloop.counter }}</td>
                         <td><span class="plan-validity-text">{{ plan.plan_validity }}</span></td>
                         <td><span class="plan-type-text">{{ plan.plan_type }}</span></td>
                         <td><span class="plan-description-text">{{ plan.description }}</span></td>
-                        <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
+                        <td><button class="btn-action" onclick="openEditPlanModal()">Change</button></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -263,70 +264,75 @@
         });
     }
 
-    function editAward() {
-        document.getElementById('award-text').style.display = 'none';
-        document.getElementById('award-edit').style.display = 'block';
-    }
-
-    function saveAward() {
-        const value = document.getElementById('award-input').value;
-        document.getElementById('award-display').innerText = `${value}% of purchase amount awarded to customer (BBP)`;
-        cancelAward();
-    }
-
-    function cancelAward() {
-        document.getElementById('award-edit').style.display = 'none';
-        document.getElementById('award-text').style.display = 'block';
-    }
-    function confirmCancelDeduction() {
-        document.getElementById("deduct-amount").value = '';
-    }
-
-    function saveAward() {
-        const awardPercentage = document.getElementById("award-input").value.trim();
+    document.addEventListener("DOMContentLoaded", function () {
+        loadAwardPercentage();
+    });
     
-        if (awardPercentage === "") {
-            alert("Please enter a valid percentage.");
+    function loadAwardPercentage() {
+        fetch('/get-award-point/')
+            .then(response => response.json())
+            .then(data => {
+                const percentage = data.percentage || 0;
+                document.querySelector(".highlight-percentage").textContent = `${percentage}%`;
+                document.getElementById("award-input").value = percentage;
+            })
+            .catch(error => {
+                console.error("Error loading award percentage:", error);
+            });
+    }
+    
+    function editAward() {
+        document.getElementById("award-text").style.display = "none";
+        document.getElementById("award-edit").style.display = "block";
+    }
+    
+    function cancelAward() {
+        document.getElementById("award-edit").style.display = "none";
+        document.getElementById("award-text").style.display = "block";
+    }
+    
+    function saveAward() {
+        const newPercentage = parseInt(document.getElementById("award-input").value, 10);
+    
+        if (isNaN(newPercentage) || newPercentage < 0 || newPercentage > 100) {
+            alert("Please enter a valid percentage between 0 and 100.");
             return;
         }
     
-        fetch("/save-award-points/", {
-            method: "POST",
+        fetch('/update-award-point/', {
+            method: 'POST',
             headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCSRFToken(),
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
             },
-            body: JSON.stringify({
-                award_percentage: awardPercentage,
-            }),
+            body: JSON.stringify({ percentage: newPercentage })
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                document.getElementById("award-display").innerHTML = `<span class="highlight-percentage">${awardPercentage}%</span> of purchase amount awarded to customer (BBP)`;
+            if (data.status === 'success') {
+                document.querySelector(".highlight-percentage").textContent = `${data.percentage}%`;
                 cancelAward();
             } else {
-                alert("Error: " + data.error);
+                alert("Failed to update.");
             }
+        })
+        .catch(error => {
+            console.error("Update error:", error);
         });
     }
     
-    // Helper to get CSRF token from cookie
     function getCSRFToken() {
-        let cookieValue = null;
         const name = 'csrftoken';
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.startsWith(name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const trimmed = cookie.trim();
+            if (trimmed.startsWith(name + '=')) {
+                return decodeURIComponent(trimmed.substring(name.length + 1));
             }
         }
-        return cookieValue;
+        return '';
     }
+    
 
     function openEditPlanModal(button) {
         const row = button.closest("tr");
@@ -414,4 +420,6 @@
         return cookieValue;
     }
 </script>
+
+
 {% endblock %}

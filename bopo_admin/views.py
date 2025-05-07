@@ -2875,41 +2875,32 @@ def reduce_limit(request):
     })
 
 from django.utils import timezone
-
-def save_cash_out_payment(request):
+def save_cash_out(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            transaction_id = data.get('transactionId')
-            payment_method = data.get('paymentMethod')
-            cash_out_id = data.get('cashOutId')
-            payment_date = data.get('paymentDate')  # Now getting payment_date from JSON
+            cashout_id = data.get('cashout_id')
+            transaction_id = data.get('transaction_id')
+            payment_method = data.get('payment_method')
 
-            # Retrieve the CashOut instance using the ID
-            cash_out = CashOut.objects.filter(id=cash_out_id).first()
+            cashout = CashOut.objects.get(id=cashout_id)
 
-            if not cash_out:
-                return JsonResponse({'success': False, 'message': 'Cash Out not found.'})
-
-            # Create a new payment record
-            payment = SuperAdminPayment.objects.create(
+            SuperAdminPayment.objects.create(
                 transaction_id=transaction_id,
                 payment_method=payment_method,
-                cashout=cash_out,
-                created_at=payment_date or timezone.now()  # Default to current time if not provided
+                cashout=cashout
             )
 
-            return JsonResponse({'success': True, 'message': 'Payment details saved successfully.'})
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'message': 'Invalid JSON data.'})
+            return JsonResponse({'status': 'success', 'message': 'Payment saved successfully'})
+        except CashOut.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'CashOut not found'})
         except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)})
+            return JsonResponse({'status': 'error', 'message': str(e)})
 
-    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 
 
-# def security_questions(request):
 #     return render(request, 'bopo_admin/Superadmin/security_questions.html')
 
 # def rental_plan(request):
@@ -3018,22 +3009,39 @@ def model_plan_list(request):
     plans = ModelPlan.objects.all()
     return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html', {'plans': plans})
 
-def save_award_points(request):
+# def save_award_points(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         award_percentage = data.get('award_percentage')
+
+#         try:
+#             # Update the award percentage or create a new record if none exists
+#             award, created = AwardPoints.objects.update_or_create(
+#                 id=1,  # Assuming you only have one award entry, so use a fixed ID
+#                 defaults={'percentage': award_percentage}
+#             )
+#             return JsonResponse({'success': True, 'message': 'Award points updated successfully.'})
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)})
+
+#     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+def get_award_point(request):
+    award = AwardPoints.objects.first()
+    return JsonResponse({'percentage': award.percentage if award else 0})
+
+
+def update_award_point(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        award_percentage = data.get('award_percentage')
+        new_percentage = int(data.get('percentage', 0))
 
-        try:
-            # Update the award percentage or create a new record if none exists
-            award, created = AwardPoints.objects.update_or_create(
-                id=1,  # Assuming you only have one award entry, so use a fixed ID
-                defaults={'percentage': award_percentage}
-            )
-            return JsonResponse({'success': True, 'message': 'Award points updated successfully.'})
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
+        award, created = AwardPoints.objects.get_or_create(id=1)
+        award.percentage = new_percentage
+        award.save()
+        return JsonResponse({'status': 'success', 'percentage': award.percentage})
+    return JsonResponse({'status': 'error'}, status=400)
 
 def save_superadmin_payment(request):
     if request.method == "POST":
@@ -3216,3 +3224,40 @@ def corporate_credentials(request):
 
     # Initial page load
     return render(request, 'bopo_admin/Corporate/corporate_credentials.html')
+
+def corporate_add_merchant(request):
+    if request.method == 'POST':
+        user = request.user
+        try:
+            project_id = user.project_id  # Assuming this exists in the user model
+            corporate = Corporate.objects.get(project_id=project_id)
+        except (AttributeError, Corporate.DoesNotExist):
+            return JsonResponse({'success': False, 'message': 'Corporate project not found for this user.'})
+
+        merchant = Merchant(
+            first_name=request.POST.get('first_name'),
+            last_name=request.POST.get('last_name'),
+            email=request.POST.get('email'),
+            mobile=request.POST.get('mobile'),
+            shop_name=request.POST.get('shop_name'),
+            legal_name=request.POST.get('legal_name'),
+            state=request.POST.get('state'),
+            city=request.POST.get('city'),
+            country=request.POST.get('country'),
+            pincode=request.POST.get('pincode'),
+            corporate_id=corporate.corporate_id,  # Save corporate_id as string
+            project_name=corporate,  # ✅ ForeignKey expects an object
+            aadhaar_number=request.POST.get('aadhaar_number'),
+            gst_number=request.POST.get('gst_number'),
+            pan_number=request.POST.get('pan_number'),
+            address=request.POST.get('address'),
+            user_type='corporate',
+        )
+        merchant.save()
+
+        return JsonResponse({'success': True, 'message': 'Merchant added successfully!'})
+
+    else:
+        states = State.objects.all().order_by('name')
+        state_data = [{"id": state.id, "name": state.name} for state in states]
+        return render(request, 'bopo_admin/Corporate/corporate_add_merchant.html', {'states': state_data})
