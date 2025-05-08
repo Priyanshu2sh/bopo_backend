@@ -220,9 +220,11 @@ class SecurityQue(models.Model):
         return self.security_question
 
   
+
+
 class Logo(models.Model):
     logo = models.ImageField(upload_to='logos/')
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def _str_(self):
-        return f"Logo {self.id}"
+    def __str__(self):
+        return f"Logo {self.id}"

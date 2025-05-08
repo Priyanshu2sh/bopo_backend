@@ -15,10 +15,22 @@
 <body>
 
     <div class="sidebar">
-        <h4 style="margin-bottom: 50px;">
-            <img src="{% static 'bopo_admin/css/images/logo.png' %}" alt="Logo" style="height: 50px;  width: 200px; vertical-align: middle;">
-
+        {% comment %} <h4 style="margin-bottom: 50px;">
+            {% if logo and logo.logo %}
+                <img src="{{ logo.logo.url }}" alt="Logo" style="height: 50px; width: 200px;">
+            {% else %}
+                <p>No logo uploaded yet.</p>
+            {% endif %}
         </h4>
+         {% endcomment %}
+
+         <h4 style="margin-bottom: 50px;">
+            <img id="logoImage" src="{{ logo.logo.url }}" alt="Logo"
+                 style="height: 50px; width: 200px; cursor: pointer;" title="Click to change logo">
+            <input type="file" id="logoUploader" style="display: none;" accept="image/*">
+        </h4>
+        
+        
         
         <a href="{% url 'home' %}" class="{% if request.path == 'home/' %}active{% endif %}">
             <i class="fas fa-home"></i>  Home
@@ -336,7 +348,40 @@
 
 
 
-
+<script>
+    document.getElementById('logoImage').addEventListener('click', () => {
+        document.getElementById('logoUploader').click();
+    });
+    
+    document.getElementById('logoUploader').addEventListener('change', function () {
+        const file = this.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('logo', file);
+    
+            fetch('{% url "upload_logo" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.url) {
+                    document.getElementById('logoImage').src = data.url;
+                } else {
+                    alert('Upload failed.');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('An error occurred.');
+            });
+        }
+    });
+    </script>
+    
    
 
 

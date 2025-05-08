@@ -22,7 +22,7 @@ from datetime import datetime
 
 
 from accounts import models
-from accounts.models import Corporate, Customer, Terminal
+from accounts.models import Corporate, Customer, Logo, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
@@ -3291,3 +3291,18 @@ def corporate_add_merchant(request):
         states = State.objects.all().order_by('name')
         state_data = [{"id": state.id, "name": state.name} for state in states]
         return render(request, 'bopo_admin/Corporate/corporate_add_merchant.html', {'states': state_data})
+
+
+
+def logo(request):
+    logo = Logo.objects.first() 
+    return render(request, 'bopo_admin/base.html', {'logo': logo})
+
+def upload_logo(request):
+    if request.method == 'POST' and request.FILES.get('logo'):
+        logo_file = request.FILES['logo']
+        logo_obj, _ = Logo.objects.get_or_create(id=1)  # Replace/update logo with id=1
+        logo_obj.logo = logo_file
+        logo_obj.save()
+        return JsonResponse({'success': True, 'url': logo_obj.logo.url})
+    return JsonResponse({'success': False})
