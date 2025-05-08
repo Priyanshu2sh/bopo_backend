@@ -185,7 +185,10 @@ urlpatterns = [
     path('corporate/terminals/', views.corporate_terminals, name='corporate_terminals'),
     path('corporate/credentials/', views.corporate_credentials, name='corporate_credentials'),
     path('logo/', views.logo, name='logo'),
-    path('upload-logo/', views.upload_logo, name='upload_logo'),
+    path('upload_logo/', views.upload_logo, name='upload_logo'),
+    
+ 
+
 
 
    

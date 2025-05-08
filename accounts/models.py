@@ -6,6 +6,8 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
+from bopo_admin.models import BopoAdmin
+
 
 
 User = get_user_model()  
@@ -41,6 +43,9 @@ class Corporate(models.Model):
     answer = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     verified_at = models.DateTimeField(null=True, blank=True)
+    logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='corporates')
+
+
     
     STATUS_CHOICES = [
         ('Active', 'Active'),
@@ -222,9 +227,19 @@ class SecurityQue(models.Model):
   
 
 
+# class Logo(models.Model):
+#     logo = models.ImageField(upload_to='logos/')
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return f"Logo {self.id}"
+
+
 class Logo(models.Model):
+    user = models.ForeignKey(BopoAdmin, on_delete=models.CASCADE, related_name="logos", null=True, blank=True)
     logo = models.ImageField(upload_to='logos/')
+    corporate = models.ForeignKey('Corporate', on_delete=models.CASCADE, null=True, blank=True, related_name='logos')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Logo {self.id}"
+         return f"Logo {self.id}"

@@ -24,8 +24,8 @@
         <div class="profile-card">
             <div class="profile-info">
                 <p><strong>Username:</strong>  {{ user.username }}</p>
-                <p><strong>Email:</strong> prushaltech12@gmail.com</p>
-                <p><strong>Phone:</strong> 9876666666</p>
+                <p><strong>Email:</strong>{{user.email}} </p>
+                <p><strong>Phone:</strong> {{user.mobile}}</p>
                 <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
             </div>
         </div>
@@ -54,12 +54,12 @@
             </div>
             <div class="form-group">
                 <label for="phone">Phone</label>
-                <input type="text" name="phone" id="phone" value="{{ user.phone }}" class="form-control">
+                <input type="text" name="mobile" id="mobile" value="{{ user.mobile}}" class="form-control">
             </div>
-            <div class="form-group">
+            {% comment %} <div class="form-group">
                 <label for="profile_image">Profile Image</label>
                 <input type="file" name="profile_image" id="profile_image" class="form-control">
-            </div>
+            </div> {% endcomment %}
             <button type="submit" class="btn btn-primary">Save Changes</button>
         </form>
     </div>

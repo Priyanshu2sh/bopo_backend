@@ -539,11 +539,14 @@ from django.http import JsonResponse
 import random
 import string
 
+
+
 def add_merchant(request):
     if request.method == "POST":
         try:
             is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
+            # Extract form data
             select_project = request.POST.get("select_project")
             project_type = request.POST.get("project_type")
             project_name = request.POST.get("project_name", "")
@@ -565,9 +568,14 @@ def add_merchant(request):
             state = State.objects.get(id=state_id)
             city = City.objects.get(id=city_id)
 
+            # Handle the logo upload
+            logo_file = request.FILES.get("logo")
+            logo_instance = None
 
+            if logo_file:
+                logo_instance = Logo.objects.create(logo=logo_file)
 
-            # ✅ Unique field checks
+            # Unique field checks for email, mobile, Aadhaar number, etc.
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
                 message = "Email is already registered."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
@@ -580,26 +588,24 @@ def add_merchant(request):
                 message = "Aadhaar number is already registered."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
-            # if Merchant.objects.filter(pan_number=pan).exists():
-            #     message = "PAN number is already registered."
-            #     return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
-
-            # ✅ Corporate ID
+            # Corporate ID Generation Logic
             last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
             new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
             corporate_id = f"CORP{new_corporate_id:06d}"
 
+            # Handling Existing Project
             if project_type == "Existing Project" and select_project:
                 corporate = Corporate.objects.get(id=select_project)
                 project_name = corporate.project_name
                 project_id = corporate.project_id
 
-                # ✅ Merchant ID
+                # Merchant ID Generation
                 project_abbr = project_name[:4].upper()
                 random_number = ''.join(random.choices(string.digits, k=11))
                 merchant_id = f"{project_abbr}{random_number}"
 
-                Merchant.objects.create(
+                # Create the Merchant instance
+                merchant = Merchant.objects.create(
                     user_type='corporate',
                     merchant_id=merchant_id,
                     first_name=first_name,
@@ -618,24 +624,16 @@ def add_merchant(request):
                     city=city,
                     country=country,
                     corporate_id=corporate.corporate_id,
-                    project_name=corporate
-                    
+                    project_name=corporate,
+                    logo=logo_instance  # Associate the logo with the merchant
                 )
 
-                merchant= Merchant.objects.get(merchant_id=merchant_id)
-                
-                
-               # ✅ Generate Terminal ID and TID PIN
-                def generate_terminal_id():
-                    return "TID" + ''.join(random.choices(string.digits, k=8))
+                merchant = Merchant.objects.get(merchant_id=merchant_id)
 
-                terminal_id = generate_terminal_id()
-                while Terminal.objects.filter(terminal_id=terminal_id).exists():
-                    terminal_id = generate_terminal_id()
-
+                # Terminal Generation Logic
+                terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
                 tid_pin = random.randint(1000, 9999)
 
-                # ✅ Save terminal info
                 Terminal.objects.create(
                     terminal_id=terminal_id,
                     tid_pin=tid_pin,
@@ -643,10 +641,12 @@ def add_merchant(request):
                 )
 
             elif project_type == "New Project":
+                # Create New Project and Corporate Instance
                 if not project_name:
                     message = "Project name is required for new projects."
                     return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
+                # Project ID Generation
                 last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
                 new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
                 project_id = f"PROJ{new_project_id:06d}"
@@ -672,45 +672,13 @@ def add_merchant(request):
                     city=city,
                     country=country,
                     role="admin",
+                    logo=logo_instance  # Associate the logo with the new corporate account
                 )
 
+                # Create BopoAdmin user
                 bopo_admin = BopoAdmin(username=project_name, role="corporate_admin", corporate=corporate)
-                bopo_admin.set_password(pin)  # Hash the password
+                bopo_admin.set_password(pin)
                 bopo_admin.save()
-
-                try:
-                    phone_number = corporate.mobile
-                    if not phone_number.startswith('+'):
-                        phone_number = f'+91{phone_number}'
-
-                # Compose the SMS message
-                    message_text = (
-                        f"Dear {corporate.first_name},\n\n"
-                        f"Your BOPO login credentials are as follows:\n"
-                        f"Project Name : {corporate.project_name}\n\n"
-                        f"Password : {corporate.pin}\n"
-                        f"Please use these credentials to access your BOPO admin panel.\n\n"
-                        f"Regards,\n"
-                        f"BOPO Support Team"
-                    )
-                
-                    # Fetch Twilio credentials from Django settings
-                    account_sid = settings.TWILIO_ACCOUNT_SID
-                    auth_token = settings.TWILIO_AUTH_TOKEN
-                    twilio_phone_number = settings.TWILIO_PHONE_NUMBER
-
-                    # Send SMS using Twilio
-                    client = Client(account_sid, auth_token)
-                    client.messages.create(
-                        body=message_text,
-                        from_=twilio_phone_number,
-                        to=phone_number
-                    )
-                
-                    messages.success(request, f"Credentials sent to {merchant.first_name} at {phone_number}")
-
-                except Exception as e:
-                    messages.error(request, f"Error sending SMS: {str(e)}")
 
             else:
                 message = "Invalid project type selected."
@@ -725,7 +693,6 @@ def add_merchant(request):
 
     corporates = Corporate.objects.all()
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
-
 
 def redirect_with_error(request, message):
     from django.contrib import messages
@@ -2397,12 +2364,16 @@ def profile(request):
         username = request.POST.get('username')
         user_type = request.POST.get('user_type')  # Getting user type from the form
         password = request.POST.get('password')
+        email= request.POST.get('email')
+        mobile= request.POST.get('mobile')
 
         user = request.user  # Assuming you are using the default user model
         
         # Update the user's username and user type
         user.username = username
         user.user_type = user_type  # Updating user type
+        user.email = email
+        user.mobile = mobile
         
         # If the password is provided, update it (hashed before saving)
         if password:
@@ -3294,15 +3265,41 @@ def corporate_add_merchant(request):
 
 
 
-def logo(request):
-    logo = Logo.objects.first() 
-    return render(request, 'bopo_admin/base.html', {'logo': logo})
+# def logo(request):
+#     logo = Logo.objects.first() 
+#     return render(request, 'bopo_admin/base.html', {'logo': logo})
 
+# def upload_logo(request):
+#     if request.method == 'POST' and request.FILES.get('logo'):
+#         logo_file = request.FILES['logo']
+#         logo_obj, _ = Logo.objects.get_or_create(id=1)  # Replace/update logo with id=1
+#         logo_obj.logo = logo_file
+#         logo_obj.save()
+#         return JsonResponse({'success': True, 'url': logo_obj.logo.url})
+#     return JsonResponse({'success': False})
+
+
+
+@login_required
+def logo(request):
+    # Try to get a user-specific logo
+    user_logo = Logo.objects.filter(user=request.user).first()
+
+    # If none, show shared default
+    if not user_logo:
+        user_logo = Logo.objects.filter(user__isnull=True).first()
+
+    return render(request, 'base.html', {'logo': user_logo})
+
+
+@login_required
 def upload_logo(request):
     if request.method == 'POST' and request.FILES.get('logo'):
-        logo_file = request.FILES['logo']
-        logo_obj, _ = Logo.objects.get_or_create(id=1)  # Replace/update logo with id=1
-        logo_obj.logo = logo_file
+        # Only upload for this user, not the default
+        logo_obj, created = Logo.objects.get_or_create(user=request.user)
+        logo_obj.logo = request.FILES['logo']
         logo_obj.save()
-        return JsonResponse({'success': True, 'url': logo_obj.logo.url})
-    return JsonResponse({'success': False})
+        return JsonResponse({'status': 'success', 'url': logo_obj.logo.url})
+    return JsonResponse({'status': 'failed'}, status=400)
+
+
