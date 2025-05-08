@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import  add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_superadmin_payment, security_questions_view,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+from .views import  add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view,  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_superadmin_payment, security_questions_view,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -31,7 +31,8 @@ urlpatterns = [
     path('project/list', project_list, name='project_list'),
     path('merchant_credentials/', merchant_credentials, name='merchant_credentials'),
     path('merchant-topup/', merchant_topup, name='merchant_topup'),
-    
+    path('get-corporate-admin/', views.get_corporate_admin, name='get_corporate_admin'),
+
     path('map_bonus_points/', map_bonus_points, name='map_bonus_points'),
     path('merchant_limit_list/', merchant_limit_list, name='merchant_limit_list'),
     path('reduce_limit/', reduce_limit, name='reduce_limit'),

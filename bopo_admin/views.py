@@ -1362,74 +1362,104 @@ def project_list(request):
 from django.http import JsonResponse
 
 def merchant_credentials(request):
-    # Fetch merchants and corporates as usual
     merchants = Merchant.objects.all().order_by('merchant_id')
     corporates = Corporate.objects.all().order_by('project_name')
 
     if request.method == 'POST':
+        merchant_type = request.POST.get('merchant_type')
         project_id = request.POST.get('project')
         merchant_id = request.POST.get('merchant_id')
-        merchant_type = request.POST.get('merchant_type')
 
         try:
+            # ✅ 1. Corporate Admin Logic — ONLY send Corporate ID and PIN
+            if merchant_type == 'corporate_admin':
+                if not project_id:
+                    return JsonResponse({'status': 'error', 'message': 'Project ID is required for corporate admin'})
+
+                corporate = Corporate.objects.get(project_id=project_id)
+                phone_number = corporate.mobile
+                if not phone_number.startswith('+'):
+                    phone_number = f'+91{phone_number}'
+
+                message_text = (
+                    f"Dear {corporate.first_name},\n\n"
+                    f"Your corporate credentials for project {project_id} are as follows:\n"
+                    f"Corporate ID: {corporate.corporate_id}\n"
+                    f"PIN: {corporate.pin}\n\n"
+                    f"Regards,\nBOPO Support Team"
+                )
+
+                client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                client.messages.create(
+                    body=message_text,
+                    from_=settings.TWILIO_PHONE_NUMBER,
+                    to=phone_number
+                )
+
+                return JsonResponse({'status': 'success', 'message': 'Corporate admin credentials sent successfully!'})
+
+            # ✅ 2. Merchant Logic — for both corporate and individual merchants
+            if not merchant_id:
+                return JsonResponse({'status': 'error', 'message': 'Merchant ID is required for merchant credentials'})
+
             merchant = Merchant.objects.get(merchant_id=merchant_id)
             phone_number = merchant.mobile
             if not phone_number.startswith('+'):
                 phone_number = f'+91{phone_number}'
-                
-            print("Sending SMS to:", phone_number)
 
-            # Fetch terminals for this merchant
             terminals = Terminal.objects.filter(merchant_id=merchant)
-
             if not terminals.exists():
                 return JsonResponse({'status': 'error', 'message': f"No Terminal IDs found for Merchant ID {merchant_id}."})
 
-            # Format terminal info
-            terminal_info_list = [
+            terminal_info = "\n".join(
                 f"{terminal.terminal_id} (PIN: {terminal.tid_pin})"
                 for terminal in terminals
-            ]
-            terminal_info_str = '\n'.join(terminal_info_list)
+            )
 
-            # Get merchant PIN
-            merchant_pin = merchant.pin if hasattr(merchant, 'pin') else 'N/A'
-
-            # Compose SMS message
             message_text = (
                 f"Dear {merchant.first_name},\n\n"
                 f"Your BOPO login credentials:\n"
-                f"Merchant ID: {merchant_id}\n"
-                f"Merchant PIN: {merchant_pin}\n"
-                f"Terminals:\n{terminal_info_str}\n\n"
-                f"Regards,\n"
-                f"BOPO Support Team"
+                f"Merchant ID: {merchant.merchant_id}\n"
+                f"Merchant PIN: {merchant.pin}\n"
+                f"Terminals:\n{terminal_info}\n\n"
+                f"Regards,\nBOPO Support Team"
             )
 
-            # Twilio credentials
-            account_sid = settings.TWILIO_ACCOUNT_SID
-            auth_token = settings.TWILIO_AUTH_TOKEN
-            twilio_phone_number = settings.TWILIO_PHONE_NUMBER
-
-            # Send SMS
-            client = Client(account_sid, auth_token)
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
             client.messages.create(
                 body=message_text,
-                from_=twilio_phone_number,
+                from_=settings.TWILIO_PHONE_NUMBER,
                 to=phone_number
             )
 
-            # Return success message in JSON response
-            return JsonResponse({'status': 'success', 'message': 'Credentials sent successfully!'})
+            return JsonResponse({'status': 'success', 'message': 'Merchant credentials sent successfully!'})
 
+        except Corporate.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Corporate not found'})
         except Merchant.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Merchant not found'})
         except Exception as e:
             print(f"Error: {e}")
             return JsonResponse({'status': 'error', 'message': 'An error occurred while sending credentials'})
 
-    # Render the template if not POST
-    return render(request, 'bopo_admin/merchant/merchant_credentials.html', {'merchants': merchants, 'corporates': corporates})
+    return render(request, 'bopo_admin/merchant/merchant_credentials.html', {
+        'merchants': merchants,
+        'corporates': corporates
+    })
+
+
+def get_corporate_admin(request):
+    project_id = request.GET.get('project_id')
+    print(f"Received project_id: {project_id}") 
+
+    try:
+        corporate = Corporate.objects.get(project_id=project_id)
+        admin_name = f"{corporate.first_name} {corporate.last_name}"  # ✅ corrected field names
+
+        return JsonResponse({'status': 'success', 'admin_name': admin_name})
+    except Corporate.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Corporate admin not found'})
+
 
 # For fetching individual merchants
 def get_individual_merchants(request):
