@@ -55,7 +55,6 @@ INSTALLED_APPS = [
 
     'qr_store', 
     'transfer',
-    'channels',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -111,16 +110,7 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = 'bopo_backend.wsgi.application'
-ASGI_APPLICATION = "bopo_backend.asgi.application"
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [('127.0.0.1', 8000)],    #6379
-        },
-    },
-}
+WSGI_APPLICATION = 'bopo_backend.wsgi.application'
 
 # Timezone settings
 USE_TZ = True  # This enables time zone support
@@ -129,18 +119,9 @@ TIME_ZONE = 'Asia/Kolkata'  # Set your preferred timezone (replace if needed)
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
-    
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'my_django_db',
-        'USER': 'django_user',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',  # Or IP if remote DB
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -167,9 +148,9 @@ AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
 LOGIN_URL = '/login/'
 
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = "ACefc2b57333c60eaaea16e2ba775ade3c"
-TWILIO_AUTH_TOKEN = "a8d9144377e3ce520407379613e9ca53"
-TWILIO_PHONE_NUMBER = "+12706338124"
+TWILIO_ACCOUNT_SID = "ACd8f432a19c3bc947d945a68b3237cc2f"
+TWILIO_AUTH_TOKEN = "a6e4f840b507985cca02dc9a90ab129c"
+TWILIO_PHONE_NUMBER = "+15086842698"
 
 
 # Internationalization

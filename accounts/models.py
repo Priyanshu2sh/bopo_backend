@@ -106,22 +106,15 @@ class Merchant(models.Model):
         ('prepaid', 'Prepaid'),
         ('rental', 'Rental'),
     ]
-    GENDER_CHOICES = [
-        ('Male', 'Male'),
-        ('Female', 'Female'),
-        ('Other', 'Other'),
-    ]
     plan_type = models.CharField(max_length=20, choices=PLAN_CHOICES, default='prepaid')
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
-    logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
     email = models.EmailField(unique=False, null=True, blank=True)
     mobile = models.CharField(max_length=15, unique=True)
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
     pin = models.IntegerField(unique=True, null=True)
     age = models.IntegerField(blank=True, null=True)
-    gender = models.CharField(max_length=10, null=True,choices=GENDER_CHOICES)
     reference = models.CharField(max_length=200, choices=REFERENCE_CHOICES, null=True, blank=True)
     employee_id = models.ForeignKey('bopo_admin.Employee', to_field='employee_id', on_delete=models.CASCADE, null=True, blank=True)
     # plan_type = models.CharField(max_length=255, null=True, blank=True, choices=PLAN_CHOICES,  help_text='Select plan type: Prepaid or Rental')
@@ -150,9 +143,7 @@ class Merchant(models.Model):
     city = models.CharField(max_length=100)
     country = models.CharField(max_length=100, null=True, blank=True)
     pincode = models.IntegerField(null=True, blank=True)
-    # corporate_id = models.CharField(max_length=20, null=True, blank=True)  # Add this field
-    corporate = models.ForeignKey(Corporate, on_delete=models.CASCADE, null=True, blank=True, related_name='corporate_merchants') 
-    
+    corporate_id = models.CharField(max_length=20, null=True, blank=True)  # Add this field
     project_name = models.ForeignKey(Corporate, on_delete=models.SET_NULL, null=True)
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
 
@@ -190,11 +181,10 @@ class Customer(models.Model):
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(unique=False, null=True, blank=True)
-    logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='customer')
     is_profile_updated = models.BooleanField(default=False)
     mobile = models.CharField(max_length=15, unique=True)
     age = models.IntegerField(null=True, blank=True)
-    gender = models.CharField(max_length=10,null= True,choices=GENDER_CHOICES)   
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)   
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
     pin = models.IntegerField(null=True, blank=True)
@@ -233,13 +223,6 @@ class SecurityQue(models.Model):
 
     def __str__(self):
         return self.security_question
-    
-class Logo(models.Model):
-    logo = models.ImageField(upload_to='logos/')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Logo {self.id}"
 
   
 
@@ -252,10 +235,10 @@ class Logo(models.Model):
 #         return f"Logo {self.id}"
 
 
-# class Logo(models.Model):
+class Logo(models.Model):
    
-#     logo = models.ImageField(upload_to='logos/')
-#     created_at = models.DateTimeField(auto_now_add=True)
+    logo = models.ImageField(upload_to='logos/')
+    created_at = models.DateTimeField(auto_now_add=True)
 
-#     def __str__(self):
-#          return f"Logo {self.id}"
+    def __str__(self):
+         return f"Logo {self.id}"

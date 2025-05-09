@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AwardPointsAPIView,  BankDetailByUserAPIView, CashOutCreateAPIView, CheckPointsAPIView, CorporateProjectListAPIView, CorporateRedeemAPIView, CustomerCashOutAPIView, CustomerPointsForPrepaidMerchantsAPIView, CustomerToCustomerTransferAPIView, HelpAPIView, MerchantCashOutAPIView, MerchantCustomerPointsAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, TerminalCustomerPointsAPIView, TransferPointsMerchantToCustomerAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
+from .views import AwardPointsAPIView,  BankDetailByUserAPIView, CashOutCreateAPIView, CheckPointsAPIView, CorporateProjectListAPIView, CustomerCashOutAPIView, CustomerPointsForPrepaidMerchantsAPIView, CustomerToCustomerTransferAPIView, HelpAPIView, MerchantCashOutAPIView, MerchantCustomerPointsAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, TerminalCustomerPointsAPIView, TransferPointsMerchantToCustomerAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
 
 urlpatterns = [
     path('award/', AwardPointsAPIView.as_view(), name='award-points'),
@@ -37,8 +37,6 @@ urlpatterns = [
     
     path('customer/cashout/', CustomerCashOutAPIView.as_view(), name='customer-cashout'),
     path('api/merchant/cashout/', MerchantCashOutAPIView.as_view(), name='merchant-cashout'),
-    
-    path('corporate/redeem/', CorporateRedeemAPIView.as_view(), name='corporate-redeem'),
 ]
 
 
