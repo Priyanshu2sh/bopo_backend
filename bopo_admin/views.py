@@ -3253,40 +3253,132 @@ def corporate_credentials(request):
     # Initial page load
     return render(request, 'bopo_admin/Corporate/corporate_credentials.html')
 
+# def corporate_add_merchant(request):
+#     if request.method == 'POST':
+#         print('mobile' , request.POST.get('mobile'))
+#         print('email' , request.POST.get('email'))
+#         user = request.user
+#         corporate=Corporate.objects.get(id=user.corporate.id)  
+#         merchant = Merchant(
+#         first_name=request.POST.get('first_name'),
+#         last_name=request.POST.get('last_name'),
+#         email=request.POST.get('email'),
+#         mobile=request.POST.get('mobile'),
+#         shop_name=request.POST.get('shop_name'),
+#         legal_name=request.POST.get('legal_name'),
+#         state=request.POST.get('state'),
+#         city=request.POST.get('city'),
+#         country=request.POST.get('country'),
+#         pincode=request.POST.get('pincode'),
+#         corporate_id=corporate.corporate_id,  # Save corporate_id as string
+#         project_name=corporate,  
+#         aadhaar_number=request.POST.get('aadhaar_number'),
+#         gst_number=request.POST.get('gst_number'),
+#         pan_number=request.POST.get('pan_number'),
+#         address=request.POST.get('address'),
+#         pin=request.POST.get('pin'),
+#         user_type='corporate',
+#         )
+#         merchant.save()
+
+#         return JsonResponse({'success': True, 'message': 'Merchant added successfully!'})
+
+#     else:
+#         states = State.objects.all().order_by('name')
+#         state_data = [{"id": state.id, "name": state.name} for state in states]
+#         return render(request, 'bopo_admin/Corporate/corporate_add_merchant.html', {'states': state_data})
+
+
 def corporate_add_merchant(request):
-    if request.method == 'POST':
-        print('mobile' , request.POST.get('mobile'))
-        print('email' , request.POST.get('email'))
-        user = request.user
-        corporate=Corporate.objects.get(id=user.corporate.id)  
-        merchant = Merchant(
-        first_name=request.POST.get('first_name'),
-        last_name=request.POST.get('last_name'),
-        email=request.POST.get('email'),
-        mobile=request.POST.get('mobile'),
-        shop_name=request.POST.get('shop_name'),
-        legal_name=request.POST.get('legal_name'),
-        state=request.POST.get('state'),
-        city=request.POST.get('city'),
-        country=request.POST.get('country'),
-        pincode=request.POST.get('pincode'),
-        corporate_id=corporate.corporate_id,  # Save corporate_id as string
-        project_name=corporate,  
-        aadhaar_number=request.POST.get('aadhaar_number'),
-        gst_number=request.POST.get('gst_number'),
-        pan_number=request.POST.get('pan_number'),
-        address=request.POST.get('address'),
-        pin=request.POST.get('pin'),
-        user_type='corporate',
-        )
-        merchant.save()
+    if request.method == "POST":
+        try:
+            is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
-        return JsonResponse({'success': True, 'message': 'Merchant added successfully!'})
+            # Extract form data
+            select_project = request.POST.get("select_project")
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")
+            email = request.POST.get("email")
+            mobile = request.POST.get("mobile")
+            aadhaar_number = request.POST.get("aadhaar_number")
+            pin = request.POST.get("pin")
+            gst_number = request.POST.get("gst_number")
+            shop_name = request.POST.get("shop_name")
+            pan_number = request.POST.get("pan_number")
+            address = request.POST.get("address")
+            legal_name = request.POST.get("legal_name")
+            pincode = request.POST.get("pincode")
+            city_id = request.POST.get("city")
+            state_id = request.POST.get("state")
+            country = request.POST.get("country", "India")
+            state = State.objects.get(id=state_id)
+            city = City.objects.get(id=city_id)
 
-    else:
-        states = State.objects.all().order_by('name')
-        state_data = [{"id": state.id, "name": state.name} for state in states]
-        return render(request, 'bopo_admin/Corporate/corporate_add_merchant.html', {'states': state_data})
+            # Unique field checks
+            if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
+                message = "Email is already registered."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
+                message = "Mobile number is already registered."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
+                message = "Aadhaar number is already registered."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            # Fetch the corporate ID of the logged-in user
+            corporate = request.user.corporate  # Assuming user is a BopoAdmin and has a corporate field
+            corporate_id = corporate.corporate_id  # Get the corporate_id associated with the logged-in user
+
+            # Generate Merchant ID
+            project_name = corporate.project_name  # Assuming this is the project name you want to associate
+            project_abbr = project_name[:4].upper()
+            random_number = ''.join(random.choices(string.digits, k=11))
+            merchant_id = f"{project_abbr}{random_number}"
+
+            # Create Merchant
+            merchant = Merchant.objects.create(
+                user_type='corporate',
+                merchant_id=merchant_id,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                mobile=mobile,
+                aadhaar_number=aadhaar_number,
+                pin=pin,
+                gst_number=gst_number,
+                pan_number=pan_number,
+                shop_name=shop_name,
+                legal_name=legal_name,
+                address=address,
+                pincode=pincode,
+                state=state,
+                city=city,
+                country=country,
+                corporate_id=corporate_id,  # Use the corporate_id here
+                project_name=corporate  # Assign the corporate instance as project name
+            )
+
+            # Create Terminal
+            terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
+            tid_pin = random.randint(1000, 9999)
+
+            Terminal.objects.create(
+                terminal_id=terminal_id,
+                tid_pin=tid_pin,
+                merchant_id=merchant
+            )
+
+            success_message = "Merchant added successfully."
+            return JsonResponse({"success": True, "message": success_message}) if is_ajax else redirect_with_success(success_message)
+
+        except Exception as e:
+            print("Error saving merchant:", e)
+            return JsonResponse({"success": False, "message": "Something went wrong. Please check your inputs."})
+
+    corporates = Corporate.objects.all()
+    return render(request, "bopo_admin/Corporate/corporate_add_merchant.html", {"corporates": corporates})
 
 
 def logo(request): 
