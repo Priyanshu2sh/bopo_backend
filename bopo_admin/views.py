@@ -2982,29 +2982,27 @@ def set_deduct_amount(request):
     return JsonResponse({'error': 'Invalid method.'}, status=405)
 
 
-def save_model_plan(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
+# def save_model_plan(request):
+#     if request.method == "POST":
+#         data = json.loads(request.body)
 
-        plan_validity = data.get("plan_validity")
-        plan_type = data.get("plan_type")
-        description = data.get("description")
+#         plan_validity = data.get("plan_validity")
+#         plan_type = data.get("plan_type")
+#         description = data.get("description")
         
 
-        if not all([plan_validity, plan_type, description]):
-            return JsonResponse({"error": "Missing fields"}, status=400)
+#         if not all([plan_validity, plan_type, description]):
+#             return JsonResponse({"error": "Missing fields"}, status=400)
 
-        
-
-        plan, created = ModelPlan.objects.update_or_create(
-            plan_type=plan_type,
-            defaults={
-                "plan_validity": plan_validity,
-                "description": description
-            }
-        )
-        return JsonResponse({"message": "Model plan saved successfully."})
-    return JsonResponse({"error": "Invalid method"}, status=405)
+#         plan, created = ModelPlan.objects.update_or_create(
+#             plan_type=plan_type,
+#             defaults={
+#                 "plan_validity": plan_validity,
+#                 "description": description
+#             }
+#         )
+#         return JsonResponse({"message": "Model plan saved successfully."})
+#     return JsonResponse({"error": "Invalid method"}, status=405)
 
 
 def update_model_plan(request):
@@ -3232,7 +3230,7 @@ def update_admin_merchant(request):
             # Save the updated merchant information
             merchant.save()
 
-            return JsonResponse({'success': True ,'massage': 'Merchant updated successfully'})
+            return JsonResponse({'success': True, 'message': 'Merchant updated successfully'})
         except Merchant.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Merchant not found'})
         except Exception as e:

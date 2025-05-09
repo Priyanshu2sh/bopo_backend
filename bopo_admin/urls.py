@@ -170,7 +170,7 @@ urlpatterns = [
     
     path('get-current-limit/', views.get_current_limit, name='get_current_limit'),
     
-    path('save-model-plan/', views.save_model_plan, name='save-model-plan'),
+    # path('save-model-plan/', views.save_model_plan, name='save-model-plan'),
     # path('get-model-plans/', views.get_model_plans, name='get_model_plans'),
     path('save-cash-out/', views.save_cash_out, name='save_cash_out'),
     

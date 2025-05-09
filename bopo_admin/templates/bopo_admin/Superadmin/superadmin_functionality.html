@@ -93,7 +93,8 @@
                         <td><span class="plan-validity-text">{{ plan.plan_validity }}</span></td>
                         <td><span class="plan-type-text">{{ plan.plan_type }}</span></td>
                         <td><span class="plan-description-text">{{ plan.description }}</span></td>
-                        <td><button class="btn-action" onclick="openEditPlanModal()">Change</button></td>
+                        <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
+
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -178,40 +179,40 @@
         loadSecurityQuestions();
     });
 
-    function showAlert() {
-        const input = document.getElementById('deduct-amount');
-        const value = parseFloat(input.value);
-        if (isNaN(value) || value < 0) return alert("Please enter a valid percentage.");
+  function showAlert() {
+    const input = document.getElementById('deduct-amount');
+    const value = parseFloat(input.value);
+    if (isNaN(value) || value < 0) return alert("Please enter a valid percentage.");
     
-        fetch('/api/set-deduct-amount/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-            },
-            body: JSON.stringify({ deduct_amount: value }),
-        })
-        .then(res => res.json().then(data => ({ status: res.status, body: data })))
-        .then(({ status, body }) => {
-            if (status === 200) {
-                alert("Deduct amount saved successfully!");
-                
-                // Reload the page and close the form container
-                document.getElementById('deduct-amount').value = ''; // Clear the input
-                const formContainer = document.querySelector('.send-notification-form');
-                if (formContainer) formContainer.style.display = 'none';  // Hide the form container
+    fetch('/api/set-deduct-amount/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify({ deduct_amount: value }),
+    })
+    .then(res => res.json().then(data => ({ status: res.status, body: data })))
+    .then(({ status, body }) => {
+        if (status === 200) {
+            showToast("Deduct amount saved successfully!", true); // Show success toast
+            
+            // Reload the page and close the form container
+            document.getElementById('deduct-amount').value = ''; // Clear the input
+            const formContainer = document.querySelector('.send-notification-form');
+            if (formContainer) formContainer.style.display = 'none';  // Hide the form container
     
-                // Optionally, reload the page after a short delay (1 second here)
-                setTimeout(() => {
-                    location.reload();  // Reload the page
-                }, 1000);
-            } else {
-                alert(body.error || "Failed to save deduction.");
-            }
-        })
-        .catch(() => alert("Something went wrong."));
-    }
-    
+            // Optionally, reload the page after a short delay (1 second here)
+            setTimeout(() => {
+                location.reload();  // Reload the page
+            }, 2500);
+        } else {
+            alert(body.error || "Failed to save deduction.");
+        }
+    })
+    .catch(() => alert("Something went wrong."));
+}
+
 
     function getCSRFToken() {
         const name = 'csrftoken';
@@ -246,23 +247,35 @@
         document.getElementById("add-question-row").style.display = "none";
     }
 
-    function saveSecurityQuestion() {
-        const question = document.getElementById("new-question").value;
-        if (!question) return alert("Please enter a question.");
-        fetch('/api/security-questions/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-            },
-            body: JSON.stringify({ question })
-        })
-        .then(res => res.json())
-        .then(() => {
-            cancelSecurityQuestion();
-            loadSecurityQuestions();
-        });
-    }
+ function saveSecurityQuestion() {
+    const question = document.getElementById("new-question").value;
+    if (!question) return alert("Please enter a question.");
+    
+    fetch('/api/security-questions/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify({ question })
+    })
+    .then(res => res.json())
+    .then(() => {
+        showToast("Security question added successfully!", true); // Show success toast
+        
+        // Wait for the toast to disappear (3 seconds), then reload the page
+        setTimeout(() => {
+            cancelSecurityQuestion();  // Close modal
+            loadSecurityQuestions();   // Reload the list of security questions
+            window.location.reload();  // Reload the page
+        }, 2500); // Match the duration of the toast
+    })
+    .catch(() => {
+        showToast("Failed to add security question.", false); // Show error toast
+    });
+}
+
+
 
     document.addEventListener("DOMContentLoaded", function () {
         loadAwardPercentage();
@@ -290,36 +303,40 @@
         document.getElementById("award-edit").style.display = "none";
         document.getElementById("award-text").style.display = "block";
     }
-    
-    function saveAward() {
-        const newPercentage = parseInt(document.getElementById("award-input").value, 10);
-    
-        if (isNaN(newPercentage) || newPercentage < 0 || newPercentage > 100) {
-            alert("Please enter a valid percentage between 0 and 100.");
-            return;
-        }
-    
-        fetch('/update-award-point/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken()
-            },
-            body: JSON.stringify({ percentage: newPercentage })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                document.querySelector(".highlight-percentage").textContent = `${data.percentage}%`;
-                cancelAward();
-            } else {
-                alert("Failed to update.");
-            }
-        })
-        .catch(error => {
-            console.error("Update error:", error);
-        });
+  function saveAward() {
+    const newPercentage = parseInt(document.getElementById("award-input").value, 10);
+
+    if (isNaN(newPercentage) || newPercentage < 0 || newPercentage > 100) {
+        alert("Please enter a valid percentage between 0 and 100.");
+        return;
     }
+
+    fetch('/update-award-point/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ percentage: newPercentage })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.querySelector(".highlight-percentage").textContent = `${data.percentage}%`;
+            cancelAward();
+
+            // Show success toast
+            showToast("Award points updated successfully!", true);
+        } else {
+            alert("Failed to update.");
+        }
+    })
+    .catch(error => {
+        console.error("Update error:", error);
+        alert("An error occurred while updating award points.");
+    });
+}
+
     
     function getCSRFToken() {
         const name = 'csrftoken';
@@ -359,36 +376,70 @@
     }
 
  
+function savePlanChanges() {
+    const validity = document.getElementById("edit-validity-input").value.trim();
+    const type = document.getElementById("edit-type-input").value.trim();
+    const description = document.getElementById("edit-description-input").value.trim();
 
-    function savePlanChanges() {
-        const validity = document.getElementById("edit-validity-input").value.trim();
-        const type = document.getElementById("edit-type-input").value.trim();
-        const description = document.getElementById("edit-description-input").value.trim();
-    
-        fetch("/update-model-plan/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCSRFToken(),
-            },
-            body: JSON.stringify({
-                plan_validity: validity,
-                plan_type: type,
-                description: description,
-            }),
-        })
-        .then(response => response.json())
-        .then((data) => {
-            if (data.success) {
-                alert("Plan changes saved successfully!");
-                updateExistingModelPlanRow(type, validity, description); // Pass updated data
-                closeEditModal();  // Close the modal after saving changes
-            } else {
-                alert("Error: " + data.error);
-            }
-        });
-    }
-    
+    fetch("/update-model-plan/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken(),
+        },
+        body: JSON.stringify({
+            plan_validity: validity,
+            plan_type: type,
+            description: description,
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Server response:", data); // Check for message
+        if (data.success) {
+            showToast(`${type} Plan updated successfully!`, true);  // Pass plan type to the toast message
+            closeEditModal();
+
+            // Reload after toast disappears
+            setTimeout(() => {
+                location.reload();
+            }, 1500); // Wait for toast to disappear
+        } else {
+            showToast(data.message || "Failed to update plan", false);
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        showToast("An error occurred", false);
+    });
+}
+
+function showToast(message, isSuccess = true) {
+    const toast = document.createElement('div');
+    toast.className = `toast-container toast-show ${isSuccess ? 'toast-success' : 'toast-error'}`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    // Hide after 3.5s and animate fade out
+    setTimeout(() => {
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 500); // Remove after animation
+    }, 3500);
+}
+
+function showToast(message, isSuccess = true) {
+    const toast = document.createElement('div');
+    toast.className = `toast-container toast-show ${isSuccess ? 'toast-success' : 'toast-error'}`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    // Hide after 3.5s and animate fade out
+    setTimeout(() => {
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 500); // Remove after animation
+    }, 3500);
+}
+
     function updateExistingModelPlanRow(plan_type, plan_validity, description) {
         const rows = document.querySelectorAll(".plans-table tbody tr");
     
