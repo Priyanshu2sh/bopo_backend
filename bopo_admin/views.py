@@ -2935,7 +2935,7 @@ def save_cash_out(request):
 # def award_points(request):
 #     return render(request, 'bopo_admin/Superadmin/award_points.html')
 
-def security_questions_view(request):
+def security_questions(request):
     if request.method == 'GET':
         questions = list(SecurityQuestion.objects.all().values('id', 'question'))
         return JsonResponse(questions, safe=False)
@@ -2979,6 +2979,7 @@ def set_deduct_amount(request):
         return JsonResponse({'message': 'Deduct amount updated successfully.', 'deduct_percentage': setting.deduct_percentage})
     
     return JsonResponse({'error': 'Invalid method.'}, status=405)
+
 
 
 def save_model_plan(request):
