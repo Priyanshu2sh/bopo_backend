@@ -16,7 +16,7 @@ from rest_framework import serializers
 
 from accounts.models import Corporate, Customer, Merchant
 from bopo_admin.models import EmployeeRole
-from .models import BankDetail, CashOut, CustomerPoints, Help, MerchantPoints, History, PaymentDetails, SuperAdminPayment
+from .models import BankDetail, CashOut, CustomerPoints, Help, MerchantPoints, History, ModelPlan, PaymentDetails, SuperAdminPayment
 
 
 class CustomerPointsSerializer(serializers.ModelSerializer):
@@ -44,9 +44,20 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
         queryset=Merchant.objects.all(),
         slug_field='merchant_id'  # Use your unique merchant code field
     )
+    # plan_type = serializers.SlugRelatedField(
+    #     queryset=ModelPlan.objects.all(),
+    #     slug_field='plan_type'  # Assuming `name` is like 'rental', 'monthly', etc.
+    # )
     class Meta:
         model = PaymentDetails
         fields = ['merchant', 'paid_amount', 'transaction_id', 'payment_mode', 'plan_type', 'created_at']
+        
+    def validate(self, attrs):
+        # Check if plan_type is missing (null or None)
+        if not attrs.get('plan_type'):
+            raise serializers.ValidationError("You don't have any plan type or subscription.")
+        
+        return attrs
         
 
 class BankDetailSerializer(serializers.ModelSerializer):
@@ -97,7 +108,7 @@ class CashOutSerializer(serializers.ModelSerializer):
         if value:
             try:
                 customer = Customer.objects.get(customer_id=value)
-                return customer
+                return customer.customer_id
             except Customer.DoesNotExist:
                 raise serializers.ValidationError("Invalid customer_id")
         return None

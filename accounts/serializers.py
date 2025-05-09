@@ -23,10 +23,11 @@ class MerchantSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=False, allow_null=True, allow_blank=True) 
     class Meta:
         model = Merchant
-        fields = '__all__'
-        extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan_number': {'required':False}, 'legal_name': {'required':False},
+        # fields = '__all__'
+        exclude = ['logo']
+        extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False},'gender':{'required': False}, 'aadhar_number': {'required':False}, 'pan_number': {'required':False}, 'legal_name': {'required':False},
                         'pincode': {'required':False}, 'is_profile_updated':{'required' : False}, 'address': {'required':False}, 'state': {'required':False}, 'country': {'required':False}, 'city': {'required':False}, 'corporate_id': {'required':False}, 
-                        'shop_name':{'required':False}, 'plan-type':{'required': False}, 'gst_number':{'required':False}, 'project_name':{'required':False}, 'employee_id':{'required':False} }
+                        'shop_name':{'required':False}, 'logo':{'required':False}, 'plan-type':{'required': False}, 'gst_number':{'required':False}, 'project_name':{'required':False}, 'employee_id':{'required':False} }
 
 class CustomerSerializer(serializers.ModelSerializer):
    

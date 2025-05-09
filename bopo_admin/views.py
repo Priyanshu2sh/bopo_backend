@@ -24,6 +24,7 @@ from datetime import datetime
 
 from accounts import models
 from accounts.models import Corporate, Customer, Logo, Terminal
+from accounts.models import Corporate, Customer, Logo, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
@@ -224,6 +225,9 @@ def home(request):
     user = request.user
     today = now().date()
     yesterday = today - timedelta(days=1)
+    
+    # FETCH THE LATEST LOGO
+    logo = Logo.objects.order_by('-created_at').first()
 
     # Total counts
     total_projects = Corporate.objects.count()
@@ -284,6 +288,7 @@ def home(request):
 
         # Chart data
         "chart_data": chart_data,
+        "logo": logo,
     }
 
     if user.role == 'corporate_admin':
@@ -3004,7 +3009,6 @@ def set_deduct_amount(request):
 #         )
 #         return JsonResponse({"message": "Model plan saved successfully."})
 #     return JsonResponse({"error": "Invalid method"}, status=405)
-
 
 def update_model_plan(request):
     if request.method == 'POST':
