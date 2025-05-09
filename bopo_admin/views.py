@@ -1808,24 +1808,47 @@ def send_notifications(request):
 def received_offers(request):
     return render(request, 'bopo_admin/Merchant/received_offers.html')
 
+# def uploads(request):
+#     if request.method == "POST":
+#         file_type = request.POST.get("file_type")
+#         uploaded_file = request.FILES.get(file_type)
+
+#         if file_type and uploaded_file:
+#             UploadedFile.objects.create(file_type=file_type, file=uploaded_file)
+
+#     # Fetch uploaded files filtered by type
+#     privacy_policy_file = UploadedFile.objects.filter(file_type="privacy_policy").first()
+#     terms_conditions_file = UploadedFile.objects.filter(file_type="terms_conditions").first()
+#     user_guide_file = UploadedFile.objects.filter(file_type="user_guide").first()
+
+#     return render(request, 'bopo_admin/Merchant/uploads.html', {
+#         "privacy_policy_file": privacy_policy_file,
+#         "terms_conditions_file": terms_conditions_file,
+#         "user_guide_file": user_guide_file,
+#     })
+
 def uploads(request):
     if request.method == "POST":
         file_type = request.POST.get("file_type")
         uploaded_file = request.FILES.get(file_type)
 
         if file_type and uploaded_file:
-            UploadedFile.objects.create(file_type=file_type, file=uploaded_file)
+            # Update if file_type exists, else create
+            UploadedFile.objects.update_or_create(
+                file_type=file_type,
+                defaults={'file': uploaded_file}
+            )
 
-    # Fetch uploaded files filtered by type
-    privacy_policy_file = UploadedFile.objects.filter(file_type="privacy_policy").first()
-    terms_conditions_file = UploadedFile.objects.filter(file_type="terms_conditions").first()
-    user_guide_file = UploadedFile.objects.filter(file_type="user_guide").first()
+    # Fetch existing files
+    context = {
+        "privacy_policy_file": UploadedFile.objects.filter(file_type="privacy_policy").first(),
+        "terms_conditions_file": UploadedFile.objects.filter(file_type="terms_conditions").first(),
+        "user_guide_file": UploadedFile.objects.filter(file_type="user_guide").first(),
+    }
 
-    return render(request, 'bopo_admin/Merchant/uploads.html', {
-        "privacy_policy_file": privacy_policy_file,
-        "terms_conditions_file": terms_conditions_file,
-        "user_guide_file": user_guide_file,
-    })
+    return render(request, 'bopo_admin/Merchant/uploads.html', context)
+
+
 
 def  modify_customer_details(request):
     return render(request, 'bopo_admin/Customer/modify_customer_details.html')
