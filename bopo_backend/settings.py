@@ -77,6 +77,10 @@ CORS_ALLOW_HEADERS = [
     'access-control-allow-origin',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://e688-103-211-60-165.ngrok-free.app',
+]
+
 ALLOWED_HOSTS = ['*']
 
 ROOT_URLCONF = 'bopo_backend.urls'

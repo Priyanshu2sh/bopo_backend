@@ -678,7 +678,7 @@ def add_merchant(request):
                 )
 
                 # Create BopoAdmin user
-                bopo_admin = BopoAdmin(username=project_name, role="corporate_admin", corporate=corporate)
+                bopo_admin = BopoAdmin(username=corporate_id, role="corporate_admin", corporate=corporate)
                 bopo_admin.set_password(pin)
                 bopo_admin.save()
 
@@ -2861,7 +2861,8 @@ def deduct_amount(request):
     return render(request, "bopo_admin/Superadmin/deduct_amount.html")
 
 def superadmin_functionality(request):
-    return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html')
+    plans = ModelPlan.objects.all()
+    return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html' , {'plans': plans})
  
 
 
@@ -3033,6 +3034,7 @@ def update_model_plan(request):
 
 def model_plan_list(request):
     plans = ModelPlan.objects.all()
+    print("Plans:", plans)  # Debugging log
     return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html', {'plans': plans})
 
 # def save_award_points(request):
@@ -3253,31 +3255,29 @@ def corporate_credentials(request):
 
 def corporate_add_merchant(request):
     if request.method == 'POST':
+        print('mobile' , request.POST.get('mobile'))
+        print('email' , request.POST.get('email'))
         user = request.user
-        try:
-            project_id = user.project_id  # Assuming this exists in the user model
-            corporate = Corporate.objects.get(project_id=project_id)
-        except (AttributeError, Corporate.DoesNotExist):
-            return JsonResponse({'success': False, 'message': 'Corporate project not found for this user.'})
-
+        corporate=Corporate.objects.get(id=user.corporate.id)  
         merchant = Merchant(
-            first_name=request.POST.get('first_name'),
-            last_name=request.POST.get('last_name'),
-            email=request.POST.get('email'),
-            mobile=request.POST.get('mobile'),
-            shop_name=request.POST.get('shop_name'),
-            legal_name=request.POST.get('legal_name'),
-            state=request.POST.get('state'),
-            city=request.POST.get('city'),
-            country=request.POST.get('country'),
-            pincode=request.POST.get('pincode'),
-            corporate_id=corporate.corporate_id,  # Save corporate_id as string
-            project_name=corporate,  # ✅ ForeignKey expects an object
-            aadhaar_number=request.POST.get('aadhaar_number'),
-            gst_number=request.POST.get('gst_number'),
-            pan_number=request.POST.get('pan_number'),
-            address=request.POST.get('address'),
-            user_type='corporate',
+        first_name=request.POST.get('first_name'),
+        last_name=request.POST.get('last_name'),
+        email=request.POST.get('email'),
+        mobile=request.POST.get('mobile'),
+        shop_name=request.POST.get('shop_name'),
+        legal_name=request.POST.get('legal_name'),
+        state=request.POST.get('state'),
+        city=request.POST.get('city'),
+        country=request.POST.get('country'),
+        pincode=request.POST.get('pincode'),
+        corporate_id=corporate.corporate_id,  # Save corporate_id as string
+        project_name=corporate,  
+        aadhaar_number=request.POST.get('aadhaar_number'),
+        gst_number=request.POST.get('gst_number'),
+        pan_number=request.POST.get('pan_number'),
+        address=request.POST.get('address'),
+        pin=request.POST.get('pin'),
+        user_type='corporate',
         )
         merchant.save()
 

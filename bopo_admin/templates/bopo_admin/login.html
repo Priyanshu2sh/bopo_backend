@@ -94,6 +94,22 @@
                 this.classList.add("fa-eye-slash");
             }
         });
+
+
+        // 👇 New script for changing labels based on user type
+    const userType = document.getElementById("user_type");
+    const usernameLabel = document.querySelector("label[for='username']");
+    const passwordLabel = document.querySelector("label[for='password']");
+
+    userType.addEventListener("change", function () {
+        if (this.value === "corporate_admin") {
+            usernameLabel.textContent = "Corporate ID";
+            passwordLabel.textContent = "PIN";
+        } else {
+            usernameLabel.textContent = "Username";
+            passwordLabel.textContent = "Password";
+        }
+    });
     </script>
 </body>
 </html>
