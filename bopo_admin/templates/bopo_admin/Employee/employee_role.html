@@ -56,20 +56,24 @@
                 
                 <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
                 <label for="merchant_send_credentials">Merchant Send Credentials</label>
-                
-                <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
-                <label for="merchant_limit">Merchant Limit</label>
 
-                <input type="checkbox" id="merchant_login" name="roles" value="Merchant Login Page-Info">
-                <label for="merchant_login">Merchant Login Page-Info</label>
+                <input type="checkbox" id="reduce_limit" name="roles" value="Reduce Limit">
+                <label for="reduce_limit">Requested Cash Out</label>
+
+                
+                {% comment %} <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
+                <label for="merchant_limit">Merchant Limit</label> {% endcomment %}
+
+                {% comment %} <input type="checkbox" id="merchant_login" name="roles" value="Merchant Login Page-Info">
+                <label for="merchant_login">Merchant Login Page-Info</label> {% endcomment %}
             </div>
 
             <div class="role-group">
                 <input type="checkbox" id="merchant_notification" name="roles" value="Merchant Send Notification">
                 <label for="merchant_notification">Merchant Send Notification</label>
 
-                <input type="checkbox" id="merchant_offers" name="roles" value="Merchant Received Offers">
-                <label for="merchant_offers">Merchant Received Offers</label>
+                {% comment %} <input type="checkbox" id="merchant_offers" name="roles" value="Merchant Received Offers">
+                <label for="merchant_offers">Merchant Received Offers</label> {% endcomment %}
 
                 <input type="checkbox" id="modify_customer" name="roles" value="Modify Customer Details">
                 <label for="modify_customer">Modify Customer Details</label>
@@ -79,12 +83,13 @@
 
                 <input type="checkbox" id="create_employee" name="roles" value="Create Employee">
                 <label for="create_employee">Create Employee</label>
+
+                <input type="checkbox" id="payment_details" name="roles" value="Payment Details">
+                <label for="payment_details">Top-Up Request</label>
             </div>
 
             <div class="role-group">    
-                <input type="checkbox" id="payment_details" name="roles" value="Payment Details">
-                <label for="payment_details">Payment Details</label>
-
+               
                 <input type="checkbox" id="account_info" name="roles" value="Account-Info">
                 <label for="account_info">Account-Info</label>
 

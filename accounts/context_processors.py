@@ -9,26 +9,30 @@
 from venv import logger
 from accounts.models import Corporate, Logo
 
-
 def logo_context(request):
     logo = None
     corporate = None
+
     if request.user.is_authenticated:
         logger.debug(f"User: {request.user}, Role: {request.user.role}")
-        if request.user.role == 'super_admin':
+
+        if request.user.role in ['super_admin', 'employee']:
             logo = Logo.objects.first()
+            logger.debug(f"Global logo fetched for {request.user.role}: {logo}")
+        
         elif request.user.role == 'corporate_admin':
             try:
-                # Ensure that user provides correct corporate_id format like 'CORP00021'
-                corporate_id = request.user.corporate_id  # Directly using the full corporate_id
+                corporate_id = request.user.corporate_id
                 corporate = Corporate.objects.get(id=corporate_id)
                 logger.debug(f"Corporate found: {corporate.project_name}, Logo: {corporate.logo}")
             except Corporate.DoesNotExist:
-                logger.warning(f"No corporate found for corporate_id: {request.user.corporate_id} - This could be a missing corporate entry in the database.")
+                logger.warning(f"No corporate found for corporate_id: {corporate_id}")
+
     return {
         'logo': logo,
         'corporate': corporate
     }
+
 
 # from accounts.models import Corporate, Logo
 

@@ -23,7 +23,7 @@
             {% endif %}
         </h4>
          {% endcomment %}
-         {% if request.user.role == 'super_admin' %}
+         {% if request.user.role == 'super_admin' or request.user.role == 'employee' %}
          <h4 style="margin-bottom: 50px;">
              {% if logo %}
                  <img id="logoImage" src="{{ logo.logo.url }}" alt="Logo"

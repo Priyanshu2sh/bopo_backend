@@ -3386,55 +3386,26 @@ def logo(request):
             return render(request, 'bopo_admin/base.html', {'corporate': corporate})
         except Corporate.DoesNotExist:
             return render(request, 'bopo_admin/base.html', {'error': 'Corporate not found'})
-    else:
-        logo = Logo.objects.first()  # Fallback for super admin
+    
+    elif request.user.role in ['super_admin', 'employee']:
+        logo = Logo.objects.first()
         return render(request, 'bopo_admin/base.html', {'logo': logo})
 
+
+    else:  # Fallback case
+        logo = Logo.objects.first()
+        return render(request, 'bopo_admin/base.html', {'logo': logo})
 
 
 def upload_logo(request):
     if request.method == 'POST' and request.FILES.get('logo'):
-        logo_file = request.FILES['logo']
-        logo_obj, _ = Logo.objects.get_or_create(id=1)  # Replace/update logo with id=1 (super admin logo)
-        logo_obj.logo = logo_file
-        logo_obj.save()
-        return JsonResponse({'success': True, 'url': logo_obj.logo.url})
+        if request.user.role in ['super_admin', 'employee']:  # Allow both roles to update
+            logo_file = request.FILES['logo']
+            logo_obj, _ = Logo.objects.get_or_create(id=1)  # Super admin logo
+            logo_obj.logo = logo_file
+            logo_obj.save()
+            return JsonResponse({'success': True, 'url': logo_obj.logo.url})
+    
     return JsonResponse({'success': False})
 
 
-# @login_required
-# def logo(request):
-#     # Try to get a user-specific logo
-#     user_logo = Logo.objects.filter(user=request.user).first()
-
-#     # If none, show shared default
-#     if not user_logo:
-#         user_logo = Logo.objects.filter(user__isnull=True).first()
-
-#     return render(request, 'base.html', {'logo': user_logo})
-
-
-# @login_required
-# def upload_logo(request):
-#     if request.method == 'POST' and request.FILES.get('logo'):
-#         # Only upload for this user, not the default
-#         logo_obj, created = Logo.objects.get_or_create(user=request.user)
-#         logo_obj.logo = request.FILES['logo']
-#         logo_obj.save()
-#         return JsonResponse({'status': 'success', 'url': logo_obj.logo.url})
-#     return JsonResponse({'status': 'failed'}, status=400)
-
-
-
-# def upload_logo(request):
-#     if request.method == "POST":
-#         corporate_id = request.POST.get("corporate_id")  # or however you identify the corporate
-#         logo_file = request.FILES.get("logo")
-
-#         if not corporate_id or not logo_file:
-#             return JsonResponse({"error": "Missing data"}, status=400)
-
-#         # Update only the logo field
-#         Corporate.objects.filter(id=corporate_id).update(logo=logo_file)
-
-#         return JsonResponse({"message": "Logo uploaded successfully"})
