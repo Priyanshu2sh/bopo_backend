@@ -349,174 +349,174 @@ function filterTable(tableId, searchBoxId) {
     }
 }
 
-function openEditModal(employeeId) {
-    fetch(`/bopo_admin/get-employee/${employeeId}/`)
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById("edit_employee_id").value = data.id;
-            document.getElementById("edit_employee_name").value = data.name;
-            document.getElementById("edit_email").value = data.email;
-            document.getElementById("edit_aadhaar").value = data.aadhaar;
-            document.getElementById("edit_address").value = data.address;
-            document.getElementById("edit_username").value = data.username;
-            document.getElementById("edit_password").value = data.password;
-            document.getElementById("edit_confirmPassword").value = data.password;
-            document.getElementById("edit_mobile").value = data.mobile;
-            document.getElementById("edit_pan").value = data.pan;
-            document.getElementById("edit_pincode").value = data.pincode;
+    function openEditModal(employeeId) {
+        fetch(`/bopo_admin/get-employee/${employeeId}/`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("edit_employee_id").value = data.id;
+                document.getElementById("edit_employee_name").value = data.name;
+                document.getElementById("edit_email").value = data.email;
+                document.getElementById("edit_aadhaar").value = data.aadhaar;
+                document.getElementById("edit_address").value = data.address;
+                document.getElementById("edit_username").value = data.username;
+                document.getElementById("edit_password").value = data.password;
+                document.getElementById("edit_confirmPassword").value = data.password;
+                document.getElementById("edit_mobile").value = data.mobile;
+                document.getElementById("edit_pan").value = data.pan;
+                document.getElementById("edit_pincode").value = data.pincode;
 
-                  // Load states
-                  const stateSelect = document.getElementById("edit_state");
-                  stateSelect.innerHTML = `<option value="">Select State</option>`;
-                  if (data.states && data.states.length > 0) {
-                      data.states.forEach(state => {
-                          const option = document.createElement("option");
-                          option.value = state.id;
-                          option.textContent = state.name;
-                          if (state.name === data.state) {
-                              option.selected = true;
-                          }
-                          stateSelect.appendChild(option);
-                      });
-                  } else {
-                      stateSelect.innerHTML = `<option value="">No states available</option>`;
-                  }
-      
-                  // Load cities based on selected state
-                  if (data.cities && data.cities.length > 0) {
-                      const citySelect = document.getElementById("edit_city");
-                      citySelect.innerHTML = `<option value="">Select City</option>`;
-                      data.cities.forEach(city => {
-                          const option = document.createElement("option");
-                          option.value = city.id;
-                          option.textContent = city.name;
-                          if (city.name === data.city) {
-                              option.selected = true;
-                          }
-                          citySelect.appendChild(option);
-                      });
-                  } else {
-                      document.getElementById("edit_city").innerHTML = `<option value="">No cities available</option>`;
-                  }
-      
-            // Display the modal
-            document.getElementById("editModal").style.display = "block";
-        });
-}
-
-function closeEditModal() {
-    document.getElementById("editModal").style.display = "none";
-}
-
-window.onclick = function(event) {
-    let modal = document.getElementById("editModal");
-    if (event.target == modal) {
-        closeEditModal();
-    }
-};
-
-
-function fetchStates() {
-    return fetch("/bopo_admin/get-states/")
-        .then(response => response.json())
-        .then(states => {
-            console.log(states);  // Check if states are being returned
-            const stateDropdown = document.getElementById("edit_state");
-            stateDropdown.innerHTML = '<option value="">Select State</option>';
-            states.forEach(state => {
-                let option = document.createElement("option");
-                option.value = state.id;
-                option.textContent = state.name;
-                stateDropdown.appendChild(option);
+                    // Load states
+                    const stateSelect = document.getElementById("edit_state");
+                    stateSelect.innerHTML = `<option value="">Select State</option>`;
+                    if (data.states && data.states.length > 0) {
+                        data.states.forEach(state => {
+                            const option = document.createElement("option");
+                            option.value = state.id;
+                            option.textContent = state.name;
+                            if (state.name === data.state) {
+                                option.selected = true;
+                            }
+                            stateSelect.appendChild(option);
+                        });
+                    } else {
+                        stateSelect.innerHTML = `<option value="">No states available</option>`;
+                    }
+        
+                    // Load cities based on selected state
+                    if (data.cities && data.cities.length > 0) {
+                        const citySelect = document.getElementById("edit_city");
+                        citySelect.innerHTML = `<option value="">Select City</option>`;
+                        data.cities.forEach(city => {
+                            const option = document.createElement("option");
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            if (city.name === data.city) {
+                                option.selected = true;
+                            }
+                            citySelect.appendChild(option);
+                        });
+                    } else {
+                        document.getElementById("edit_city").innerHTML = `<option value="">No cities available</option>`;
+                    }
+        
+                // Display the modal
+                document.getElementById("editModal").style.display = "block";
             });
-        });
-}
-
-function fetchCities(state) {
-    return fetch(`/bopo_admin/get-cities/${state}/`)
-        .then(res => res.json())
-        .then(cities => {
-            const cityDropdown = document.getElementById("edit_city");
-            cityDropdown.innerHTML = '<option value="">Select City</option>';
-            cities.forEach(city => {
-                let option = document.createElement("option");
-                option.value = city.id;
-                option.textContent = city.name;
-                cityDropdown.appendChild(option);
-            });
-        });
-}
-
-function togglePassword(id) {
-    const passwordInput = document.getElementById(id);
-    const icon = passwordInput.nextElementSibling.querySelector("i");
-
-    if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-        icon.classList.replace("fa-eye-slash", "fa-eye"); // switch to open eye
-    } else {
-        passwordInput.type = "password";
-        icon.classList.replace("fa-eye", "fa-eye-slash"); // switch to closed eye
-    }
-}
-
-
-document.getElementById("editEmployeeForm").addEventListener("submit", function (event) {
-    event.preventDefault();
-    const pwd = document.getElementById("edit_password").value;
-    const confirmPwd = document.getElementById("edit_confirmPassword").value;
-
-    if (pwd !== confirmPwd) {
-        document.getElementById("password-error").style.display = "block";
-        return;
-    } else {
-        document.getElementById("password-error").style.display = "none";
     }
 
-    const formData = new FormData(this);
+    function closeEditModal() {
+        document.getElementById("editModal").style.display = "none";
+    }
 
-    fetch("/bopo_admin/update-employee/", {
-        method: "POST",
-        body: formData,
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Server response:", data); // Check what data.message is
-    
-        if (data.status === "success")
-        {
-            showToast(data.message || "Employee updated successfully!", "success");
+    window.onclick = function(event) {
+        let modal = document.getElementById("editModal");
+        if (event.target == modal) {
             closeEditModal();
-            setTimeout(() => {
-                location.reload();
-            }, 3000);
-        } else {
-            showToast(data.message || "Employee updated successfully!", "success");
         }
-    })
-    
-    .catch(error => {
-        showToast("Error occurred: " + error.message, "error");
-    });
-});
+    };
 
 
+    function fetchStates() {
+        return fetch("/bopo_admin/get-states/")
+            .then(response => response.json())
+            .then(states => {
+                console.log(states);  // Check if states are being returned
+                const stateDropdown = document.getElementById("edit_state");
+                stateDropdown.innerHTML = '<option value="">Select State</option>';
+                states.forEach(state => {
+                    let option = document.createElement("option");
+                    option.value = state.id;
+                    option.textContent = state.name;
+                    stateDropdown.appendChild(option);
+                });
+            });
+    }
 
-function getCookie(name) {
-    let cookieValue = null;
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-        cookie = cookie.trim();
-        if (cookie.startsWith(name + '=')) {
-            cookieValue = decodeURIComponent(cookie.split('=')[1]);
-            break;
+    function fetchCities(state) {
+        return fetch(`/bopo_admin/get-cities/${state}/`)
+            .then(res => res.json())
+            .then(cities => {
+                const cityDropdown = document.getElementById("edit_city");
+                cityDropdown.innerHTML = '<option value="">Select City</option>';
+                cities.forEach(city => {
+                    let option = document.createElement("option");
+                    option.value = city.id;
+                    option.textContent = city.name;
+                    cityDropdown.appendChild(option);
+                });
+            });
+    }
+
+    function togglePassword(id) {
+        const passwordInput = document.getElementById(id);
+        const icon = passwordInput.nextElementSibling.querySelector("i");
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            icon.classList.replace("fa-eye-slash", "fa-eye"); // switch to open eye
+        } else {
+            passwordInput.type = "password";
+            icon.classList.replace("fa-eye", "fa-eye-slash"); // switch to closed eye
         }
     }
-    return cookieValue;
-}
+
+
+    document.getElementById("editEmployeeForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        const pwd = document.getElementById("edit_password").value;
+        const confirmPwd = document.getElementById("edit_confirmPassword").value;
+
+        if (pwd !== confirmPwd) {
+            document.getElementById("password-error").style.display = "block";
+            return;
+        } else {
+            document.getElementById("password-error").style.display = "none";
+        }
+
+        const formData = new FormData(this);
+
+        fetch("/bopo_admin/update-employee/", {
+            method: "POST",
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Server response:", data); // Check what data.message is
+        
+            if (data.status === "success")
+            {
+                showToast(data.message || "Employee updated successfully!", "success");
+                closeEditModal();
+                setTimeout(() => {
+                    location.reload();
+                }, 3000);
+            } else {
+                showToast(data.message || "Employee updated successfully!", "success");
+            }
+        })
+        
+        .catch(error => {
+            showToast("Error occurred: " + error.message, "error");
+        });
+    });
+
+
+
+    function getCookie(name) {
+        let cookieValue = null;
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.split('=')[1]);
+                break;
+            }
+        }
+        return cookieValue;
+    }
 
 
 function showToast(message, type) {

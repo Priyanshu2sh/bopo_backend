@@ -1,3 +1,4 @@
+
 {% extends "bopo_admin/base.html" %}
 
 {% block content %}
@@ -6,77 +7,6 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-
-
-<!-- DataTables & Buttons CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-<style>
-    /* Hide default DataTables search box */
-    div.dataTables_filter {
-        display: none !important;
-    }
-
-    /* Top controls styling */
-    .top-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-
-    .search-box {
-        padding: 6px 10px;
-        width: 250px;
-    }
-
-    #custom-buttons {
-        display: flex;
-        justify-content: flex-end;
-    }
-
-
-    /* Custom Pagination Styling (Like .pagination-controls) */
-    .dataTables_paginate {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-        margin-top: 20px;
-        flex-wrap: wrap;
-    }
-
-    .dataTables_paginate .paginate_button {
-        background: linear-gradient(135deg, #ff7b54, #ff4e00);
-        color: white;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        box-shadow: 0 4px 8px rgba(52, 49, 48, 0.3);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-    }
-
-    .dataTables_paginate .paginate_button:hover {
-        transform: translateY(-2px);
-        background: linear-gradient(135deg, #ff9a76, #ff6a2d);
-        box-shadow: 0 6px 12px rgba(41, 39, 38, 0.4);
-    }
-
-    .dataTables_paginate .paginate_button.current {
-        background: linear-gradient(135deg, #333, #111);
-        color: #fff;
-        font-weight: bold;
-        border: 2px solid #ff4e00;
-        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
-    }
- 
-</style>
 
 <div class="merchant-container">
     <div class="merchant-header">
@@ -96,12 +26,7 @@
                 <span>Corporate Merchants List</span>
             </label>
             <div class="merchant-table open">  <!-- Add 'open' class here -->
-               <!-- Custom Search & Column Toggle Button -->
-            <div class="top-controls">
-                <input type="text" class="search-box" id="search-customer" placeholder="Search merchants...">
-                <div id="custom-buttons"></div>
-            </div>
-
+                <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table', 'search-corporate')" placeholder="Search corporate merchants...">
                 <div class="table-wrapper">
                     <table id="corporate-table">
                         <thead>
@@ -113,7 +38,6 @@
                                 <th>Mobile Number</th>
                                 <th>Shop Name</th>
                                 <th>City</th>
-                                <th>BBP</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -128,12 +52,10 @@
                                     <td>{{ data.corporate.mobile }}</td>
                                     <td>{{ data.corporate.shop_name }}</td>
                                     <td>{{ data.corporate.city }}</td>
-                                    <td> </td>
                                     <td><label class="switch"><input type="checkbox" {% if data.corporate.verified_at %}checked{% endif %} data-id="{{ data.corporate.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ data.corporate.corporate_id }}', 'corporate')">✏️ Edit</button>
-
-                                    {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑️ Delete</button> {% endcomment %}
+                                        {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑️ Delete</button> {% endcomment %}
                                     </td>
                                 </tr>
                                 {% for merchant in data.merchants %}
@@ -145,11 +67,10 @@
                                     <td>{{ merchant.mobile }}</td>
                                     <td>{{ merchant.shop_name }}</td>
                                     <td>{{ merchant.city }}</td>
-                                    <th> </th>
                                     <td><label class="switch"><input type="checkbox" {% if merchant.verified_at %}checked{% endif %} data-id="{{ merchant.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal({{ merchant.id }}, 'merchant')">✏️ Edit</button>
-                                      {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button>  {% endcomment %}
+                                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button> 
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -159,56 +80,16 @@
           
                 
                 <!-- Pagination controls -->
-                {% comment %} <div id="pagination-controls" class="pagination-controls"></div> {% endcomment %}
+                <div id="pagination-controls" class="pagination-controls"></div>
 
             </div>
             </div>
         </div>
 
-
-
-<!-- DataTables & Buttons JS -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
-
-<script>
-    $(document).ready(function () {
-        const table = $('#corporate-table').DataTable({
-            dom: 'Bfrtip',
-            pageLength: 6,
-            paging: true,
-            lengthChange: false,
-            buttons: [
-                {
-                    extend: 'colvis',
-                    text: '<i class="fas fa-table"></i> Columns',
-                    className: 'btn btn-light',
-                    columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // explicitly list columns to be toggleable
-                }
-            ],
-            stripeClasses: []
-        });
-    
-        // Move buttons to the custom container
-        table.buttons().container().appendTo('#custom-buttons');
-    
-        // Custom search binding
-        $('#search-customer').on('keyup', function () {
-            table.search(this.value).draw();
-        });
-    });
-    
-    
-</script>
-
-
-
 <!-- Edit Merchant Modal -->
 <div id="editCorporateModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeEditModal()">&times;</span>
+        <span class="close" onclick="closeModal()">&times;</span>
         <h2 id="modalTitle">Edit Merchant</h2>
         <form id="editCorporateForm" method="POST">
             {% csrf_token %}
@@ -325,7 +206,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="addmerchant-btn-submit">Update</button>
+            <button type="submit" class="addmerchant-btn-submit">Submit</button>
         </form>
     </div>
 </div>
@@ -525,14 +406,13 @@
         return cookieValue;
     }
     
-
  function filterTable(tableId, searchBoxId) {
     let input = document.getElementById(searchBoxId);
     let filter = input.value.toLowerCase();
     let table = document.getElementById(tableId);
     let rows = table.getElementsByTagName("tr");
 
-    for (let i = 1; i < rows.length; i++) { 
+    for (let i = 1; i < rows.length; i++) { // Skip header row
         let rowText = rows[i].innerText.toLowerCase();
         if (rowText.includes(filter)) {
             rows[i].style.display = "";
@@ -611,7 +491,6 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
-
 // Helper to get CSRF token from cookie
 function getCookie(name) {
     let cookieValue = null;
@@ -671,7 +550,6 @@ function fetchCities(state) {
 }
 
 
-
 const rowsPerPage = 5;
 let currentPage = 1;
 
@@ -725,7 +603,6 @@ function paginateTable() {
     };
     paginationDiv.appendChild(nextButton);
 }
-
 
 </script>
     

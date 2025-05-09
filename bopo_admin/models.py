@@ -138,7 +138,8 @@ class UploadedFile(models.Model):
     ]
 
     file_type = models.CharField(max_length=50, choices=FILE_TYPE_CHOICES)
-    file = models.FileField(upload_to=' ')  # This will go to: /uploads/documents/
+    file = models.FileField(upload_to='uploads/documents/')
+
 
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
@@ -148,9 +149,11 @@ class UploadedFile(models.Model):
 class Notification(models.Model):
     project_id = models.CharField(max_length=20, null=True, blank=True)
     merchant_id = models.CharField(max_length=20, null=True, blank=True)
+    customer_id = models.CharField(max_length=20, null=True, blank=True)
     notification_type = models.CharField(max_length=255, null=True, blank=True)
     title = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -230,6 +233,9 @@ class DeductSetting(models.Model):
 
     def __str__(self):
         return f"Deduct {self.deduct_percentage}%"
+    
+
+    
 
 
     

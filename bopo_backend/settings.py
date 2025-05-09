@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 
     'qr_store', 
     'transfer',
+    'channels',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -93,21 +94,42 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'accounts.context_processors.logo_context',  
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'bopo_backend.wsgi.application'
+# WSGI_APPLICATION = 'bopo_backend.wsgi.application'
+ASGI_APPLICATION = "bopo_backend.asgi.application"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 8000)],    #6379
+        },
+    },
+}
 
-
+# Timezone settings
+USE_TZ = True  # This enables time zone support
+TIME_ZONE = 'Asia/Kolkata'  # Set your preferred timezone (replace if needed)
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # }
+    
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'my_django_db',
+        'USER': 'django_user',
+        'PASSWORD': 'NewPassword',
+        'HOST': 'localhost',  # Or IP if remote DB
+        'PORT': '3305',
     }
 }
 
@@ -160,8 +182,13 @@ STATICFILES_DIRS = [
 ]
 
 # Media files (Uploaded files)
-MEDIA_URL = '/uploads/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+# MEDIA_URL = '/uploads/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 
 # Default primary key field type
@@ -175,3 +202,4 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',  # Ensure this directory exists
 ]
+
