@@ -1,5 +1,6 @@
 import logging
 import string
+from turtle import home
 from unittest import result
 import requests
 from twilio.rest import Client
@@ -10,11 +11,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
 from django.shortcuts import get_object_or_404
+import base64
+from django.core.files.storage import default_storage
 from rest_framework import status
 from django.utils.timezone import now
 from bopo_backend import settings
 
-from .models import  Customer, Merchant, Terminal, User, Corporate
+from .models import  Customer, Logo, Merchant, Terminal, User, Corporate
 from .serializers import   CustomerSerializer, MerchantSerializer,  TerminalSerializer, UserSerializer
 
 
@@ -375,6 +378,21 @@ class RegisterUserAPIView(APIView):
 class LoginAPIView(APIView):
     """API for Customer, Merchant, and Terminal Login"""
     
+    def get_logo_base64(self, logo_instance):
+        try:
+            if logo_instance and logo_instance.logo:
+                # Open the logo file and read it as binary
+                with default_storage.open(logo_instance.logo.name, 'rb') as logo_file:
+                    logo_data = logo_file.read()
+                    
+                # Convert the binary data to base64
+                logo_base64 = base64.b64encode(logo_data).decode('utf-8')
+                
+                # Return the base64-encoded string prefixed with the appropriate image format
+                return f"data:logo/png;base64,{logo_base64}"  # Adjust format if needed (e.g., jpeg, svg)
+        except Exception as e:
+            return None
+    
     @staticmethod
     def is_customer_profile_complete(customer):
         required_fields = [
@@ -423,6 +441,11 @@ class LoginAPIView(APIView):
                 return Response({
                     "error": "Identifier, PIN, and user_category are required."
                 }, status=status.HTTP_400_BAD_REQUEST)
+                
+           
+            # Get logo URL
+            # logo_url = home(request)
+            # logo = ('logo.png') 
 
             response_data = {}
 
@@ -434,6 +457,16 @@ class LoginAPIView(APIView):
                     return Response({"error": "Customer not verified. Please verify OTP before logging in."}, status=status.HTTP_400_BAD_REQUEST)
                 if not user.pin or str(user.pin) != str(pin):
                     return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
+                
+                 # ----> Fetch latest logo object
+                logo_instance = Logo.objects.last()
+                user.logo = logo_instance  # Assign Logo ForeignKey
+                user.save(update_fields=["logo"])
+                
+                # ----> Return logo URL in response (if exists)
+                logo_url = request.build_absolute_uri(user.logo.logo.url) if user.logo and user.logo.logo else None
+                logo_base64 = self.get_logo_base64(logo_instance)
+                            
 
                 response_data = {
                     "message": "Login successful",
@@ -443,7 +476,9 @@ class LoginAPIView(APIView):
                     "pin": user.pin,
                     "user_category": "customer",
                     "customer_id": user.customer_id,
-                    "is_profile_updated": self.is_customer_profile_complete(user)
+                    "is_profile_updated": self.is_customer_profile_complete(user),
+                    "logo":logo_url,
+                    "logo_base64": logo_base64 
 
 
                 }
@@ -463,6 +498,17 @@ class LoginAPIView(APIView):
                 if not user.pin or str(user.pin) != str(pin):
                     return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
 
+                # ----> If logo is None, assign Logo(id=1)
+                if not user.logo:
+                    default_logo = Logo.objects.filter(id=1).first()
+                    if default_logo:
+                        user.logo = default_logo
+                        user.save(update_fields=["logo"])
+
+                # ----> Return logo URL and base64 (if exists)
+                logo_url = request.build_absolute_uri(user.logo.logo.url) if user.logo and user.logo.logo else None
+                logo_base64 = self.get_logo_base64(user.logo) if user.logo else None
+
                 response_data = {
                     "message": "Login successful",
                     "first_name": user.first_name,
@@ -471,8 +517,10 @@ class LoginAPIView(APIView):
                     "pin": user.pin,
                     "user_category": "merchant",
                     "merchant_id": user.merchant_id,
-                    "is_profile_updated" : self.is_merchant_profile_complete(user),
+                    "is_profile_updated": self.is_merchant_profile_complete(user),
                     "user_type": user.user_type,
+                    "logo": logo_url,
+                    "logo_base64": logo_base64
                 }
 
                 if user.user_type == "corporate":

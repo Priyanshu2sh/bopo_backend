@@ -21,7 +21,7 @@ from datetime import timedelta, date
     
 class CustomerPoints(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True )
     points = models.IntegerField()
     corporate_id = models.ForeignKey(Corporate, on_delete=models.CASCADE, null=True, blank=True)  # Reference to Corporate model
     terminal = models.ForeignKey(Terminal, on_delete=models.CASCADE, null=True, blank=True)
@@ -29,6 +29,9 @@ class CustomerPoints(models.Model):
 
     class Meta:
         unique_together = ('customer', 'merchant')  # Ensures unique customer-merchant pair
+        
+    class Meta:
+        unique_together = ('customer', 'corporate_id')  # Ensures unique customer-merchant pair
 
 class MerchantPoints(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
@@ -206,4 +209,18 @@ class SuperAdminPayment(models.Model):
     payment_method = models.CharField(max_length=50)
     cashout = models.ForeignKey(CashOut, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    
+class CorporateRedeem(models.Model):
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    points_redeemed = models.PositiveIntegerField()
+    deduction_percentage = models.IntegerField()
+    points_transferred = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Corporate Redeem Transaction"
+        verbose_name_plural = "Corporate Redeem Transactions"
+
 

@@ -16,8 +16,12 @@
 
     <div class="sidebar">
         <h4 style="margin-bottom: 50px;">
-            <img src="{% static 'bopo_admin/css/images/logo.png' %}" alt="Logo" style="height: 50px;  width: 200px; vertical-align: middle;">
-
+            {% if logo %}
+                <img src="{{ logo.logo.url }}" alt="Logo" style="height: 50px; width: 200px; vertical-align: middle;">
+            {% else %}
+                <!-- fallback static image -->
+                <img src="{% static 'bopo_admin/css/images/logo.png' %}" alt="Logo" style="height: 50px; width: 200px; vertical-align: middle;">
+            {% endif %}
         </h4>
         
         <a href="{% url 'home' %}" class="{% if request.path == 'home/' %}active{% endif %}">

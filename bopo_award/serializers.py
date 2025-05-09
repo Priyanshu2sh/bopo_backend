@@ -52,6 +52,13 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
         model = PaymentDetails
         fields = ['merchant', 'paid_amount', 'transaction_id', 'payment_mode', 'plan_type', 'created_at']
         
+    def validate(self, attrs):
+        # Check if plan_type is missing (null or None)
+        if not attrs.get('plan_type'):
+            raise serializers.ValidationError("You don't have any plan type or subscription.")
+        
+        return attrs
+        
 
 class BankDetailSerializer(serializers.ModelSerializer):
     """

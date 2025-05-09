@@ -145,7 +145,9 @@ class Merchant(models.Model):
     city = models.CharField(max_length=100)
     country = models.CharField(max_length=100, null=True, blank=True)
     pincode = models.IntegerField(null=True, blank=True)
-    corporate_id = models.CharField(max_length=20, null=True, blank=True)  # Add this field
+    # corporate_id = models.CharField(max_length=20, null=True, blank=True)  # Add this field
+    corporate = models.ForeignKey(Corporate, on_delete=models.CASCADE, null=True, blank=True, related_name='corporate_merchants') 
+    
     project_name = models.ForeignKey(Corporate, on_delete=models.SET_NULL, null=True)
 
 
@@ -182,6 +184,7 @@ class Customer(models.Model):
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(unique=False, null=True, blank=True)
+    logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='customer')
     is_profile_updated = models.BooleanField(default=False)
     mobile = models.CharField(max_length=15, unique=True)
     age = models.IntegerField(null=True, blank=True)
