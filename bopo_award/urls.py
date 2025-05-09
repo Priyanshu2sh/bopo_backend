@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AwardPointsAPIView,  BankDetailByUserAPIView, CheckPointsAPIView, CorporateProjectListAPIView, CustomerToCustomerTransferAPIView, HelpAPIView, MerchantCustomerPointsAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
+from .views import AwardPointsAPIView,  BankDetailByUserAPIView, CashOutCreateAPIView, CheckPointsAPIView, CorporateProjectListAPIView, CustomerCashOutAPIView, CustomerPointsForPrepaidMerchantsAPIView, CustomerToCustomerTransferAPIView, HelpAPIView, MerchantCashOutAPIView, MerchantCustomerPointsAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, TerminalCustomerPointsAPIView, TransferPointsMerchantToCustomerAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
 
 urlpatterns = [
     path('award/', AwardPointsAPIView.as_view(), name='award-points'),
@@ -14,9 +14,11 @@ urlpatterns = [
     path('customer/', CustomerMerchantPointsAPIView.as_view(), name='customer_merchant_points'),
     path('merchant/', MerchantCustomerPointsAPIView.as_view(), name='merchant_customer_points'),
     path('merchant/<str:merchant_id>/', MerchantPointsAPIView.as_view(), name='merchant_points'),
+     path('terminal-customer-points/', TerminalCustomerPointsAPIView.as_view(), name='terminal-customer-points'),
 
     path('payment-details/', PaymentDetailsListCreateAPIView.as_view(), name='payment-list-create'),
-    path('payment-details/<int:pk>/', PaymentDetailsRetrieveUpdateDestroyAPIView.as_view(), name='payment-detail'),
+    path('payment-details/<str:merchant_id>/', PaymentDetailsRetrieveUpdateDestroyAPIView.as_view(), name='payment-detail'),
+
 
     path("customer/profile/<str:customer_id>/", UpdateCustomerProfileAPIView.as_view()),
     path("merchant/profile/<str:merchant_id>/", UpdateMerchantProfileAPIView.as_view()),
@@ -27,7 +29,14 @@ urlpatterns = [
     
     path('help/', HelpAPIView.as_view(), name='help-api'),
     path('corporate-projects/', CorporateProjectListAPIView.as_view(), name='corporate-projects'),
-
+    
+    path('terminal-transfer-points/', TransferPointsMerchantToCustomerAPIView.as_view(), name='transfer-points'),
+    # GET API
+    path('customer-points/prepaid-merchants/', CustomerPointsForPrepaidMerchantsAPIView.as_view(), name='customer_points_prepaid_merchants'),
+    path('cashout/create/', CashOutCreateAPIView.as_view(), name='cashout-create'),
+    
+    path('customer/cashout/', CustomerCashOutAPIView.as_view(), name='customer-cashout'),
+    path('api/merchant/cashout/', MerchantCashOutAPIView.as_view(), name='merchant-cashout'),
 ]
 
 

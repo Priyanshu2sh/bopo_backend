@@ -85,12 +85,17 @@
     <div class="customer-header">
         <h2>Customer List</h2>
         <div class="customer-buttons">
+            {% if request.user.role == 'super_admin' %}
             <button class="add-customer-btn" onclick="window.location.href='{% url 'add_customer' %}'">
                 + Add Customer
             </button>
+            {% endif %}
+            {% if request.user.role == 'super_admin' or role_permissions.customer_send_notification == True %}
             <button class="send-customer-btn" onclick="window.location.href='{% url 'send_customer_notifications' %}'">
                 + Send Notifications
             </button>
+            {% endif %}
+         
         </div>
     </div>
 
@@ -319,13 +324,14 @@
         fetch(`/bopo_admin/get-customer/${customerId}/`)
             .then(response => response.json())
             .then(customer => {  // Remove the `async` here since `then` is asynchronous
-                // Set basic fields
+                
                 document.getElementById("edit_first_name").value = customer.first_name;
                 document.getElementById("edit_last_name").value = customer.last_name;
                 document.getElementById("edit_email").value = customer.email;
                 document.getElementById("edit_mobile").value = customer.mobile;
                 document.getElementById("edit_age").value = customer.age;
                 document.getElementById("edit_aadhaar").value = customer.aadhar_number;
+                document.getElementById("edit_pin").value = customer.pin;
                 document.getElementById("edit_address").value = customer.address;
                 document.getElementById("edit_pincode").value = customer.pincode;
                 document.getElementById("edit_gender").value = customer.gender;

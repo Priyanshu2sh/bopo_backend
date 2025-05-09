@@ -88,10 +88,12 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'bopo_admin.context_processors.employee_permissions',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'accounts.context_processors.logo_context',  
             ],
         },
     },
@@ -99,7 +101,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bopo_backend.wsgi.application'
 
-
+# Timezone settings
+USE_TZ = True  # This enables time zone support
+TIME_ZONE = 'Asia/Kolkata'  # Set your preferred timezone (replace if needed)
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -129,12 +133,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
+LOGIN_URL = '/login/'
 
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = "ACa5f9605964bb64815e9e9021dd64f48b"
-TWILIO_AUTH_TOKEN = "d485af5fc4629c4fe7e1995ca6dcd3b1"
-TWILIO_PHONE_NUMBER = "+19085830108"
+TWILIO_ACCOUNT_SID = "ACd8f432a19c3bc947d945a68b3237cc2f"
+TWILIO_AUTH_TOKEN = "a6e4f840b507985cca02dc9a90ab129c"
+TWILIO_PHONE_NUMBER = "+15086842698"
 
 
 # Internationalization
@@ -158,8 +163,13 @@ STATICFILES_DIRS = [
 ]
 
 # Media files (Uploaded files)
-MEDIA_URL = '/uploads/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+# MEDIA_URL = '/uploads/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 
 # Default primary key field type
@@ -173,3 +183,4 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',  # Ensure this directory exists
 ]
+

@@ -10,7 +10,7 @@ __pycache__/
 # Django-specific files
 media/
 staticfiles/
-db.sqlite3  # Ignore SQLite database file (if used locally)
+db.sqlite3
 
 # Ignore migrations if you prefer to generate them on the server
 */migrations/*

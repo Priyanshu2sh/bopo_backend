@@ -15,11 +15,11 @@
 
   <div class="merchant-select-row">
     <label for="merchant_id">Select Merchant ID:</label>
-    <select id="merchant_id" name="merchant_id">
-      <option value="">--Select Merchant ID--</option>
-      {% for merchant in merchants %}
-        <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }}</option>
-      {% endfor %}
+    <select name="merchant_id" id="merchant_id">
+        <option value="">-- Select Merchant --</option>
+        {% for merchant in merchants %}
+            <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }}</option>
+        {% endfor %}
     </select>
 
     <button id="add-terminal-btn" class="add-terminal-btn">
@@ -55,9 +55,10 @@
                 <label class="switch">
                     <input type="checkbox" onchange="toggleStatus({{ terminal.id }}, this)" {% if terminal.status == 'Active' %}checked{% endif %}>
                     <span class="slider round"></span>
+
+                    <span class="status-label {% if terminal.status == 'Active' %}text-success{% else %}text-danger{% endif %}" id="status-label-{{terminal.id }}"></span>
                 </label>
             </td>
-            {% comment %} <td>{{ terminal.status }}</td> {% endcomment %}
             <td>
                 <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="{{ terminal.id }}">✏️ Edit</button>
             </td>
@@ -69,6 +70,7 @@
 </div>
 
 <script>
+  // Toggle status of terminal
   function toggleStatus(terminalId, checkboxElement) {
     fetch(`/toggle-terminal-status/${terminalId}/`, {
         method: 'POST',
@@ -95,6 +97,7 @@
     });
   }
 
+  // Show toast notifications
   function showToast(message, type) {
     const toast = document.createElement('div');
     toast.classList.add('toast');
@@ -114,6 +117,7 @@
     }, 3000);
   }
 
+  // Handle merchant selection and display terminals
   document.getElementById('merchant_id').addEventListener('change', function() {
     var merchantId = this.value;
 
@@ -137,7 +141,6 @@
                 </td>
               `;
               tableBody.appendChild(row);
-
             });
 
             document.getElementById('empty-state').style.display = 'none';
@@ -153,6 +156,7 @@
     }
   });
 
+  // Handle Add Terminal button click
   document.getElementById('add-terminal-btn').addEventListener('click', function() {
     var merchantId = document.getElementById('merchant_id').value;
 
@@ -163,7 +167,7 @@
           'Content-Type': 'application/json',
           'X-CSRFToken': getCSRFToken(),
         },
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       })
       .then(response => response.json())
       .then(data => {
@@ -265,5 +269,4 @@
     return cookieValue;
   }
 </script>
-
 {% endblock %}

@@ -3,6 +3,9 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/payment_details.css' %}">
 
+<!-- Font Awesome CDN (add this if not already included in your base.html) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <div class="payment_details-container">
     <div class="payment_details-back-to-list-btn">
         <a href="{% url 'employee_list' %}" class="send_credentials-add_individual_merchant-btn-submit">
@@ -11,12 +14,12 @@
     </div>
 
     <div class="payment_details-header">
-        <h2>Top-Up Request </h2>
+        <h2>Top-Up Request</h2>
     </div>
 
     <div class="payment_details-list">
         <div class="payment_details-table">
-            <input type="text" class="search-box" id="search-payment-details" onkeyup="filterTable('payment-table', 'search-payment-details')" placeholder="Search by MID, Project Name, Contact Person, Mobile Number, Paid Amount, Top-Up, Date, Payment Method...">
+            <input type="text" class="search-box" id="search-payment-details" onkeyup="filterTable('payment-table', 'search-payment-details')" placeholder="Search...">
             <table id="payment-table">
                 <thead>
                     <tr>
@@ -27,6 +30,7 @@
                         <th>Top-Up</th>
                         <th>Date</th>
                         <th>Payment Method</th>
+                        <th>Plan Type</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -34,19 +38,55 @@
                     {% for payment in topups %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
+                        {% if payment.merchant %}
                         <td>{{ payment.merchant.first_name }} {{ payment.merchant.last_name }}</td>
                         <td>{{ payment.merchant.mobile }}</td>
                         <td>{{ payment.paid_amount }}</td>
-                        <td>-</td> <!-- Adjust if you later add topup points -->
+                        <td>{{ payment.topup_amount }}</td>  <!-- for Top-Up -->
                         <td>{{ payment.created_at|date:"Y-m-d" }}</td>
                         <td>{{ payment.payment_mode }}</td>
+                        {% if payment.plan_type == "rental" %}
+                            <td>Rental</td>
+                            {% elif payment.plan_type == "prepaid" %}
+                            <td>Prepaid</td>
+                        {% else %}
+                            <td>Unknown</td>
+                        {% endif %}
+                        
+                       
+
+
+                        {% elif payment.customer %}
+                        <td>{{ payment.customer.first_name }} {{ payment.customer.last_name }}</td>
+                        <td>{{ payment.customer.mobile }}</td>
+                        <td>{{ payment.paid_amount }}</td>
+                        <td>{{ payment.topup_amount }}</td>
+                        <td>{{ payment.created_at|date:"Y-m-d" }}</td>
+                        <td>{{ payment.payment_mode }}</td>
+                        {% if payment.plan_type == "rental" %}
+                            <td>Rental</td>
+                        {% elif payment.plan_type == "prepaid" %}
+                            <td>Prepaid</td>
+                            {% else %}
+                            <td>Unknown</td>
+                        {% endif %}
+
+                        {% else %}
+                            <td colspan="8">No data available</td>
+                        {% endif %}
                         <td>
-                            <button class="btn btn-sm btn-warning">Top-Up</button>
+                            <button class="btn btn-sm btn-success" onclick="showApproveModal('{{ payment.id }}', '{{ payment.plan_type }}')">
+                                <i class="fas fa-check-circle"></i> Approve
+                            </button>
+                            
+                            <button class="btn btn-sm btn-danger" onclick="showRejectModal('{{ payment.id }}')">
+                                <i class="fas fa-times-circle"></i> Reject
+                            </button>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8">No payment records found.</td>
+                        <td colspan="9">No payment records found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -55,7 +95,109 @@
     </div>
 </div>
 
+<!-- Modal for Approve Confirmation -->
+<div id="approveModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <span class="close" onclick="closeModal('approveModal')">&times;</span>
+        <h3 id="confirmationMessage">Do you want to approve this payment?</h3>
+        <div class="custom-modal-buttons">
+            <button id="approveConfirmBtn" class="custom-btn green-btn">Yes, Approve</button>
+            <button class="custom-btn red-btn" onclick="closeModal('approveModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal for Reject Confirmation -->
+<div id="rejectModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <span class="close" onclick="closeModal('rejectModal')">&times;</span>
+        <h3 id="confirmationMessage">Do you want to reject this<br>payment?</h3>
+        <div class="custom-modal-buttons">
+            <button id="rejectConfirmBtn" class="custom-btn green-btn">Yes, Reject</button>
+            <!-- Apply the new class here -->
+            <button class="custom-btn red-btn" onclick="closeModal('rejectModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Rental Plan Validity -->
+<div id="rentalValidityModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <span class="close" onclick="closeModal('rentalValidityModal')">&times;</span>
+        <h3 id="confirmationMessage">Enter Rental Plan Validity<br> (in days):</h3>
+        <input type="number" id="rentalValidityInput" min="1" placeholder="e.g. 30" class="validity-input" />
+        <div class="custom-modal-buttons">
+            <button id="rentalApproveConfirmBtn" class="custom-btn green-btn">Approve</button>
+            <button class="custom-btn red-btn" onclick="closeModal('rentalValidityModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Toast container -->
+<div id="toast-container" class="toast-container">
+    <i id="toast-icon" class=""></i>
+    <span id="toast-message"></span>
+</div>
+
+
 <script>
+    function showApproveModal(paymentId, planType) {
+        console.log("Plan Type:", planType);  // <-- Add this
+    
+        if (planType === "rental") {
+            document.getElementById("rentalValidityModal").style.display = "flex";
+            document.getElementById("rentalApproveConfirmBtn").onclick = function () {
+                let validity = document.getElementById("rentalValidityInput").value;
+                if (!validity || parseInt(validity) <= 0) {
+                    alert("Please enter a valid number of days.");
+                    return;
+                }
+                approvePayment(paymentId, "rental", validity);
+            };
+        } else {
+            document.getElementById('approveConfirmBtn').onclick = function () {
+                approvePayment(paymentId, "prepaid");
+            };
+            document.getElementById('approveModal').style.display = "flex";
+        }
+    }
+    
+    // Function to open the reject modal
+    function showRejectModal(paymentId) {
+        // Set the payment ID to a hidden variable or pass it to your backend
+        document.getElementById('rejectConfirmBtn').onclick = function() {
+            rejectPayment(paymentId);
+        };
+        
+        document.getElementById('rejectModal').style.display = "flex";
+    }
+
+    // Function to close the modal
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+    }
+
+    // Function to approve the payment (you can modify this to call an API or handle approval logic)
+    function approvePayment(paymentId) {
+        // Here, you can send the paymentId to the server to mark the payment as approved
+        console.log("Payment Approved: " + paymentId);
+
+        // After approval, close the modal
+        closeModal('approveModal');
+    }
+
+    // Function to reject the payment (you can modify this to call an API or handle rejection logic)
+    function rejectPayment(paymentId) {
+        // Here, you can send the paymentId to the server to mark the payment as rejected
+        console.log("Payment Rejected: " + paymentId);
+
+        // After rejection, close the modal
+        closeModal('rejectModal');
+    }
+
+    // Function to filter the table based on search input
     function filterTable(tableId, searchBoxId) {
         let input = document.getElementById(searchBoxId);
         let filter = input.value.toLowerCase();
@@ -77,5 +219,80 @@
             rows[i].style.display = rowMatch ? "" : "none";
         }
     }
+
+
+// Function to approve the payment
+
+function approvePayment(paymentId, planType, validity = null) {
+    let bodyData = "payment_id=" + encodeURIComponent(paymentId) +
+                   "&action=approve" +
+                   (planType === "rental" ? "&validity=" + encodeURIComponent(validity) : "");
+
+    fetch("{% url 'payment_details' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: bodyData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(error => console.error("Error approving payment:", error));
+
+    closeModal('approveModal');
+    closeModal('rentalValidityModal');
+}
+// Function to reject the payment
+function rejectPayment(paymentId) {
+    fetch("{% url 'payment_details' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: "payment_id=" + encodeURIComponent(paymentId) + "&action=reject"  // Pass action as 'reject'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload(); // Reload to reflect changes
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(error => console.error("Error rejecting payment:", error));
+
+    closeModal('rejectModal');
+}
+
+
+// CSRF Token helper function
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 </script>
+
+
+
 {% endblock %}

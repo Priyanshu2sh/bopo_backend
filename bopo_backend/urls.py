@@ -31,4 +31,5 @@ urlpatterns = [
     path('bopo_admin/', include('bopo_admin.urls')), 
 
 
+   
 ]

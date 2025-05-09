@@ -3,14 +3,6 @@
 {% block content %}
 
 <link rel="stylesheet" href="{% static 'bopo_admin/css/reduce_limit.css' %}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Select2 -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<!-- DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
 
@@ -69,85 +61,96 @@
         border: 2px solid #ff4e00;
         box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
     }
-
 </style>
 
-<div class="customer-container">
-    <div class="customer-header">
+<div class="send-notification-container">
+    <div class="send-notification-header">
         <h2>Requested Cash-Out Amount (BBP)</h2>
-        <div class="customer-buttons"></div>
     </div>
 
-    <div class="customer-list">
-        <div class="customer-table">
-            <div class="top-controls">
-                <input type="text" class="search-box" id="search-customer" placeholder="Search ...">
-                <div id="custom-buttons"></div>
-            </div>
+<!-- MERCHANT SECTION -->
+<div class="send-notification-item">
+    <input type="checkbox" id="toggle-all-merchants" class="toggle-checkbox">
+    <label for="toggle-all-merchants" class="send-notification-label">
+        <span class="send-notification-icon">🏢</span>
+        <span>Merchant</span>
+    </label>
 
-            <table id="customer-table" class="display" style="width:100%">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Merchant ID</th>
-                        <th>Contact Person</th>
-                        <th>Mobile Number</th>
-                        <th>Request Amount (BBP)</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>MID100001</td>
-                        <td>Shrutika Desai</td>
-                        <td>99999999999</td>
-                        <td>100</td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span class="slider round"></span>
-                            </label>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-success" onclick="openCashOutModal(1)">💸 Cash Out</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <div class="send-notification-form">
+        <div class="customer-list">
+            <div class="customer-table">
+                <div class="top-controls">
+                    <input type="text" class="search-box" id="search-merchant" placeholder="Search Merchant...">
+                    <div id="custom-buttons-merchant"></div>
+                </div>
+
+                <table id="merchant-table" class="display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Merchant ID</th>
+                            <th>Contact Person</th>
+                            <th>Mobile Number</th>
+                            <th>Requested Amount (BBP)</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cash_out in merchant_cash_outs %}
+                            {% if cash_out.merchant %} 
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{cash_out.merchant.merchant_id}}</td>
+                                <td>{{cash_out.merchant.first_name}} {{cash_out.merchant.last_name}}</td>
+                                <td>{{cash_out.merchant.mobile}}</td>
+                                <td>{{cash_out.amount}}</td>
+                                <td>
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider round"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-success open-merchant-modal-btn" data-id="{{ cash_out.id }}">💸 Cash Out</button>
+
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                    
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Cash Out Modal -->
-<!-- Modal Structure -->
-<div class="modal-container" id="cashOutModal">
+<!-- MERCHANT MODAL -->
+<div class="modal-container" id="merchantCashOutModal" style="display: none;">
     <div class="modal-content-box">
-        <span class="modal-close-btn" onclick="closeCashOutModal()">&times;</span>
+        <span class="modal-close-btn" onclick="closeMerchantCashOutModal()">&times;</span>
         <div class="modal-header">Payment Details</div>
 
         <div class="input-group">
-            <label for="transactionId">Transaction ID</label>
-            <input type="text" id="transactionId" class="input-field" placeholder="Enter Transaction ID">
+            <label for="merchantTransactionId">Transaction ID</label>
+            <input type="text" id="merchantTransactionId" class="input-field" placeholder="Enter Transaction ID">
         </div>
 
         <div class="input-group">
-            <label for="paymentMethod">Payment Method</label>
-            <select id="paymentMethod" class="input-field">
+            <label for="merchantPaymentMethod">Payment Method</label>
+            <select id="merchantPaymentMethod" class="input-field">
                 <option value="">Select</option>
-                 <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Bank Transfer">Bank Transfer</option>
                 <option value="UPI">UPI</option>
                 <option value="Credit Card">Credit Card</option>
                 <option value="Debit Card">Debit Card</option>
-                      
             </select>
         </div>
-        
 
         <div class="input-group">
-            <label for="paymentDate">Payment Date</label>
-            <input type="date" id="paymentDate" class="input-field">
+            <label for="merchantPaymentDate">Payment Date</label>
+            <input type="date" id="merchantPaymentDate" class="input-field">
         </div>
 
         <button class="btn-save" onclick="submitCashOut()">Save</button>
@@ -155,18 +158,155 @@
 </div>
 
 
-<!-- Toast -->
-<div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
-    <i class="fa fa-exclamation-circle"></i>
-    <span class="toast-message">{{ message }}</span>
+        <!-- Toast -->
+        <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+            <i class="fa fa-exclamation-circle"></i>
+            <span class="toast-message">{{ message }}</span>
+        </div>
+
+        <!-- Customer Notification Section -->
+        <div class="send-notification-item">
+            <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
+            <label for="toggle-single-customer" class="send-notification-label">
+                <span class="send-notification-icon">👤</span>
+                <span> Customer</span>
+            </label>
+
+            <div class="send-notification-form">
+                <div class="customer-list">
+                    <div class="customer-table">
+                        <div class="top-controls">
+                            <input type="text" class="search-box" id="search-customer" placeholder="Search ...">
+                            <div id="custom-buttons"></div>
+                        </div>
+
+                        <table id="customer-table" class="display" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Customer ID</th>
+                                    <th>Contact Person</th>
+                                    <th>Mobile Number</th>
+                                    <th>Requested Amount (BBP)</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                         
+                            </thead>
+                            <tbody>
+                                {% for cash_out in customer_cash_outs %}
+                                    {% if cash_out.customer %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ cash_out.customer_id }}</td>
+                                            <td>{{ cash_out.customer.first_name }} {{ cash_out.customer.last_name }}</td>
+                                            <td>{{ cash_out.customer.mobile }}</td>
+                                            <td>{{ cash_out.amount }}</td>
+                                            <td>
+                                                <label class="switch">
+                                                    <input type="checkbox" {% if cash_out.status == 'Active' %}checked{% endif %}>
+                                                    <span class="slider round"></span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-success open-modal-btn" data-id="{{ cash_out.id }}">💸 Cash Out</button>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                            
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+     <!-- Modal -->
+     <div class="modal-container" id="cashOutModal" style="display: none;">
+        <div class="modal-content-box">
+            <span class="modal-close-btn" onclick="closeCashOutModal()">&times;</span>
+            <div class="modal-header">Payment Details</div>
+
+            <div class="input-group">
+                <label for="transactionId">Transaction ID</label>
+                <input type="text" id="transactionId" class="input-field" placeholder="Enter Transaction ID">
+            </div>
+
+            <div class="input-group">
+                <label for="paymentMethod">Payment Method</label>
+                <select id="paymentMethod" class="input-field">
+                    <option value="">Select</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Debit Card">Debit Card</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="paymentDate">Payment Date</label>
+                <input type="date" id="paymentDate" class="input-field">
+            </div>
+
+            <button class="btn-save" onclick="submitCashOut()">Save</button>
+        </div>
+    </div>
+
+        </div>
+    </div>
 </div>
 
-<!-- Scripts -->
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
+
+
+
 <script>
+
+    const merchantTable = $('#merchant-table').DataTable({
+        dom: 'Bfrtip',
+        pageLength: 6,
+        lengthChange: false,
+        buttons: [
+            {
+                extend: 'colvis',
+                text: '<i class="fas fa-table"></i>',
+                className: 'btn btn-light'
+            }
+        ],
+        stripeClasses: []
+    });
+    
+    merchantTable.buttons().container().appendTo('#custom-buttons-merchant');
+    
+    $('#search-merchant').on('keyup', function () {
+        merchantTable.search(this.value).draw();
+    });
+
+    $('.open-merchant-modal-btn').click(function () {
+        const id = $(this).data('id');
+        openMerchantCashOutModal(id);
+    });
+    
+  
+
+    
+    function closeCashOutModal() {
+        $('#cashOutModal').fadeOut();
+    }
+    
+    function showToast(message) {
+        const toast = $('#toast');
+        toast.find('.toast-message').text(message);
+        toast.addClass('toast-show');
+        setTimeout(() => toast.removeClass('toast-show'), 3000);
+    }
+    
+    
     $(document).ready(function () {
         const table = $('#customer-table').DataTable({
             dom: 'Bfrtip',
@@ -188,36 +328,184 @@
             table.search(this.value).draw();
         });
 
-      
+        // Modal open logic
+        $('.open-modal-btn').click(function () {
+            const id = $(this).data('id');
+            openCashOutModal(id);
+        });
     });
 
     function openCashOutModal(id) {
+        console.log("Opening Cash Out Modal for ID:", id);
         $('#cashOutModal').fadeIn();
     }
-    
+
     function closeCashOutModal() {
         $('#cashOutModal').fadeOut();
     }
+
+
+
     
+    // Toggle section logic
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
+
+        toggleCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener("change", function () {
+                const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
+
+                // Close all others
+                document.querySelectorAll(".send-notification-form").forEach((otherForm) => {
+                    if (otherForm !== form) {
+                        otherForm.style.display = "none";
+                        otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
+                    }
+                });
+
+                form.style.display = this.checked ? "block" : "none";
+            });
+        });
+
+        // Hide all initially
+        document.querySelectorAll(".send-notification-form").forEach((form) => {
+            form.style.display = "none";
+        });
+    });
+
+
+    $(document).ready(function () {
+        $('#merchantTable').DataTable();
+        $('#customerTable').DataTable();
+
+        $('.open-modal-btn').click(function () {
+            const id = $(this).data('id');
+            $('#cashOutModal').data('cashOutId', id).fadeIn();
+        });
+
+        $('.open-merchant-modal-btn').click(function () {
+            const id = $(this).data('id');
+            openMerchantCashOutModal(id);
+        });
+    });
+
+    function closeCashOutModal() {
+        $('#cashOutModal').fadeOut();
+    }
+
+    function openMerchantCashOutModal(id) {
+        console.log("Opening Merchant Modal for ID:", id);
+        $('#merchantCashOutModal').data('cashOutId', id).fadeIn();
+        $('#merchantTransactionId').val('');
+        $('#merchantPaymentMethod').val('');
+        $('#merchantPaymentDate').val('');
+    }
+
+    function closeMerchantCashOutModal() {
+        $('#merchantCashOutModal').fadeOut();
+    }
+
     function submitCashOut() {
-        const transactionId = $('#transactionId').val();
-        const paymentMethod = $('#paymentMethod').val();
-        const paymentDate = $('#paymentDate').val();
+        const isMerchant = $('#merchantCashOutModal').is(':visible');
+        let id, transactionId, paymentMethod, paymentDate;
+
+        if (isMerchant) {
+            id = $('#merchantCashOutModal').data('cashOutId');
+            transactionId = $('#merchantTransactionId').val();
+            paymentMethod = $('#merchantPaymentMethod').val();
+            paymentDate = $('#merchantPaymentDate').val();
+        } else {
+            id = $('#cashOutModal').data('cashOutId');
+            transactionId = $('#transactionId').val();
+            paymentMethod = $('#paymentMethod').val();
+            paymentDate = $('#paymentDate').val();
+        }
+
+        console.log("Submitting for ID:", id);
+        console.log("Transaction ID:", transactionId);
+        console.log("Payment Method:", paymentMethod);
+        console.log("Payment Date:", paymentDate);
+
+        // TODO: Use AJAX to send this data to your Django view
+
+        if (isMerchant) {
+            closeMerchantCashOutModal();
+        } else {
+            closeCashOutModal();
+        }
+
+        // Show toast message
+        $('#toast .toast-message').text("Payment submitted successfully!");
+        $('#toast').addClass('toast-show');
+
+        setTimeout(() => {
+            $('#toast').removeClass('toast-show');
+
+        }, 3000);
+    }
+
+    function submitCashOut() {
+        const isMerchant = $('#merchantCashOutModal').is(':visible');
+        let id, transactionId, paymentMethod;
     
-        if (!transactionId || !paymentMethod || !paymentDate) {
-            alert("Please fill in all fields.");
-            return;
+        if (isMerchant) {
+            id = $('#merchantCashOutModal').data('cashOutId');
+            transactionId = $('#merchantTransactionId').val();
+            paymentMethod = $('#merchantPaymentMethod').val();
+        } else {
+            id = $('#cashOutModal').data('cashOutId');
+            transactionId = $('#transactionId').val();
+            paymentMethod = $('#paymentMethod').val();
         }
     
-        // Add your AJAX or form submission logic here
-        console.log("Submitted Cash Out Data:", {
-            transactionId, paymentMethod, paymentDate
+        fetch('/save-cash-out/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                cashout_id: id,
+                transaction_id: transactionId,
+                payment_method: paymentMethod
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast("Payment saved successfully!");
+            } else {
+                showToast("Error: " + data.message);
+            }
+        })
+        .catch(err => {
+            showToast("Error: " + err.message);
         });
     
-        closeCashOutModal();
+        if (isMerchant) {
+            closeMerchantCashOutModal();
+        } else {
+            closeCashOutModal();
+        }
     }
     
-</script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    
 
+</script>
 
 {% endblock %}

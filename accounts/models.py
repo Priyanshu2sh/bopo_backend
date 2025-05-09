@@ -6,6 +6,8 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
+from bopo_admin.models import BopoAdmin
+
 
 
 User = get_user_model()  
@@ -41,6 +43,9 @@ class Corporate(models.Model):
     answer = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     verified_at = models.DateTimeField(null=True, blank=True)
+    logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='corporates')
+
+
     
     STATUS_CHOICES = [
         ('Active', 'Active'),
@@ -73,6 +78,11 @@ class Merchant(models.Model):
         ('News Paper', 'News Paper'),
         ('Other', 'Other'),
     ]
+    
+    # PLAN_CHOICES = [
+    #     ('prepaid', 'Prepaid'),
+    #     ('rental', 'Rental'),
+    # ]
    
     
     # merchant_admin = models.ForeignKey(
@@ -88,7 +98,15 @@ class Merchant(models.Model):
         choices=USER_TYPE_CHOICES,
         default='individual'
     )
+    
+    
+    
     merchant_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
+    PLAN_CHOICES = [
+        ('prepaid', 'Prepaid'),
+        ('rental', 'Rental'),
+    ]
+    plan_type = models.CharField(max_length=20, choices=PLAN_CHOICES, default='prepaid')
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(unique=False, null=True, blank=True)
@@ -99,6 +117,7 @@ class Merchant(models.Model):
     age = models.IntegerField(blank=True, null=True)
     reference = models.CharField(max_length=200, choices=REFERENCE_CHOICES, null=True, blank=True)
     employee_id = models.ForeignKey('bopo_admin.Employee', to_field='employee_id', on_delete=models.CASCADE, null=True, blank=True)
+    # plan_type = models.CharField(max_length=255, null=True, blank=True, choices=PLAN_CHOICES,  help_text='Select plan type: Prepaid or Rental')
     shop_name = models.CharField(max_length=255, null=True, blank=True)
     legal_name = models.CharField(max_length=255, blank=True, null=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
@@ -126,6 +145,7 @@ class Merchant(models.Model):
     pincode = models.IntegerField(null=True, blank=True)
     corporate_id = models.CharField(max_length=20, null=True, blank=True)  # Add this field
     project_name = models.ForeignKey(Corporate, on_delete=models.SET_NULL, null=True)
+    logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
 
 
     def __str__(self):
@@ -180,6 +200,7 @@ class Customer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     verified_at = models.DateTimeField(null=True, blank=True) 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
+    logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='customer')
 
     def save(self, *args, **kwargs):
         if not self.customer_id:
@@ -204,3 +225,20 @@ class SecurityQue(models.Model):
         return self.security_question
 
   
+
+
+# class Logo(models.Model):
+#     logo = models.ImageField(upload_to='logos/')
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return f"Logo {self.id}"
+
+
+class Logo(models.Model):
+   
+    logo = models.ImageField(upload_to='logos/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+         return f"Logo {self.id}"
