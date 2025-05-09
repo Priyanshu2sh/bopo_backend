@@ -138,7 +138,8 @@ class UploadedFile(models.Model):
     ]
 
     file_type = models.CharField(max_length=50, choices=FILE_TYPE_CHOICES)
-    file = models.FileField(upload_to=' ')  # This will go to: /uploads/documents/
+    file = models.FileField(upload_to='uploads/documents/')
+
 
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

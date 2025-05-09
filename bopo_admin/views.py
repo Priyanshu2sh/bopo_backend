@@ -2,6 +2,7 @@ from datetime import date, datetime, timezone
 from io import BytesIO
 import json
 import os
+import os
 import random
 import string
 from tkinter.font import Font
@@ -22,6 +23,7 @@ from datetime import datetime
 
 
 from accounts import models
+from accounts.models import Corporate, Customer, Logo, Terminal
 from accounts.models import Corporate, Customer, Logo, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
@@ -543,11 +545,14 @@ from django.http import JsonResponse
 import random
 import string
 
+
+
 def add_merchant(request):
     if request.method == "POST":
         try:
             is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
+            # Extract form data
             select_project = request.POST.get("select_project")
             project_type = request.POST.get("project_type")
             project_name = request.POST.get("project_name", "")
@@ -569,9 +574,16 @@ def add_merchant(request):
             state = State.objects.get(id=state_id)
             city = City.objects.get(id=city_id)
 
+            logo_file = request.FILES.get("logo")
+            logo_instance = None
+
+            if logo_file:
+                print("Logo file received:", logo_file.name)  # Debugging line
+                logo_instance = Logo.objects.create(logo=logo_file)
+                print("Logo saved:", logo_instance.logo.url)  # Debugging line
 
 
-            # ✅ Unique field checks
+            # Unique field checks for email, mobile, Aadhaar number, etc.
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
                 message = "Email is already registered."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
@@ -584,26 +596,24 @@ def add_merchant(request):
                 message = "Aadhaar number is already registered."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
-            # if Merchant.objects.filter(pan_number=pan).exists():
-            #     message = "PAN number is already registered."
-            #     return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
-
-            # ✅ Corporate ID
+            # Corporate ID Generation Logic
             last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
             new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
             corporate_id = f"CORP{new_corporate_id:06d}"
 
+            # Handling Existing Project
             if project_type == "Existing Project" and select_project:
                 corporate = Corporate.objects.get(id=select_project)
                 project_name = corporate.project_name
                 project_id = corporate.project_id
 
-                # ✅ Merchant ID
+                # Merchant ID Generation
                 project_abbr = project_name[:4].upper()
                 random_number = ''.join(random.choices(string.digits, k=11))
                 merchant_id = f"{project_abbr}{random_number}"
 
-                Merchant.objects.create(
+                # Create the Merchant instance
+                merchant = Merchant.objects.create(
                     user_type='corporate',
                     merchant_id=merchant_id,
                     first_name=first_name,
@@ -622,24 +632,16 @@ def add_merchant(request):
                     city=city,
                     country=country,
                     corporate_id=corporate.corporate_id,
-                    project_name=corporate
-                    
+                    project_name=corporate,
+                    logo=logo_instance  # Associate the logo with the merchant
                 )
 
-                merchant= Merchant.objects.get(merchant_id=merchant_id)
-                
-                
-               # ✅ Generate Terminal ID and TID PIN
-                def generate_terminal_id():
-                    return "TID" + ''.join(random.choices(string.digits, k=8))
+                merchant = Merchant.objects.get(merchant_id=merchant_id)
 
-                terminal_id = generate_terminal_id()
-                while Terminal.objects.filter(terminal_id=terminal_id).exists():
-                    terminal_id = generate_terminal_id()
-
+                # Terminal Generation Logic
+                terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
                 tid_pin = random.randint(1000, 9999)
 
-                # ✅ Save terminal info
                 Terminal.objects.create(
                     terminal_id=terminal_id,
                     tid_pin=tid_pin,
@@ -647,10 +649,12 @@ def add_merchant(request):
                 )
 
             elif project_type == "New Project":
+                # Create New Project and Corporate Instance
                 if not project_name:
                     message = "Project name is required for new projects."
                     return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
+                # Project ID Generation
                 last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
                 new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
                 project_id = f"PROJ{new_project_id:06d}"
@@ -676,45 +680,13 @@ def add_merchant(request):
                     city=city,
                     country=country,
                     role="admin",
+                    logo=logo_instance  # Associate the logo with the new corporate account
                 )
 
+                # Create BopoAdmin user
                 bopo_admin = BopoAdmin(username=project_name, role="corporate_admin", corporate=corporate)
-                bopo_admin.set_password(pin)  # Hash the password
+                bopo_admin.set_password(pin)
                 bopo_admin.save()
-
-                try:
-                    phone_number = corporate.mobile
-                    if not phone_number.startswith('+'):
-                        phone_number = f'+91{phone_number}'
-
-                # Compose the SMS message
-                    message_text = (
-                        f"Dear {corporate.first_name},\n\n"
-                        f"Your BOPO login credentials are as follows:\n"
-                        f"Project Name : {corporate.project_name}\n\n"
-                        f"Password : {corporate.pin}\n"
-                        f"Please use these credentials to access your BOPO admin panel.\n\n"
-                        f"Regards,\n"
-                        f"BOPO Support Team"
-                    )
-                
-                    # Fetch Twilio credentials from Django settings
-                    account_sid = settings.TWILIO_ACCOUNT_SID
-                    auth_token = settings.TWILIO_AUTH_TOKEN
-                    twilio_phone_number = settings.TWILIO_PHONE_NUMBER
-
-                    # Send SMS using Twilio
-                    client = Client(account_sid, auth_token)
-                    client.messages.create(
-                        body=message_text,
-                        from_=twilio_phone_number,
-                        to=phone_number
-                    )
-                
-                    messages.success(request, f"Credentials sent to {merchant.first_name} at {phone_number}")
-
-                except Exception as e:
-                    messages.error(request, f"Error sending SMS: {str(e)}")
 
             else:
                 message = "Invalid project type selected."
@@ -729,7 +701,6 @@ def add_merchant(request):
 
     corporates = Corporate.objects.all()
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
-
 
 def redirect_with_error(request, message):
     from django.contrib import messages
@@ -1366,74 +1337,104 @@ def project_list(request):
 from django.http import JsonResponse
 
 def merchant_credentials(request):
-    # Fetch merchants and corporates as usual
     merchants = Merchant.objects.all().order_by('merchant_id')
     corporates = Corporate.objects.all().order_by('project_name')
 
     if request.method == 'POST':
+        merchant_type = request.POST.get('merchant_type')
         project_id = request.POST.get('project')
         merchant_id = request.POST.get('merchant_id')
-        merchant_type = request.POST.get('merchant_type')
 
         try:
+            # ✅ 1. Corporate Admin Logic — ONLY send Corporate ID and PIN
+            if merchant_type == 'corporate_admin':
+                if not project_id:
+                    return JsonResponse({'status': 'error', 'message': 'Project ID is required for corporate admin'})
+
+                corporate = Corporate.objects.get(project_id=project_id)
+                phone_number = corporate.mobile
+                if not phone_number.startswith('+'):
+                    phone_number = f'+91{phone_number}'
+
+                message_text = (
+                    f"Dear {corporate.first_name},\n\n"
+                    f"Your corporate credentials for project {project_id} are as follows:\n"
+                    f"Corporate ID: {corporate.corporate_id}\n"
+                    f"PIN: {corporate.pin}\n\n"
+                    f"Regards,\nBOPO Support Team"
+                )
+
+                client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                client.messages.create(
+                    body=message_text,
+                    from_=settings.TWILIO_PHONE_NUMBER,
+                    to=phone_number
+                )
+
+                return JsonResponse({'status': 'success', 'message': 'Corporate admin credentials sent successfully!'})
+
+            # ✅ 2. Merchant Logic — for both corporate and individual merchants
+            if not merchant_id:
+                return JsonResponse({'status': 'error', 'message': 'Merchant ID is required for merchant credentials'})
+
             merchant = Merchant.objects.get(merchant_id=merchant_id)
             phone_number = merchant.mobile
             if not phone_number.startswith('+'):
                 phone_number = f'+91{phone_number}'
-                
-            print("Sending SMS to:", phone_number)
 
-            # Fetch terminals for this merchant
             terminals = Terminal.objects.filter(merchant_id=merchant)
-
             if not terminals.exists():
                 return JsonResponse({'status': 'error', 'message': f"No Terminal IDs found for Merchant ID {merchant_id}."})
 
-            # Format terminal info
-            terminal_info_list = [
+            terminal_info = "\n".join(
                 f"{terminal.terminal_id} (PIN: {terminal.tid_pin})"
                 for terminal in terminals
-            ]
-            terminal_info_str = '\n'.join(terminal_info_list)
+            )
 
-            # Get merchant PIN
-            merchant_pin = merchant.pin if hasattr(merchant, 'pin') else 'N/A'
-
-            # Compose SMS message
             message_text = (
                 f"Dear {merchant.first_name},\n\n"
                 f"Your BOPO login credentials:\n"
-                f"Merchant ID: {merchant_id}\n"
-                f"Merchant PIN: {merchant_pin}\n"
-                f"Terminals:\n{terminal_info_str}\n\n"
-                f"Regards,\n"
-                f"BOPO Support Team"
+                f"Merchant ID: {merchant.merchant_id}\n"
+                f"Merchant PIN: {merchant.pin}\n"
+                f"Terminals:\n{terminal_info}\n\n"
+                f"Regards,\nBOPO Support Team"
             )
 
-            # Twilio credentials
-            account_sid = settings.TWILIO_ACCOUNT_SID
-            auth_token = settings.TWILIO_AUTH_TOKEN
-            twilio_phone_number = settings.TWILIO_PHONE_NUMBER
-
-            # Send SMS
-            client = Client(account_sid, auth_token)
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
             client.messages.create(
                 body=message_text,
-                from_=twilio_phone_number,
+                from_=settings.TWILIO_PHONE_NUMBER,
                 to=phone_number
             )
 
-            # Return success message in JSON response
-            return JsonResponse({'status': 'success', 'message': 'Credentials sent successfully!'})
+            return JsonResponse({'status': 'success', 'message': 'Merchant credentials sent successfully!'})
 
+        except Corporate.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Corporate not found'})
         except Merchant.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Merchant not found'})
         except Exception as e:
             print(f"Error: {e}")
             return JsonResponse({'status': 'error', 'message': 'An error occurred while sending credentials'})
 
-    # Render the template if not POST
-    return render(request, 'bopo_admin/merchant/merchant_credentials.html', {'merchants': merchants, 'corporates': corporates})
+    return render(request, 'bopo_admin/merchant/merchant_credentials.html', {
+        'merchants': merchants,
+        'corporates': corporates
+    })
+
+
+def get_corporate_admin(request):
+    project_id = request.GET.get('project_id')
+    print(f"Received project_id: {project_id}") 
+
+    try:
+        corporate = Corporate.objects.get(project_id=project_id)
+        admin_name = f"{corporate.first_name} {corporate.last_name}"  # ✅ corrected field names
+
+        return JsonResponse({'status': 'success', 'admin_name': admin_name})
+    except Corporate.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Corporate admin not found'})
+
 
 # For fetching individual merchants
 def get_individual_merchants(request):
@@ -1813,24 +1814,47 @@ def send_notifications(request):
 def received_offers(request):
     return render(request, 'bopo_admin/Merchant/received_offers.html')
 
+# def uploads(request):
+#     if request.method == "POST":
+#         file_type = request.POST.get("file_type")
+#         uploaded_file = request.FILES.get(file_type)
+
+#         if file_type and uploaded_file:
+#             UploadedFile.objects.create(file_type=file_type, file=uploaded_file)
+
+#     # Fetch uploaded files filtered by type
+#     privacy_policy_file = UploadedFile.objects.filter(file_type="privacy_policy").first()
+#     terms_conditions_file = UploadedFile.objects.filter(file_type="terms_conditions").first()
+#     user_guide_file = UploadedFile.objects.filter(file_type="user_guide").first()
+
+#     return render(request, 'bopo_admin/Merchant/uploads.html', {
+#         "privacy_policy_file": privacy_policy_file,
+#         "terms_conditions_file": terms_conditions_file,
+#         "user_guide_file": user_guide_file,
+#     })
+
 def uploads(request):
     if request.method == "POST":
         file_type = request.POST.get("file_type")
         uploaded_file = request.FILES.get(file_type)
 
         if file_type and uploaded_file:
-            UploadedFile.objects.create(file_type=file_type, file=uploaded_file)
+            # Update if file_type exists, else create
+            UploadedFile.objects.update_or_create(
+                file_type=file_type,
+                defaults={'file': uploaded_file}
+            )
 
-    # Fetch uploaded files filtered by type
-    privacy_policy_file = UploadedFile.objects.filter(file_type="privacy_policy").first()
-    terms_conditions_file = UploadedFile.objects.filter(file_type="terms_conditions").first()
-    user_guide_file = UploadedFile.objects.filter(file_type="user_guide").first()
+    # Fetch existing files
+    context = {
+        "privacy_policy_file": UploadedFile.objects.filter(file_type="privacy_policy").first(),
+        "terms_conditions_file": UploadedFile.objects.filter(file_type="terms_conditions").first(),
+        "user_guide_file": UploadedFile.objects.filter(file_type="user_guide").first(),
+    }
 
-    return render(request, 'bopo_admin/Merchant/uploads.html', {
-        "privacy_policy_file": privacy_policy_file,
-        "terms_conditions_file": terms_conditions_file,
-        "user_guide_file": user_guide_file,
-    })
+    return render(request, 'bopo_admin/Merchant/uploads.html', context)
+
+
 
 def  modify_customer_details(request):
     return render(request, 'bopo_admin/Customer/modify_customer_details.html')
@@ -2371,12 +2395,16 @@ def profile(request):
         username = request.POST.get('username')
         user_type = request.POST.get('user_type')  # Getting user type from the form
         password = request.POST.get('password')
+        email= request.POST.get('email')
+        mobile= request.POST.get('mobile')
 
         user = request.user  # Assuming you are using the default user model
         
         # Update the user's username and user type
         user.username = username
         user.user_type = user_type  # Updating user type
+        user.email = email
+        user.mobile = mobile
         
         # If the password is provided, update it (hashed before saving)
         if password:
@@ -2879,41 +2907,32 @@ def reduce_limit(request):
     })
 
 from django.utils import timezone
-
-def save_cash_out_payment(request):
+def save_cash_out(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            transaction_id = data.get('transactionId')
-            payment_method = data.get('paymentMethod')
-            cash_out_id = data.get('cashOutId')
-            payment_date = data.get('paymentDate')  # Now getting payment_date from JSON
+            cashout_id = data.get('cashout_id')
+            transaction_id = data.get('transaction_id')
+            payment_method = data.get('payment_method')
 
-            # Retrieve the CashOut instance using the ID
-            cash_out = CashOut.objects.filter(id=cash_out_id).first()
+            cashout = CashOut.objects.get(id=cashout_id)
 
-            if not cash_out:
-                return JsonResponse({'success': False, 'message': 'Cash Out not found.'})
-
-            # Create a new payment record
-            payment = SuperAdminPayment.objects.create(
+            SuperAdminPayment.objects.create(
                 transaction_id=transaction_id,
                 payment_method=payment_method,
-                cashout=cash_out,
-                created_at=payment_date or timezone.now()  # Default to current time if not provided
+                cashout=cashout
             )
 
-            return JsonResponse({'success': True, 'message': 'Payment details saved successfully.'})
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'message': 'Invalid JSON data.'})
+            return JsonResponse({'status': 'success', 'message': 'Payment saved successfully'})
+        except CashOut.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'CashOut not found'})
         except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)})
+            return JsonResponse({'status': 'error', 'message': str(e)})
 
-    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 
 
-# def security_questions(request):
 #     return render(request, 'bopo_admin/Superadmin/security_questions.html')
 
 # def rental_plan(request):
@@ -2966,7 +2985,6 @@ def set_deduct_amount(request):
         return JsonResponse({'message': 'Deduct amount updated successfully.', 'deduct_percentage': setting.deduct_percentage})
     
     return JsonResponse({'error': 'Invalid method.'}, status=405)
-
 
 
 def save_model_plan(request):
@@ -3026,22 +3044,39 @@ def model_plan_list(request):
     plans = ModelPlan.objects.all()
     return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html', {'plans': plans})
 
-def save_award_points(request):
+# def save_award_points(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         award_percentage = data.get('award_percentage')
+
+#         try:
+#             # Update the award percentage or create a new record if none exists
+#             award, created = AwardPoints.objects.update_or_create(
+#                 id=1,  # Assuming you only have one award entry, so use a fixed ID
+#                 defaults={'percentage': award_percentage}
+#             )
+#             return JsonResponse({'success': True, 'message': 'Award points updated successfully.'})
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)})
+
+#     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+def get_award_point(request):
+    award = AwardPoints.objects.first()
+    return JsonResponse({'percentage': award.percentage if award else 0})
+
+
+def update_award_point(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        award_percentage = data.get('award_percentage')
+        new_percentage = int(data.get('percentage', 0))
 
-        try:
-            # Update the award percentage or create a new record if none exists
-            award, created = AwardPoints.objects.update_or_create(
-                id=1,  # Assuming you only have one award entry, so use a fixed ID
-                defaults={'percentage': award_percentage}
-            )
-            return JsonResponse({'success': True, 'message': 'Award points updated successfully.'})
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
+        award, created = AwardPoints.objects.get_or_create(id=1)
+        award.percentage = new_percentage
+        award.save()
+        return JsonResponse({'status': 'success', 'percentage': award.percentage})
+    return JsonResponse({'status': 'error'}, status=400)
 
 def save_superadmin_payment(request):
     if request.method == "POST":
@@ -3225,4 +3260,100 @@ def corporate_credentials(request):
     # Initial page load
     return render(request, 'bopo_admin/Corporate/corporate_credentials.html')
 
+def corporate_add_merchant(request):
+    if request.method == 'POST':
+        user = request.user
+        try:
+            project_id = user.project_id  # Assuming this exists in the user model
+            corporate = Corporate.objects.get(project_id=project_id)
+        except (AttributeError, Corporate.DoesNotExist):
+            return JsonResponse({'success': False, 'message': 'Corporate project not found for this user.'})
 
+        merchant = Merchant(
+            first_name=request.POST.get('first_name'),
+            last_name=request.POST.get('last_name'),
+            email=request.POST.get('email'),
+            mobile=request.POST.get('mobile'),
+            shop_name=request.POST.get('shop_name'),
+            legal_name=request.POST.get('legal_name'),
+            state=request.POST.get('state'),
+            city=request.POST.get('city'),
+            country=request.POST.get('country'),
+            pincode=request.POST.get('pincode'),
+            corporate_id=corporate.corporate_id,  # Save corporate_id as string
+            project_name=corporate,  # ✅ ForeignKey expects an object
+            aadhaar_number=request.POST.get('aadhaar_number'),
+            gst_number=request.POST.get('gst_number'),
+            pan_number=request.POST.get('pan_number'),
+            address=request.POST.get('address'),
+            user_type='corporate',
+        )
+        merchant.save()
+
+        return JsonResponse({'success': True, 'message': 'Merchant added successfully!'})
+
+    else:
+        states = State.objects.all().order_by('name')
+        state_data = [{"id": state.id, "name": state.name} for state in states]
+        return render(request, 'bopo_admin/Corporate/corporate_add_merchant.html', {'states': state_data})
+
+
+def logo(request): 
+    if request.user.role == 'corporate_admin':
+        try:
+            corporate = Corporate.objects.get(corporate_id=request.user.corporate_id)
+            return render(request, 'bopo_admin/base.html', {'corporate': corporate})
+        except Corporate.DoesNotExist:
+            return render(request, 'bopo_admin/base.html', {'error': 'Corporate not found'})
+    else:
+        logo = Logo.objects.first()  # Fallback for super admin
+        return render(request, 'bopo_admin/base.html', {'logo': logo})
+
+
+
+def upload_logo(request):
+    if request.method == 'POST' and request.FILES.get('logo'):
+        logo_file = request.FILES['logo']
+        logo_obj, _ = Logo.objects.get_or_create(id=1)  # Replace/update logo with id=1 (super admin logo)
+        logo_obj.logo = logo_file
+        logo_obj.save()
+        return JsonResponse({'success': True, 'url': logo_obj.logo.url})
+    return JsonResponse({'success': False})
+
+
+# @login_required
+# def logo(request):
+#     # Try to get a user-specific logo
+#     user_logo = Logo.objects.filter(user=request.user).first()
+
+#     # If none, show shared default
+#     if not user_logo:
+#         user_logo = Logo.objects.filter(user__isnull=True).first()
+
+#     return render(request, 'base.html', {'logo': user_logo})
+
+
+# @login_required
+# def upload_logo(request):
+#     if request.method == 'POST' and request.FILES.get('logo'):
+#         # Only upload for this user, not the default
+#         logo_obj, created = Logo.objects.get_or_create(user=request.user)
+#         logo_obj.logo = request.FILES['logo']
+#         logo_obj.save()
+#         return JsonResponse({'status': 'success', 'url': logo_obj.logo.url})
+#     return JsonResponse({'status': 'failed'}, status=400)
+
+
+
+# def upload_logo(request):
+#     if request.method == "POST":
+#         corporate_id = request.POST.get("corporate_id")  # or however you identify the corporate
+#         logo_file = request.FILES.get("logo")
+
+#         if not corporate_id or not logo_file:
+#             return JsonResponse({"error": "Missing data"}, status=400)
+
+#         # Update only the logo field
+#         Corporate.objects.filter(id=corporate_id).update(logo=logo_file)
+
+#         return JsonResponse({"message": "Logo uploaded successfully"})

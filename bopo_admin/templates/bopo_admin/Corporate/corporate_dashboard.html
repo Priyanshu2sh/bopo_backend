@@ -94,11 +94,11 @@
         var dashboardChart = new Chart(ctx, {
             type: 'bar',  // Bar chart
             data: {
-                labels: [ 'Merchants', 'Customers', 'Terminals'],
+                labels: [ 'Merchants', 'Terminals'],
                 datasets: [
                     {
                         label: 'Total',
-                        data: [ {{ chart_data.merchants.0 }}, {{ chart_data.customers.0 }},{{ chart_data.terminals.0 }}],
+                        data: [ {{ chart_data.merchants.0 }},{{ chart_data.terminals.0 }}],
                         backgroundColor: [
                             'rgba(52, 152, 219, 0.5)',  // Blue for Projects
                             'rgba(46, 204, 113, 0.5)',  // Green for Merchants
