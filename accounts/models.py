@@ -236,9 +236,8 @@ class SecurityQue(models.Model):
 
 
 class Logo(models.Model):
-    user = models.ForeignKey(BopoAdmin, on_delete=models.CASCADE, related_name="logos", null=True, blank=True)
+   
     logo = models.ImageField(upload_to='logos/')
-    corporate = models.ForeignKey('Corporate', on_delete=models.CASCADE, null=True, blank=True, related_name='logos')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

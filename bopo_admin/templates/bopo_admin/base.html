@@ -33,22 +33,16 @@
              {% endif %}
              <input type="file" id="logoUploader" style="display: none;" accept="image/*">
          </h4>
-         {% elif request.user.role == 'corporate_admin' %}
-         <h4 style="margin-bottom: 50px;">
-            <h4 style="margin-bottom: 50px;">
-                {% if logo %}
-                <p>Logo URL: {{ logo.logo.url}}</p>
-    <img src="{{  logo.logo.url}}" alt="Corporate Logo" style="height: 50px; width: 200px;">
-{% else %}
-    <span>No logo uploaded</span>
-{% endif %}
+     {% elif request.user.role == 'corporate_admin' %}
+           <h4 style="margin-bottom: 50px;">
+            {% if corporate and corporate.logo %}
+            <img src="{{ corporate.logo.logo.url }}" alt="Corporate Logo" style="height: 50px; width: 200px;">
+            {% else %}
+            <p>No logo uploaded for this corporate admin.</p>
+            {% endif %}
+  </h4>
 
-            </h4>
-            
-         </h4>
      {% endif %}
-     
-     
      
      
        
@@ -365,40 +359,57 @@
 </script>
 
 
-
-
-
 <script>
-    document.getElementById('logoImage').addEventListener('click', function() {
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.getElementById('logoImage').addEventListener('click', function () {
         document.getElementById('logoUploader').click();
     });
 
-    document.getElementById('logoUploader').addEventListener('change', function(event) {
-        var formData = new FormData();
-        formData.append('logo', event.target.files[0]);
+    document.getElementById('logoUploader').addEventListener('change', function () {
+        const fileInput = this;
+        if (fileInput.files.length === 0) {
+            alert('Please select a file to upload.');
+            return;
+        }
 
-        // Send the logo to the server for uploading
-        fetch('/upload_logo/', {
+        const formData = new FormData();
+        formData.append('logo', fileInput.files[0]);
+
+        fetch("{% url 'upload_logo' %}", {
             method: 'POST',
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-CSRFToken': getCookie('csrftoken')
             },
             body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                location.reload();  // Reload the page to show the new logo
-            } else {
-                alert('Failed to upload logo.');
-            }
-        }); 
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  alert('Logo uploaded successfully!');
+                  window.location.reload(); // Reload the page to see the new logo
+                  document.getElementById('logoImage').src = data.new_logo_url;
+              } else {
+                  alert('Logo upload failed');
+              }
+          }).catch(error => {
+              alert('Error uploading logo: ' + error);
+          });
     });
 </script>
 
-
-    
-   
 
 
 </body>
