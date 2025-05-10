@@ -108,7 +108,7 @@ urlpatterns = [
     path('deduct-amount/', views.deduct_amount, name='deduct_amount'),
     path('superadmin_functionality/', views.superadmin_functionality, name='superadmin_functionality'),
 
-    path('update-profile/', views.profile, name='update_profile'), 
+    path('update-profile/', views.update_profile, name='update_profile'), 
     path('cash-out/', views.cash_out, name='cash_out'),
 
     path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),

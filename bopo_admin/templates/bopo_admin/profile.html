@@ -1,11 +1,8 @@
 {% extends "bopo_admin/base.html" %}
-
 {% load static %}
 
 {% block content %}
-
 <link rel="stylesheet" href="{% static 'bopo_admin/css/profile.css' %}">
-
 
 <div class="profile-wrapper">
     <h2 class="heading">Profile</h2>
@@ -23,16 +20,29 @@
         <!-- Right Side: Profile Card with User Info -->
         <div class="profile-card">
             <div class="profile-info">
-                <p><strong>Username:</strong>  {{ user.username }}</p>
-                <p><strong>Email:</strong>{{user.email}} </p>
-                <p><strong>Phone:</strong> {{user.mobile}}</p>
+                <!-- Role-Specific Profile Details -->
+                {% if role == "corporate_admin" %}
+                    <p><strong>Project Name:</strong> {{ profile.project_name }}</p>
+                    <p><strong>Corporate Email:</strong> {{ profile.email }}</p>
+                    <p><strong>Mobile:</strong> {{ profile.mobile }}</p>
+                    <p><strong>City:</strong> {{ profile.city }}</p>
+
+                {% elif role == "employee" %}
+                    <p><strong>Name:</strong> {{ profile.name }}</p>
+                    <p><strong>Email:</strong> {{ profile.email }}</p>
+                    <p><strong>Mobile:</strong> {{ profile.mobile }}</p>
+                    <p><strong>City:</strong> {{ profile.city }}</p>
+
+                {% elif role == "super_admin" %}
+                    <p><strong>Username:</strong> {{ user.username }}</p>
+                    <p><strong>Email:</strong>admin12@gmail.com</p>
+                    <p><strong>Mobile:</strong>9423432604</p>
+                {% endif %}
                 <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
             </div>
         </div>
     </div>
 </div>
-
-
 
 <!-- Edit Profile Modal -->
 <div id="edit-profile-modal" class="modal">
@@ -42,30 +52,69 @@
         <form method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data">
             {% csrf_token %}
             
-            <!-- Username Field -->
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" name="username" id="username" value="{{ user.username }}" class="form-control">
-            </div>
+            {% if role == 'corporate_admin' %}
+                <div class="form-group">
+                    <label for="project_name">Project Name</label>
+                    <input type="text" name="project_name" id="project_name" value="{{ profile.project_name }}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" value="{{ profile.email }}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="mobile">Mobile</label>
+                    <input type="text" name="mobile" id="mobile" value="{{ profile.mobile }}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" name="city" id="city" value="{{ profile.city }}" class="form-control">
+                </div>
+
+            {% elif role == 'employee' %}
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" name="name" id="name" value="{{ profile.name }}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" value="{{ profile.email }}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="mobile">Mobile</label>
+                    <input type="text" name="mobile" id="mobile" value="{{ profile.mobile }}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" name="city" id="city" value="{{ profile.city }}" class="form-control">
+                </div>
+
+            {% elif role == 'super_admin' %}
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" value="{{ user.username }}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" value="{{ user.email }}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="mobile">Mobile</label>
+                    <input type="text" name="mobile" id="mobile" value="{{ user.mobile }}" class="form-control">
+                </div>
+            {% endif %}
             
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" name="email" id="email" value="{{ user.email }}" class="form-control">
-            </div>
-            <div class="form-group">
-                <label for="phone">Phone</label>
-                <input type="text" name="mobile" id="mobile" value="{{ user.mobile}}" class="form-control">
-            </div>
-            {% comment %} <div class="form-group">
-                <label for="profile_image">Profile Image</label>
-                <input type="file" name="profile_image" id="profile_image" class="form-control">
-            </div> {% endcomment %}
             <button type="submit" class="btn btn-primary">Save Changes</button>
         </form>
     </div>
 </div>
-
-
 
 <script>
     // JavaScript to handle modal functionality

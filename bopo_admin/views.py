@@ -83,8 +83,8 @@ def corporate_admin(request):
         "corporate_data": corporate_data
     })
 
-def profile(request):
-        return render(request, 'bopo_admin/profile.html')
+# def profile(request):
+#         return render(request, 'bopo_admin/profile.html')
 
 
 # def dashboard(request):
@@ -2379,42 +2379,97 @@ from django.contrib.auth.models import AnonymousUser
 
 
 
+# def profile(request):
+#     if isinstance(request.user, AnonymousUser):
+#         # If the user is not logged in (AnonymousUser), render a profile page without the edit form
+#         return render(request, 'bopo_admin/profile.html', {'error_message': 'You must be logged in to edit your profile.'})
+
+#     # If the user is logged in (authenticated)
+#     if request.method == 'POST':
+#         username = request.POST.get('username')
+#         user_type = request.POST.get('user_type')  # Getting user type from the form
+#         password = request.POST.get('password')
+#         email= request.POST.get('email')
+#         mobile= request.POST.get('mobile')
+
+#         user = request.user  # Assuming you are using the default user model
+        
+#         # Update the user's username and user type
+#         user.username = username
+#         user.user_type = user_type  # Updating user type
+#         user.email = email
+#         user.mobile = mobile
+        
+#         # If the password is provided, update it (hashed before saving)
+#         if password:
+#             user.password = make_password(password)
+
+#         user.save()  # Save the updated user information
+
+#         # Add a success message
+#         success_message = "Profile updated successfully!"
+
+#         # Redirect to profile page to see the changes
+#         return render(request, 'bopo_admin/profile.html', {'success_message': success_message, 'user': user})
+
+#     # If GET request, just render the profile page
+#     return render(request, 'bopo_admin/profile.html', {'user': request.user})
+
+
+
+@login_required
 def profile(request):
-    if isinstance(request.user, AnonymousUser):
-        # If the user is not logged in (AnonymousUser), render a profile page without the edit form
-        return render(request, 'bopo_admin/profile.html', {'error_message': 'You must be logged in to edit your profile.'})
+    user = request.user
 
-    # If the user is logged in (authenticated)
+    context = {
+        'user': user
+    }
+
+    if user.role == 'corporate_admin' and user.corporate:
+        context['profile'] = user.corporate
+        context['role'] = 'corporate_admin'
+
+    elif user.role == 'employee' and user.employee:
+        context['profile'] = user.employee
+        context['role'] = 'employee'
+
+    elif user.role == 'super_admin':
+        context['role'] = 'super_admin'
+        # No additional profile needed for super admin
+
+    return render(request, 'bopo_admin/profile.html', context)
+
+@login_required
+def update_profile(request):
+    user = request.user
+
     if request.method == 'POST':
-        username = request.POST.get('username')
-        user_type = request.POST.get('user_type')  # Getting user type from the form
-        password = request.POST.get('password')
-        email= request.POST.get('email')
-        mobile= request.POST.get('mobile')
+        # Check user's role and update profile accordingly
+        if user.role == 'corporate_admin' and user.corporate:
+            profile = user.corporate
+            profile.project_name = request.POST.get('project_name')
+            profile.email = request.POST.get('email')
+            profile.mobile = request.POST.get('mobile')
+            profile.city = request.POST.get('city')
+            profile.save()
 
-        user = request.user  # Assuming you are using the default user model
-        
-        # Update the user's username and user type
-        user.username = username
-        user.user_type = user_type  # Updating user type
-        user.email = email
-        user.mobile = mobile
-        
-        # If the password is provided, update it (hashed before saving)
-        if password:
-            user.password = make_password(password)
+        elif user.role == 'employee' and user.employee:
+            profile = user.employee
+            profile.name = request.POST.get('name')
+            profile.email = request.POST.get('email')
+            profile.mobile = request.POST.get('mobile')
+            profile.city = request.POST.get('city')
+            profile.save()
 
-        user.save()  # Save the updated user information
+        elif user.role == 'super_admin':
+            user.username = request.POST.get('username')
+            user.email = request.POST.get('email')
+            user.mobile = request.POST.get('mobile')
+            user.save()
 
-        # Add a success message
-        success_message = "Profile updated successfully!"
+        return redirect('profile')  # Redirect to profile page after saving changes
 
-        # Redirect to profile page to see the changes
-        return render(request, 'bopo_admin/profile.html', {'success_message': success_message, 'user': user})
-
-    # If GET request, just render the profile page
-    return render(request, 'bopo_admin/profile.html', {'user': request.user})
-
+    return redirect('profile')  # Redirect if not POST
 
 # from datetime import timedelta
 # from django.utils import timezone
