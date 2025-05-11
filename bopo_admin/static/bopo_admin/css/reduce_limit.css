@@ -414,18 +414,25 @@ button {
     font-size: 20px;
 }
 
-/* Hide checkboxes */
+/* Hide the checkbox itself */
 .toggle-checkbox {
     display: none;
 }
 
-
-/* Show Notification Table when Checkbox is Checked */
-.toggle-checkbox:checked + .send-notification-label + .send-notification-table {
-    max-height: 500px;
-    padding: 15px;
+/* Initial state of the merchant table (open by default) */
+.send-notification-table {
+    max-height: 500px; /* Visible state with height */
+    padding: 15px; /* Padding when the table is visible */
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
 }
 
+/* Hide the table when the checkbox is unchecked */
+.toggle-checkbox:not(:checked) + .send-notification-label + .send-notification-table {
+    max-height: 0;
+    padding: 0;
+    overflow: hidden;
+}
 
 /* Search box */
 .search-box {

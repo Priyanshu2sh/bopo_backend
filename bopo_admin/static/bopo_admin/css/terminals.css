@@ -16,7 +16,6 @@
   margin-left: -100%;
 }
 
-
 .merchant-select-row {
   display: flex;
   align-items: center;
@@ -41,6 +40,10 @@
   
  
 }
+#merchant_id {
+  min-width: 250px;
+}
+
 
 .add-terminal-btn {
   padding: 8px 15px;

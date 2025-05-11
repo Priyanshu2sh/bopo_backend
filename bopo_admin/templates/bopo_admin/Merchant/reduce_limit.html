@@ -164,7 +164,7 @@
             <span class="toast-message">{{ message }}</span>
         </div>
 
-        <!-- Customer Notification Section -->
+        {% comment %} <!-- Customer Notification Section -->
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
             <label for="toggle-single-customer" class="send-notification-label">
@@ -250,7 +250,7 @@
 
             <button class="btn-save" onclick="submitCashOut()">Save</button>
         </div>
-    </div>
+    </div> {% endcomment %}
 
         </div>
     </div>
@@ -306,7 +306,7 @@
         setTimeout(() => toast.removeClass('toast-show'), 3000);
     }
     
-    
+{% comment %}     
     $(document).ready(function () {
         const table = $('#customer-table').DataTable({
             dom: 'Bfrtip',
@@ -343,7 +343,7 @@
     function closeCashOutModal() {
         $('#cashOutModal').fadeOut();
     }
-
+ {% endcomment %}
 
 
     

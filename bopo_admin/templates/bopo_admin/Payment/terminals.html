@@ -4,6 +4,15 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/terminals.css' %}">
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
 <div class="reduce-limit-back-btn">
   <a href="{% url 'individual_list' %}" class="reduce-limit-back-btn-submit">
     <i class="fa fa-arrow-left"></i> Back
@@ -113,9 +122,17 @@
       }, 300);
     }, 3000);
   }
+// Initialize Select2 on merchant dropdown
+$(document).ready(function() {
+  $('#merchant_id').select2({
+    placeholder: "Select Merchant ID",
+    allowClear: true,
+    width: 'resolve'  // adapts to the container width
+  });
 
-  document.getElementById('merchant_id').addEventListener('change', function() {
-    var merchantId = this.value;
+  // Attach the change event listener to the Select2 dropdown
+  $('#merchant_id').on('change', function() {
+    var merchantId = $(this).val();  // Get the selected value
 
     if (merchantId) {
       fetch(`/get_terminals/${merchantId}/`)
@@ -132,12 +149,11 @@
                 <td><input type="text" value="${terminal.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
                 <td>${terminal.status}</td>
                 <td>
-                   <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${terminal.terminal_id}">✏️ Edit</button>
-                   <button class="btn btn-sm btn-success save-btn" data-terminal-id="${terminal.terminal_id}" style="display: none;">💾 Save</button>
+                  <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${terminal.terminal_id}">✏️ Edit</button>
+                  <button class="btn btn-sm btn-success save-btn" data-terminal-id="${terminal.terminal_id}" style="display: none;">💾 Save</button>
                 </td>
               `;
               tableBody.appendChild(row);
-
             });
 
             document.getElementById('empty-state').style.display = 'none';
@@ -152,6 +168,8 @@
       document.getElementById('empty-state').style.display = 'block';
     }
   });
+});
+
 
   document.getElementById('add-terminal-btn').addEventListener('click', function() {
     var merchantId = document.getElementById('merchant_id').value;
@@ -264,6 +282,9 @@
     }
     return cookieValue;
   }
+
+
+
 </script>
 
 {% endblock %}

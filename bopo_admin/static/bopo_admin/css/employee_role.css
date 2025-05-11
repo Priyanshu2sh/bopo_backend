@@ -6,6 +6,19 @@ body {
     padding: 0;
     
 } 
+.select2-container--default .select2-selection--single {
+    height: 40px !important;
+    padding-left: -20px; /* Adjust this value to move the placeholder text to the left */
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-selection__rendered {
+    line-height: 40px !important;
+    padding-left: 0; /* Ensure that the rendered text also aligns properly */
+}
+
 
 /* Main Container */
 .container {
