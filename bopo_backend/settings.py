@@ -77,12 +77,10 @@ CORS_ALLOW_HEADERS = [
     'access-control-allow-origin',
 ]
 
-# CSRF_TRUSTED_ORIGINS = [
-#     'https://e688-103-211-60-165.ngrok-free.app',
-# ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://4f01-103-211-60-165.ngrok-free.app',
+    "https://8e09-103-211-60-165.ngrok-free.app",
+    "https://3fb0-2401-4900-79d1-d74-6851-4650-8615-f92c.ngrok-free.app",
 ]
 
 

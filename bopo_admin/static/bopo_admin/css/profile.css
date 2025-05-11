@@ -7,7 +7,7 @@ body {
 
 .profile-wrapper {
     background-color: #b4c3d0; /* Light blue-gray, adjust as needed */
-    padding: 0px 10px 0px 40px;
+    padding: 0px 10px 240px 40px;
     border-radius: 12px;
     max-width: 1000px;
     margin: 30px auto;
@@ -50,11 +50,11 @@ h2, h3 {
     font-family: 'Arial', sans-serif;
 
 }
-
+/* 
 h3 {
     margin-top: 20px;
     font-size: 1.5rem;
-}
+} */
 
 p {
     font-size: 1rem;
