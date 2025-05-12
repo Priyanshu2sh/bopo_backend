@@ -24,10 +24,10 @@
 
   <div class="merchant-select-row">
     <label for="merchant_id">Select Merchant ID:</label>
-    <select id="merchant_id" name="merchant_id">
+    <select id="merchant_id" name="merchant_id" style="width: 900px;" class="select2">
       <option value="">--Select Merchant ID--</option>
       {% for merchant in merchants %}
-        <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }}</option>
+        <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }} - {{ merchant.first_name }} {{ merchant.last_name }}</option>
       {% endfor %}
     </select>
 

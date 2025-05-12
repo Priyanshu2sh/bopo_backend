@@ -3029,6 +3029,14 @@ def add_security_question(request):
             return JsonResponse({'id': question.id, 'question': question.question})
         return JsonResponse({'error': 'Invalid question'}, status=400)
     
+
+def get_deduct_amount(request):
+    try:
+        setting = DeductSetting.objects.get(id=1)
+        return JsonResponse({'deduct_amount': setting.deduct_percentage})
+    except DeductSetting.DoesNotExist:
+        return JsonResponse({'deduct_amount': 0})  # default if not set    
+    
 def set_deduct_amount(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -3462,15 +3470,26 @@ def logo(request):
         return render(request, 'bopo_admin/base.html', {'logo': logo})
 
 
+# def upload_logo(request):
+#     if request.method == 'POST' and request.FILES.get('logo'):
+#         if request.user.role in ['super_admin', 'employee']:  # Allow both roles to update
+#             logo_file = request.FILES['logo']
+#             logo_obj, _ = Logo.objects.get_or_create(id=1)  # Super admin logo
+#             logo_obj.logo = logo_file
+#             logo_obj.save()
+#             return JsonResponse({'success': True, 'url': logo_obj.logo.url})
+    
+#     return JsonResponse({'success': False})
+
+
+
 def upload_logo(request):
     if request.method == 'POST' and request.FILES.get('logo'):
-        if request.user.role in ['super_admin', 'employee']:  # Allow both roles to update
+        if request.user.role in ['super_admin', 'employee']:  # Allow superadmins and employees to update the logo
             logo_file = request.FILES['logo']
-            logo_obj, _ = Logo.objects.get_or_create(id=1)  # Super admin logo
+            logo_obj, _ = Logo.objects.get_or_create(id=1)  # For simplicity, use the first logo or create one
             logo_obj.logo = logo_file
             logo_obj.save()
             return JsonResponse({'success': True, 'url': logo_obj.logo.url})
-    
+
     return JsonResponse({'success': False})
-
-

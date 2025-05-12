@@ -31,8 +31,9 @@
                 </div>
 
                 <div class="button-container">
+                      <button class="send-btn" onclick="showAlert()">Save</button>
                     <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
-                    <button class="send-btn" onclick="showAlert()">Save</button>
+                  
                 </div>
             </div>
         </div>
@@ -57,7 +58,7 @@
                     <input type="text" id="new-question" class="form-control" placeholder="Enter new security question">
                     <br>
                     <button class="send-btn" onclick="saveSecurityQuestion()">Save</button>
-                    <button class="cancel-btn" onclick="cancelSecurityQuestion()">Cancel</button>
+                    <button class="cancel-btn" onclick="confirmCancelSecurityQuestion()">Cancel</button>
                 </div>
 
                 <button class="send-btn" onclick="showAddQuestion()">Add Question</button>
@@ -123,7 +124,8 @@
                 <label for="edit-description-input">Description</label>
                 <textarea id="edit-description-input" class="textarea-field" placeholder="Enter description..."></textarea>
             </div>
-            <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
+          
+          <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
         </form>
     </div>
 </div>
@@ -151,39 +153,189 @@
                         <input type="number" id="award-input" class="form-control" placeholder="Enter percentage" value="10" min="0" max="100" style="width: 100px;">
                         <span>% of purchase amount awarded to customer (BBP)</span><br><br>
                         <button class="awardsend-btn1" onclick="saveAward()">Save</button>
-                        <button class="cancel-btn" onclick="cancelAward()">Cancel</button>
+                        <button class="cancel-btn" onclick="confirmCancelAward()">Cancel</button>
+
                     </div>
                 </div>
+            </div>
+            
+        </div>
+                
+        <!-- Change Logo Section -->
+
+    <div class="send-notification-item">
+        <input type="checkbox" id="toggle-logo-change" class="toggle-checkbox">
+        <label for="toggle-logo-change" class="send-notification-label">
+            <span class="send-notification-icon">🖼️</span>
+            <span>Change Logo</span>
+        </label>
+
+        <div class="send-notification-form"><br>
+            <div id="logo-message" style="margin-top: 10px; font-weight: bold;"></div>
+
+            <div class="form-group">
+                <label for="logo-upload">Upload New Logo:</label>
+                <input type="file" id="logo-upload" class="form-control" accept="image/*">
+            </div>
+
+            <div class="button-container">
+                <button class="send-btn" onclick="saveLogo()">Save</button>
+                <button class="cancel-btn" onclick="confirmCancelLogo()">Cancel</button>
             </div>
         </div>
     </div>
 </div>
 
+
+
+    </div>
+</div>
+
+
+<div id="toast" class="toast"></div>
+
+<!-- Custom Cancel Confirmation Modal -->
+<div id="cancelConfirmationModal" class="custom-modal">
+  <div class="custom-modal-content">
+    <span class="custom-close-icon" id="closeCancelModal">&times;</span>
+    <h3 id="cancelConfirmationMessage">Are you sure you want to cancel this action?</h3>
+    <div class="custom-modal-buttons">
+      <button id="confirmCancel" class="custom-btn cancel-yes">Yes</button>
+      <button id="dismissCancel" class="custom-btn cancel-no">No</button>
+    </div>
+  </div>
+</div>
+
 <!-- JavaScript -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const checkboxes = document.querySelectorAll(".toggle-checkbox");
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener("change", function () {
-                const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
-                document.querySelectorAll(".send-notification-form").forEach(f => {
-                    if (f !== form) {
-                        f.style.display = "none";
-                        f.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
-                    }
-                });
-                form.style.display = this.checked ? "block" : "none";
+
+function showToast(message, bgColor = '#333') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.backgroundColor = bgColor;
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+function saveLogo() {
+    const logoUpload = document.getElementById('logo-upload').files[0];
+
+    if (!logoUpload) {
+        showToast('⚠️ Please choose a logo to upload.', '#f44336');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('logo', logoUpload);
+
+    fetch('/upload-logo/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Logo updated successfully!', '#4CAF50');
+            const logoImage = document.getElementById('logoImage');
+            if (logoImage) {
+                logoImage.src = data.url;
+            }
+        } else {
+            showToast('❌ Failed to update logo.', '#f44336');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('❌ An error occurred while uploading the logo.', '#f44336');
+    });
+}
+
+function confirmCancelLogo() {
+    document.getElementById('cancelConfirmationModal').style.display = 'block';
+}
+
+
+
+
+// CSRF helper (assuming you're not using jQuery)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const trimmed = cookie.trim();
+            if (trimmed.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(trimmed.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const checkboxes = document.querySelectorAll(".toggle-checkbox");
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener("change", function () {
+            const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
+
+            // Hide all other forms
+            document.querySelectorAll(".send-notification-form").forEach(f => {
+                if (f !== form) {
+                    f.style.display = "none";
+                    const cb = f.closest(".send-notification-item").querySelector(".toggle-checkbox");
+                    if (cb) cb.checked = false;
+                }
             });
-        });
-        document.querySelectorAll(".send-notification-form").forEach(form => form.style.display = "none");
+if (this.checked) {
+    form.style.display = "block";
+
+    if (this.id === "toggle-all-customers") {
+        // Only fetch deduction amount if the toggle is for 'Deduct Percentage'
+        fetch('/api/get-deduct-amount/')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('deduct-amount').value = data.deduct_amount || '';
+            })
+            .catch(() => {
+                alert("Failed to fetch deduction amount.");
+            });
+    }
+
+    if (this.id === "toggle-single-customer") {
+        // Load security questions only when this section is opened
         loadSecurityQuestions();
+    }
+
+} else {
+    form.style.display = "none";
+}
+
+        });
     });
 
-  function showAlert() {
+    // Hide all forms by default
+    document.querySelectorAll(".send-notification-form").forEach(form => form.style.display = "none");
+});
+
+function showAlert() {
     const input = document.getElementById('deduct-amount');
     const value = parseFloat(input.value);
-    if (isNaN(value) || value < 0) return alert("Please enter a valid percentage.");
-    
+    if (isNaN(value) || value < 0) {
+        alert("Please enter a valid percentage.");
+        return;
+    }
+
     fetch('/api/set-deduct-amount/', {
         method: 'POST',
         headers: {
@@ -192,27 +344,27 @@
         },
         body: JSON.stringify({ deduct_amount: value }),
     })
-    .then(res => res.json().then(data => ({ status: res.status, body: data })))
+    .then(response => response.json().then(data => ({
+        status: response.status,
+        body: data
+    })))
     .then(({ status, body }) => {
         if (status === 200) {
-            showToast("Deduct amount saved successfully!", true); // Show success toast
-            
-            // Reload the page and close the form container
-            document.getElementById('deduct-amount').value = ''; // Clear the input
-            const formContainer = document.querySelector('.send-notification-form');
-            if (formContainer) formContainer.style.display = 'none';  // Hide the form container
-    
-            // Optionally, reload the page after a short delay (1 second here)
+            showToast("Deduct amount saved successfully!", true); // ✅ Show toast
+
+            // Wait before closing modal and reloading
             setTimeout(() => {
-                location.reload();  // Reload the page
-            }, 2500);
+                const formContainer = document.querySelector('.send-notification-form');
+                if (formContainer) formContainer.style.display = 'none'; // ✅ Close modal
+                location.reload(); // ✅ Reload page
+            }, 2500); // Toast visible for 2.5s
+
         } else {
             alert(body.error || "Failed to save deduction.");
         }
     })
     .catch(() => alert("Something went wrong."));
 }
-
 
     function getCSRFToken() {
         const name = 'csrftoken';
@@ -470,6 +622,115 @@ function showToast(message, isSuccess = true) {
         }
         return cookieValue;
     }
+function confirmCancelAward() {
+    // Show the custom modal
+    const modal = document.getElementById('cancelConfirmationModal');
+    modal.style.display = 'block';
+
+    // When the user clicks "Yes"
+    const yesBtn = document.getElementById('confirmCancel');
+    yesBtn.onclick = function () {
+        // Reset the award points to the default value
+        const awardInput = document.getElementById('award-input');
+        awardInput.value = 10; // Default value for award points (can be adjusted as per requirement)
+
+        // Hide the edit section
+        document.getElementById('award-edit').style.display = 'none';
+
+        // Display the original award display text
+        document.getElementById('award-text').style.display = 'block';
+        document.getElementById('award-display').style.display = 'inline-block';
+
+        // Close the confirmation modal
+        modal.style.display = 'none';
+    };
+
+    // When the user clicks "No"
+    const noBtn = document.getElementById('dismissCancel');
+    noBtn.onclick = function () {
+        modal.style.display = 'none';
+    };
+
+    // Handle closing the modal using the close icon
+    const closeIcon = document.getElementById('closeCancelModal');
+    closeIcon.onclick = function () {
+        modal.style.display = 'none';
+    };
+}
+
+    function confirmCancelSecurityQuestion() {
+    // Show custom modal
+    const modal = document.getElementById('cancelConfirmationModal');
+    modal.style.display = 'block';
+
+    const yesBtn = document.getElementById('confirmCancel');
+    yesBtn.onclick = function () {
+        const formContainer = document.getElementById('toggle-single-customer')
+            .closest('.send-notification-item')
+            .querySelector('.send-notification-form');
+
+        if (formContainer) {
+            formContainer.style.display = 'none';
+        }
+
+        const checkbox = document.getElementById('toggle-single-customer');
+        if (checkbox) {
+            checkbox.checked = false;
+        }
+
+        document.getElementById('new-question').value = '';
+        document.getElementById('add-question-row').style.display = 'none';
+        modal.style.display = 'none';
+    };
+
+    const noBtn = document.getElementById('dismissCancel');
+    noBtn.onclick = function () {
+        modal.style.display = 'none';
+    };
+
+    const closeIcon = document.getElementById('closeCancelModal');
+    closeIcon.onclick = function () {
+        modal.style.display = 'none';
+    };
+}
+
+
+   function confirmCancelDeduction() {
+    // Show custom modal
+    const modal = document.getElementById('cancelConfirmationModal');
+    modal.style.display = 'block';
+
+    // When user clicks "Yes"
+    const yesBtn = document.getElementById('confirmCancel');
+    yesBtn.onclick = function () {
+        const formContainer = document.getElementById('toggle-all-customers')
+            .closest('.send-notification-item')
+            .querySelector('.send-notification-form');
+        if (formContainer) {
+            formContainer.style.display = 'none';
+        }
+
+        const checkbox = document.getElementById('toggle-all-customers');
+        if (checkbox) {
+            checkbox.checked = false;
+        }
+
+        document.getElementById('deduct-amount').value = '';
+        modal.style.display = 'none';
+    };
+
+    // When user clicks "No"
+    const noBtn = document.getElementById('dismissCancel');
+    noBtn.onclick = function () {
+        modal.style.display = 'none';
+    };
+
+    // Also handle the close icon (X)
+    const closeIcon = document.getElementById('closeCancelModal');
+    closeIcon.onclick = function () {
+        modal.style.display = 'none';
+    };
+}
 </script>
 
 

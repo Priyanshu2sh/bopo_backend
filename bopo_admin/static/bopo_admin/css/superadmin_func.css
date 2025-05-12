@@ -579,7 +579,7 @@ font-weight: bold;
 .toast-container {
     visibility: hidden;
     min-width: 250px;
-    background-color: #28a745; /* Green Color */
+
     color: white;
     text-align: center;
     border-radius: 5px;
@@ -604,6 +604,13 @@ font-weight: bold;
     background-color: #ff4d4d; /* red (error) */
     color: white;
 }
+
+
+
+.toast-show {
+    display: block; /* or opacity transition */
+}
+
 /* Show Toast */
 .toast-show {
     visibility: visible;
@@ -621,4 +628,79 @@ font-weight: bold;
 .toast-container i {
     font-size: 20px;
     color: white;
+}
+.custom-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.custom-modal-content {
+     position: relative;
+    background-color: #fff;
+    margin: 20% auto;
+    margin-left: 42%;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    text-align: center;
+}
+
+/* Modal Message Text */
+#cancelConfirmationMessage {
+  font-size: 20px;
+  color: #333;
+  font-weight: bold;
+}
+
+/* Modal Buttons */
+.custom-modal-buttons {
+  margin-top: 20px;
+}
+
+.custom-btn {
+   padding: 10px 20px;
+    margin: 5px;
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+/* Yes (Confirm Cancel) Button - Styled with Orange */
+.cancel-yes {
+  background-color: #ff9800;
+}
+.cancel-yes:hover {
+  background-color: #fb8c00;
+}
+
+/* No (Dismiss Cancel) Button - Styled with Grey */
+.cancel-no {
+  background-color: #9e9e9e;
+}
+.cancel-no:hover {
+  background-color: #757575;
+}
+.custom-close-icon {
+    position: absolute;
+    top: 0px;
+    right: 8px;
+    font-size: 24px;
+    font-weight: bold;
+    color:red;
+    cursor: pointer;
+    z-index: 10;
+}
+.custom-close-icon:hover {
+    color: #000;
 }

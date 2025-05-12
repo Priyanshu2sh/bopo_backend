@@ -167,6 +167,8 @@ urlpatterns = [
     path('assign-employee-role/', assign_employee_role, name='assign_employee_role'),
     
     path('api/security-questions/', add_security_question, name='add_security_question'),
+    path('api/get-deduct-amount/', views.get_deduct_amount, name='get_deduct_amount'),
+
     path('api/set-deduct-amount/', set_deduct_amount, name='set_deduct_amount'),
     
     path('get-current-limit/', views.get_current_limit, name='get_current_limit'),
@@ -188,6 +190,7 @@ urlpatterns = [
     path('logo/', views.logo, name='logo'),
     # path('upload_logo/', views.upload_logo, name='upload_logo'),
     path('upload-logo/',views.upload_logo, name='upload_logo'),
+
     
  
 

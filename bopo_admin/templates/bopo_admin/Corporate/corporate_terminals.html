@@ -23,12 +23,13 @@
 
   <div class="merchant-select-row">
     <label for="merchant_id">Select Merchant ID:</label>
-    <select name="merchant_id" id="merchant_id" class="select2" style="width: 300px;">
-        <option value="">-- Select Merchant --</option>
-        {% for merchant in merchants %}
-            <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }}</option>
-        {% endfor %}
-    </select>
+   <select name="merchant_id" id="merchant_id" class="select2" style="width: 900px;">
+    <option value="">-- Select Merchant --</option>
+    {% for merchant in merchants %}
+        <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }} - {{ merchant.first_name }} {{ merchant.last_name }} </option>
+    {% endfor %}
+</select>
+
 
     <button id="add-terminal-btn" class="add-terminal-btn">
       Add Terminal

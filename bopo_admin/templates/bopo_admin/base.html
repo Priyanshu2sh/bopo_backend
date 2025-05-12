@@ -31,7 +31,7 @@
              {% else %}
                  <span>No logo uploaded</span>
              {% endif %}
-             <input type="file" id="logoUploader" style="display: none;" accept="image/*">
+             {% comment %} <input type="file" id="logoUploader" style="display: none;" accept="image/*"> {% endcomment %}
          </h4>
      {% elif request.user.role == 'corporate_admin' %}
            <h4 style="margin-bottom: 50px;">

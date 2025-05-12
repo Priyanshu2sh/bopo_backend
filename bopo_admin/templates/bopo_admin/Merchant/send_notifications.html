@@ -112,26 +112,28 @@
 
 
 <script>
-    function fetchMerchants() {
-        const projectId = document.getElementById("single_project").value;
-        const merchantDropdown = document.getElementById("select-merchant");
+   function fetchMerchants() {
+    const projectId = document.getElementById("single_project").value;
+    const merchantDropdown = document.getElementById("select-merchant");
 
-        if (projectId) {
-            fetch(`/get-merchants/?project_id=${projectId}`)
-                .then(response => response.json())
-                .then(data => {
-                    merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
-                    data.merchants.forEach(merchant => {
-                        merchantDropdown.innerHTML += `<option value="${merchant.merchant_id}">${merchant.merchant_id}</option>`;
-                    });
-                })
-                .catch(error => {
-                    console.error("Error fetching merchants:", error);
+    if (projectId) {
+        fetch(`/get-merchants/?project_id=${projectId}`)
+            .then(response => response.json())
+            .then(data => {
+                merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
+                data.merchants.forEach(merchant => {
+                    const fullName = `${merchant.first_name} ${merchant.last_name || ''}`.trim();
+                    merchantDropdown.innerHTML += `<option value="${merchant.merchant_id}">${merchant.merchant_id} - ${fullName}</option>`;
                 });
-        } else {
-            merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
-        }
+            })
+            .catch(error => {
+                console.error("Error fetching merchants:", error);
+            });
+    } else {
+        merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
     }
+}
+
 
     document.addEventListener("DOMContentLoaded", function () {
         const singleToggle = document.getElementById("toggle-single");
