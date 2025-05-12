@@ -143,6 +143,7 @@ urlpatterns = [
     path('resolve-help/<int:help_id>/', views.resolve_help, name='resolve_help'),
     path('model-plans/list/', views.model_plan_list, name='model_plan_list'),
 
+
  
   
     # path('delete-merchant/<int:id>/', views.delete_merchant, name='delete_merchant'),

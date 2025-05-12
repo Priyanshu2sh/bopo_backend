@@ -32,7 +32,8 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Project ID</th>
+                                {% comment %} <th>Project ID</th> {% endcomment %}
+                                <th>Corporate ID</th>
                                 <th>Merchant ID</th>
                                 <th>Contact Person</th>
                                 <th>Mobile Number</th>
@@ -46,8 +47,9 @@
                             {% for data in corporate_data %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
-                                    <td>{{ data.corporate.project_id }}</td>
-                                    <td>{{ data.corporate.corporate_id }}</td>
+                                    {% comment %} <td>{{ data.corporate.project_id }}</td> {% endcomment %}
+                                     <td>{{ data.corporate.corporate_id }}</td>
+                                     <td>-</td>
                                     <td>{{ data.corporate.first_name }} {{ data.corporate.last_name }}</td>
                                     <td>{{ data.corporate.mobile }}</td>
                                     <td>{{ data.corporate.shop_name }}</td>
@@ -61,7 +63,7 @@
                                 {% for merchant in data.merchants %}
                                 <tr>
                                     <td>-</td>
-                                    <td>-</td>
+                                    <td>-</td> 
                                     <td>{{ merchant.merchant_id }}</td>
                                     <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
                                     <td>{{ merchant.mobile }}</td>
@@ -229,6 +231,8 @@
 </div>
 
 <script>
+
+
     function openEditCorporateModal(id, type = 'corporate') {
         // Dynamically set the URL based on the type (corporate or merchant)
         const url = type === 'merchant'

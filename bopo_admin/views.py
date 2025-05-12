@@ -532,6 +532,7 @@ def toggle_status(request, merchant_id):
     return JsonResponse({"success": False, "error": "Invalid request"})
 
 
+
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from accounts.models import Merchant, Corporate
