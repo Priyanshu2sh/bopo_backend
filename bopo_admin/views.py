@@ -2328,50 +2328,51 @@ def reports(request):
     return render(request, 'bopo_admin/Payment/reports.html')
 
 def login_view(request):
-    if request.method == 'POST': 
+    # GET request (initial load or after auto logout)
+    if request.GET.get('inactive'):
+        error_message = "Your corporate account has been deactivated. Please contact the superadmin."
+        return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+    if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         user_type = request.POST.get('user_type')
 
+        # Authenticate user
         user = authenticate(request, username=username, password=password)
-        if user_type == "employee":
-            role_permissions = EmployeeRole.objects.filter(employee=user.employee)
-            if not role_permissions.exists():
-                error_message = "You do not have permission to access this page."
-                return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
         if user:
+            # Check if the user is a corporate user
+            if user_type == "corporate_admin":
+                try:
+                    corporate = Corporate.objects.get(corporate_id=username)
+
+                    if corporate.status == "Inactive":
+                        logout(request)
+                        request.session.flush()
+                        error_message = "Your corporate account is currently not active. Please reach out to the superadmin for assistance."
+                        return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+                except Corporate.DoesNotExist:
+                    error_message = "Corporate account not found."
+                    return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+            elif user_type == "employee":
+                role_permissions = EmployeeRole.objects.filter(employee=user.employee)
+                if not role_permissions.exists():
+                    error_message = "You do not have permission to access this page."
+                    return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+            # Login the user if all checks pass
             login(request, user)
+            request.session['user_type'] = user_type
             return redirect('home')
+
         else:
             error_message = "Invalid credentials"
             return render(request, 'bopo_admin/login.html', {'error_message': error_message})
 
-        # try:
-        #     # Filter user by username and user_type if you are storing type
-        #     if user_type == "corporate_admin":
-        #         user = Corporate.objects.get(username=username)
-        #     else:
-        #         user = BopoAdmin.objects.get(username=username)
-            
-        #     # Optional: filter by role too if role is stored
-        #     # user = BopoAdmin.objects.get(username=username, role=user_type)
-
-        #     if check_password(password, user.password):
-        #         request.session['admin_id'] = user.id
-        #         request.session['user_type'] = user_type  # Store the role in session
-        #         return redirect('home')
-        #     else:
-        #         error_message = "Incorrect password"
-        # except BopoAdmin.DoesNotExist:
-        #     error_message = "User does not exist"
-
-        # return render(request, 'bopo_admin/login.html', {'error_message': error_message})
-    
-    # GET request
     return render(request, 'bopo_admin/login.html')
-
-
-
 
 
 from django.contrib.auth.hashers import make_password

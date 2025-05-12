@@ -69,6 +69,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -81,6 +83,7 @@ CORS_ALLOW_HEADERS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://8e09-103-211-60-165.ngrok-free.app",
     "https://3fb0-2401-4900-79d1-d74-6851-4650-8615-f92c.ngrok-free.app",
+    "https://7a22-2401-4900-57c6-ae7c-e933-a11b-70e7-85f4.ngrok-free.app",
 ]
 
 

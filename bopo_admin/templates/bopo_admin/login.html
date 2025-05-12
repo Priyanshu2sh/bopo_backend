@@ -16,11 +16,14 @@
         <h2>Bigbonuspoints <span>ADMIN</span> <br/>Login</h2>
 
         <div class="login-container">
-            {% if error_message %}
-                <div class="error">{{ error_message }}</div>
-            {% endif %}
+ {% if error_message %}
+<div class="custom-alert">
+    <div class="icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div class="message">{{ error_message }}</div>
+</div>
+{% endif %}
 
-            
+     
             <form method="post" action="">
                 {% csrf_token %}
             
@@ -63,10 +66,9 @@
                 <div class="form-group remember-me">
                     <input type="checkbox" name="remember_me" id="remember_me">
                     <label for="remember_me">Remember me</label>
-                </div>
+                </div>   <div class="remember-hint">(if this is a private computer)</div>
             
-                <div class="remember-hint">(if this is a private computer)</div>
-            
+                         
                 <button type="submit">Login</button>
             </form>
             
@@ -77,6 +79,8 @@
             <a href="">Miraasiv Onpay Technologies Pvt Ltd.</a> All rights reserved.
         </div>
     </div>
+
+    <div id="toast" class="toast hidden"></div>
 
     <script>
         const togglePassword = document.querySelector("#togglePassword");
@@ -111,5 +115,19 @@
         }
     });
     </script>
+
+
+    <script>
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+
+    setTimeout(() => {
+        toast.classList.add("hidden");
+    }, 4000); // 4 seconds
+}
+</script>
+
 </body>
 </html>

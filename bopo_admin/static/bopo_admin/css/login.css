@@ -1,3 +1,4 @@
+/* Base Styles */
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
@@ -16,34 +17,35 @@ body {
 }
 
 .login-header {
-    margin-top: 40px;
+    margin-top: 1.6rem;
 }
 
 h2 {
     text-align: center;
-    font-size: 26px;
+    font-size: 1.5rem;
     color: #2c3e50;
-    margin-bottom: 30px;
+    margin-bottom: 2rem;
     font-weight: 600;
 }
 
-span{
+span {
     text-align: center;
-    font-size: 26px;
+    font-size: 1.5rem;
     color: #b84545;
-    margin-bottom: 30px;
+    margin-bottom: 2rem;
     font-weight: 600;
-
 }
 
 .login-container {
     max-width: 500px;
-    height: 60vh;
-    margin: 80px auto 50px;
+    width: 90%;
+    min-height: 60vh;
+    margin: 5vh auto;
     background-color: #ffffff;
-    padding: 30px;
+    padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    margin-top: -0.6%;
 }
 
 .login-container:hover {
@@ -51,46 +53,34 @@ span{
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 1.25rem;
 }
 
 label {
-    font-size: 14px;
+    font-size: 0.9rem;
     color: #555;
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 0.5rem;
     display: block;
 }
 
-select{
-    width: 100%;
-    padding: 12px;
-    margin-top: 5px;
-    box-sizing: border-box;
-    border: 2px solid #dcdcdc;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #333;
-    background-color: #f8f8f8;
-    transition: all 0.3s ease;
-}
-
+select,
 input[type="text"],
 input[type="password"] {
     width: 100%;
-    padding: 12px;
-    margin-top: 5px;
-    box-sizing: border-box;
+    padding: 0.75rem;
+    margin-top: 0.3rem;
     border: 2px solid #dcdcdc;
     border-radius: 8px;
-    font-size: 14px;
-    color: #333;
+    font-size: 1rem;
     background-color: #f8f8f8;
     transition: all 0.3s ease;
+    box-sizing: border-box;
 }
 
 input[type="text"]:focus,
-input[type="password"]:focus {
+input[type="password"]:focus,
+select:focus {
     border-color: #b84545;
     outline: none;
     box-shadow: 0 0 5px #b84545;
@@ -101,50 +91,43 @@ input::placeholder {
 }
 
 .input-hint {
-    font-size: 11px;
-    margin-top: 3px;
+    font-size: 0.75rem;
+    margin-top: 0.9rem;
     color: rgb(139, 138, 138);
 }
 
 .remember-me {
     display: flex;
     align-items: center;
-    margin-top: 10px;
+    margin-top: 0.6rem;
 }
 
 .remember-me input {
-    margin-right: 10px;
+    margin-right: 0.5rem;
 }
 
 .remember-me label {
-    font-size: 14px;
+    font-size: 0.85rem;
     color: #555;
-    margin-top: 1.6%;
 }
 
 .remember-hint {
     color: rgb(139, 138, 138);
-    font-size: 12px;
-    margin-bottom: 4px;
+    font-size: 0.75rem;
+    margin-top: -1%;
 }
-
-
-button {
-    margin-top: 8px; /* reduced from 20px */
-}
-
 
 button {
     width: 100%;
-    padding: 12px;
-    font-size: 18px;
+    padding: 0.75rem;
+    font-size: 1.1rem;
     color: #fff;
     background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    margin-top: 20px;
+    margin-top: 1rem;
 }
 
 button:hover {
@@ -153,17 +136,17 @@ button:hover {
 
 .error {
     color: red;
-    margin-bottom: 20px;
+    margin-bottom: 1.2rem;
     text-align: center;
-    font-size: 14px;
+    font-size: 0.9rem;
     font-weight: 600;
 }
 
 .footer-text {
     text-align: center;
-    font-size: 13px;
+    font-size: 0.85rem;
     color: #888;
-    margin-top: -1.5%;
+    margin-top: -1%;
 }
 
 .footer-text a {
@@ -182,58 +165,121 @@ button:hover {
 }
 
 .password-wrapper input {
-    padding-right: 40px;
+    padding-right: 2.5rem;
 }
 
 #togglePassword {
     position: absolute;
     top: 50%;
-    right: 12px;
+    right: 0.75rem;
     transform: translateY(-50%);
     cursor: pointer;
     color: #999;
-    font-size: 16px;
+    font-size: 1rem;
 }
 
 #togglePassword:hover {
     color: #e12503;
 }
 
+.custom-alert {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(to right, #ffe6e6, #fffafa);
+    border-left: 5px solid #e53935;
+    color: #a94442;
+    padding: 0.7rem 1rem;
+    margin-bottom: 1.2rem;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    font-size: 0.95rem;
+    animation: fadeInDown 0.5s ease;
+}
+
+.custom-alert .icon {
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
+    color: #e53935;
+}
+
+.custom-alert .message {
+    flex: 1;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
 
-@media (max-width: 768px) {
+/* Responsive Design */
+@media (max-width: 1024px) {
     .login-container {
-        padding: 25px;
-        margin: 50px auto;
+        padding: 2rem;
         max-width: 80%;
     }
 
-    h2 {
-        font-size: 24px;
+    h2,
+    span {
+        font-size: 1.8rem;
+    }
+    
+    .footer-text {
+        font-size: 1rem;
+        margin-top: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .login-container {
+        padding: 1.5rem;
+        margin: 4vh auto;
+        max-width: 90%;
+    }
+
+    h2,
+    span {
+        font-size: 1.5rem;
     }
 
     button {
-        font-size: 17px;
+        font-size: 1rem;
+    }
+
+    label,
+    .remember-me label {
+        font-size: 0.85rem;
     }
 }
 
 @media (max-width: 480px) {
     .login-container {
-        padding: 20px;
-        margin: 30px auto;
-        max-width: 90%;
+        padding: 1rem;
+        margin: 3vh auto;
+        max-width: 95%;
     }
 
-    h2 {
-        font-size: 20px;
+    h2,
+    span {
+        font-size: 1.2rem;
     }
 
     button {
-        font-size: 15px;
+        font-size: 0.95rem;
     }
 
     label,
     .remember-me label {
-        font-size: 11px;
+        font-size: 0.75rem;
+    }
+
+    .footer-text {
+        font-size: 0.75rem;
     }
 }
