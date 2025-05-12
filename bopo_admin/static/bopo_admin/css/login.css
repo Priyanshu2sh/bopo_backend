@@ -17,7 +17,7 @@ body {
 }
 
 .login-header {
-    margin-top: 1.6rem;
+    margin-top: 2rem;
 }
 
 h2 {
@@ -45,7 +45,7 @@ span {
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    margin-top: -0.6%;
+    margin-top: -0.1%;
 }
 
 .login-container:hover {
@@ -109,12 +109,13 @@ input::placeholder {
 .remember-me label {
     font-size: 0.85rem;
     color: #555;
+    margin-top: 1.8%;
 }
 
 .remember-hint {
     color: rgb(139, 138, 138);
     font-size: 0.75rem;
-    margin-top: -1%;
+    margin-top: 1%;
 }
 
 button {
@@ -127,7 +128,7 @@ button {
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    margin-top: 1rem;
+    margin-top: 2rem;
 }
 
 button:hover {

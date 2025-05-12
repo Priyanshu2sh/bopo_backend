@@ -2327,6 +2327,7 @@ def account_info(request):
 def reports(request):
     return render(request, 'bopo_admin/Payment/reports.html')
 
+
 def login_view(request):
     # GET request (initial load or after auto logout)
     if request.GET.get('inactive'):
@@ -2337,34 +2338,41 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         user_type = request.POST.get('user_type')
+        remember_me = request.POST.get('remember_me')  # Fetch the "remember me" checkbox
 
         # Authenticate user
         user = authenticate(request, username=username, password=password)
 
         if user:
-            # Check if the user is a corporate user
+            # Check corporate admin status
             if user_type == "corporate_admin":
                 try:
                     corporate = Corporate.objects.get(corporate_id=username)
-
                     if corporate.status == "Inactive":
                         logout(request)
                         request.session.flush()
                         error_message = "Your corporate account is currently not active. Please reach out to the superadmin for assistance."
                         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
-
                 except Corporate.DoesNotExist:
                     error_message = "Corporate account not found."
                     return render(request, 'bopo_admin/login.html', {'error_message': error_message})
 
+            # Check employee permissions
             elif user_type == "employee":
                 role_permissions = EmployeeRole.objects.filter(employee=user.employee)
                 if not role_permissions.exists():
                     error_message = "You do not have permission to access this page."
                     return render(request, 'bopo_admin/login.html', {'error_message': error_message})
 
-            # Login the user if all checks pass
+            # Login the user
             login(request, user)
+
+            # Set session expiry based on "remember me"
+            if remember_me:
+                request.session.set_expiry(1209600)  # 2 weeks
+            else:
+                request.session.set_expiry(0)  # Session expires on browser close
+
             request.session['user_type'] = user_type
             return redirect('home')
 
