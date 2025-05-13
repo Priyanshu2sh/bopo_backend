@@ -26,6 +26,7 @@ class CustomerPoints(models.Model):
     corporate_id = models.ForeignKey(Corporate, on_delete=models.CASCADE, null=True, blank=True)  # Reference to Corporate model
     terminal = models.ForeignKey(Terminal, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ('customer', 'merchant')  # Ensures unique customer-merchant pair
@@ -86,6 +87,14 @@ class MerchantToMerchant(models.Model):
 
     def __str__(self):
         return f"{self.sender_merchant.merchant_id} -> {self.receiver_merchant.merchant_id}: {self.points} points"
+    
+    
+class GlobalPoints(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    points = models.IntegerField()
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    
     
 
 class PaymentDetails(models.Model): 

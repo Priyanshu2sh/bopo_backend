@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
 from django.shortcuts import get_object_or_404
+import mimetypes
 import base64
 from django.core.files.storage import default_storage
 from rest_framework import status
@@ -268,8 +269,8 @@ class RegisterUserAPIView(APIView):
                 "merchant_id": None
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        prefix = "MEID"
-        merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
+        prefix = "MID"
+        merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=12))}"
         otp = random.randint(100000, 999999)
 
         terminal_id, tid_pin = self._generate_terminal_info()
@@ -380,18 +381,18 @@ class LoginAPIView(APIView):
     
     def get_logo_base64(self, logo_instance):
         try:
-            if logo_instance and logo_instance.logo:
-                # Open the logo file and read it as binary
+            if logo_instance and logo_instance.logo and default_storage.exists(logo_instance.logo.name):
                 with default_storage.open(logo_instance.logo.name, 'rb') as logo_file:
                     logo_data = logo_file.read()
-                    
-                # Convert the binary data to base64
+                # Detect the image type based on file extension
+                ext = logo_instance.logo.name.split('.')[-1].lower()
+                mime_type = f"image/{'jpeg' if ext in ['jpg', 'jpeg'] else ext}"
                 logo_base64 = base64.b64encode(logo_data).decode('utf-8')
-                
-                # Return the base64-encoded string prefixed with the appropriate image format
-                return f"data:logo/png;base64,{logo_base64}"  # Adjust format if needed (e.g., jpeg, svg)
+                return f"data:{mime_type};base64,{logo_base64}"
         except Exception as e:
-            return None
+            logger.error(f"Error encoding logo to base64: {e}")
+        return None
+
     
     @staticmethod
     def is_customer_profile_complete(customer):
@@ -451,21 +452,22 @@ class LoginAPIView(APIView):
 
             if user_category == "customer":
                 user = Customer.objects.filter(mobile=str(identifier)).first()
-                if not user:
-                    return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+                if not user or str(user.status).strip().lower() != "active":
+                    return Response({"error": "Invalid credentials or inactive account."}, status=status.HTTP_400_BAD_REQUEST)
                 if not user.verified_at:
                     return Response({"error": "Customer not verified. Please verify OTP before logging in."}, status=status.HTTP_400_BAD_REQUEST)
                 if not user.pin or str(user.pin) != str(pin):
                     return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
                 
-                 # ----> Fetch latest logo object
-                logo_instance = Logo.objects.last()
-                user.logo = logo_instance  # Assign Logo ForeignKey
-                user.save(update_fields=["logo"])
-                
-                # ----> Return logo URL in response (if exists)
-                logo_url = request.build_absolute_uri(user.logo.logo.url) if user.logo and user.logo.logo else None
-                logo_base64 = self.get_logo_base64(logo_instance)
+                # ----> Always assign Logo with ID = 7 for customers
+                logo_instance = Logo.objects.filter(id=7).first()
+                if logo_instance:
+                    user.logo = logo_instance
+                    user.save(update_fields=["logo"])
+
+                # ----> Return logo URL and Base64 (if exists)
+                logo = request.build_absolute_uri(user.logo.logo.url) if user.logo and user.logo.logo else None
+                logo_base64 = self.get_logo_base64(user.logo) if user.logo else None
                             
 
                 response_data = {
@@ -477,7 +479,7 @@ class LoginAPIView(APIView):
                     "user_category": "customer",
                     "customer_id": user.customer_id,
                     "is_profile_updated": self.is_customer_profile_complete(user),
-                    "logo":logo_url,
+                    "logo":logo,
                     "logo_base64": logo_base64 
 
 
@@ -489,8 +491,8 @@ class LoginAPIView(APIView):
                 else:
                     user = Merchant.objects.filter(merchant_id=identifier).first()
 
-                if not user:
-                    return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+                if not user or str(user.status).strip().lower() != "active":
+                    return Response({"error": "Invalid credentials or inactive account."}, status=status.HTTP_400_BAD_REQUEST)
 
                 if not user.verified_at and user.user_type != "corporate":
                     return Response({"error": "Merchant not verified. Please verify OTP before logging in."}, status=status.HTTP_400_BAD_REQUEST)
@@ -498,15 +500,15 @@ class LoginAPIView(APIView):
                 if not user.pin or str(user.pin) != str(pin):
                     return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
 
-                # ----> If logo is None, assign Logo(id=1)
+                 # ----> If logo is None, assign Logo(id=7)
                 if not user.logo:
-                    default_logo = Logo.objects.filter(id=1).first()
+                    default_logo = Logo.objects.filter(id=7).first()
                     if default_logo:
                         user.logo = default_logo
                         user.save(update_fields=["logo"])
 
                 # ----> Return logo URL and base64 (if exists)
-                logo_url = request.build_absolute_uri(user.logo.logo.url) if user.logo and user.logo.logo else None
+                logo = request.build_absolute_uri(user.logo.logo.url) if user.logo and user.logo.logo else None
                 logo_base64 = self.get_logo_base64(user.logo) if user.logo else None
 
                 response_data = {
@@ -519,7 +521,7 @@ class LoginAPIView(APIView):
                     "merchant_id": user.merchant_id,
                     "is_profile_updated": self.is_merchant_profile_complete(user),
                     "user_type": user.user_type,
-                    "logo": logo_url,
+                    "logo": logo,
                     "logo_base64": logo_base64
                 }
 
@@ -778,7 +780,7 @@ class FetchAllUsersAPIView(APIView):
             all_users += customer_data
 
         if user_type == 'merchant' or user_type is None:
-            merchants = Merchant.objects.all()
+            merchants = Merchant.objects.filter(user_type__iexact='individual')
             merchant_data = [
                 {
                     # "user_type": "merchant",
@@ -789,7 +791,7 @@ class FetchAllUsersAPIView(APIView):
                     "email": merchant.email,
                     "shop_name": merchant.shop_name,
                     "address": merchant.address,
-                    "corporate_id": merchant.corporate_id,
+                    # "corporate_id": merchant.corporate.corporate_id if merchant.corporate else None,
                     "created_at": merchant.created_at,
                 }
                 for merchant in merchants
@@ -797,24 +799,27 @@ class FetchAllUsersAPIView(APIView):
             all_users += merchant_data
 
         if user_type == 'corporate' or user_type is None:
-            corporates = Corporate.objects.all()
-            corporate_data = [
+            merchants = Merchant.objects.filter(user_type__iexact='corporate')
+            merchant_data = [
                 {
                     # "user_type": "corporate",
-                    "user_id": corporate.corporate_id,
-                    "mobile": corporate.mobile,
-                    "first_name": corporate.first_name,
-                    "last_name": corporate.last_name,
-                    "email": corporate.email,
-                    "project_name": corporate.project_name,
-                    "address": corporate.address,
-                    "created_at": corporate.created_at,
+                     "user_id": merchant.merchant_id,
+                    "mobile": merchant.mobile,
+                    "first_name": merchant.first_name,
+                    "last_name": merchant.last_name,
+                    "email": merchant.email,
+                    "shop_name": merchant.shop_name,
+                    "address": merchant.address,
+                    "corporate_id": merchant.corporate.corporate_id if merchant.corporate else None,
+                    "created_at": merchant.created_at,
                 }
-                for corporate in corporates
+                for merchant in merchants
             ]
-            all_users += corporate_data
+            all_users += merchant_data
 
         return Response({"users": all_users}, status=status.HTTP_200_OK)
+    
+    
     
 class RequestMobileChangeAPIView(APIView):
     def post(self, request):

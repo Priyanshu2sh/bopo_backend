@@ -5,6 +5,7 @@ import os
 import os
 import random
 import string
+from sys import prefix
 from tkinter.font import Font
 from django.db.models import Max
 from django.http import HttpResponse, JsonResponse
@@ -85,8 +86,8 @@ def corporate_admin(request):
         "corporate_data": corporate_data
     })
 
-def profile(request):
-        return render(request, 'bopo_admin/profile.html')
+# def profile(request):
+#         return render(request, 'bopo_admin/profile.html')
 
 
 # def dashboard(request):
@@ -607,10 +608,14 @@ def add_merchant(request):
                 project_name = corporate.project_name
                 project_id = corporate.project_id
 
-                # Merchant ID Generation
-                project_abbr = project_name[:4].upper()
-                random_number = ''.join(random.choices(string.digits, k=11))
-                merchant_id = f"{project_abbr}{random_number}"
+                # # Merchant ID Generation
+                # project_abbr = project_name[:4].upper()
+                # random_number = ''.join(random.choices(string.digits, k=11))
+                # merchant_id = f"{project_abbr}{random_number}"
+                
+                prefix = "MEID"
+                merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
+                # otp = random.randint(100000, 999999)
 
                 # Create the Merchant instance
                 merchant = Merchant.objects.create(
@@ -1216,7 +1221,11 @@ def add_individual_merchant(request):
             # Generate merchant_id
             last_merchant = Merchant.objects.order_by('-id').first()
             next_id = 1 if not last_merchant else last_merchant.id + 1
-            merchant_id = f"MID{str(next_id).zfill(8)}"
+            # merchant_id = f"MEID{str(next_id).zfill(11)}"
+            prefix = "MEID"
+            merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
+            
+            
 
             # Generate Terminal ID and TID PIN
             def generate_terminal_id():
@@ -3319,6 +3328,28 @@ def upload_logo(request):
         logo_obj.save()
         return JsonResponse({'success': True, 'url': logo_obj.logo.url})
     return JsonResponse({'success': False})
+
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
+def send_notification_to_user(user_id, message):
+    channel_layer = get_channel_layer()
+    group_name = f"notifications_{user_id}"
+
+    async_to_sync(channel_layer.group_send)(
+        group_name,
+        {
+            "type": "send_notification",
+            "notification": message
+        }
+    )
+
+
+def trigger_notification(request):
+    user_id = 2
+    message = "You have a new transaction alert!"
+    send_notification_to_user(user_id, message)
+    return JsonResponse({"status": "Notification sent"})
 
 
 # @login_required
