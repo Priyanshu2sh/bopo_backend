@@ -563,6 +563,7 @@ def add_merchant(request):
             address = request.POST.get("address")
             legal_name = request.POST.get("legal_name")
             pincode = request.POST.get("pincode")
+            account_type = request.POST.get("account_type", "normal")
             city_id = request.POST.get("city")
             state_id = request.POST.get("state")
             country = request.POST.get("country", "India")
@@ -675,6 +676,7 @@ def add_merchant(request):
                     city=city,
                     country=country,
                     role="admin",
+                    account_type=account_type, 
                     logo=logo_instance  # Associate the logo with the new corporate account
                 )
 

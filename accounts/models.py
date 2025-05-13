@@ -44,6 +44,7 @@ class Corporate(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     verified_at = models.DateTimeField(null=True, blank=True)
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='corporates')
+    account_type = models.CharField(max_length=20, choices=[('global', 'Global'), ('normal', 'Normal')], default='normal')
 
 
     
