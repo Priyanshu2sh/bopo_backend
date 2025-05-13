@@ -82,7 +82,7 @@
         {% endif %}
 
         {% if request.user.role == 'super_admin' %}
-        <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Requested Cash-Out</a></li>
+        <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Reduce Merchant Points</a></li>
         {% endif %}
         
         {% comment %} <li><a href="{% url 'merchant_status' %}"><i class="fas fa-toggle-on"></i> Merchant Status</a></li> {% endcomment %}
