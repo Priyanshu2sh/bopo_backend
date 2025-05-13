@@ -190,6 +190,7 @@ urlpatterns = [
     path('logo/', views.logo, name='logo'),
     # path('upload_logo/', views.upload_logo, name='upload_logo'),
     path('upload-logo/',views.upload_logo, name='upload_logo'),
+    path('send-customer-credentials/', views.send_customer_credentials, name='send_customer_credentials'),
 
     
  

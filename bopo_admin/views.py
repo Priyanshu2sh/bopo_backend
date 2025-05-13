@@ -3493,3 +3493,46 @@ def upload_logo(request):
             return JsonResponse({'success': True, 'url': logo_obj.logo.url})
 
     return JsonResponse({'success': False})
+
+
+def send_customer_credentials(request):
+    customers = Customer.objects.all().order_by('customer_id')
+
+    if request.method == 'POST':
+        customer_id = request.POST.get('customer_id')
+
+        try:
+            if not customer_id:
+                return JsonResponse({'status': 'error', 'message': 'Customer ID is required'})
+
+            customer = Customer.objects.get(customer_id=customer_id)
+            phone_number = customer.mobile
+            if not phone_number.startswith('+'):
+                phone_number = f'+91{phone_number}'
+
+            message_text = (
+                f"Dear {customer.first_name},\n\n"
+                f"Your BOPO login credentials:\n"
+                f"Customer ID: {customer.customer_id}\n"
+                f"Customer PIN: {customer.pin}\n\n"
+                f"Regards,\nBOPO Support Team"
+            )
+
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=message_text,
+                from_=settings.TWILIO_PHONE_NUMBER,
+                to=phone_number
+            )
+
+            return JsonResponse({'status': 'success', 'message': 'Customer credentials sent successfully!'})
+
+        except Customer.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Customer not found'})
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status': 'error', 'message': 'An error occurred while sending credentials'})
+
+    return render(request, 'bopo_admin/Customer/send_customer_credentials.html', {
+        'customers': customers
+    })
