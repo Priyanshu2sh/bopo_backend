@@ -49,8 +49,13 @@
             <div class="send-notification-form"><br>
                 <table class="form-control" style="width: 100%; margin-bottom: 15px;">
                     <thead>
-                        <tr><th>Question</th></tr>
+                        <tr>
+                            <th>Question</th>
+                            {% comment %} <th>Used by Merchants</th> {% endcomment %}
+                            <th>Action</th>
+                        </tr>
                     </thead>
+
                     <tbody id="security-questions-body"></tbody>
                 </table>
 
@@ -375,7 +380,7 @@ function showAlert() {
         }
         return '';
     }
-
+{% comment %} 
     function loadSecurityQuestions() {
         fetch('/api/security-questions/')
         .then(res => res.json())
@@ -388,7 +393,95 @@ function showAlert() {
                 tbody.appendChild(tr);
             });
         });
+    } {% endcomment %}
+
+function loadSecurityQuestions() {
+    fetch('/api/security-questions/')
+    .then(res => res.json())
+    .then(data => {
+        const tbody = document.getElementById("security-questions-body");
+        tbody.innerHTML = '';
+        data.forEach(q => {
+            const tr = document.createElement("tr");
+            let actionButtons = '';
+            if (q.can_edit) {
+                actionButtons += `<button class="send-btn" onclick="editSecurityQuestion(${q.id}, '${q.question}')">Edit</button>`;
+            }
+            if (q.can_delete) {
+                actionButtons += `<button class="cancel-btn" onclick="deleteSecurityQuestion(${q.id})">Delete</button>`;
+            }
+
+            tr.innerHTML = `
+                <td>${q.question}</td>
+                {% comment %} <td>${q.merchant_count}</td> {% endcomment %}
+                <td>${actionButtons}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    });
+}
+
+function deleteSecurityQuestion(id) {
+    if (!confirm("Are you sure you want to delete this security question?")) return;
+
+fetch(`/api/security-questions/${id}/delete/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.message) {
+            showToast("Question deleted successfully", true);
+            loadSecurityQuestions();
+        } else {
+            showToast(data.error || "Failed to delete question", false);
+        }
+    })
+    .catch(() => {
+        showToast("Error deleting question", false);
+    });
+}
+
+function editSecurityQuestion(id, oldText) {
+    const newText = prompt("Edit the security question:", oldText);
+    if (newText && newText !== oldText) {
+        fetch(`/api/security-questions/${id}/update/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: JSON.stringify({ question: newText })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast("Question updated successfully", true);
+                loadSecurityQuestions();
+            } else {
+                showToast(data.error || "Failed to update", false);
+            }
+        })
+        .catch(() => {
+            showToast("Error updating question", false);
+        });
     }
+}
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const trimmed = cookie.trim();
+        if (trimmed.startsWith(name + '=')) {
+            return decodeURIComponent(trimmed.substring(name.length + 1));
+        }
+    }
+    return '';
+}
+
+
 
     function showAddQuestion() {
         document.getElementById("add-question-row").style.display = "block";

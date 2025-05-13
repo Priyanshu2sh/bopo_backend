@@ -3001,11 +3001,58 @@ def save_cash_out(request):
 # def award_points(request):
 #     return render(request, 'bopo_admin/Superadmin/award_points.html')
 
+# def security_questions_view(request):
+#     if request.method == 'GET':
+#         questions = list(SecurityQuestion.objects.all().values('id', 'question'))
+#         return JsonResponse(questions, safe=False)
+    
+#     elif request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             question_text = data.get('question', '').strip()
+#             if question_text:
+#                 question = SecurityQuestion.objects.create(question=question_text)
+#                 return JsonResponse({'id': question.id, 'question': question.question})
+#             return JsonResponse({'error': 'Invalid question'}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+
+#     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+from django.db.models import Count
+
+
+@csrf_exempt
+def add_security_question(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        question_text = data.get('question', '').strip()
+        if question_text:
+            question = SecurityQuestion.objects.create(question=question_text)
+            return JsonResponse({'id': question.id, 'question': question.question})
+        return JsonResponse({'error': 'Invalid question'}, status=400)
+
+
+@csrf_exempt
 def security_questions_view(request):
     if request.method == 'GET':
-        questions = list(SecurityQuestion.objects.all().values('id', 'question'))
-        return JsonResponse(questions, safe=False)
-    
+        questions = SecurityQuestion.objects.annotate(
+            merchant_count=Count('merchants'),
+            customer_count=Count('customers')
+        )
+        data = []
+        for q in questions:
+            is_taken = q.merchant_count > 0 or q.customer_count > 0
+            data.append({
+                'id': q.id,
+                'question': q.question,
+                'merchant_count': q.merchant_count + q.customer_count,
+                'is_taken': is_taken,
+                'can_delete': not is_taken,
+                'can_edit': not is_taken,
+            })
+        return JsonResponse(data, safe=False)
+
     elif request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -3020,15 +3067,39 @@ def security_questions_view(request):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
-def add_security_question(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        question_text = data.get('question', '').strip()
-        if question_text:
-            question = SecurityQuestion.objects.create(question=question_text)
-            return JsonResponse({'id': question.id, 'question': question.question})
-        return JsonResponse({'error': 'Invalid question'}, status=400)
-    
+
+@csrf_exempt
+def delete_security_question(request, question_id):
+    if request.method == 'DELETE':
+        try:
+            question = SecurityQuestion.objects.get(id=question_id)
+            if question.is_taken:
+                return JsonResponse({'error': 'Cannot delete. Question already used.'}, status=400)
+            question.delete()
+            return JsonResponse({'message': 'Deleted successfully'})
+        except SecurityQuestion.DoesNotExist:
+            return JsonResponse({'error': 'Question not found'}, status=404)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def update_security_question(request, question_id):
+    if request.method == 'PUT':
+        try:
+            question = SecurityQuestion.objects.get(id=question_id)
+            if question.is_taken:
+                return JsonResponse({'error': 'Cannot edit. Already in use.'}, status=400)
+            data = json.loads(request.body)
+            question_text = data.get('question', '').strip()
+            if question_text:
+                question.question = question_text
+                question.save()
+                return JsonResponse({'success': True})
+            return JsonResponse({'error': 'Invalid input'}, status=400)
+        except SecurityQuestion.DoesNotExist:
+            return JsonResponse({'error': 'Question not found'}, status=404)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
 
 def get_deduct_amount(request):
     try:

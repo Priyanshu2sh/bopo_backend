@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 from django.db import models
 from django.contrib.auth.hashers import make_password
 
+
 # Create your models here.
 class BopoAdminManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -225,7 +226,12 @@ class UserBalance(models.Model):
     
 class SecurityQuestion(models.Model):
     question = models.CharField(max_length=255)
-    
+    is_taken = models.BooleanField(default=False)  # Add the is_taken field
+
+    def __str__(self):
+        return self.question
+
+
 class DeductSetting(models.Model):
     deduct_percentage = models.FloatField(default=5.0)  # Default 5% if not set
     updated_at = models.DateTimeField(auto_now=True)

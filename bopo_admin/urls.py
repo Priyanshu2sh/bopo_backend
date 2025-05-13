@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import  add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view,  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_superadmin_payment, security_questions_view,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+from .views import  add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, delete_security_question,  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_superadmin_payment, security_questions_view,send_notifications,received_offers, set_deduct_amount, toggle_status, update_security_question,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -115,8 +115,12 @@ urlpatterns = [
     path('helpdesk/', views.helpdesk, name='helpdesk'),
     
     # path('api/security-questions/', views.get_security_questions, name='get_security_questions'),
-
     path('api/security-questions/', security_questions_view, name='security_questions'),
+    path('api/security-questions/<int:question_id>/delete/', delete_security_question, name='delete_security_question'),
+    path('api/security-questions/<int:question_id>/update/', update_security_question, name='update_security_question'),
+
+
+    # path('delete-security-question/<int:question_id>/', views.delete_security_question, name='delete_security_question'),
     path('send_customer_notifications/', views.send_notification_customer, name='send_customer_notifications'),
     path('send_customer_notifications/', views.send_notification_customer, name='send_notification_customer'),
     
