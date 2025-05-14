@@ -227,13 +227,6 @@ class Customer(models.Model):
         return f"{self.first_name or ''} {self.last_name or ''}".strip() or self.mobile
     
     
-class SecurityQue(models.Model):
-    security_question = models.CharField(max_length=255)
-    answer = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.security_question
-    
 class Logo(models.Model):
     logo = models.ImageField(upload_to='logos/')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -252,10 +245,4 @@ class Logo(models.Model):
 #         return f"Logo {self.id}"
 
 
-class Logo(models.Model):
-   
-    logo = models.ImageField(upload_to='logos/')
-    created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-         return f"Logo {self.id}"

@@ -16,7 +16,7 @@ from rest_framework import serializers
 
 from accounts.models import Corporate, Customer, Merchant
 from bopo_admin.models import EmployeeRole
-from .models import BankDetail, CashOut, CustomerPoints, Help, MerchantPoints, History, ModelPlan, PaymentDetails, SuperAdminPayment
+from .models import BankDetail, CashOut, CustomerPoints, GlobalPoints, Help, MerchantPoints, History, ModelPlan, PaymentDetails, SuperAdminPayment
 
 
 class CustomerPointsSerializer(serializers.ModelSerializer):
@@ -138,3 +138,11 @@ class SuperAdminPaymentSerializer(serializers.Serializer):
     class Meta:
         model = SuperAdminPayment
         fields = ['transaction_id', 'payment_method', 'cashout', 'created_at']
+        
+class GlobalPointsSerializer(serializers.Serializer):
+    """
+    Serializer for Global Points API
+    """
+    class Meta:
+        model = GlobalPoints
+        fields = '__all__'

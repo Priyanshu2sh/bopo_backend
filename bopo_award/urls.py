@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AwardPointsAPIView,  BankDetailByUserAPIView, CashOutCreateAPIView, CheckPointsAPIView, CorporateProjectListAPIView, CorporateRedeemAPIView, CustomerCashOutAPIView, CustomerPointsForPrepaidMerchantsAPIView, CustomerToCustomerTransferAPIView, HelpAPIView, MerchantCashOutAPIView, MerchantCustomerPointsAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, TerminalCustomerPointsAPIView, TransferPointsMerchantToCustomerAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
+from .views import AwardPointsAPIView,  BankDetailByUserAPIView, CashOutCreateAPIView, CheckPointsAPIView, CorporateProjectListAPIView, CorporateRedeemAPIView, CustomerCashOutAPIView, CustomerPointsForPrepaidMerchantsAPIView, CustomerToCustomerTransferAPIView, GetGlobalCustomerPointsAPIView, GetPrepaidMerchantAPIView, GlobalRedeemPointsAPIView, HelpAPIView, MerchantCashOutAPIView, MerchantCustomerPointsAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, TerminalCustomerPointsAPIView, TransferPointsMerchantToCustomerAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
 
 urlpatterns = [
     path('award/', AwardPointsAPIView.as_view(), name='award-points'),
@@ -39,6 +39,10 @@ urlpatterns = [
     path('api/merchant/cashout/', MerchantCashOutAPIView.as_view(), name='merchant-cashout'),
     
     path('corporate/redeem/', CorporateRedeemAPIView.as_view(), name='corporate-redeem'),
+    
+    path("global-redeem/", GlobalRedeemPointsAPIView.as_view(), name="global-redeem"),
+    path('get-GlobalCustomerPoints/', GetGlobalCustomerPointsAPIView.as_view(), name='get_global_customer_points'),
+    path('getPrepaidMerchants/', GetPrepaidMerchantAPIView.as_view(), name='get_prepaid_merchants'),
 ]
 
 
