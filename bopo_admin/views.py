@@ -235,6 +235,7 @@ def home(request):
     merchant_progress = (active_merchants / total_merchants * 100) if total_merchants > 0 else 0
 
     total_customers = Customer.objects.count()
+    active_customers = Customer.objects.filter(status="Active").count() 
     total_users = total_customers + total_merchants + total_projects
 
     # Daily counts
@@ -251,12 +252,27 @@ def home(request):
     daily_project_growth = ((daily_projects - yesterday_projects) / yesterday_projects * 100) if yesterday_projects > 0 else 0
     daily_merchant_growth = ((daily_merchants - yesterday_merchants) / yesterday_merchants * 100) if yesterday_merchants > 0 else 0
     daily_customer_growth = ((daily_customers - yesterday_customers) / yesterday_customers * 100) if yesterday_customers > 0 else 0
+    
+        # Growth compared to yesterday with capped 100% when no previous data
+    # daily_project_growth = 100 if yesterday_projects == 0 and daily_projects > 0 else 0 if yesterday_projects == 0 else ((daily_projects - yesterday_projects) / yesterday_projects * 100)
+    # daily_merchant_growth = 100 if yesterday_merchants == 0 and daily_merchants > 0 else 0 if yesterday_merchants == 0 else ((daily_merchants - yesterday_merchants) / yesterday_merchants * 100)
+    # daily_customer_growth = 100 if yesterday_customers == 0 and daily_customers > 0 else 0 if yesterday_customers == 0 else ((daily_customers - yesterday_customers) / yesterday_customers * 100)
+
+    # Daily Total Users Growth
+    daily_total_users = daily_projects + daily_merchants + daily_customers
+    yesterday_total_users = yesterday_projects + yesterday_merchants + yesterday_customers
+
+    daily_user_growth = (
+        ((daily_total_users - yesterday_total_users) / yesterday_total_users * 100)
+        if yesterday_total_users > 0 else 0
+    )
+
 
     # Chart data for bar graph
     chart_data = {
         "projects": [total_projects, completed_projects],
         "merchants": [total_merchants, active_merchants],
-        "customers": [total_customers],
+        "customers": [total_customers, active_customers],
     }
 
     context = {
@@ -281,48 +297,91 @@ def home(request):
         "daily_project_growth": daily_project_growth,
         "daily_merchant_growth": daily_merchant_growth,
         "daily_customer_growth": daily_customer_growth,
+        "daily_user_growth": daily_user_growth,
 
         # Chart data
         "chart_data": chart_data,
     }
 
+    # Get the corporate admin
     if user.role == 'corporate_admin':
         corporate = user.corporate
 
-        # Merchants under corporate
+        # ----- Merchants under corporate -----
         project_merchants = Merchant.objects.filter(project_name=corporate)
+
         total_project_merchants = project_merchants.count()
         active_project_merchants = project_merchants.filter(status="Active").count()
-        project_merchant_progress = (active_project_merchants / total_project_merchants * 100) if total_project_merchants > 0 else 0
 
-        # Daily merchants under corporate project
+        # Calculate merchant progress (percentage of active merchants)
+        project_merchant_progress = (
+            (active_project_merchants / total_project_merchants * 100)
+            if total_project_merchants > 0 else 0
+        )
+
+        # Calculate daily growth of merchants
         daily_project_merchants = project_merchants.filter(created_at__date=today).count()
         yesterday_project_merchants = project_merchants.filter(created_at__date=yesterday).count()
-        daily_project_merchant_growth = ((daily_project_merchants - yesterday_project_merchants) / yesterday_project_merchants * 100) if yesterday_project_merchants > 0 else 0
+        daily_project_merchant_growth = (
+            ((daily_project_merchants - yesterday_project_merchants) / yesterday_project_merchants * 100)
+            if yesterday_project_merchants > 0 else 0
+        )
 
-        # ----- Terminals Data -----
+        # ----- Terminals under corporate -----
         project_terminals = Terminal.objects.filter(merchant_id__project_name=corporate)
+
         total_project_terminals = project_terminals.count()
         active_project_terminals = project_terminals.filter(status="Active").count()
-        project_terminal_progress = (active_project_terminals / total_project_terminals * 100) if total_project_terminals > 0 else 0
 
-        # Chart data for corporate view
+        # Calculate terminal progress (percentage of active terminals)
+        project_terminal_progress = (
+            (active_project_terminals / total_project_terminals * 100)
+            if total_project_terminals > 0 else 0
+        )
+
+        # Calculate daily growth of terminals
+        daily_project_terminals = project_terminals.filter(created_at__date=today).count()
+        yesterday_project_terminals = project_terminals.filter(created_at__date=yesterday).count()
+        daily_project_terminal_growth = (
+            ((daily_project_terminals - yesterday_project_terminals) / yesterday_project_terminals * 100)
+            if yesterday_project_terminals > 0 else 0
+        )
+
+
+        
+       # Total Users = Total Merchants + Terminals
+        total_users = total_project_merchants + total_project_terminals
+
+        # Daily growth of total users (merchant + terminal)
+        daily_total_users = daily_project_merchants + daily_project_terminals
+        yesterday_total_users = yesterday_project_merchants + yesterday_project_terminals
+
+        daily_user_growth = (
+            ((daily_total_users - yesterday_total_users) / yesterday_total_users * 100)
+            if yesterday_total_users > 0 else 0
+        )
+
+
+        # ----- Chart Data for Corporate Admin -----
         chart_data = {
             "merchants": [total_project_merchants, active_project_merchants],
-            "customers": [0],
             "terminals": [total_project_terminals, active_project_terminals],
         }
 
-        chart_labels = ["Merchants", "Customers", "Terminals"]
+        chart_labels = ["Merchants", "Terminals"]
 
+        # Passing the context data to the template
         context.update({
             "total_merchants": total_project_merchants,
             "merchant_progress": project_merchant_progress,
-            "daily_merchants": daily_project_merchants,
             "daily_merchant_growth": daily_project_merchant_growth,
 
             "total_terminals": total_project_terminals,
             "terminal_progress": project_terminal_progress,
+            "daily_terminal_growth": daily_project_terminal_growth,
+            
+            "total_users": total_users,
+            "daily_user_growth": daily_user_growth,
 
             "chart_data": chart_data,
             "chart_labels": chart_labels,
