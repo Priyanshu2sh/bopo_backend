@@ -1,3 +1,4 @@
+from datetime import timezone
 import logging
 import string
 from turtle import home
@@ -10,6 +11,7 @@ import random
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
+from random import randint
 from django.shortcuts import get_object_or_404
 import mimetypes
 import base64
@@ -379,6 +381,30 @@ class RegisterUserAPIView(APIView):
 class LoginAPIView(APIView):
     """API for Customer, Merchant, and Terminal Login"""
     
+    def generate_otp(self):
+        """Generate a 6-digit OTP."""
+        return randint(100000, 999999)
+    
+    def send_otp(self, mobile, otp):
+        """Send OTP to the user's mobile number."""
+        # Replace with your SMS service integration
+        try:
+            # Example of sending OTP via SMS (replace with actual API)
+            message = f"Your OTP is {otp}. Please use this to verify your account."
+            # For example, send the OTP via SMS to the user's mobile number
+            send_mail(
+                'OTP Verification',
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [mobile],
+                fail_silently=False,
+            )
+            logger.info(f"OTP sent to {mobile}")
+        except Exception as e:
+            logger.error(f"Error sending OTP to {mobile}: {e}")
+            return False
+        return True
+    
     def get_logo_base64(self, logo_instance):
         try:
             if logo_instance and logo_instance.logo and default_storage.exists(logo_instance.logo.name):
@@ -431,10 +457,10 @@ class LoginAPIView(APIView):
 
     def post(self, request):
         try:
-            # Detect user type from request
             identifier = request.data.get("mobile") or request.data.get("merchant_id") or request.data.get("terminal_id")
             pin = request.data.get("pin") or request.data.get("tid_pin")
             user_category = request.data.get("user_category")
+            otp = request.data.get("otp")  # OTP entered by user
 
             logger.info(f"Login attempt - Identifier: {identifier}, User Category: {user_category}")
 
@@ -442,11 +468,6 @@ class LoginAPIView(APIView):
                 return Response({
                     "error": "Identifier, PIN, and user_category are required."
                 }, status=status.HTTP_400_BAD_REQUEST)
-                
-           
-            # Get logo URL
-            # logo_url = home(request)
-            # logo = ('logo.png') 
 
             response_data = {}
 
@@ -454,8 +475,24 @@ class LoginAPIView(APIView):
                 user = Customer.objects.filter(mobile=str(identifier)).first()
                 if not user or str(user.status).strip().lower() != "active":
                     return Response({"error": "Invalid credentials or inactive account."}, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Check if user is verified
                 if not user.verified_at:
-                    return Response({"error": "Customer not verified. Please verify OTP before logging in."}, status=status.HTTP_400_BAD_REQUEST)
+                    if not otp:
+                        # Generate and send OTP if not provided
+                        otp = self.generate_otp()
+                        user.otp = otp
+                        user.save(update_fields=["otp"])
+                        self.send_otp(user.mobile, otp)
+                        return Response({"message": "OTP sent to your registered mobile number."}, status=status.HTTP_200_OK)
+                    else:
+                        # Validate OTP if provided
+                        if str(user.otp) != str(otp):
+                            return Response({"error": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
+                        # OTP is valid, mark as verified
+                        user.verified_at = timezone.now()
+                        user.save(update_fields=["verified_at"])
+
                 if not user.pin or str(user.pin) != str(pin):
                     return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
                 
@@ -465,10 +502,8 @@ class LoginAPIView(APIView):
                     user.logo = logo_instance
                     user.save(update_fields=["logo"])
 
-                # ----> Return logo URL and Base64 (if exists)
                 logo = request.build_absolute_uri(user.logo.logo.url) if user.logo and user.logo.logo else None
                 logo_base64 = self.get_logo_base64(user.logo) if user.logo else None
-                            
 
                 response_data = {
                     "message": "Login successful",
@@ -479,13 +514,12 @@ class LoginAPIView(APIView):
                     "user_category": "customer",
                     "customer_id": user.customer_id,
                     "is_profile_updated": self.is_customer_profile_complete(user),
-                    "logo":logo,
-                    "logo_base64": logo_base64 
-
-
+                    "logo": logo,
+                    "logo_base64": logo_base64
                 }
 
             elif user_category == "merchant":
+                # Merchant login flow (same as customer with OTP validation)
                 if str(identifier).isdigit() and len(str(identifier)) == 10:
                     user = Merchant.objects.filter(mobile=str(identifier)).first()
                 else:
@@ -495,19 +529,30 @@ class LoginAPIView(APIView):
                     return Response({"error": "Invalid credentials or inactive account."}, status=status.HTTP_400_BAD_REQUEST)
 
                 if not user.verified_at and user.user_type != "corporate":
-                    return Response({"error": "Merchant not verified. Please verify OTP before logging in."}, status=status.HTTP_400_BAD_REQUEST)
+                    if not otp:
+                        # Generate and send OTP if not provided
+                        otp = self.generate_otp()
+                        user.otp = otp
+                        user.save(update_fields=["otp"])
+                        self.send_otp(user.mobile, otp)
+                        return Response({"message": "OTP sent to your registered mobile number."}, status=status.HTTP_200_OK)
+                    else:
+                        # Validate OTP if provided
+                        if str(user.otp) != str(otp):
+                            return Response({"error": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
+                        # OTP is valid, mark as verified
+                        user.verified_at = timezone.now()
+                        user.save(update_fields=["verified_at"])
 
                 if not user.pin or str(user.pin) != str(pin):
                     return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
 
-                 # ----> If logo is None, assign Logo(id=7)
                 if not user.logo:
                     default_logo = Logo.objects.filter(id=7).first()
                     if default_logo:
                         user.logo = default_logo
                         user.save(update_fields=["logo"])
 
-                # ----> Return logo URL and base64 (if exists)
                 logo = request.build_absolute_uri(user.logo.logo.url) if user.logo and user.logo.logo else None
                 logo_base64 = self.get_logo_base64(user.logo) if user.logo else None
 
@@ -552,8 +597,7 @@ class LoginAPIView(APIView):
 
         except Exception as e:
             logger.error(f"Login error: {str(e)}", exc_info=True)
-            return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)  
 
 class VerifyOTPAPIView(APIView):
     """API to verify OTP for Customer or Merchant"""

@@ -128,7 +128,7 @@ DATABASES = {
         'NAME': 'my_django_db',
         'USER': 'django_user',
         'PASSWORD': 'NewPassword',
-        'HOST': 'localhost',  # Or IP if remote DB
+        'HOST': 'localhost',  # Or IP if remote DB # or '127.0.0.1'
         'PORT': '3305',
     }
 }
