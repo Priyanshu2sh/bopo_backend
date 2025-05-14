@@ -1,4 +1,3 @@
-
 {% extends "bopo_admin/base.html" %}
 
 {% block content %}
@@ -236,7 +235,7 @@
     function openEditCorporateModal(id, type = 'corporate') {
         // Dynamically set the URL based on the type (corporate or merchant)
         const url = type === 'merchant'
-            ? `/get-copmerchant/${id}/`
+            ?` /get-copmerchant/${id}/`
             : `/get-corporate/${id}/`;
     
         // Log the URL for debugging purposes
@@ -265,7 +264,7 @@
     
                 // Pre-fill the form fields
                 const idField = type === 'merchant' ? 'merchant_id' : 'corporate_id';
-                document.getElementById(`edit_${idField}`).value = type === 'merchant' ? data.merchant_id : data.corporate_id;
+                document.getElementById`(edit_${idField}).value = type === 'merchant' `? data.merchant_id : data.corporate_id;
                 document.getElementById('edit_first_name').value = data.first_name || '';
                 document.getElementById('edit_last_name').value = data.last_name || '';
                 document.getElementById('edit_email').value = data.email || '';
@@ -281,7 +280,7 @@
     
                 // Populate states dropdown
                 const stateSelect = document.getElementById("edit_state");
-                stateSelect.innerHTML = `<option value="">Select State</option>`;
+                stateSelect.innerHTML = <option value="">Select State</option>;
                 if (data.states) {
                     data.states.forEach(state => {
                         const option = document.createElement("option");
@@ -294,7 +293,7 @@
     
                 // Populate cities dropdown
                 const citySelect = document.getElementById("edit_city");
-                citySelect.innerHTML = `<option value="">Select City</option>`;
+                citySelect.innerHTML = <option value="">Select City</option>;
                 if (data.cities) {
                     data.cities.forEach(city => {
                         const option = document.createElement("option");
@@ -611,4 +610,4 @@ function paginateTable() {
 </script>
     
 
-{% endblock %}
+{% endblock %}

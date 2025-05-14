@@ -111,7 +111,16 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'bopo_backend.wsgi.application'
+# WSGI_APPLICATION = 'bopo_backend.wsgi.application'
+ASGI_APPLICATION = "bopo_backend.asgi.application"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],    #6379
+        },
+    },
+}
 
 # Timezone settings
 USE_TZ = True  # This enables time zone support

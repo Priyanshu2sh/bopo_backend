@@ -6,7 +6,7 @@
 
 
 from django.contrib import admin
-from .models import BankDetail, CashOut, CustomerPoints, Help, MerchantPoints, ModelPlan, PaymentDetails, SuperAdminPayment
+from .models import AwardPoints, BankDetail, CashOut, CorporateRedeem, CustomerPoints, GlobalPoints, Help, MerchantPoints, ModelPlan, PaymentDetails
 
 # class TransferPointAdmin(admin.ModelAdmin):
 #     list_display = ('customer_id', 'merchant_id', 'points', 'transaction_type', 'created_at')
@@ -42,6 +42,9 @@ admin.site.register(BankDetail)
 admin.site.register(Help)
 admin.site.register(ModelPlan)
 admin.site.register(CashOut)
+admin.site.register(AwardPoints)
+admin.site.register(CorporateRedeem)
+admin.site.register(GlobalPoints)
 admin.site.register(SuperAdminPayment)
 
 

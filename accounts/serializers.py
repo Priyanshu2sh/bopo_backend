@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import  Corporate, Customer,  Merchant, SecurityQue, Terminal
+from .models import  Corporate, Customer,  Merchant, Terminal
 from .models import User
 
 class TerminalSerializer(serializers.ModelSerializer):
@@ -57,8 +57,5 @@ class UserSerializer(serializers.ModelSerializer):
 #             'merchant': {'required': False, 'allow_null': True}
 #         }
 
-class SecurityQueSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SecurityQue
-        fields = ['id', 'security_question', 'answer']
+
 
