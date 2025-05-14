@@ -1,6 +1,5 @@
 from django.urls import path, include
-from .views import  add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view,  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_superadmin_payment, security_questions_view,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
-from .views import  add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view,  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_superadmin_payment, security_questions_view,send_notifications,received_offers, set_deduct_amount, toggle_status,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+from .views import  add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, delete_security_question,  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_superadmin_payment, security_questions_view,send_notifications,received_offers, set_deduct_amount, toggle_status, update_security_question,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -109,18 +108,19 @@ urlpatterns = [
     path('deduct-amount/', views.deduct_amount, name='deduct_amount'),
     path('superadmin_functionality/', views.superadmin_functionality, name='superadmin_functionality'),
 
-    path('update-profile/', views.profile, name='update_profile'), 
+    path('update-profile/', views.update_profile, name='update_profile'), 
     path('cash-out/', views.cash_out, name='cash_out'),
 
     path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
     path('helpdesk/', views.helpdesk, name='helpdesk'),
-    path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
-    path('helpdesk/', views.helpdesk, name='helpdesk'),
     
     # path('api/security-questions/', views.get_security_questions, name='get_security_questions'),
+    path('api/security-questions/', security_questions_view, name='security_questions'),
+    path('api/security-questions/<int:question_id>/delete/', delete_security_question, name='delete_security_question'),
+    path('api/security-questions/<int:question_id>/update/', update_security_question, name='update_security_question'),
 
-    path('api/security-questions/', security_questions_view, name='security_questions'),
-    path('api/security-questions/', security_questions_view, name='security_questions'),
+
+    # path('delete-security-question/<int:question_id>/', views.delete_security_question, name='delete_security_question'),
     path('send_customer_notifications/', views.send_notification_customer, name='send_customer_notifications'),
     path('send_customer_notifications/', views.send_notification_customer, name='send_notification_customer'),
     
@@ -147,6 +147,7 @@ urlpatterns = [
     path('resolve-help/<int:help_id>/', views.resolve_help, name='resolve_help'),
     path('model-plans/list/', views.model_plan_list, name='model_plan_list'),
 
+
  
   
     # path('delete-merchant/<int:id>/', views.delete_merchant, name='delete_merchant'),
@@ -170,11 +171,13 @@ urlpatterns = [
     path('assign-employee-role/', assign_employee_role, name='assign_employee_role'),
     
     path('api/security-questions/', add_security_question, name='add_security_question'),
+    path('api/get-deduct-amount/', views.get_deduct_amount, name='get_deduct_amount'),
+
     path('api/set-deduct-amount/', set_deduct_amount, name='set_deduct_amount'),
     
     path('get-current-limit/', views.get_current_limit, name='get_current_limit'),
     
-    path('save-model-plan/', views.save_model_plan, name='save-model-plan'),
+    # path('save-model-plan/', views.save_model_plan, name='save-model-plan'),
     # path('get-model-plans/', views.get_model_plans, name='get_model_plans'),
     path('save-cash-out/', views.save_cash_out, name='save_cash_out'),
     
@@ -191,6 +194,8 @@ urlpatterns = [
     path('logo/', views.logo, name='logo'),
     # path('upload_logo/', views.upload_logo, name='upload_logo'),
     path('upload-logo/',views.upload_logo, name='upload_logo'),
+    path('send-customer-credentials/', views.send_customer_credentials, name='send_customer_credentials'),
+
     
  
 

@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Corporate Merchant</title>
+    <title>Add Merchant</title>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'bopo_admin/css/add_merchant.css' %}">
@@ -22,7 +22,7 @@
 <body>
 
     <div class="back-to-list-btn">
-        <a href="{% url 'corporate_list' %}" class="addmerchant-btn-submit">
+        <a href="{% url 'merchant_list' %}" class="addmerchant-btn-submit">
             <i class="fa fa-arrow-left"></i> Back to List
         </a>
     </div>
@@ -38,7 +38,8 @@
           <div style="color: green; font-weight: bold;">{{ message }}</div>
         {% endfor %}
       {% endif %}
-       
+  
+
             <!-- Form Fields (Left & Right Columns) -->
             <div class="addmerchant-form-container">
                 
@@ -48,20 +49,20 @@
                     <label>First Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="first_name" id="first_name" required>
+                        <input type="text" name="first_name" id="first_name" >
                     </div>
 
                                           
                     <label>Email ID</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" name="email" id="email" required>
+                        <input type="email" name="email" id="email" >
                     </div>
     
                     <label>Aadhaar Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar_number"  id="aadhaar_number" maxlength="12" required>
+                        <input type="text" name="aadhaar_number"  id="aadhaar_number" maxlength="12">
                     </div>
     
                     <label>GST Number</label>
@@ -72,13 +73,13 @@
                     <label>Shop Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-store"></i>
-                        <input type="text" name="shop_name" required>
+                        <input type="text" name="shop_name" >
                     </div>
 
                     <label>Address</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-map-marker-alt"></i>
-                        <input type="text" name="address" required>
+                        <input type="text" name="address" >
                     </div>
                                       
                       
@@ -99,19 +100,19 @@
                 <label>Last Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="last_name"  id="last_name" required>
+                        <input type="text" name="last_name"  id="last_name">
                     </div>
 
                     <label>Mobile Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-mobile-alt"></i>
-                        <input type="text" name="mobile" id="mobile" maxlength="10" required>
+                        <input type="text" name="mobile" id="mobile" maxlength="10">
                     </div>
 
                     <label>PIN</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-lock"></i>
-                        <input type="password" name="pin" id="pin" maxlength="4" required>
+                        <input type="password" name="pin" id="pin" maxlength="4" >
                         <span class="password-toggle" onclick="togglePassword('pin')">
                             <i class="fas fa-eye-slash"></i> <!-- Closed eye by default -->
                         </span>
@@ -121,7 +122,7 @@
                     <label>Pan Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan_number" id="pan" maxlength="10" required>
+                        <input type="text" name="pan_number" id="pan" maxlength="10" >
                         
                     </div>
                   
@@ -129,7 +130,7 @@
                     <label>Legal Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-building"></i>
-                        <input type="text" name="legal_name" required>
+                        <input type="text" name="legal_name" >
                     </div>
     
                     <label>Select City</label>
@@ -141,8 +142,9 @@
                     <label>Pincode</label>
                         <div class="addmerchant-input-container">
                             <i class="fas fa-home"></i>
-                            <input type="text" name="pincode" id="pincode"  maxlength="6"  required>
+                            <input type="text" name="pincode" id="pincode"  maxlength="6" >
                   </div>
+
                 </div>
                                    
             </div>
@@ -151,11 +153,16 @@
     </div>
     
 
+  
+
     <!-- Toast Notification -->
     <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
         <i class="fa fa-exclamation-circle"></i>
         <span class="toast-message">{{ message }}</span>
     </div>
+
+  
+      
     
     <script>
 
@@ -297,35 +304,28 @@
                         isValid = false;
                     }
                 });
-                function getCSRFToken() {
-                    return document.querySelector('[name=csrfmiddlewaretoken]').value;
-                }
         
                 if (!isValid) return;
         
                 let formData = new FormData(form);
-                let data = {};
-                formData.forEach((value, key) => {
-                  data[key] = value;
-                });
-                fetch('/bopo_admin/corporate/add/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken(),
-                    },
-                    body: JSON.stringify(data),
-                })
-                
+                   // Submit the form via AJAX (Fetch API)
+                   fetch(form.action || window.location.href, {
+                       method: "POST",
+                       body: formData,
+                       headers: {
+                           "X-Requested-With": "XMLHttpRequest"
+                       }
+                   })
                    .then(response => response.json())
                    .then(data => {
                        if (data.success) {
                            showToast(data.message, "success");
                            // Clear the form only upon successful submission
+
                            setTimeout(() => {
                                form.reset();
                                $('.select2').val(null).trigger('change');
-                               window.location.href = "/corporate/list/";
+                               window.location.href = "/merchant/list/";
                            }, 3500);
                        } else {
                            showToast(data.message, "error");

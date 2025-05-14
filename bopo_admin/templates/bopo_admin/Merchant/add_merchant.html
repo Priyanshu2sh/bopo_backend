@@ -27,7 +27,7 @@
         </a>
     </div>
 
-    <h2 class="heading">Add Merchant</h2>
+    <h2 class="heading">Add Corporate Merchant</h2>
     <div class="addmerchant-container">
 
     <form method="POST" action="{% url 'add_merchant' %}" id="copmerchantForm">
@@ -78,6 +78,20 @@
                     <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name">
                 </div>
             </div>
+
+
+<!-- Account Type Selection (Initially Hidden) -->
+<div id="account-type-container" style="display:none;">
+    <label for="account_type">Account Type:</label>
+    <div class="addmerchant-input-container">
+        <select id="account_type" name="account_type">
+            <option value="">Select Account Type</option>
+            <option value="global">Global</option>
+            <option value="normal">Normal</option>
+        </select>
+    </div>
+</div>
+
                 
             <!-- Form Fields (Left & Right Columns) -->
             <div class="addmerchant-form-container">
@@ -468,35 +482,39 @@
 
     </script>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const existingProjectRadio = document.getElementById("existing_project");
+        const newProjectRadio = document.getElementById("new_project");
+        const selectProjectContainer = document.getElementById("select-project-container");
+        const projectNameContainer = document.getElementById("project-name-container");
+        const accountTypeContainer = document.getElementById("account-type-container");
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const existingProjectRadio = document.getElementById("existing_project");
-            const newProjectRadio = document.getElementById("new_project");
-            const selectProjectContainer = document.getElementById("select-project-container");
-            const projectNameContainer = document.getElementById("project-name-container");
-        
-            function toggleProjectFields() {
-                if (existingProjectRadio.checked) {
-                    selectProjectContainer.style.display = "block";
-                    projectNameContainer.style.display = "none"; // Hide project name input
-                } else if (newProjectRadio.checked) {
-                    selectProjectContainer.style.display = "none"; // Hide select project dropdown
-                    projectNameContainer.style.display = "block"; // Show project name input
-                } else {
-                    selectProjectContainer.style.display = "none";
-                    projectNameContainer.style.display = "none";
-                }
+        function toggleProjectFields() {
+            if (existingProjectRadio.checked) {
+                selectProjectContainer.style.display = "block"; // Show select project dropdown
+                projectNameContainer.style.display = "none"; // Hide project name input
+                accountTypeContainer.style.display = "none"; // Hide account type field
+            } else if (newProjectRadio.checked) {
+                selectProjectContainer.style.display = "none"; // Hide select project dropdown
+                projectNameContainer.style.display = "block"; // Show project name input
+                accountTypeContainer.style.display = "block"; // Show account type field
+            } else {
+                selectProjectContainer.style.display = "none";
+                projectNameContainer.style.display = "none";
+                accountTypeContainer.style.display = "none";
             }
-        
-            existingProjectRadio.addEventListener("change", toggleProjectFields);
-            newProjectRadio.addEventListener("change", toggleProjectFields);
-        
-            // Initial check
-            toggleProjectFields();
-        });
-        
-    </script>
+        }
+
+        // Event listeners for changes
+        existingProjectRadio.addEventListener("change", toggleProjectFields);
+        newProjectRadio.addEventListener("change", toggleProjectFields);
+
+        // Initial check
+        toggleProjectFields();
+    });
+</script>
+
     
 </body>
 </html>

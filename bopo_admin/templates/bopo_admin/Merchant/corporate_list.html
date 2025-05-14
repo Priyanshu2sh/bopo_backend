@@ -31,7 +31,8 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Project ID</th>
+                                {% comment %} <th>Project ID</th> {% endcomment %}
+                                <th>Corporate ID</th>
                                 <th>Merchant ID</th>
                                 <th>Contact Person</th>
                                 <th>Mobile Number</th>
@@ -45,22 +46,23 @@
                             {% for data in corporate_data %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
-                                    <td>{{ data.corporate.project_id }}</td>
-                                    <td>{{ data.corporate.corporate_id }}</td>
+                                    {% comment %} <td>{{ data.corporate.project_id }}</td> {% endcomment %}
+                                     <td>{{ data.corporate.corporate_id }}</td>
+                                     <td>-</td>
                                     <td>{{ data.corporate.first_name }} {{ data.corporate.last_name }}</td>
                                     <td>{{ data.corporate.mobile }}</td>
                                     <td>{{ data.corporate.shop_name }}</td>
                                     <td>{{ data.corporate.city }}</td>
                                     <td><label class="switch"><input type="checkbox" {% if data.corporate.verified_at %}checked{% endif %} data-id="{{ data.corporate.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
-                                        <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ data.corporate.corporate_id }}', 'corporate')">✏ Edit</button>
-                                        {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑 Delete</button> {% endcomment %}
+                                        <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ data.corporate.corporate_id }}', 'corporate')">✏️ Edit</button>
+                                      {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑️ Delete</button>  {% endcomment %}
                                     </td>
                                 </tr>
                                 {% for merchant in data.merchants %}
                                 <tr>
                                     <td>-</td>
-                                    <td>-</td>
+                                    <td>-</td> 
                                     <td>{{ merchant.merchant_id }}</td>
                                     <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
                                     <td>{{ merchant.mobile }}</td>
@@ -68,8 +70,8 @@
                                     <td>{{ merchant.city }}</td>
                                     <td><label class="switch"><input type="checkbox" {% if merchant.verified_at %}checked{% endif %} data-id="{{ merchant.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
-                                        <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal({{ merchant.id }}, 'merchant')">✏ Edit</button>
-                                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑 Delete</button> 
+                                        <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal({{ merchant.id }}, 'merchant')">✏️ Edit</button>
+                                        {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button>  {% endcomment %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -228,6 +230,8 @@
 </div>
 
 <script>
+
+
     function openEditCorporateModal(id, type = 'corporate') {
         // Dynamically set the URL based on the type (corporate or merchant)
         const url = type === 'merchant'

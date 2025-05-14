@@ -21,7 +21,7 @@ from datetime import timedelta, date
     
 class CustomerPoints(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True )
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     points = models.IntegerField()
     corporate_id = models.ForeignKey(Corporate, on_delete=models.CASCADE, null=True, blank=True)  # Reference to Corporate model
     terminal = models.ForeignKey(Terminal, on_delete=models.CASCADE, null=True, blank=True)
@@ -30,9 +30,6 @@ class CustomerPoints(models.Model):
 
     class Meta:
         unique_together = ('customer', 'merchant')  # Ensures unique customer-merchant pair
-        
-    class Meta:
-        unique_together = ('customer', 'corporate_id')  # Ensures unique customer-merchant pair
 
 class MerchantPoints(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
@@ -51,7 +48,7 @@ class History(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
     points = models.IntegerField()
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=now)
 
     def __str__(self):
         return f"{self.transaction_type} - {self.points} points"
@@ -97,7 +94,12 @@ class GlobalPoints(models.Model):
     
     
 
-class PaymentDetails(models.Model): 
+class PaymentDetails(models.Model):
+    
+    PLAN_CHOICES = [
+        ('prepaid', 'Prepaid'),
+        ('rental', 'Rental'),
+    ] 
     STATUS_CHOICES = [
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
@@ -111,7 +113,8 @@ class PaymentDetails(models.Model):
         ('Debit Card', 'Debit Card'),
         ('Net Banking', 'Net Banking'),
     ])
-    plan_type = models.ForeignKey('ModelPlan', on_delete=models.CASCADE, null=True, blank=True)
+    plan_type = models.CharField(max_length=255, null=True, blank=True, choices=PLAN_CHOICES,  help_text='Select plan type: Prepaid or Rental')
+     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=255, null=True, blank=True, choices=STATUS_CHOICES)
@@ -175,19 +178,11 @@ class Help(models.Model):
     
     
 class ModelPlan(models.Model):
-    PLAN_CHOICES = [
-    
-        ('rental', 'Rental'),
-        ('prepaid', 'Prepaid'),
-    ]
     
     plan_validity = models.CharField(max_length=255)
-    plan_type = models.CharField(max_length=255, null=True, choices=PLAN_CHOICES)
+    plan_type = models.CharField(max_length=255)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self):
-        return f"{self.plan_type} - {self.id}"
     
 
 class CashOut(models.Model):
@@ -197,13 +192,7 @@ class CashOut(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
-    
-class SuperAdminPayment(models.Model):
-    transaction_id = models.CharField(max_length=100, unique=True)
-    payment_method = models.CharField(max_length=50)
-    cashout = models.ForeignKey(CashOut, on_delete=models.CASCADE, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-  
+ 
 
 class AwardPoints(models.Model):
     percentage = models.IntegerField()  # No default value set
@@ -218,18 +207,4 @@ class SuperAdminPayment(models.Model):
     payment_method = models.CharField(max_length=50)
     cashout = models.ForeignKey(CashOut, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
-    
-class CorporateRedeem(models.Model):
-    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    points_redeemed = models.PositiveIntegerField()
-    deduction_percentage = models.IntegerField()
-    points_transferred = models.PositiveIntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Corporate Redeem Transaction"
-        verbose_name_plural = "Corporate Redeem Transactions"
-
 

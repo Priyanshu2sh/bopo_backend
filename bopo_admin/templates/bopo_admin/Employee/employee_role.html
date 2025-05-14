@@ -6,9 +6,15 @@
 <link rel="stylesheet" type="text/css" href="{% static 'bopo_admin/css/employee_role.css' %}">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
 
-<!-- JS -->
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- jQuery (required for Select2) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 
 <!-- Back to List Button -->
 <div class="send_credentials-back-to-list-btn">
@@ -28,7 +34,7 @@
         <!-- Employee Dropdown -->
         <div class="dropdown-container">
             <label for="employee">Employee:</label>
-            <select id="employee" name="employee_id" required>
+            <select id="employee" name="employee_id" class="employee-select" required>
                 <option value="">Select Employee</option>
                 {% for emp in employees %}
                     <option value="{{ emp.employee_id }}">{{ emp.name }}</option>
@@ -56,20 +62,24 @@
                 
                 <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
                 <label for="merchant_send_credentials">Merchant Send Credentials</label>
-                
-                <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
-                <label for="merchant_limit">Merchant Limit</label>
 
-                <input type="checkbox" id="merchant_login" name="roles" value="Merchant Login Page-Info">
-                <label for="merchant_login">Merchant Login Page-Info</label>
+                <input type="checkbox" id="reduce_limit" name="roles" value="Reduce Limit">
+                <label for="reduce_limit">Requested Cash Out</label>
+
+                
+                {% comment %} <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
+                <label for="merchant_limit">Merchant Limit</label> {% endcomment %}
+
+                {% comment %} <input type="checkbox" id="merchant_login" name="roles" value="Merchant Login Page-Info">
+                <label for="merchant_login">Merchant Login Page-Info</label> {% endcomment %}
             </div>
 
             <div class="role-group">
                 <input type="checkbox" id="merchant_notification" name="roles" value="Merchant Send Notification">
                 <label for="merchant_notification">Merchant Send Notification</label>
 
-                <input type="checkbox" id="merchant_offers" name="roles" value="Merchant Received Offers">
-                <label for="merchant_offers">Merchant Received Offers</label>
+                {% comment %} <input type="checkbox" id="merchant_offers" name="roles" value="Merchant Received Offers">
+                <label for="merchant_offers">Merchant Received Offers</label> {% endcomment %}
 
                 <input type="checkbox" id="modify_customer" name="roles" value="Modify Customer Details">
                 <label for="modify_customer">Modify Customer Details</label>
@@ -79,12 +89,13 @@
 
                 <input type="checkbox" id="create_employee" name="roles" value="Create Employee">
                 <label for="create_employee">Create Employee</label>
+
+                <input type="checkbox" id="payment_details" name="roles" value="Payment Details">
+                <label for="payment_details">Top-Up Request</label>
             </div>
 
             <div class="role-group">    
-                <input type="checkbox" id="payment_details" name="roles" value="Payment Details">
-                <label for="payment_details">Payment Details</label>
-
+               
                 <input type="checkbox" id="account_info" name="roles" value="Account-Info">
                 <label for="account_info">Account-Info</label>
 
@@ -143,6 +154,11 @@
             cb.addEventListener('change', function () {
                 selectAll.checked = [...checkboxes].every(cb => cb.checked);
             });
+        });
+         // Initialize Select2 on employee dropdown
+        $('#employee').select2({
+            placeholder: "Select Employee",
+            allowClear: true
         });
     });
 

@@ -1,8 +1,6 @@
 from datetime import timezone
 import logging
 import string
-from turtle import home
-from unittest import result
 import requests
 from twilio.rest import Client
 from django.core.mail import send_mail
@@ -201,7 +199,7 @@ class RegisterUserAPIView(APIView):
 
             if customer.verified_at:
                 return Response({"message": "Customer is already registered and verified.",
-                                "user_type": "customer", "customer_id": customer.customer_id},
+                                 "user_type": "customer", "customer_id": customer.customer_id},
                                 status=status.HTTP_400_BAD_REQUEST)
 
             customer.otp = otp
@@ -219,22 +217,20 @@ class RegisterUserAPIView(APIView):
                 if age is None:
                     request.data["age"] = None 
                 customer = serializer.save()
-                print("OTP Send Result:", result) 
                 message = "Customer registered & OTP sent successfully."
-                
             else:
                 return Response({"message": "Validation error", "errors": serializer.errors, "user_type": "customer",
-                                "customer_id": None}, status=status.HTTP_400_BAD_REQUEST)
+                                 "customer_id": None}, status=status.HTTP_400_BAD_REQUEST)
 
         # Send OTP via SMS
         if OTPService.send_sms_otp(mobile, otp):
-            return Response({"message": message, "user_type": "customer", "customer_id": customer.customer_id},
+            return Response({"message": message, "user_type": "customer", "user_id": customer.customer_id},
                             status=status.HTTP_200_OK)
-
         else:
-            return Response({"message": "Failed to send OTP.", "user_type": "customer", "customer_id": customer.customer_id},
-                            status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({"message": "Failed to send OTP.", "user_type": "customer", "customer_id": None},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    
 
     def update_customer(self, request, mobile):
         """Update customer details"""
@@ -509,7 +505,6 @@ class LoginAPIView(APIView):
                     "message": "Login successful",
                     "first_name": user.first_name,
                     "last_name": user.last_name,
-                    "mobile": user.mobile,
                     "pin": user.pin,
                     "user_category": "customer",
                     "customer_id": user.customer_id,
@@ -560,11 +555,10 @@ class LoginAPIView(APIView):
                     "message": "Login successful",
                     "first_name": user.first_name,
                     "last_name": user.last_name,
-                    "mobile": user.mobile,
                     "pin": user.pin,
                     "user_category": "merchant",
                     "merchant_id": user.merchant_id,
-                    "is_profile_updated": self.is_merchant_profile_complete(user),
+                    "is_profile_updated": user.is_profile_updated,
                     "user_type": user.user_type,
                     "logo": logo,
                     "logo_base64": logo_base64

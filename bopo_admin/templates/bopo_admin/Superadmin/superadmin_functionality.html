@@ -10,12 +10,6 @@
         </a>
     </div>
 
-    <div class="back-to-list-btn">
-        <a href="{% url 'reports' %}" class="addcustomer-btn-submit">
-            <i class="fa fa-arrow-left"></i> Back
-        </a>
-    </div>
-
     <div class="send-notification-header">
         <h2>Superadmin Functionality</h2>
     </div>
@@ -29,20 +23,7 @@
                 <span class="send-notification-icon">💰</span>
                 <span>Deduct Percentage</span>
             </label>
-        
-        <!-- Deduct Amount -->
-        <div class="send-notification-item">
-            <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
-            <label for="toggle-all-customers" class="send-notification-label">
-                <span class="send-notification-icon">💰</span>
-                <span>Deduct Percentage</span>
-            </label>
 
-            <div class="send-notification-form"><br>
-                <div class="form-group">
-                    <label for="deduct-amount">Deduct Amount Per Transaction:</label>
-                    <input type="number" id="deduct-amount" class="form-control" placeholder="Enter percentage ">
-                </div>
             <div class="send-notification-form"><br>
                 <div class="form-group">
                     <label for="deduct-amount">Deduct Amount Per Transaction:</label>
@@ -50,14 +31,9 @@
                 </div>
 
                 <div class="button-container">
+                      <button class="send-btn" onclick="showAlert()">Save</button>
                     <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
-                    <button class="send-btn" onclick="showAlert()">Save</button>
-                </div>
-            </div>
-        </div>
-                <div class="button-container">
-                    <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
-                    <button class="send-btn" onclick="showAlert()">Save</button>
+                  
                 </div>
             </div>
         </div>
@@ -69,26 +45,17 @@
                 <span class="send-notification-icon">🔏</span>
                 <span>Security Questions</span>
             </label>
-        <!-- Security Questions -->
-        <div class="send-notification-item">
-            <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
-            <label for="toggle-single-customer" class="send-notification-label">
-                <span class="send-notification-icon">🔏</span>
-                <span>Security Questions</span>
-            </label>
 
             <div class="send-notification-form"><br>
                 <table class="form-control" style="width: 100%; margin-bottom: 15px;">
                     <thead>
-                        <tr><th>Question</th></tr>
+                        <tr>
+                            <th>Question</th>
+                            {% comment %} <th>Used by Merchants</th> {% endcomment %}
+                            <th>Action</th>
+                        </tr>
                     </thead>
-                    <tbody id="security-questions-body"></tbody>
-                </table>
-            <div class="send-notification-form"><br>
-                <table class="form-control" style="width: 100%; margin-bottom: 15px;">
-                    <thead>
-                        <tr><th>Question</th></tr>
-                    </thead>
+
                     <tbody id="security-questions-body"></tbody>
                 </table>
 
@@ -96,23 +63,13 @@
                     <input type="text" id="new-question" class="form-control" placeholder="Enter new security question">
                     <br>
                     <button class="send-btn" onclick="saveSecurityQuestion()">Save</button>
-                    <button class="cancel-btn" onclick="cancelSecurityQuestion()">Cancel</button>
-                </div>
-                <div id="add-question-row" style="display: none; margin-bottom: 15px;">
-                    <input type="text" id="new-question" class="form-control" placeholder="Enter new security question">
-                    <br>
-                    <button class="send-btn" onclick="saveSecurityQuestion()">Save</button>
-                    <button class="cancel-btn" onclick="cancelSecurityQuestion()">Cancel</button>
+                    <button class="cancel-btn" onclick="confirmCancelSecurityQuestion()">Cancel</button>
                 </div>
 
                 <button class="send-btn" onclick="showAddQuestion()">Add Question</button>
             </div>
         </div>
-                <button class="send-btn" onclick="showAddQuestion()">Add Question</button>
-            </div>
-        </div>
 
-        <!-- Model Plans -->
         <!-- Model Plans -->
 <div class="send-notification-item">
     <input type="checkbox" id="toggle-corporate" class="toggle-checkbox">
@@ -129,7 +86,6 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>#</th>
                         <th>Plan Validity</th>
                         <th>Plan Type</th>
                         <th>Description</th>
@@ -138,20 +94,14 @@
                 </thead>
                 <tbody>
                     {% for plan in plans %}
-                    {% for plan in plans %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td><span class="plan-validity-text">{{ plan.plan_validity }}</span></td>
                         <td><span class="plan-type-text">{{ plan.plan_type }}</span></td>
                         <td><span class="plan-description-text">{{ plan.description }}</span></td>
-                        <td><button class="btn-action" onclick="openEditPlanModal()">Change</button></td>
-                        <td>{{ forloop.counter }}</td>
-                        <td><span class="plan-validity-text">{{ plan.plan_validity }}</span></td>
-                        <td><span class="plan-type-text">{{ plan.plan_type }}</span></td>
-                        <td><span class="plan-description-text">{{ plan.description }}</span></td>
-                        <td><button class="btn-action" onclick="openEditPlanModal()">Change</button></td>
+                        <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
+
                     </tr>
-                    {% endfor %}
                     {% endfor %}
                 </tbody>
             </table>
@@ -179,9 +129,9 @@
                 <label for="edit-description-input">Description</label>
                 <textarea id="edit-description-input" class="textarea-field" placeholder="Enter description..."></textarea>
             </div>
-            <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
+          
+          <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
         </form>
-    </div>
     </div>
 </div>
 
@@ -193,23 +143,7 @@
                 <span class="send-notification-icon">⭐</span>
                 <span>Award Points</span>
             </label>
-        <!-- Award Points -->
-        <div class="send-notification-item">
-            <input type="checkbox" id="toggle-merchant-wise" class="toggle-checkbox">
-            <label for="toggle-merchant-wise" class="send-notification-label">
-                <span class="send-notification-icon">⭐</span>
-                <span>Award Points</span>
-            </label>
 
-            <div class="send-notification-form"><br>
-                <div class="form-group">
-                    <label>Award Points:</label>
-                    <div id="award-text">
-                        <span id="award-display">
-                            <span class="highlight-percentage">10%</span> of purchase amount awarded to customer (BBP)
-                        </span>
-                        <button class="awardsend-btn" onclick="editAward()">Change</button>
-                    </div>
             <div class="send-notification-form"><br>
                 <div class="form-group">
                     <label>Award Points:</label>
@@ -224,217 +158,330 @@
                         <input type="number" id="award-input" class="form-control" placeholder="Enter percentage" value="10" min="0" max="100" style="width: 100px;">
                         <span>% of purchase amount awarded to customer (BBP)</span><br><br>
                         <button class="awardsend-btn1" onclick="saveAward()">Save</button>
-                        <button class="cancel-btn" onclick="cancelAward()">Cancel</button>
+                        <button class="cancel-btn" onclick="confirmCancelAward()">Cancel</button>
+
                     </div>
                 </div>
             </div>
+            
         </div>
-                    <div id="award-edit" style="display: none;">
-                        <input type="number" id="award-input" class="form-control" placeholder="Enter percentage" value="10" min="0" max="100" style="width: 100px;">
-                        <span>% of purchase amount awarded to customer (BBP)</span><br><br>
-                        <button class="awardsend-btn1" onclick="saveAward()">Save</button>
-                        <button class="cancel-btn" onclick="cancelAward()">Cancel</button>
-                    </div>
-                </div>
+                
+        <!-- Change Logo Section -->
+
+    <div class="send-notification-item">
+        <input type="checkbox" id="toggle-logo-change" class="toggle-checkbox">
+        <label for="toggle-logo-change" class="send-notification-label">
+            <span class="send-notification-icon">🖼️</span>
+            <span>Change Logo</span>
+        </label>
+
+        <div class="send-notification-form"><br>
+            <div id="logo-message" style="margin-top: 10px; font-weight: bold;"></div>
+
+            <div class="form-group">
+                <label for="logo-upload">Upload New Logo:</label>
+                <input type="file" id="logo-upload" class="form-control" accept="image/*">
+            </div>
+
+            <div class="button-container">
+                <button class="send-btn" onclick="saveLogo()">Save</button>
+                <button class="cancel-btn" onclick="confirmCancelLogo()">Cancel</button>
             </div>
         </div>
     </div>
 </div>
 
+
+
+    </div>
+</div>
+
+
+<div id="toast" class="toast"></div>
+
+<!-- Custom Cancel Confirmation Modal -->
+<div id="cancelConfirmationModal" class="custom-modal">
+  <div class="custom-modal-content">
+    <span class="custom-close-icon" id="closeCancelModal">&times;</span>
+    <h3 id="cancelConfirmationMessage">Are you sure you want to cancel this action?</h3>
+    <div class="custom-modal-buttons">
+      <button id="confirmCancel" class="custom-btn cancel-yes">Yes</button>
+      <button id="dismissCancel" class="custom-btn cancel-no">No</button>
+    </div>
+  </div>
+</div>
+
 <!-- JavaScript -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const checkboxes = document.querySelectorAll(".toggle-checkbox");
-        checkboxes.forEach(checkbox => {
-        const checkboxes = document.querySelectorAll(".toggle-checkbox");
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener("change", function () {
-                const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
-                document.querySelectorAll(".send-notification-form").forEach(f => {
-                    if (f !== form) {
-                        f.style.display = "none";
-                        f.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
-                    }
-                });
-                form.style.display = this.checked ? "block" : "none";
-            });
-        });
-        document.querySelectorAll(".send-notification-form").forEach(form => form.style.display = "none");
-        loadSecurityQuestions();
-    });
 
-    function showAlert() {
-        const input = document.getElementById('deduct-amount');
-        const value = parseFloat(input.value);
-        if (isNaN(value) || value < 0) return alert("Please enter a valid percentage.");
-    
-        fetch('/api/set-deduct-amount/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-            },
-            body: JSON.stringify({ deduct_amount: value }),
-        })
-        .then(res => res.json().then(data => ({ status: res.status, body: data })))
-        .then(({ status, body }) => {
-            if (status === 200) {
-                alert("Deduct amount saved successfully!");
-                
-                // Reload the page and close the form container
-                document.getElementById('deduct-amount').value = ''; // Clear the input
-                const formContainer = document.querySelector('.send-notification-form');
-                if (formContainer) formContainer.style.display = 'none';  // Hide the form container
-    
-                // Optionally, reload the page after a short delay (1 second here)
-                setTimeout(() => {
-                    location.reload();  // Reload the page
-                }, 1000);
-            } else {
-                alert(body.error || "Failed to save deduction.");
-            }
-        })
-        .catch(() => alert("Something went wrong."));
+function showToast(message, bgColor = '#333') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.backgroundColor = bgColor;
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+function saveLogo() {
+    const logoUpload = document.getElementById('logo-upload').files[0];
+
+    if (!logoUpload) {
+        showToast('⚠️ Please choose a logo to upload.', '#f44336');
+        return;
     }
-    
 
-    function getCSRFToken() {
-        const name = 'csrftoken';
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.startsWith(name + '=')) return decodeURIComponent(cookie.substring(name.length + 1));
+    const formData = new FormData();
+    formData.append('logo', logoUpload);
+
+    fetch('/upload-logo/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
         }
-        return '';
-    }
-
-    function loadSecurityQuestions() {
-        fetch('/api/security-questions/')
-        .then(res => res.json())
-        .then(data => {
-            const tbody = document.getElementById("security-questions-body");
-            tbody.innerHTML = '';
-            data.forEach(q => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `<td>${q.question}</td>`;
-                tbody.appendChild(tr);
-                document.querySelectorAll(".send-notification-form").forEach(f => {
-                    if (f !== form) {
-                        f.style.display = "none";
-                        f.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
-                    }
-                });
-                form.style.display = this.checked ? "block" : "none";
-            });
-        });
-        document.querySelectorAll(".send-notification-form").forEach(form => form.style.display = "none");
-        loadSecurityQuestions();
-    });
-
-    function showAlert() {
-        const input = document.getElementById('deduct-amount');
-        const value = parseFloat(input.value);
-        if (isNaN(value) || value < 0) return alert("Please enter a valid percentage.");
-    
-        fetch('/api/set-deduct-amount/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-            },
-            body: JSON.stringify({ deduct_amount: value }),
-        })
-        .then(res => res.json().then(data => ({ status: res.status, body: data })))
-        .then(({ status, body }) => {
-            if (status === 200) {
-                alert("Deduct amount saved successfully!");
-                
-                // Reload the page and close the form container
-                document.getElementById('deduct-amount').value = ''; // Clear the input
-                const formContainer = document.querySelector('.send-notification-form');
-                if (formContainer) formContainer.style.display = 'none';  // Hide the form container
-    
-                // Optionally, reload the page after a short delay (1 second here)
-                setTimeout(() => {
-                    location.reload();  // Reload the page
-                }, 1000);
-            } else {
-                alert(body.error || "Failed to save deduction.");
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Logo updated successfully!', '#4CAF50');
+            const logoImage = document.getElementById('logoImage');
+            if (logoImage) {
+                logoImage.src = data.url;
             }
-        })
-        .catch(() => alert("Something went wrong."));
-    }
-    
-
-    function getCSRFToken() {
-        const name = 'csrftoken';
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.startsWith(name + '=')) return decodeURIComponent(cookie.substring(name.length + 1));
+        } else {
+            showToast('❌ Failed to update logo.', '#f44336');
         }
-        return '';
-    }
-
-    function loadSecurityQuestions() {
-        fetch('/api/security-questions/')
-        .then(res => res.json())
-        .then(data => {
-            const tbody = document.getElementById("security-questions-body");
-            tbody.innerHTML = '';
-            data.forEach(q => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `<td>${q.question}</td>`;
-                tbody.appendChild(tr);
-            });
-        });
-    }
-
-    function showAddQuestion() {
-        document.getElementById("add-question-row").style.display = "block";
-    }
-
-    function cancelSecurityQuestion() {
-        document.getElementById("new-question").value = '';
-        document.getElementById("add-question-row").style.display = "none";
-    }
-
-    function saveSecurityQuestion() {
-        const question = document.getElementById("new-question").value;
-        if (!question) return alert("Please enter a question.");
-        fetch('/api/security-questions/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-            },
-            body: JSON.stringify({ question })
-        })
-        .then(res => res.json())
-        .then(() => {
-            cancelSecurityQuestion();
-            loadSecurityQuestions();
-        });
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        loadAwardPercentage();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('❌ An error occurred while uploading the logo.', '#f44336');
     });
-    
-    function loadAwardPercentage() {
-        fetch('/get-award-point/')
+}
+
+function confirmCancelLogo() {
+    document.getElementById('cancelConfirmationModal').style.display = 'block';
+}
+
+
+
+
+// CSRF helper (assuming you're not using jQuery)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const trimmed = cookie.trim();
+            if (trimmed.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(trimmed.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const checkboxes = document.querySelectorAll(".toggle-checkbox");
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener("change", function () {
+            const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
+
+            // Hide all other forms
+            document.querySelectorAll(".send-notification-form").forEach(f => {
+                if (f !== form) {
+                    f.style.display = "none";
+                    const cb = f.closest(".send-notification-item").querySelector(".toggle-checkbox");
+                    if (cb) cb.checked = false;
+                }
+            });
+if (this.checked) {
+    form.style.display = "block";
+
+    if (this.id === "toggle-all-customers") {
+        // Only fetch deduction amount if the toggle is for 'Deduct Percentage'
+        fetch('/api/get-deduct-amount/')
             .then(response => response.json())
             .then(data => {
-                const percentage = data.percentage || 0;
-                document.querySelector(".highlight-percentage").textContent = `${percentage}%`;
-                document.getElementById("award-input").value = percentage;
+                document.getElementById('deduct-amount').value = data.deduct_amount || '';
             })
-            .catch(error => {
-                console.error("Error loading award percentage:", error);
+            .catch(() => {
+                alert("Failed to fetch deduction amount.");
             });
     }
-    
+
+    if (this.id === "toggle-single-customer") {
+        // Load security questions only when this section is opened
+        loadSecurityQuestions();
     }
+
+} else {
+    form.style.display = "none";
+}
+
+        });
+    });
+
+    // Hide all forms by default
+    document.querySelectorAll(".send-notification-form").forEach(form => form.style.display = "none");
+});
+
+function showAlert() {
+    const input = document.getElementById('deduct-amount');
+    const value = parseFloat(input.value);
+    if (isNaN(value) || value < 0) {
+        alert("Please enter a valid percentage.");
+        return;
+    }
+
+    fetch('/api/set-deduct-amount/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify({ deduct_amount: value }),
+    })
+    .then(response => response.json().then(data => ({
+        status: response.status,
+        body: data
+    })))
+    .then(({ status, body }) => {
+        if (status === 200) {
+            showToast("Deduct amount saved successfully!", true); // ✅ Show toast
+
+            // Wait before closing modal and reloading
+            setTimeout(() => {
+                const formContainer = document.querySelector('.send-notification-form');
+                if (formContainer) formContainer.style.display = 'none'; // ✅ Close modal
+                location.reload(); // ✅ Reload page
+            }, 2500); // Toast visible for 2.5s
+
+        } else {
+            alert(body.error || "Failed to save deduction.");
+        }
+    })
+    .catch(() => alert("Something went wrong."));
+}
+
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) return decodeURIComponent(cookie.substring(name.length + 1));
+        }
+        return '';
+    }
+{% comment %} 
+    function loadSecurityQuestions() {
+        fetch('/api/security-questions/')
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById("security-questions-body");
+            tbody.innerHTML = '';
+            data.forEach(q => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${q.question}</td>`;
+                tbody.appendChild(tr);
+            });
+        });
+    } {% endcomment %}
+
+function loadSecurityQuestions() {
+    fetch('/api/security-questions/')
+    .then(res => res.json())
+    .then(data => {
+        const tbody = document.getElementById("security-questions-body");
+        tbody.innerHTML = '';
+        data.forEach(q => {
+            const tr = document.createElement("tr");
+            let actionButtons = '';
+            if (q.can_edit) {
+                actionButtons += `<button class="send-btn" onclick="editSecurityQuestion(${q.id}, '${q.question}')">Edit</button>`;
+            }
+            if (q.can_delete) {
+                actionButtons += `<button class="cancel-btn" onclick="deleteSecurityQuestion(${q.id})">Delete</button>`;
+            }
+
+            tr.innerHTML = `
+                <td>${q.question}</td>
+                {% comment %} <td>${q.merchant_count}</td> {% endcomment %}
+                <td>${actionButtons}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    });
+}
+
+function deleteSecurityQuestion(id) {
+    if (!confirm("Are you sure you want to delete this security question?")) return;
+
+fetch(`/api/security-questions/${id}/delete/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.message) {
+            showToast("Question deleted successfully", true);
+            loadSecurityQuestions();
+        } else {
+            showToast(data.error || "Failed to delete question", false);
+        }
+    })
+    .catch(() => {
+        showToast("Error deleting question", false);
+    });
+}
+
+function editSecurityQuestion(id, oldText) {
+    const newText = prompt("Edit the security question:", oldText);
+    if (newText && newText !== oldText) {
+        fetch(`/api/security-questions/${id}/update/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: JSON.stringify({ question: newText })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast("Question updated successfully", true);
+                loadSecurityQuestions();
+            } else {
+                showToast(data.error || "Failed to update", false);
+            }
+        })
+        .catch(() => {
+            showToast("Error updating question", false);
+        });
+    }
+}
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const trimmed = cookie.trim();
+        if (trimmed.startsWith(name + '=')) {
+            return decodeURIComponent(trimmed.substring(name.length + 1));
+        }
+    }
+    return '';
+}
+
+
 
     function showAddQuestion() {
         document.getElementById("add-question-row").style.display = "block";
@@ -445,23 +492,35 @@
         document.getElementById("add-question-row").style.display = "none";
     }
 
-    function saveSecurityQuestion() {
-        const question = document.getElementById("new-question").value;
-        if (!question) return alert("Please enter a question.");
-        fetch('/api/security-questions/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-            },
-            body: JSON.stringify({ question })
-        })
-        .then(res => res.json())
-        .then(() => {
-            cancelSecurityQuestion();
-            loadSecurityQuestions();
-        });
-    }
+ function saveSecurityQuestion() {
+    const question = document.getElementById("new-question").value;
+    if (!question) return alert("Please enter a question.");
+    
+    fetch('/api/security-questions/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify({ question })
+    })
+    .then(res => res.json())
+    .then(() => {
+        showToast("Security question added successfully!", true); // Show success toast
+        
+        // Wait for the toast to disappear (3 seconds), then reload the page
+        setTimeout(() => {
+            cancelSecurityQuestion();  // Close modal
+            loadSecurityQuestions();   // Reload the list of security questions
+            window.location.reload();  // Reload the page
+        }, 2500); // Match the duration of the toast
+    })
+    .catch(() => {
+        showToast("Failed to add security question.", false); // Show error toast
+    });
+}
+
+
 
     document.addEventListener("DOMContentLoaded", function () {
         loadAwardPercentage();
@@ -483,90 +542,46 @@
     function editAward() {
         document.getElementById("award-text").style.display = "none";
         document.getElementById("award-edit").style.display = "block";
-        document.getElementById("award-text").style.display = "none";
-        document.getElementById("award-edit").style.display = "block";
     }
-    
     
     function cancelAward() {
         document.getElementById("award-edit").style.display = "none";
         document.getElementById("award-text").style.display = "block";
-        document.getElementById("award-edit").style.display = "none";
-        document.getElementById("award-text").style.display = "block";
     }
-    
-    function saveAward() {
-        const newPercentage = parseInt(document.getElementById("award-input").value, 10);
-    
-        if (isNaN(newPercentage) || newPercentage < 0 || newPercentage > 100) {
-            alert("Please enter a valid percentage between 0 and 100.");
-            return;
+  function saveAward() {
+    const newPercentage = parseInt(document.getElementById("award-input").value, 10);
+
+    if (isNaN(newPercentage) || newPercentage < 0 || newPercentage > 100) {
+        alert("Please enter a valid percentage between 0 and 100.");
+        return;
+    }
+
+    fetch('/update-award-point/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ percentage: newPercentage })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.querySelector(".highlight-percentage").textContent = `${data.percentage}%`;
+            cancelAward();
+
+            // Show success toast
+            showToast("Award points updated successfully!", true);
+        } else {
+            alert("Failed to update.");
         }
-    
-        fetch('/update-award-point/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken()
-            },
-            body: JSON.stringify({ percentage: newPercentage })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                document.querySelector(".highlight-percentage").textContent = `${data.percentage}%`;
-                cancelAward();
-            } else {
-                alert("Failed to update.");
-            }
-        })
-        .catch(error => {
-            console.error("Update error:", error);
-        });
-    }
-    
-    function getCSRFToken() {
-        const name = 'csrftoken';
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const trimmed = cookie.trim();
-            if (trimmed.startsWith(name + '=')) {
-                return decodeURIComponent(trimmed.substring(name.length + 1));
-            }
-        }
-        return '';
-    }
-    
-    
-    function saveAward() {
-        const newPercentage = parseInt(document.getElementById("award-input").value, 10);
-    
-        if (isNaN(newPercentage) || newPercentage < 0 || newPercentage > 100) {
-            alert("Please enter a valid percentage between 0 and 100.");
-            return;
-        }
-    
-        fetch('/update-award-point/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken()
-            },
-            body: JSON.stringify({ percentage: newPercentage })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                document.querySelector(".highlight-percentage").textContent = `${data.percentage}%`;
-                cancelAward();
-            } else {
-                alert("Failed to update.");
-            }
-        })
-        .catch(error => {
-            console.error("Update error:", error);
-        });
-    }
+    })
+    .catch(error => {
+        console.error("Update error:", error);
+        alert("An error occurred while updating award points.");
+    });
+}
+
     
     function getCSRFToken() {
         const name = 'csrftoken';
@@ -590,20 +605,7 @@
         document.getElementById("edit-validity-input").value = validity;
         document.getElementById("edit-type-input").value = type;
         document.getElementById("edit-description-input").value = description;
-        const row = button.closest("tr");
-        const validity = row.querySelector(".plan-validity-text").textContent.trim();
-        const type = row.querySelector(".plan-type-text").textContent.trim();
-        const description = row.querySelector(".plan-description-text").textContent.trim();
     
-        document.getElementById("edit-validity-input").value = validity;
-        document.getElementById("edit-type-input").value = type;
-        document.getElementById("edit-description-input").value = description;
-    
-        document.getElementById("editPlanModal").style.display = "block";
-
-    }
-    
-
         document.getElementById("editPlanModal").style.display = "block";
 
     }
@@ -613,43 +615,76 @@
         document.getElementById('editPlanModal').style.display = 'none';
     }
 
-
     function savePlanChanges() {
         alert("Plan changes saved successfully!");
         closeEditModal();
     }
 
  
+function savePlanChanges() {
+    const validity = document.getElementById("edit-validity-input").value.trim();
+    const type = document.getElementById("edit-type-input").value.trim();
+    const description = document.getElementById("edit-description-input").value.trim();
 
-    function savePlanChanges() {
-        const validity = document.getElementById("edit-validity-input").value.trim();
-        const type = document.getElementById("edit-type-input").value.trim();
-        const description = document.getElementById("edit-description-input").value.trim();
-    
-        fetch("/update-model-plan/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCSRFToken(),
-            },
-            body: JSON.stringify({
-                plan_validity: validity,
-                plan_type: type,
-                description: description,
-            }),
-        })
-        .then(response => response.json())
-        .then((data) => {
-            if (data.success) {
-                alert("Plan changes saved successfully!");
-                updateExistingModelPlanRow(type, validity, description); // Pass updated data
-                closeEditModal();  // Close the modal after saving changes
-            } else {
-                alert("Error: " + data.error);
-            }
-        });
-    }
-    
+    fetch("/update-model-plan/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken(),
+        },
+        body: JSON.stringify({
+            plan_validity: validity,
+            plan_type: type,
+            description: description,
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Server response:", data); // Check for message
+        if (data.success) {
+            showToast(`${type} Plan updated successfully!`, true);  // Pass plan type to the toast message
+            closeEditModal();
+
+            // Reload after toast disappears
+            setTimeout(() => {
+                location.reload();
+            }, 1500); // Wait for toast to disappear
+        } else {
+            showToast(data.message || "Failed to update plan", false);
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        showToast("An error occurred", false);
+    });
+}
+
+function showToast(message, isSuccess = true) {
+    const toast = document.createElement('div');
+    toast.className = `toast-container toast-show ${isSuccess ? 'toast-success' : 'toast-error'}`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    // Hide after 3.5s and animate fade out
+    setTimeout(() => {
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 500); // Remove after animation
+    }, 3500);
+}
+
+function showToast(message, isSuccess = true) {
+    const toast = document.createElement('div');
+    toast.className = `toast-container toast-show ${isSuccess ? 'toast-success' : 'toast-error'}`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    // Hide after 3.5s and animate fade out
+    setTimeout(() => {
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 500); // Remove after animation
+    }, 3500);
+}
+
     function updateExistingModelPlanRow(plan_type, plan_validity, description) {
         const rows = document.querySelectorAll(".plans-table tbody tr");
     
@@ -680,70 +715,116 @@
         }
         return cookieValue;
     }
+function confirmCancelAward() {
+    // Show the custom modal
+    const modal = document.getElementById('cancelConfirmationModal');
+    modal.style.display = 'block';
 
- 
+    // When the user clicks "Yes"
+    const yesBtn = document.getElementById('confirmCancel');
+    yesBtn.onclick = function () {
+        // Reset the award points to the default value
+        const awardInput = document.getElementById('award-input');
+        awardInput.value = 10; // Default value for award points (can be adjusted as per requirement)
 
-    function savePlanChanges() {
-        const validity = document.getElementById("edit-validity-input").value.trim();
-        const type = document.getElementById("edit-type-input").value.trim();
-        const description = document.getElementById("edit-description-input").value.trim();
-    
-        fetch("/update-model-plan/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCSRFToken(),
-            },
-            body: JSON.stringify({
-                plan_validity: validity,
-                plan_type: type,
-                description: description,
-            }),
-        })
-        .then(response => response.json())
-        .then((data) => {
-            if (data.success) {
-                alert("Plan changes saved successfully!");
-                updateExistingModelPlanRow(type, validity, description); // Pass updated data
-                closeEditModal();  // Close the modal after saving changes
-            } else {
-                alert("Error: " + data.error);
-            }
-        });
-    }
-    
-    function updateExistingModelPlanRow(plan_type, plan_validity, description) {
-        const rows = document.querySelectorAll(".plans-table tbody tr");
-    
-        rows.forEach((row) => {
-            const currentType = row.querySelector(".plan-type-text")?.textContent.trim();
-            if (currentType === plan_type.trim()) {
-                row.querySelector(".plan-validity-text").textContent = plan_validity;
-                row.querySelector(".plan-description-text").textContent = description;
-            }
-        });
-    }
-    
-    
-    
-    // Helper to get CSRF token from cookie
-    function getCSRFToken() {
-        let cookieValue = null;
-        const name = 'csrftoken';
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.startsWith(name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
+        // Hide the edit section
+        document.getElementById('award-edit').style.display = 'none';
+
+        // Display the original award display text
+        document.getElementById('award-text').style.display = 'block';
+        document.getElementById('award-display').style.display = 'inline-block';
+
+        // Close the confirmation modal
+        modal.style.display = 'none';
+    };
+
+    // When the user clicks "No"
+    const noBtn = document.getElementById('dismissCancel');
+    noBtn.onclick = function () {
+        modal.style.display = 'none';
+    };
+
+    // Handle closing the modal using the close icon
+    const closeIcon = document.getElementById('closeCancelModal');
+    closeIcon.onclick = function () {
+        modal.style.display = 'none';
+    };
+}
+
+    function confirmCancelSecurityQuestion() {
+    // Show custom modal
+    const modal = document.getElementById('cancelConfirmationModal');
+    modal.style.display = 'block';
+
+    const yesBtn = document.getElementById('confirmCancel');
+    yesBtn.onclick = function () {
+        const formContainer = document.getElementById('toggle-single-customer')
+            .closest('.send-notification-item')
+            .querySelector('.send-notification-form');
+
+        if (formContainer) {
+            formContainer.style.display = 'none';
         }
-        return cookieValue;
-    }
+
+        const checkbox = document.getElementById('toggle-single-customer');
+        if (checkbox) {
+            checkbox.checked = false;
+        }
+
+        document.getElementById('new-question').value = '';
+        document.getElementById('add-question-row').style.display = 'none';
+        modal.style.display = 'none';
+    };
+
+    const noBtn = document.getElementById('dismissCancel');
+    noBtn.onclick = function () {
+        modal.style.display = 'none';
+    };
+
+    const closeIcon = document.getElementById('closeCancelModal');
+    closeIcon.onclick = function () {
+        modal.style.display = 'none';
+    };
+}
+
+
+   function confirmCancelDeduction() {
+    // Show custom modal
+    const modal = document.getElementById('cancelConfirmationModal');
+    modal.style.display = 'block';
+
+    // When user clicks "Yes"
+    const yesBtn = document.getElementById('confirmCancel');
+    yesBtn.onclick = function () {
+        const formContainer = document.getElementById('toggle-all-customers')
+            .closest('.send-notification-item')
+            .querySelector('.send-notification-form');
+        if (formContainer) {
+            formContainer.style.display = 'none';
+        }
+
+        const checkbox = document.getElementById('toggle-all-customers');
+        if (checkbox) {
+            checkbox.checked = false;
+        }
+
+        document.getElementById('deduct-amount').value = '';
+        modal.style.display = 'none';
+    };
+
+    // When user clicks "No"
+    const noBtn = document.getElementById('dismissCancel');
+    noBtn.onclick = function () {
+        modal.style.display = 'none';
+    };
+
+    // Also handle the close icon (X)
+    const closeIcon = document.getElementById('closeCancelModal');
+    closeIcon.onclick = function () {
+        modal.style.display = 'none';
+    };
+}
 </script>
-
 
 
 {% endblock %}

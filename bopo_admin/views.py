@@ -2,7 +2,6 @@ from datetime import date, datetime, timezone
 from io import BytesIO
 import json
 import os
-import os
 import random
 import string
 from sys import prefix
@@ -24,7 +23,6 @@ from datetime import datetime
 
 
 from accounts import models
-from accounts.models import Corporate, Customer, Logo, Terminal
 from accounts.models import Corporate, Customer, Logo, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
@@ -226,9 +224,6 @@ def home(request):
     user = request.user
     today = now().date()
     yesterday = today - timedelta(days=1)
-    
-    # FETCH THE LATEST LOGO
-    logo = Logo.objects.order_by('-created_at').first()
 
     # Total counts
     total_projects = Corporate.objects.count()
@@ -289,7 +284,6 @@ def home(request):
 
         # Chart data
         "chart_data": chart_data,
-        "logo": logo,
     }
 
     if user.role == 'corporate_admin':
@@ -539,6 +533,7 @@ def toggle_status(request, merchant_id):
     return JsonResponse({"success": False, "error": "Invalid request"})
 
 
+
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from accounts.models import Merchant, Corporate
@@ -569,6 +564,7 @@ def add_merchant(request):
             address = request.POST.get("address")
             legal_name = request.POST.get("legal_name")
             pincode = request.POST.get("pincode")
+            account_type = request.POST.get("account_type", "normal")
             city_id = request.POST.get("city")
             state_id = request.POST.get("state")
             country = request.POST.get("country", "India")
@@ -685,11 +681,12 @@ def add_merchant(request):
                     city=city,
                     country=country,
                     role="admin",
+                    account_type=account_type, 
                     logo=logo_instance  # Associate the logo with the new corporate account
                 )
 
                 # Create BopoAdmin user
-                bopo_admin = BopoAdmin(username=project_name, role="corporate_admin", corporate=corporate)
+                bopo_admin = BopoAdmin(username=corporate_id, role="corporate_admin", corporate=corporate)
                 bopo_admin.set_password(pin)
                 bopo_admin.save()
 
@@ -2341,51 +2338,60 @@ def account_info(request):
 def reports(request):
     return render(request, 'bopo_admin/Payment/reports.html')
 
+
 def login_view(request):
-    if request.method == 'POST': 
+    # GET request (initial load or after auto logout)
+    if request.GET.get('inactive'):
+        error_message = "Your corporate account has been deactivated. Please contact the superadmin."
+        return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+    if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         user_type = request.POST.get('user_type')
+        remember_me = request.POST.get('remember_me')  # Fetch the "remember me" checkbox
 
+        # Authenticate user
         user = authenticate(request, username=username, password=password)
-        if user_type == "employee":
-            role_permissions = EmployeeRole.objects.filter(employee=user.employee)
-            if not role_permissions.exists():
-                error_message = "You do not have permission to access this page."
-                return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
         if user:
+            # Check corporate admin status
+            if user_type == "corporate_admin":
+                try:
+                    corporate = Corporate.objects.get(corporate_id=username)
+                    if corporate.status == "Inactive":
+                        logout(request)
+                        request.session.flush()
+                        error_message = "Your corporate account is currently not active. Please reach out to the superadmin for assistance."
+                        return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+                except Corporate.DoesNotExist:
+                    error_message = "Corporate account not found."
+                    return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+            # Check employee permissions
+            elif user_type == "employee":
+                role_permissions = EmployeeRole.objects.filter(employee=user.employee)
+                if not role_permissions.exists():
+                    error_message = "You do not have permission to access this page."
+                    return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+            # Login the user
             login(request, user)
+
+            # Set session expiry based on "remember me"
+            if remember_me:
+                request.session.set_expiry(1209600)  # 2 weeks
+            else:
+                request.session.set_expiry(0)  # Session expires on browser close
+
+            request.session['user_type'] = user_type
             return redirect('home')
+
         else:
             error_message = "Invalid credentials"
             return render(request, 'bopo_admin/login.html', {'error_message': error_message})
 
-        # try:
-        #     # Filter user by username and user_type if you are storing type
-        #     if user_type == "corporate_admin":
-        #         user = Corporate.objects.get(username=username)
-        #     else:
-        #         user = BopoAdmin.objects.get(username=username)
-            
-        #     # Optional: filter by role too if role is stored
-        #     # user = BopoAdmin.objects.get(username=username, role=user_type)
-
-        #     if check_password(password, user.password):
-        #         request.session['admin_id'] = user.id
-        #         request.session['user_type'] = user_type  # Store the role in session
-        #         return redirect('home')
-        #     else:
-        #         error_message = "Incorrect password"
-        # except BopoAdmin.DoesNotExist:
-        #     error_message = "User does not exist"
-
-        # return render(request, 'bopo_admin/login.html', {'error_message': error_message})
-    
-    # GET request
     return render(request, 'bopo_admin/login.html')
-
-
-
 
 
 from django.contrib.auth.hashers import make_password
@@ -2394,42 +2400,97 @@ from django.contrib.auth.models import AnonymousUser
 
 
 
+# def profile(request):
+#     if isinstance(request.user, AnonymousUser):
+#         # If the user is not logged in (AnonymousUser), render a profile page without the edit form
+#         return render(request, 'bopo_admin/profile.html', {'error_message': 'You must be logged in to edit your profile.'})
+
+#     # If the user is logged in (authenticated)
+#     if request.method == 'POST':
+#         username = request.POST.get('username')
+#         user_type = request.POST.get('user_type')  # Getting user type from the form
+#         password = request.POST.get('password')
+#         email= request.POST.get('email')
+#         mobile= request.POST.get('mobile')
+
+#         user = request.user  # Assuming you are using the default user model
+        
+#         # Update the user's username and user type
+#         user.username = username
+#         user.user_type = user_type  # Updating user type
+#         user.email = email
+#         user.mobile = mobile
+        
+#         # If the password is provided, update it (hashed before saving)
+#         if password:
+#             user.password = make_password(password)
+
+#         user.save()  # Save the updated user information
+
+#         # Add a success message
+#         success_message = "Profile updated successfully!"
+
+#         # Redirect to profile page to see the changes
+#         return render(request, 'bopo_admin/profile.html', {'success_message': success_message, 'user': user})
+
+#     # If GET request, just render the profile page
+#     return render(request, 'bopo_admin/profile.html', {'user': request.user})
+
+
+
+@login_required
 def profile(request):
-    if isinstance(request.user, AnonymousUser):
-        # If the user is not logged in (AnonymousUser), render a profile page without the edit form
-        return render(request, 'bopo_admin/profile.html', {'error_message': 'You must be logged in to edit your profile.'})
+    user = request.user
 
-    # If the user is logged in (authenticated)
+    context = {
+        'user': user
+    }
+
+    if user.role == 'corporate_admin' and user.corporate:
+        context['profile'] = user.corporate
+        context['role'] = 'corporate_admin'
+
+    elif user.role == 'employee' and user.employee:
+        context['profile'] = user.employee
+        context['role'] = 'employee'
+
+    elif user.role == 'super_admin':
+        context['role'] = 'super_admin'
+        # No additional profile needed for super admin
+
+    return render(request, 'bopo_admin/profile.html', context)
+
+@login_required
+def update_profile(request):
+    user = request.user
+
     if request.method == 'POST':
-        username = request.POST.get('username')
-        user_type = request.POST.get('user_type')  # Getting user type from the form
-        password = request.POST.get('password')
-        email= request.POST.get('email')
-        mobile= request.POST.get('mobile')
+        # Check user's role and update profile accordingly
+        if user.role == 'corporate_admin' and user.corporate:
+            profile = user.corporate
+            profile.project_name = request.POST.get('project_name')
+            profile.email = request.POST.get('email')
+            profile.mobile = request.POST.get('mobile')
+            profile.city = request.POST.get('city')
+            profile.save()
 
-        user = request.user  # Assuming you are using the default user model
-        
-        # Update the user's username and user type
-        user.username = username
-        user.user_type = user_type  # Updating user type
-        user.email = email
-        user.mobile = mobile
-        
-        # If the password is provided, update it (hashed before saving)
-        if password:
-            user.password = make_password(password)
+        elif user.role == 'employee' and user.employee:
+            profile = user.employee
+            profile.name = request.POST.get('name')
+            profile.email = request.POST.get('email')
+            profile.mobile = request.POST.get('mobile')
+            profile.city = request.POST.get('city')
+            profile.save()
 
-        user.save()  # Save the updated user information
+        elif user.role == 'super_admin':
+            user.username = request.POST.get('username')
+            user.email = request.POST.get('email')
+            user.mobile = request.POST.get('mobile')
+            user.save()
 
-        # Add a success message
-        success_message = "Profile updated successfully!"
+        return redirect('profile')  # Redirect to profile page after saving changes
 
-        # Redirect to profile page to see the changes
-        return render(request, 'bopo_admin/profile.html', {'success_message': success_message, 'user': user})
-
-    # If GET request, just render the profile page
-    return render(request, 'bopo_admin/profile.html', {'user': request.user})
-
+    return redirect('profile')  # Redirect if not POST
 
 # from datetime import timedelta
 # from django.utils import timezone
@@ -2876,7 +2937,8 @@ def deduct_amount(request):
     return render(request, "bopo_admin/Superadmin/deduct_amount.html")
 
 def superadmin_functionality(request):
-    return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html')
+    plans = ModelPlan.objects.all()
+    return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html' , {'plans': plans})
  
 
 
@@ -2950,11 +3012,58 @@ def save_cash_out(request):
 # def award_points(request):
 #     return render(request, 'bopo_admin/Superadmin/award_points.html')
 
+# def security_questions_view(request):
+#     if request.method == 'GET':
+#         questions = list(SecurityQuestion.objects.all().values('id', 'question'))
+#         return JsonResponse(questions, safe=False)
+    
+#     elif request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             question_text = data.get('question', '').strip()
+#             if question_text:
+#                 question = SecurityQuestion.objects.create(question=question_text)
+#                 return JsonResponse({'id': question.id, 'question': question.question})
+#             return JsonResponse({'error': 'Invalid question'}, status=400)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+
+#     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+from django.db.models import Count
+
+
+@csrf_exempt
+def add_security_question(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        question_text = data.get('question', '').strip()
+        if question_text:
+            question = SecurityQuestion.objects.create(question=question_text)
+            return JsonResponse({'id': question.id, 'question': question.question})
+        return JsonResponse({'error': 'Invalid question'}, status=400)
+
+
+@csrf_exempt
 def security_questions_view(request):
     if request.method == 'GET':
-        questions = list(SecurityQuestion.objects.all().values('id', 'question'))
-        return JsonResponse(questions, safe=False)
-    
+        questions = SecurityQuestion.objects.annotate(
+            merchant_count=Count('merchants'),
+            customer_count=Count('customers')
+        )
+        data = []
+        for q in questions:
+            is_taken = q.merchant_count > 0 or q.customer_count > 0
+            data.append({
+                'id': q.id,
+                'question': q.question,
+                'merchant_count': q.merchant_count + q.customer_count,
+                'is_taken': is_taken,
+                'can_delete': not is_taken,
+                'can_edit': not is_taken,
+            })
+        return JsonResponse(data, safe=False)
+
     elif request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -2969,14 +3078,46 @@ def security_questions_view(request):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
-def add_security_question(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        question_text = data.get('question', '').strip()
-        if question_text:
-            question = SecurityQuestion.objects.create(question=question_text)
-            return JsonResponse({'id': question.id, 'question': question.question})
-        return JsonResponse({'error': 'Invalid question'}, status=400)
+
+@csrf_exempt
+def delete_security_question(request, question_id):
+    if request.method == 'DELETE':
+        try:
+            question = SecurityQuestion.objects.get(id=question_id)
+            if question.is_taken:
+                return JsonResponse({'error': 'Cannot delete. Question already used.'}, status=400)
+            question.delete()
+            return JsonResponse({'message': 'Deleted successfully'})
+        except SecurityQuestion.DoesNotExist:
+            return JsonResponse({'error': 'Question not found'}, status=404)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def update_security_question(request, question_id):
+    if request.method == 'PUT':
+        try:
+            question = SecurityQuestion.objects.get(id=question_id)
+            if question.is_taken:
+                return JsonResponse({'error': 'Cannot edit. Already in use.'}, status=400)
+            data = json.loads(request.body)
+            question_text = data.get('question', '').strip()
+            if question_text:
+                question.question = question_text
+                question.save()
+                return JsonResponse({'success': True})
+            return JsonResponse({'error': 'Invalid input'}, status=400)
+        except SecurityQuestion.DoesNotExist:
+            return JsonResponse({'error': 'Question not found'}, status=404)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def get_deduct_amount(request):
+    try:
+        setting = DeductSetting.objects.get(id=1)
+        return JsonResponse({'deduct_amount': setting.deduct_percentage})
+    except DeductSetting.DoesNotExist:
+        return JsonResponse({'deduct_amount': 0})  # default if not set    
     
 def set_deduct_amount(request):
     if request.method == 'POST':
@@ -2996,33 +3137,28 @@ def set_deduct_amount(request):
     return JsonResponse({'error': 'Invalid method.'}, status=405)
 
 
-def save_model_plan(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
+# def save_model_plan(request):
+#     if request.method == "POST":
+#         data = json.loads(request.body)
 
-        plan_validity = data.get("plan_validity")
-        plan_type = data.get("plan_type")
-        description = data.get("description")
-        merchant_id = data.get("merchant_id")
+#         plan_validity = data.get("plan_validity")
+#         plan_type = data.get("plan_type")
+#         description = data.get("description")
+        
 
-        if not all([plan_validity, plan_type, description]):
-            return JsonResponse({"error": "Missing fields"}, status=400)
+#         if not all([plan_validity, plan_type, description]):
+#             return JsonResponse({"error": "Missing fields"}, status=400)
 
-        try:
-            merchant_obj = Merchant.objects.get(id=merchant_id) if merchant_id else None
-        except Merchant.DoesNotExist:
-            return JsonResponse({"error": "Merchant not found"}, status=404)
+#         plan, created = ModelPlan.objects.update_or_create(
+#             plan_type=plan_type,
+#             defaults={
+#                 "plan_validity": plan_validity,
+#                 "description": description
+#             }
+#         )
+#         return JsonResponse({"message": "Model plan saved successfully."})
+#     return JsonResponse({"error": "Invalid method"}, status=405)
 
-        plan, created = ModelPlan.objects.update_or_create(
-            plan_type=plan_type,
-            merchant=merchant_obj,
-            defaults={
-                "plan_validity": plan_validity,
-                "description": description
-            }
-        )
-        return JsonResponse({"message": "Model plan saved successfully."})
-    return JsonResponse({"error": "Invalid method"}, status=405)
 
 def update_model_plan(request):
     if request.method == 'POST':
@@ -3051,6 +3187,7 @@ def update_model_plan(request):
 
 def model_plan_list(request):
     plans = ModelPlan.objects.all()
+    print("Plans:", plans)  # Debugging log
     return render(request, 'bopo_admin/Superadmin/superadmin_functionality.html', {'plans': plans})
 
 # def save_award_points(request):
@@ -3248,7 +3385,7 @@ def update_admin_merchant(request):
             # Save the updated merchant information
             merchant.save()
 
-            return JsonResponse({'success': True ,'massage': 'Merchant updated successfully'})
+            return JsonResponse({'success': True, 'message': 'Merchant updated successfully'})
         except Merchant.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Merchant not found'})
         except Exception as e:
@@ -3269,42 +3406,132 @@ def corporate_credentials(request):
     # Initial page load
     return render(request, 'bopo_admin/Corporate/corporate_credentials.html')
 
+# def corporate_add_merchant(request):
+#     if request.method == 'POST':
+#         print('mobile' , request.POST.get('mobile'))
+#         print('email' , request.POST.get('email'))
+#         user = request.user
+#         corporate=Corporate.objects.get(id=user.corporate.id)  
+#         merchant = Merchant(
+#         first_name=request.POST.get('first_name'),
+#         last_name=request.POST.get('last_name'),
+#         email=request.POST.get('email'),
+#         mobile=request.POST.get('mobile'),
+#         shop_name=request.POST.get('shop_name'),
+#         legal_name=request.POST.get('legal_name'),
+#         state=request.POST.get('state'),
+#         city=request.POST.get('city'),
+#         country=request.POST.get('country'),
+#         pincode=request.POST.get('pincode'),
+#         corporate_id=corporate.corporate_id,  # Save corporate_id as string
+#         project_name=corporate,  
+#         aadhaar_number=request.POST.get('aadhaar_number'),
+#         gst_number=request.POST.get('gst_number'),
+#         pan_number=request.POST.get('pan_number'),
+#         address=request.POST.get('address'),
+#         pin=request.POST.get('pin'),
+#         user_type='corporate',
+#         )
+#         merchant.save()
+
+#         return JsonResponse({'success': True, 'message': 'Merchant added successfully!'})
+
+#     else:
+#         states = State.objects.all().order_by('name')
+#         state_data = [{"id": state.id, "name": state.name} for state in states]
+#         return render(request, 'bopo_admin/Corporate/corporate_add_merchant.html', {'states': state_data})
+
+
 def corporate_add_merchant(request):
-    if request.method == 'POST':
-        user = request.user
+    if request.method == "POST":
         try:
-            project_id = user.project_id  # Assuming this exists in the user model
-            corporate = Corporate.objects.get(project_id=project_id)
-        except (AttributeError, Corporate.DoesNotExist):
-            return JsonResponse({'success': False, 'message': 'Corporate project not found for this user.'})
+            is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
-        merchant = Merchant(
-            first_name=request.POST.get('first_name'),
-            last_name=request.POST.get('last_name'),
-            email=request.POST.get('email'),
-            mobile=request.POST.get('mobile'),
-            shop_name=request.POST.get('shop_name'),
-            legal_name=request.POST.get('legal_name'),
-            state=request.POST.get('state'),
-            city=request.POST.get('city'),
-            country=request.POST.get('country'),
-            pincode=request.POST.get('pincode'),
-            corporate_id=corporate.corporate_id,  # Save corporate_id as string
-            project_name=corporate,  # ✅ ForeignKey expects an object
-            aadhaar_number=request.POST.get('aadhaar_number'),
-            gst_number=request.POST.get('gst_number'),
-            pan_number=request.POST.get('pan_number'),
-            address=request.POST.get('address'),
-            user_type='corporate',
-        )
-        merchant.save()
+            # Extract form data
+            select_project = request.POST.get("select_project")
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")
+            email = request.POST.get("email")
+            mobile = request.POST.get("mobile")
+            aadhaar_number = request.POST.get("aadhaar_number")
+            pin = request.POST.get("pin")
+            gst_number = request.POST.get("gst_number")
+            shop_name = request.POST.get("shop_name")
+            pan_number = request.POST.get("pan_number")
+            address = request.POST.get("address")
+            legal_name = request.POST.get("legal_name")
+            pincode = request.POST.get("pincode")
+            city_id = request.POST.get("city")
+            state_id = request.POST.get("state")
+            country = request.POST.get("country", "India")
+            state = State.objects.get(id=state_id)
+            city = City.objects.get(id=city_id)
 
-        return JsonResponse({'success': True, 'message': 'Merchant added successfully!'})
+            # Unique field checks
+            if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
+                message = "Email is already registered."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
-    else:
-        states = State.objects.all().order_by('name')
-        state_data = [{"id": state.id, "name": state.name} for state in states]
-        return render(request, 'bopo_admin/Corporate/corporate_add_merchant.html', {'states': state_data})
+            if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
+                message = "Mobile number is already registered."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
+                message = "Aadhaar number is already registered."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            # Fetch the corporate ID of the logged-in user
+            corporate = request.user.corporate  # Assuming user is a BopoAdmin and has a corporate field
+            corporate_id = corporate.corporate_id  # Get the corporate_id associated with the logged-in user
+
+            # Generate Merchant ID
+            project_name = corporate.project_name  # Assuming this is the project name you want to associate
+            project_abbr = project_name[:4].upper()
+            random_number = ''.join(random.choices(string.digits, k=11))
+            merchant_id = f"{project_abbr}{random_number}"
+
+            # Create Merchant
+            merchant = Merchant.objects.create(
+                user_type='corporate',
+                merchant_id=merchant_id,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                mobile=mobile,
+                aadhaar_number=aadhaar_number,
+                pin=pin,
+                gst_number=gst_number,
+                pan_number=pan_number,
+                shop_name=shop_name,
+                legal_name=legal_name,
+                address=address,
+                pincode=pincode,
+                state=state,
+                city=city,
+                country=country,
+                corporate_id=corporate_id,  # Use the corporate_id here
+                project_name=corporate  # Assign the corporate instance as project name
+            )
+
+            # Create Terminal
+            terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
+            tid_pin = random.randint(1000, 9999)
+
+            Terminal.objects.create(
+                terminal_id=terminal_id,
+                tid_pin=tid_pin,
+                merchant_id=merchant
+            )
+
+            success_message = "Merchant added successfully."
+            return JsonResponse({"success": True, "message": success_message}) if is_ajax else redirect_with_success(success_message)
+
+        except Exception as e:
+            print("Error saving merchant:", e)
+            return JsonResponse({"success": False, "message": "Something went wrong. Please check your inputs."})
+
+    corporates = Corporate.objects.all()
+    return render(request, "bopo_admin/Corporate/corporate_add_merchant.html", {"corporates": corporates})
 
 
 def logo(request): 
@@ -3314,19 +3541,39 @@ def logo(request):
             return render(request, 'bopo_admin/base.html', {'corporate': corporate})
         except Corporate.DoesNotExist:
             return render(request, 'bopo_admin/base.html', {'error': 'Corporate not found'})
-    else:
-        logo = Logo.objects.first()  # Fallback for super admin
+    
+    elif request.user.role in ['super_admin', 'employee']:
+        logo = Logo.objects.first()
         return render(request, 'bopo_admin/base.html', {'logo': logo})
+
+
+    else:  # Fallback case
+        logo = Logo.objects.first()
+        return render(request, 'bopo_admin/base.html', {'logo': logo})
+
+
+# def upload_logo(request):
+#     if request.method == 'POST' and request.FILES.get('logo'):
+#         if request.user.role in ['super_admin', 'employee']:  # Allow both roles to update
+#             logo_file = request.FILES['logo']
+#             logo_obj, _ = Logo.objects.get_or_create(id=1)  # Super admin logo
+#             logo_obj.logo = logo_file
+#             logo_obj.save()
+#             return JsonResponse({'success': True, 'url': logo_obj.logo.url})
+    
+#     return JsonResponse({'success': False})
 
 
 
 def upload_logo(request):
     if request.method == 'POST' and request.FILES.get('logo'):
-        logo_file = request.FILES['logo']
-        logo_obj, _ = Logo.objects.get_or_create(id=1)  # Replace/update logo with id=1 (super admin logo)
-        logo_obj.logo = logo_file
-        logo_obj.save()
-        return JsonResponse({'success': True, 'url': logo_obj.logo.url})
+        if request.user.role in ['super_admin', 'employee']:  # Allow superadmins and employees to update the logo
+            logo_file = request.FILES['logo']
+            logo_obj, _ = Logo.objects.get_or_create(id=1)  # For simplicity, use the first logo or create one
+            logo_obj.logo = logo_file
+            logo_obj.save()
+            return JsonResponse({'success': True, 'url': logo_obj.logo.url})
+
     return JsonResponse({'success': False})
 
 from channels.layers import get_channel_layer
@@ -3352,39 +3599,44 @@ def trigger_notification(request):
     return JsonResponse({"status": "Notification sent"})
 
 
-# @login_required
-# def logo(request):
-#     # Try to get a user-specific logo
-#     user_logo = Logo.objects.filter(user=request.user).first()
+def send_customer_credentials(request):
+    customers = Customer.objects.all().order_by('customer_id')
 
-#     # If none, show shared default
-#     if not user_logo:
-#         user_logo = Logo.objects.filter(user__isnull=True).first()
+    if request.method == 'POST':
+        customer_id = request.POST.get('customer_id')
 
-#     return render(request, 'base.html', {'logo': user_logo})
+        try:
+            if not customer_id:
+                return JsonResponse({'status': 'error', 'message': 'Customer ID is required'})
 
+            customer = Customer.objects.get(customer_id=customer_id)
+            phone_number = customer.mobile
+            if not phone_number.startswith('+'):
+                phone_number = f'+91{phone_number}'
 
-# @login_required
-# def upload_logo(request):
-#     if request.method == 'POST' and request.FILES.get('logo'):
-#         # Only upload for this user, not the default
-#         logo_obj, created = Logo.objects.get_or_create(user=request.user)
-#         logo_obj.logo = request.FILES['logo']
-#         logo_obj.save()
-#         return JsonResponse({'status': 'success', 'url': logo_obj.logo.url})
-#     return JsonResponse({'status': 'failed'}, status=400)
+            message_text = (
+                f"Dear {customer.first_name},\n\n"
+                f"Your BOPO login credentials:\n"
+                f"Customer ID: {customer.customer_id}\n"
+                f"Customer PIN: {customer.pin}\n\n"
+                f"Regards,\nBOPO Support Team"
+            )
 
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=message_text,
+                from_=settings.TWILIO_PHONE_NUMBER,
+                to=phone_number
+            )
 
+            return JsonResponse({'status': 'success', 'message': 'Customer credentials sent successfully!'})
 
-# def upload_logo(request):
-#     if request.method == "POST":
-#         corporate_id = request.POST.get("corporate_id")  # or however you identify the corporate
-#         logo_file = request.FILES.get("logo")
+        except Customer.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Customer not found'})
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status': 'error', 'message': 'An error occurred while sending credentials'})
 
-#         if not corporate_id or not logo_file:
-#             return JsonResponse({"error": "Missing data"}, status=400)
-
-#         # Update only the logo field
-#         Corporate.objects.filter(id=corporate_id).update(logo=logo_file)
-
-#         return JsonResponse({"message": "Logo uploaded successfully"})
+    return render(request, 'bopo_admin/Customer/send_customer_credentials.html', {
+        'customers': customers
+    })

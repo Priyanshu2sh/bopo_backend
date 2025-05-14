@@ -55,7 +55,6 @@ INSTALLED_APPS = [
 
     'qr_store', 
     'transfer',
-    'channels',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -70,6 +69,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -77,6 +78,16 @@ CORS_ALLOW_HEADERS = [
     'authorization',
     'access-control-allow-origin',
 ]
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://8e09-103-211-60-165.ngrok-free.app",
+    "https://3fb0-2401-4900-79d1-d74-6851-4650-8615-f92c.ngrok-free.app",
+    "https://7a22-2401-4900-57c6-ae7c-e933-a11b-70e7-85f4.ngrok-free.app",
+]
+
+
+
 
 ALLOWED_HOSTS = ['*']
 
@@ -117,11 +128,14 @@ TIME_ZONE = 'Asia/Kolkata'  # Set your preferred timezone (replace if needed)
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
     
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -132,7 +146,6 @@ DATABASES = {
         'PORT': '3305',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -156,9 +169,9 @@ AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
 LOGIN_URL = '/login/'
 
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = "ACefc2b57333c60eaaea16e2ba775ade3c"
-TWILIO_AUTH_TOKEN = "a8d9144377e3ce520407379613e9ca53"
-TWILIO_PHONE_NUMBER = "+12706338124"
+TWILIO_ACCOUNT_SID = "ACd8f432a19c3bc947d945a68b3237cc2f"
+TWILIO_AUTH_TOKEN = "0e9871752753b374b16f2d7e6d94fb33"
+TWILIO_PHONE_NUMBER = "+15086842698"
 
 
 # Internationalization

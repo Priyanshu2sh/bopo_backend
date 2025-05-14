@@ -4,6 +4,14 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/terminals.css' %}">
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <div class="reduce-limit-back-btn">
   <a href="{% url 'individual_list' %}" class="reduce-limit-back-btn-submit">
     <i class="fa fa-arrow-left"></i> Back
@@ -15,12 +23,13 @@
 
   <div class="merchant-select-row">
     <label for="merchant_id">Select Merchant ID:</label>
-    <select name="merchant_id" id="merchant_id">
-        <option value="">-- Select Merchant --</option>
-        {% for merchant in merchants %}
-            <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }}</option>
-        {% endfor %}
-    </select>
+   <select name="merchant_id" id="merchant_id" class="select2" style="width: 900px;">
+    <option value="">-- Select Merchant --</option>
+    {% for merchant in merchants %}
+        <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }} - {{ merchant.first_name }} {{ merchant.last_name }} </option>
+    {% endfor %}
+</select>
+
 
     <button id="add-terminal-btn" class="add-terminal-btn">
       Add Terminal
@@ -116,10 +125,16 @@
       }, 300);
     }, 3000);
   }
+$(document).ready(function() {
+  // Initialize Select2 for the merchant_id dropdown
+  $('#merchant_id').select2({
+    placeholder: "Select Merchant",
+    allowClear: true
+  });
 
   // Handle merchant selection and display terminals
-  document.getElementById('merchant_id').addEventListener('change', function() {
-    var merchantId = this.value;
+  $('#merchant_id').on('change', function() {
+    var merchantId = $(this).val();
 
     if (merchantId) {
       fetch(`/get_terminals/${merchantId}/`)
@@ -157,8 +172,8 @@
   });
 
   // Handle Add Terminal button click
-  document.getElementById('add-terminal-btn').addEventListener('click', function() {
-    var merchantId = document.getElementById('merchant_id').value;
+  $('#add-terminal-btn').click(function() {
+    var merchantId = $('#merchant_id').val();
 
     if (merchantId) {
       fetch(`/add_terminal/${merchantId}/`, {
@@ -189,8 +204,8 @@
           `;
           tableBody.appendChild(row);
 
-          document.getElementById('empty-state').style.display = 'none';
-          document.getElementById('terminal-table').style.display = 'table';
+          $('#empty-state').hide();
+          $('#terminal-table').show();
         }
       });
     } else {
@@ -199,63 +214,52 @@
   });
 
   // Handle Edit and Save button clicks
-  document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('edit-btn')) {
-      var row = event.target.closest('tr');
-      var pinInput = row.querySelector('.pin-input');
-      var saveBtn = row.querySelector('.save-btn');
-      var editBtn = row.querySelector('.edit-btn');
+  $(document).on('click', '.edit-btn', function() {
+    var row = $(this).closest('tr');
+    var pinInput = row.find('.pin-input');
+    var saveBtn = row.find('.save-btn');
+    var editBtn = row.find('.edit-btn');
 
-      pinInput.removeAttribute('readonly');
-      pinInput.style.border = '1px solid #ccc';
-      pinInput.style.background = '#fff';
-      pinInput.focus();
-
-      saveBtn.style.display = 'inline-block';
-      editBtn.style.display = 'none';
-    }
-
-    if (event.target.classList.contains('save-btn')) {
-      var row = event.target.closest('tr');
-      var pinInput = row.querySelector('.pin-input');
-      var saveBtn = row.querySelector('.save-btn');
-      var editBtn = row.querySelector('.edit-btn');
-
-      var terminalId = event.target.getAttribute('data-terminal-id');
-      var merchantId = document.getElementById('merchant_id').value;
-      var newPin = pinInput.value.trim();
-
-      if (!newPin) {
-        alert('PIN cannot be empty');
-        return;
-      }
-
-      fetch(`/update_terminal_pin/${merchantId}/${terminalId}/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCSRFToken(),
-        },
-        body: JSON.stringify({ tid_pin: newPin })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert('PIN updated successfully');
-
-          pinInput.setAttribute('readonly', 'readonly');
-          pinInput.style.border = 'none';
-          pinInput.style.background = 'transparent';
-
-          saveBtn.style.display = 'none';
-          editBtn.style.display = 'inline-block';
-        } else {
-          alert('Error updating PIN');
-        }
-      });
-    }
+    pinInput.prop('readonly', false).css({'border': '1px solid #ccc', 'background': '#fff'}).focus();
+    saveBtn.show();
+    editBtn.hide();
   });
 
+  $(document).on('click', '.save-btn', function() {
+    var row = $(this).closest('tr');
+    var pinInput = row.find('.pin-input');
+    var terminalId = $(this).data('terminal-id');
+    var merchantId = $('#merchant_id').val();
+    var newPin = pinInput.val().trim();
+
+    if (!newPin) {
+      alert('PIN cannot be empty');
+      return;
+    }
+
+    fetch(`/update_terminal_pin/${merchantId}/${terminalId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken(),
+      },
+      body: JSON.stringify({ tid_pin: newPin })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('PIN updated successfully');
+
+        pinInput.prop('readonly', true).css({'border': 'none', 'background': 'transparent'});
+        saveBtn.hide();
+        editBtn.show();
+      } else {
+        alert('Error updating PIN');
+      }
+    });
+  });
+
+  // Get CSRF Token from cookies
   function getCSRFToken() {
     let cookieValue = null;
     const cookies = document.cookie.split(';');
@@ -268,5 +272,6 @@
     }
     return cookieValue;
   }
+});
 </script>
 {% endblock %}

@@ -23,7 +23,7 @@
             {% endif %}
         </h4>
          {% endcomment %}
-         {% if request.user.role == 'super_admin' %}
+         {% if request.user.role == 'super_admin' or request.user.role == 'employee' %}
          <h4 style="margin-bottom: 50px;">
              {% if logo %}
                  <img id="logoImage" src="{{ logo.logo.url }}" alt="Logo"
@@ -31,7 +31,7 @@
              {% else %}
                  <span>No logo uploaded</span>
              {% endif %}
-             <input type="file" id="logoUploader" style="display: none;" accept="image/*">
+             {% comment %} <input type="file" id="logoUploader" style="display: none;" accept="image/*"> {% endcomment %}
          </h4>
      {% elif request.user.role == 'corporate_admin' %}
            <h4 style="margin-bottom: 50px;">
@@ -82,7 +82,7 @@
         {% endif %}
 
         {% if request.user.role == 'super_admin' %}
-        <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Requested Cash-Out</a></li>
+        <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Reduce Merchant Points</a></li>
         {% endif %}
         
         {% comment %} <li><a href="{% url 'merchant_status' %}"><i class="fas fa-toggle-on"></i> Merchant Status</a></li> {% endcomment %}
@@ -104,17 +104,24 @@
         {% endif %}
         
     </ul>
+     <div id="belowMerchant"></div>
 </div>
 {% endif %}
 
 
-        {% if request.user.role == 'super_admin' or role_permissions.modify_customer_details == True %}
-        <div id="belowMerchant">
-            <a href="{% url 'customer' %}" class="{% if request.path == 'customer/' %}active{% endif %}">
-                <i class="fas fa-users"></i>  Customer
-            </a>
-        </div>  
-        {% endif %}
+        
+{% if request.user.role == 'super_admin' or role_permissions.modify_customer_details == True %}
+<div class="dropdown" id="customerDropdown">
+    <a class="dropdown-link" id="customerDropdownToggle">
+        <i class="fas fa-users"></i> Customer
+    </a>
+    <ul class="dropdown-menu" id="customerDropdownMenu">
+        <li><a href="{% url 'customer' %}"><i class="fas fa-list"></i> Customer List</a></li>
+        <li><a href="{% url 'send_customer_credentials' %}"><i class="fas fa-key"></i> Send Credentials</a></li>
+    </ul>
+    <div id="belowCustomer"></div> <!-- Add this element to match JavaScript -->
+</div>
+{% endif %}
 
         <!-- Employee Section -->
         {% comment %} <div id="belowCustomer">
@@ -275,14 +282,7 @@
      </div>
 
 
- {% comment %} <div class="dropdown">
-    <a class="dropdown-link"><i class="fas fa-users"></i> Customer</a>
-    <ul class="dropdown-menu">
-        <li><a href="{% url 'modify_customer_details' %}"><i class="fas fa-edit"></i> Modify Customer Details</a></li>
-       <li><a href="{% url 'send_customer_notifications' %}"><i class="fas fa-bell"></i> Send Notifications</a></li>
-        <li><a href="{% url 'customer_uploads' %}"><i class="fas fa-upload"></i> Uploads</a></li>
-    </ul>
-</div>   {% endcomment %}
+
 
    
 
@@ -319,7 +319,7 @@
         setupDropdown("merchantDropdownToggle", "merchantDropdownMenu", "belowMerchant");
         setupDropdown("employeeDropdownToggle", "employeeDropdownMenu", "belowEmployee");
         setupDropdown("superadminDropdownToggle", "superadminDropdownMenu", "belowSuperadmin");
-
+         setupDropdown("customerDropdownToggle", "customerDropdownMenu", "belowCustomer"); 
     });
     
     document.addEventListener("DOMContentLoaded", function () {

@@ -6,7 +6,7 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
-from bopo_admin.models import BopoAdmin
+from bopo_admin.models import BopoAdmin, SecurityQuestion
 
 
 
@@ -44,6 +44,7 @@ class Corporate(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     verified_at = models.DateTimeField(null=True, blank=True)
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='corporates')
+    account_type = models.CharField(max_length=20, choices=[('global', 'Global'), ('normal', 'Normal')], default='normal')
 
 
     
@@ -106,22 +107,15 @@ class Merchant(models.Model):
         ('prepaid', 'Prepaid'),
         ('rental', 'Rental'),
     ]
-    GENDER_CHOICES = [
-        ('Male', 'Male'),
-        ('Female', 'Female'),
-        ('Other', 'Other'),
-    ]
     plan_type = models.CharField(max_length=20, choices=PLAN_CHOICES, default='prepaid')
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
-    logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
     email = models.EmailField(unique=False, null=True, blank=True)
     mobile = models.CharField(max_length=15, unique=True)
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
     pin = models.IntegerField(unique=True, null=True)
     age = models.IntegerField(blank=True, null=True)
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     reference = models.CharField(max_length=200, choices=REFERENCE_CHOICES, null=True, blank=True)
     employee_id = models.ForeignKey('bopo_admin.Employee', to_field='employee_id', on_delete=models.CASCADE, null=True, blank=True)
     # plan_type = models.CharField(max_length=255, null=True, blank=True, choices=PLAN_CHOICES,  help_text='Select plan type: Prepaid or Rental')
@@ -129,7 +123,7 @@ class Merchant(models.Model):
     legal_name = models.CharField(max_length=255, blank=True, null=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
     is_profile_updated = models.BooleanField(default=False)
-    security_question = models.CharField(max_length=255, null=True, blank=True)
+    security_question_fk = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
     answer = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Active')
     pincode = models.IntegerField(null=True, blank=True)
@@ -150,11 +144,16 @@ class Merchant(models.Model):
     city = models.CharField(max_length=100)
     country = models.CharField(max_length=100, null=True, blank=True)
     pincode = models.IntegerField(null=True, blank=True)
-    # corporate_id = models.CharField(max_length=20, null=True, blank=True)  # Add this field
-    corporate = models.ForeignKey(Corporate, on_delete=models.CASCADE, null=True, blank=True, related_name='corporate_merchants') 
-    
+    corporate_id = models.CharField(max_length=20, null=True, blank=True)  # Add this field
     project_name = models.ForeignKey(Corporate, on_delete=models.SET_NULL, null=True)
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
+
+  
+    def save(self, *args, **kwargs):
+        if self.security_question_fk:
+            self.security_question_fk.is_taken = True
+            self.security_question_fk.save()
+        super(Merchant, self).save(*args, **kwargs)
 
 
     def __str__(self):
@@ -190,7 +189,6 @@ class Customer(models.Model):
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(unique=False, null=True, blank=True)
-    logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='customer')
     is_profile_updated = models.BooleanField(default=False)
     mobile = models.CharField(max_length=15, unique=True)
     age = models.IntegerField(null=True, blank=True)
@@ -198,7 +196,7 @@ class Customer(models.Model):
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
     pin = models.IntegerField(null=True, blank=True)
-    security_question = models.CharField(max_length=255, null=True, blank=True)
+    security_question_fk = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='customers') 
     answer = models.CharField(max_length=255, null=True, blank=True)
     aadhar_number = models.CharField(max_length=255, null=True, blank=True)
     pan_number = models.CharField(max_length=255, null=True, blank=True, unique=True)
@@ -213,14 +211,24 @@ class Customer(models.Model):
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='customer')
 
     def save(self, *args, **kwargs):
+        # Generate customer ID if not already set
         if not self.customer_id:
             with transaction.atomic():
                 last_cust = Customer.objects.select_for_update().order_by('-created_at').first()
                 if last_cust and last_cust.customer_id:
-                    last_id = int(last_cust.customer_id.replace('CUST', ''))
+                    try:
+                        last_id = int(last_cust.customer_id.replace('CUST', ''))
+                    except ValueError:
+                        last_id = 0
                     self.customer_id = f"CUST{last_id + 1:06d}"
                 else:
                     self.customer_id = "CUST0000001"
+
+        # Mark security question as taken
+        if self.security_question_fk:
+            self.security_question_fk.is_taken = True
+            self.security_question_fk.save()
+
         super(Customer, self).save(*args, **kwargs)
 
     def __str__(self):
