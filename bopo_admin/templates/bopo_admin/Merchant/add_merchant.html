@@ -198,11 +198,20 @@
                             <input type="text" name="pincode" id="pincode"  maxlength="6" >
                   </div>
 
-                  <label>Upload Logo</label>
+                  {% comment %} <label>Upload Logo</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-image"></i>
                         <input type="file" name="logo" accept="image/*">
+                    </div> {% endcomment %}
+
+                    <div id="upload-logo-container" style="display: none;">
+                        <label>Upload Logo</label>
+                        <div class="addmerchant-input-container">
+                            <i class="fas fa-image"></i>
+                            <input type="file" name="logo" accept="image/*">
+                        </div>
                     </div>
+
 
                 </div>
                                    
@@ -489,29 +498,31 @@
         const selectProjectContainer = document.getElementById("select-project-container");
         const projectNameContainer = document.getElementById("project-name-container");
         const accountTypeContainer = document.getElementById("account-type-container");
+        const uploadLogoContainer = document.getElementById("upload-logo-container"); // New line
 
         function toggleProjectFields() {
             if (existingProjectRadio.checked) {
-                selectProjectContainer.style.display = "block"; // Show select project dropdown
-                projectNameContainer.style.display = "none"; // Hide project name input
-                accountTypeContainer.style.display = "none"; // Hide account type field
+                selectProjectContainer.style.display = "block";
+                projectNameContainer.style.display = "none";
+                accountTypeContainer.style.display = "none";
+                uploadLogoContainer.style.display = "none"; // Hide for existing project
             } else if (newProjectRadio.checked) {
-                selectProjectContainer.style.display = "none"; // Hide select project dropdown
-                projectNameContainer.style.display = "block"; // Show project name input
-                accountTypeContainer.style.display = "block"; // Show account type field
+                selectProjectContainer.style.display = "none";
+                projectNameContainer.style.display = "block";
+                accountTypeContainer.style.display = "block";
+                uploadLogoContainer.style.display = "block"; // Show for new project
             } else {
                 selectProjectContainer.style.display = "none";
                 projectNameContainer.style.display = "none";
                 accountTypeContainer.style.display = "none";
+                uploadLogoContainer.style.display = "none";
             }
         }
 
-        // Event listeners for changes
         existingProjectRadio.addEventListener("change", toggleProjectFields);
         newProjectRadio.addEventListener("change", toggleProjectFields);
 
-        // Initial check
-        toggleProjectFields();
+        toggleProjectFields(); // Initial check
     });
 </script>
 

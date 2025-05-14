@@ -244,12 +244,12 @@ class SecurityQue(models.Model):
   
 
 
-# class Logo(models.Model):
-#     logo = models.ImageField(upload_to='logos/')
-#     created_at = models.DateTimeField(auto_now_add=True)
+class Logo(models.Model):
+    logo = models.ImageField(upload_to='logos/')
+    created_at = models.DateTimeField(auto_now_add=True)
 
-#     def __str__(self):
-#         return f"Logo {self.id}"
+    def __str__(self):
+        return f"Logo {self.id}"
 
 
 

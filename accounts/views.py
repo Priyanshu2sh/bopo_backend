@@ -18,7 +18,7 @@ from rest_framework import status
 from django.utils.timezone import now
 from bopo_backend import settings
 
-from .models import  Customer, Merchant, Terminal, User, Corporate
+from .models import  Customer, Logo, Merchant, Terminal, User, Corporate
 from .serializers import   CustomerSerializer, MerchantSerializer,  TerminalSerializer, UserSerializer
 
 
