@@ -609,7 +609,7 @@ def add_merchant(request):
                 # random_number = ''.join(random.choices(string.digits, k=11))
                 # merchant_id = f"{project_abbr}{random_number}"
                 
-                prefix = "MEID"
+                prefix = "MID"
                 merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
                 # otp = random.randint(100000, 999999)
 
@@ -1218,8 +1218,8 @@ def add_individual_merchant(request):
             # Generate merchant_id
             last_merchant = Merchant.objects.order_by('-id').first()
             next_id = 1 if not last_merchant else last_merchant.id + 1
-            # merchant_id = f"MEID{str(next_id).zfill(11)}"
-            prefix = "MEID"
+            # merchant_id = f"MID{str(next_id).zfill(11)}"
+            prefix = "MID"
             merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
             
             
@@ -3112,30 +3112,75 @@ def update_security_question(request, question_id):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
+# def get_deduct_amount(request):
+#     try:
+#         setting = DeductSetting.objects.get(id=1)
+#         return JsonResponse({'deduct_amount': setting.deduct_percentage})
+#     except DeductSetting.DoesNotExist:
+#         return JsonResponse({'deduct_amount': 0})  # default if not set    
+
+
 def get_deduct_amount(request):
     try:
         setting = DeductSetting.objects.get(id=1)
-        return JsonResponse({'deduct_amount': setting.deduct_percentage})
+        return JsonResponse({
+            'deduct_percentage': setting.deduct_percentage,
+            'cust_merch': setting.cust_merch,
+            'merch_merch': setting.merch_merch,
+            'cust_cust': setting.cust_cust,
+            'normal_global': setting.normal_global,
+        })
     except DeductSetting.DoesNotExist:
-        return JsonResponse({'deduct_amount': 0})  # default if not set    
+        return JsonResponse({'message': 'Not set yet.'})
+
     
-def set_deduct_amount(request):
+# def set_deduct_amount(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         deduct_amount = data.get('deduct_amount')
+
+#         if deduct_amount is None or deduct_amount < 0:
+#             return JsonResponse({'error': 'Invalid deduct amount.'}, status=400)
+
+#         # Always store in ID=1 (single row)
+#         setting, created = DeductSetting.objects.get_or_create(id=1)
+#         setting.deduct_percentage = deduct_amount
+#         setting.save()
+
+#         return JsonResponse({'message': 'Deduct amount updated successfully.', 'deduct_percentage': setting.deduct_percentage})
+    
+#     return JsonResponse({'error': 'Invalid method.'}, status=405)
+
+@csrf_exempt
+def save_deduct_settings(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        deduct_amount = data.get('deduct_amount')
+        try:
+            data = json.loads(request.body)
 
-        if deduct_amount is None or deduct_amount < 0:
-            return JsonResponse({'error': 'Invalid deduct amount.'}, status=400)
+            cust_merch = data.get('deduct_customer_merchant')
+            merch_merch = data.get('deduct_merchant_merchant')
+            cust_cust = data.get('deduct_customer_customer')
+            normal_global = data.get('deduct_no_usage_six_months')
 
-        # Always store in ID=1 (single row)
-        setting, created = DeductSetting.objects.get_or_create(id=1)
-        setting.deduct_percentage = deduct_amount
-        setting.save()
+            # Validate values (optional)
+            for value in [cust_merch, merch_merch, cust_cust, normal_global]:
+                if value is not None and (float(value) < 0 or float(value) > 100):
+                    return JsonResponse({'error': 'Deduction values must be between 0 and 100.'}, status=400)
 
-        return JsonResponse({'message': 'Deduct amount updated successfully.', 'deduct_percentage': setting.deduct_percentage})
-    
+            # Save to DB (single row ID=1)
+            setting, created = DeductSetting.objects.get_or_create(id=1)
+            setting.cust_merch = cust_merch
+            setting.merch_merch = merch_merch
+            setting.cust_cust = cust_cust
+            setting.normal_global = normal_global
+            setting.save()
+
+            return JsonResponse({'message': 'Deduction settings saved successfully.'})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
     return JsonResponse({'error': 'Invalid method.'}, status=405)
-
 
 # def save_model_plan(request):
 #     if request.method == "POST":

@@ -1,6 +1,9 @@
 from rest_framework import serializers
-from .models import  Corporate, Customer,  Merchant, Terminal
+from .models import  Corporate, Customer, Logo,  Merchant, Terminal
 from .models import User
+import base64
+import uuid
+from django.core.files.base import ContentFile
 
 class TerminalSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,17 +19,54 @@ class CorporateSerializer(serializers.ModelSerializer):
         extra_kwargs = {'otp': {'required' :False},'is_profile_updated':{'required' : False}, 'security_question': {'required' :False}, 'answer':{'required':False}, 'role':{'required':False},
                         'pin': {'required':False}, 'project_name':{'required': False}, 'select_project':{'required': False}, 'project_name':{'required':False}}
 
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format, imgstr = data.split(';base64,')  # format: data:image/png
+            ext = format.split('/')[-1]
+            file_name = f"logo_{uuid.uuid4().hex[:8]}.{ext}"
+            data = ContentFile(base64.b64decode(imgstr), name=file_name)
+        return super().to_internal_value(data)
 
 class MerchantSerializer(serializers.ModelSerializer):
 
     merchant_id = serializers.CharField()
     email = serializers.EmailField(required=False, allow_null=True, allow_blank=True) 
+    logo_data = Base64ImageField(write_only=True, required=False)
+    logo = serializers.SerializerMethodField()  # show full image URL
     class Meta:
         model = Merchant
         fields = '__all__'
         extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan_number': {'required':False}, 'legal_name': {'required':False},
                         'pincode': {'required':False}, 'is_profile_updated':{'required' : False}, 'address': {'required':False}, 'state': {'required':False}, 'country': {'required':False}, 'city': {'required':False}, 'corporate_id': {'required':False}, 
                         'shop_name':{'required':False}, 'plan-type':{'required': False}, 'gst_number':{'required':False}, 'project_name':{'required':False}, 'employee_id':{'required':False} }
+
+    def get_logo(self, obj):
+        request = self.context.get('request')
+        if request and obj.logo and obj.logo.logo:
+            return request.build_absolute_uri(obj.logo.logo.url)
+        elif obj.logo and obj.logo.logo:
+            return obj.logo.logo.url  # fallback to relative URL
+        return None
+
+
+    def create(self, validated_data):
+        logo_data = validated_data.pop('logo_data', None)
+
+        if logo_data:
+            logo_instance = Logo.objects.create(logo=logo_data)
+            validated_data['logo'] = logo_instance
+
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        logo_data = validated_data.pop('logo_data', None)
+
+        if logo_data:
+            logo_instance = Logo.objects.create(logo=logo_data)
+            validated_data['logo'] = logo_instance
+
+        return super().update(instance, validated_data)
 
 class CustomerSerializer(serializers.ModelSerializer):
    

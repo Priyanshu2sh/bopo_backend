@@ -12,12 +12,17 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+
+from dotenv import load_dotenv
 # from dotenv import load_dotenv
 
 # load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 
 # Quick-start development settings - unsuitable for production
@@ -52,9 +57,11 @@ INSTALLED_APPS = [
     'transaction_history',
     'rest_framework',
     'corsheaders',
-
     'qr_store', 
     'transfer',
+    
+    'channels',
+    
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -135,15 +142,30 @@ TIME_ZONE = 'Asia/Kolkata'  # Set your preferred timezone (replace if needed)
 #     }
 # }
 
-DATABASES = {
+# DATABASES = {
     
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'my_django_db',
+#         'USER': 'django_user',
+#         'PASSWORD': 'NewPassword',
+#         'HOST': 'localhost',  # Or IP if remote DB # or '127.0.0.1'
+#         'PORT': '3305',
+#     }
+# }
+
+DEBUG = os.getenv("DEBUG", "False") == "True"
+# SECRET_KEY = os.getenv("SECRET_KEY")
+
+# Database example (PostgreSQL)
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'my_django_db',
-        'USER': 'django_user',
-        'PASSWORD': 'NewPassword',
-        'HOST': 'localhost',  # Or IP if remote DB # or '127.0.0.1'
-        'PORT': '3305',
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("DB_HOST"),
+        'PORT': os.getenv("DB_PORT"),
     }
 }
 
@@ -169,9 +191,9 @@ AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
 LOGIN_URL = '/login/'
 
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = "ACd8f432a19c3bc947d945a68b3237cc2f"
-TWILIO_AUTH_TOKEN = "0e9871752753b374b16f2d7e6d94fb33"
-TWILIO_PHONE_NUMBER = "+15086842698"
+TWILIO_ACCOUNT_SID = "ACefc2b57333c60eaaea16e2ba775ade3c"
+TWILIO_AUTH_TOKEN = "75adc7278e10dcf639dc997548cad80d"
+TWILIO_PHONE_NUMBER = "+12706338124"
 
 
 # Internationalization
@@ -195,8 +217,8 @@ STATICFILES_DIRS = [
 ]
 
 # Media files (Uploaded files)
-# MEDIA_URL = '/uploads/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+MEDIA_URL = '/uploads/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
 
 MEDIA_URL = '/media/'

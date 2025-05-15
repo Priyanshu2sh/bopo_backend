@@ -17,26 +17,48 @@
     <div class="send-notification-list">
         
         <!-- Deduct Amount -->
-        <div class="send-notification-item">
-            <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
-            <label for="toggle-all-customers" class="send-notification-label">
-                <span class="send-notification-icon">💰</span>
-                <span>Deduct Percentage</span>
-            </label>
+<div class="send-notification-item">
+  <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
+  <label for="toggle-all-customers" class="send-notification-label">
+    <span class="send-notification-icon">💰</span>
+    <span>Deduct Percentage</span>
+  </label>
 
-            <div class="send-notification-form"><br>
-                <div class="form-group">
-                    <label for="deduct-amount">Deduct Amount Per Transaction:</label>
-                    <input type="number" id="deduct-amount" class="form-control" placeholder="Enter percentage ">
-                </div>
+  <div class="send-notification-form"><br>
+    <!-- New Multi-Input Deduction Layout -->
+    <div class="deduction-cards">
 
-                <div class="button-container">
-                      <button class="send-btn" onclick="showAlert()">Save</button>
-                    <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
-                  
-                </div>
-            </div>
-        </div>
+        <div class="deduction-card">
+        <h4>Customer to Merchant</h4>
+        <input type="number" placeholder="Enter %" name="deduct_customer_merchant" min="0" max="100" step="0.1" />
+      </div>
+
+     <div class="deduction-card">
+        <h4>Merchant to Merchant</h4>
+        <input type="number" placeholder="Enter %" name="deduct_merchant_merchant" min="0" max="100" step="0.1" />
+      </div>
+ 
+      <div class="deduction-card">
+        <h4>Customer to Customer</h4>
+        <input type="number" placeholder="Enter %" name="deduct_customer_customer" min="0" max="100" step="0.1" />
+      </div>
+
+   
+      <div class="deduction-card">
+        <h4>Normal account to global account</h4>
+        <input type="number" placeholder="Enter %" name="deduct_no_usage_six_months" min="0" max="100" step="0.1" />
+    </div>
+
+    </div>
+
+    <!-- Buttons -->
+    <div class="button-container">
+      <button class="send-btn" onclick="showAlert()">Save</button>
+      <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 
         <!-- Security Questions -->
         <div class="send-notification-item">
@@ -825,6 +847,37 @@ function confirmCancelAward() {
     };
 }
 </script>
+
+<script>
+function showAlert() {
+    const custMerch = parseFloat(document.querySelector('[name="deduct_customer_merchant"]').value) || 0;
+    const merchMerch = parseFloat(document.querySelector('[name="deduct_merchant_merchant"]').value) || 0;
+    const custCust = parseFloat(document.querySelector('[name="deduct_customer_customer"]').value) || 0;
+    const normalGlobal = parseFloat(document.querySelector('[name="deduct_no_usage_six_months"]').value) || 0;
+
+    fetch('/save-deduct-settings/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            deduct_customer_merchant: custMerch,
+            deduct_merchant_merchant: merchMerch,
+            deduct_customer_customer: custCust,
+            deduct_no_usage_six_months: normalGlobal
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || 'Saved successfully');
+    })
+    .catch(error => {
+        alert('Error saving data');
+        console.error(error);
+    });
+}
+</script>
+
 
 
 {% endblock %}

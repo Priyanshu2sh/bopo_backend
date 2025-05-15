@@ -226,6 +226,7 @@ class UserBalance(models.Model):
     
 class SecurityQuestion(models.Model):
     question = models.CharField(max_length=255)
+    ans = models.CharField(max_length=200)
     is_taken = models.BooleanField(default=False)  # Add the is_taken field
 
     def __str__(self):
@@ -233,11 +234,18 @@ class SecurityQuestion(models.Model):
 
 
 class DeductSetting(models.Model):
-    deduct_percentage = models.FloatField(default=5.0)  # Default 5% if not set
+    # deduct_percentage = models.FloatField(default=5.0)  # Default 5% if not set
+    cust_merch = models.FloatField(default=5.0, null=True, blank=True)  
+    # merch_cust = models.FloatField(default=5.0, null=True, blank=True)
+    merch_merch = models.FloatField(default=5.0, null=True, blank=True)
+    cust_cust = models.FloatField(default=5.0, null=True, blank=True)
+    normal_global = models.FloatField(default=5.0, null=True, blank=True)
+    # expire_cust_global = models.FloatField(default=5.0, null=True, blank=True)
+    
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"Deduct {self.deduct_percentage}%"
+    # def __str__(self):
+    #     return f"Deduct {self.deduct_percentage}%"
 
 
     

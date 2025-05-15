@@ -123,7 +123,7 @@ class Merchant(models.Model):
     legal_name = models.CharField(max_length=255, blank=True, null=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
     is_profile_updated = models.BooleanField(default=False)
-    security_question_fk = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
+    security_question = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
     answer = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Active')
     pincode = models.IntegerField(null=True, blank=True)
@@ -150,9 +150,9 @@ class Merchant(models.Model):
 
   
     def save(self, *args, **kwargs):
-        if self.security_question_fk:
-            self.security_question_fk.is_taken = True
-            self.security_question_fk.save()
+        if self.security_question:
+            self.security_question.is_taken = True
+            self.security_question.save()
         super(Merchant, self).save(*args, **kwargs)
 
 
@@ -196,7 +196,7 @@ class Customer(models.Model):
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
     pin = models.IntegerField(null=True, blank=True)
-    security_question_fk = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='customers') 
+    security_question = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='customers') 
     answer = models.CharField(max_length=255, null=True, blank=True)
     aadhar_number = models.CharField(max_length=255, null=True, blank=True)
     pan_number = models.CharField(max_length=255, null=True, blank=True, unique=True)
@@ -225,9 +225,9 @@ class Customer(models.Model):
                     self.customer_id = "CUST0000001"
 
         # Mark security question as taken
-        if self.security_question_fk:
-            self.security_question_fk.is_taken = True
-            self.security_question_fk.save()
+        if self.security_question:
+            self.security_question.is_taken = True
+            self.security_question.save()
 
         super(Customer, self).save(*args, **kwargs)
 

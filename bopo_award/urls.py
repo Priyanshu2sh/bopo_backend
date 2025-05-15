@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AwardPointsAPIView,  BankDetailByUserAPIView, CashOutCreateAPIView, CheckPointsAPIView, CorporateProjectListAPIView, CorporateRedeemAPIView, CustomerCashOutAPIView, CustomerPointsForPrepaidMerchantsAPIView, CustomerToCustomerTransferAPIView, GetGlobalCustomerPointsAPIView, GetPrepaidMerchantAPIView, GlobalRedeemPointsAPIView, HelpAPIView, MerchantCashOutAPIView, MerchantCustomerPointsAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, TerminalCustomerPointsAPIView, TransferPointsMerchantToCustomerAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
+from .views import AwardPointsAPIView,  BankDetailByUserAPIView, CashOutCreateAPIView, CheckPointsAPIView, CorporateGlobalMerchantAPIView, CorporateProjectListAPIView, CorporateRedeemAPIView, CustomerCashOutAPIView, CustomerPointsForPrepaidMerchantsAPIView, CustomerToCustomerTransferAPIView, GetGlobalCustomerPointsAPIView, GetPrepaidMerchantAPIView, GlobalRedeemPointsAPIView, HelpAPIView, MerchantCashOutAPIView, MerchantCustomerPointsAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, SecurityQuestionAPIView, TerminalCustomerPointsAPIView, TransferPointsMerchantToCustomerAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView
 
 urlpatterns = [
     path('award/', AwardPointsAPIView.as_view(), name='award-points'),
@@ -43,6 +43,11 @@ urlpatterns = [
     path("global-redeem/", GlobalRedeemPointsAPIView.as_view(), name="global-redeem"),
     path('get-GlobalCustomerPoints/', GetGlobalCustomerPointsAPIView.as_view(), name='get_global_customer_points'),
     path('getPrepaidMerchants/', GetPrepaidMerchantAPIView.as_view(), name='get_prepaid_merchants'),
+    path('get-sequerity-ques/', SecurityQuestionAPIView.as_view(), name='get_sequerity_ques'),
+    path('get-corporate-global-merchant/', CorporateGlobalMerchantAPIView.as_view(), name='get_corporate_global_merchant'),
+    
+    
+    
 ]
 
 

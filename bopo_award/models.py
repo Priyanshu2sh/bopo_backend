@@ -1,6 +1,7 @@
 from django.db import models
 from django.forms import ValidationError
 from accounts.models import Corporate, Customer, Merchant, Terminal  # Import Customer and Merchant
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.timezone import now
 from datetime import timedelta, date
 
@@ -195,7 +196,9 @@ class CashOut(models.Model):
  
 
 class AwardPoints(models.Model):
-    percentage = models.IntegerField()  # No default value set
+    percentage = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
 
     def __str__(self):
         return f"{self.percentage}% of purchase amount awarded to customer"
