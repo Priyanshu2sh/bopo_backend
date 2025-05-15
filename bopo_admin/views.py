@@ -456,31 +456,36 @@ def get_customer(request, customer_id):
     }
 
     return JsonResponse(data)
-
-from django.shortcuts import render, get_object_or_404, redirect
-from accounts.models import Customer
-from django.http import JsonResponse
-
-
-def update_customer(request, customer_id):  # <-- accept customer_id here
+def update_customer(request, customer_id):
     if request.method == "POST":
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        mobile = request.POST.get('mobile')
-        age = request.POST.get('age')
-        aadhar_number = request.POST.get('aadhar_number')
-        pin = request.POST.get('pin')
-        address = request.POST.get('address')
-        state_id = request.POST.get('state')
-        city_id = request.POST.get('city')
-        pincode = request.POST.get('pincode')
-        gender = request.POST.get('gender')
-        pan_number = request.POST.get('pan_number')
-
         try:
-            customer = Customer.objects.get(customer_id=customer_id)  # Note: use `customer_id` field
+            customer = Customer.objects.get(customer_id=customer_id)
 
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            email = request.POST.get('email')
+            mobile = request.POST.get('mobile')
+            age = request.POST.get('age')
+            aadhar_number = request.POST.get('aadhar_number')
+            pin = request.POST.get('pin')
+            address = request.POST.get('address')
+            state_name = request.POST.get('state')
+            city_name = request.POST.get('city')
+            pincode = request.POST.get('pincode')
+            gender = request.POST.get('gender')
+            pan_number = request.POST.get('pan_number')
+
+            # Validation for required fields
+            if not gender:
+                return JsonResponse({'success': False, 'error': 'Gender field is required'})
+            
+            if not State.objects.filter(name=state_name).exists():
+                return JsonResponse({'success': False, 'error': 'State not found'})
+
+            if not City.objects.filter(name=city_name).exists():
+                return JsonResponse({'success': False, 'error': 'City not found'})
+
+            # Update
             customer.first_name = first_name
             customer.last_name = last_name
             customer.email = email
@@ -492,13 +497,8 @@ def update_customer(request, customer_id):  # <-- accept customer_id here
             customer.pincode = pincode
             customer.gender = gender
             customer.pan_number = pan_number
-
-            if state_id:
-                state_obj = State.objects.get(id=state_id)
-                customer.state = state_obj.name  # or assign FK if applicable
-            if city_id:
-                city_obj = City.objects.get(id=city_id)
-                customer.city = city_obj.name  # or assign FK if applicable
+            customer.state = state_name
+            customer.city = city_name
 
             customer.save()
 
@@ -509,10 +509,6 @@ def update_customer(request, customer_id):  # <-- accept customer_id here
 
         except Customer.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Customer not found'})
-        except State.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'State not found'})
-        except City.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'City not found'})
 
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
