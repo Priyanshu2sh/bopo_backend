@@ -131,7 +131,7 @@
                         <td>{{ customer.city }}</td>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" {% if customer.verified_at == "Active" %}checked{% endif %} data-id="{{ customer.id }}" class="customer-status-toggle">
+                               <input type="checkbox" {% if customer.status == "Active" %}checked{% endif %} data-id="{{ customer.id }}" data-type="customer" class="status-toggle">
                                 <span class="slider round"></span>
                             </label>
                         </td>
@@ -154,6 +154,7 @@
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
 <script>
+
     $(document).ready(function () {
         
         const table = $('#customer-table').DataTable({
@@ -183,10 +184,6 @@
         });
     });
 </script>
-
-
-
-
 
     <div id="editCustomerModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
@@ -318,6 +315,57 @@
 
 <!-- JavaScript for Search Filtering and Modal -->
 <script>
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const toggles = document.querySelectorAll('.status-toggle');
+
+    toggles.forEach(toggle => {
+        toggle.addEventListener('change', function () {
+            const merchantId = this.getAttribute('data-id');
+            const isActive = this.checked;
+
+            fetch(`/toggle-status/${merchantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({ is_active: isActive })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert("Failed to update status");
+                    this.checked = !isActive;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Something went wrong");
+                this.checked = !isActive;
+            });
+        });
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+
+
+
     function openEditModal(customerId) {
         document.getElementById("editCustomerId").value = customerId;
     

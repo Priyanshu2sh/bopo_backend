@@ -569,28 +569,55 @@ def individual_list(request):
     })
 
 
-def toggle_status(request, merchant_id):
+# def toggle_status(request, merchant_id):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             is_active = data.get("is_active")
+
+#             merchant = Merchant.objects.get(id=merchant_id)
+
+#             if is_active:
+#                 merchant.status = "Active"
+#                 merchant.verified_at = datetime.now()
+#             else:
+#                 merchant.status = "Inactive"
+#                 merchant.verified_at = None
+
+#             merchant.save()
+
+#             return JsonResponse({"success": True, "status": merchant.status})
+#         except Exception as e:
+#             return JsonResponse({"success": False, "error": str(e)})
+#     return JsonResponse({"success": False, "error": "Invalid request"})
+
+
+
+def toggle_status(request, entity_type, entity_id):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             is_active = data.get("is_active")
 
-            merchant = Merchant.objects.get(id=merchant_id)
-
-            if is_active:
-                merchant.status = "Active"
-                merchant.verified_at = datetime.now()
+            # Handle all entity types
+            if entity_type == "customer":
+                instance = Customer.objects.get(id=entity_id)
+            elif entity_type == "merchant":
+                instance = Merchant.objects.get(id=entity_id)
+            elif entity_type == "corporate":
+                instance = Corporate.objects.get(id=entity_id)
             else:
-                merchant.status = "Inactive"
-                merchant.verified_at = None
+                return JsonResponse({"success": False, "error": "Invalid entity type"})
 
-            merchant.save()
+            # Set status and verified_at
+            instance.status = "Active" if is_active else "Inactive"
+            instance.verified_at = datetime.now() if is_active else None
+            instance.save()
 
-            return JsonResponse({"success": True, "status": merchant.status})
+            return JsonResponse({"success": True, "status": instance.status})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
-    return JsonResponse({"success": False, "error": "Invalid request"})
-
+    return JsonResponse({"success": False, "error": "Invalid request method"})
 
 
 from django.shortcuts import render, redirect

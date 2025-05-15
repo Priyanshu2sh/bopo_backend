@@ -165,6 +165,8 @@ urlpatterns = [
 
     path('get-payment-details/', views.get_payment_details, name='get_payment_details'),
     path('toggle-status/<int:merchant_id>/', toggle_status, name='toggle_status'),
+    path('toggle-status/<str:entity_type>/<int:entity_id>/', views.toggle_status, name='toggle_status'),
+
 
      path('deduct-amount/', views.deduct_amount, name='deduct_amount'),
 

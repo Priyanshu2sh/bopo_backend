@@ -134,7 +134,7 @@
                                 <td>{{ points_mapping|get_item:merchant.id }}</td>
                                 <td>
                                     <label class="switch">
-                                        <input type="checkbox" class="status-toggle" {% if merchant.status == "Active" %}checked{% endif %} data-id="{{ merchant.id }}">
+                                        <input type="checkbox" class="status-toggle" {% if merchant.status == "Active" %}checked{% endif %} data-id="{{ merchant.id }} ">
                                         <span class="slider round"></span>
                                     </label>
                                     <span class="status-label {% if merchant.status == 'Active' %}text-success{% else %}text-danger{% endif %}" id="status-label-{{ merchant.id }}"></span>

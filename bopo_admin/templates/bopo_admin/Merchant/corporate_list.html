@@ -48,12 +48,12 @@
                                     <td>{{ forloop.counter }}</td>
                                     {% comment %} <td>{{ data.corporate.project_id }}</td> {% endcomment %}
                                      <td>{{ data.corporate.corporate_id }}</td>
-                                     <td>-</td>
+                                     <td>Admin</td>
                                     <td>{{ data.corporate.first_name }} {{ data.corporate.last_name }}</td>
                                     <td>{{ data.corporate.mobile }}</td>
                                     <td>{{ data.corporate.shop_name }}</td>
                                     <td>{{ data.corporate.city }}</td>
-                                    <td><label class="switch"><input type="checkbox" {% if data.corporate.verified_at %}checked{% endif %} data-id="{{ data.corporate.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
+                                    <td><label class="switch"><input type="checkbox" {% if data.corporate.status == "Active" %}checked{% endif %} data-id="{{ data.corporate.id }}" data-type="corporate" class="status-toggle"><span class="slider round"></span></label></td>
                                     <td>
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ data.corporate.corporate_id }}', 'corporate')">✏️ Edit</button>
                                       {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑️ Delete</button>  {% endcomment %}
@@ -68,7 +68,7 @@
                                     <td>{{ merchant.mobile }}</td>
                                     <td>{{ merchant.shop_name }}</td>
                                     <td>{{ merchant.city }}</td>
-                                    <td><label class="switch"><input type="checkbox" {% if merchant.verified_at %}checked{% endif %} data-id="{{ merchant.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
+                                    <td><label class="switch"><input type="checkbox" {% if merchant.status == "Active" %}checked{% endif %} data-id="{{ merchant.id }}" data-type="merchant" class="status-toggle"><span class="slider round"></span></label></td>
                                     <td>
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal({{ merchant.id }}, 'merchant')">✏️ Edit</button>
                                         {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button>  {% endcomment %}
@@ -230,6 +230,53 @@
 </div>
 
 <script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    const toggles = document.querySelectorAll('.status-toggle');
+
+    toggles.forEach(toggle => {
+        toggle.addEventListener('change', function () {
+            const merchantId = this.getAttribute('data-id');
+            const isActive = this.checked;
+
+            fetch(`/toggle-status/${merchantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({ is_active: isActive })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert("Failed to update status");
+                    this.checked = !isActive;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Something went wrong");
+                this.checked = !isActive;
+            });
+        });
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
 
 
     function openEditCorporateModal(id, type = 'corporate') {
