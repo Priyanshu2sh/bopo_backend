@@ -848,9 +848,9 @@ from django.http import JsonResponse
 from accounts.models import Corporate
 
 
-def update_corporate(request):
+def update_corporate(request, corporate_id):
     if request.method == 'POST':
-        corporate_id = request.POST.get('corporate_id')
+        # corporate_id = request.POST.get('corporate_id')
         try:
             corporate = Corporate.objects.get(corporate_id=corporate_id)
 
@@ -955,7 +955,7 @@ from django.http import JsonResponse
 from accounts.models import Merchant, Corporate
 
 
-def update_copmerchant(request):
+def update_copmerchant(request, merchant_id):
     if request.method == "POST":
         merchant_id = request.POST.get('merchant_id')
         if not merchant_id:

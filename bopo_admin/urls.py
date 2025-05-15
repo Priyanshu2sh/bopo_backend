@@ -87,8 +87,9 @@ urlpatterns = [
     # path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
     path('get-corporate/<str:corporate_id>/', views.get_corporate, name='get_corporate'),
     path('get-copmerchant/<str:merchant_id>/', views.get_copmerchant, name='get_copmerchant'),
-    path('update-corporate/', views.update_corporate, name='update_corporate'),
-    path('update-copmerchant/', views.update_copmerchant, name='update_copmerchant'),
+    path('update-corporate/<str:corporate_id>/', views.update_corporate, name='update_corporate'),
+    path('update-copmerchant/<int:merchant_id>/', views.update_copmerchant, name='update_copmerchant'),
+
        
     
     
