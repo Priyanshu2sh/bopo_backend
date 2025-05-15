@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import  add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, delete_security_question,  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_deduct_settings, save_superadmin_payment, security_questions_view,send_notifications,received_offers, toggle_status, update_security_question,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+from .views import  create_notification_view, add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, delete_security_question,  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_deduct_settings, save_superadmin_payment, security_questions_view,send_notifications,received_offers, toggle_status, update_security_question,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -199,7 +199,7 @@ urlpatterns = [
 
     
  
-
+    path('create_notification/', create_notification_view, name='create_notification'),
 
 
    

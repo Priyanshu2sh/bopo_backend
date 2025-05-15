@@ -1683,57 +1683,90 @@ def send_sms(to_number, message_body):
         print(f"❌ Twilio SMS error: {str(e)}")
         return None
 
+def create_notification(project_id, merchant_id, customer_id, notification_type, title, description):
+    # print("Creating notification...")
+
+    project = None
+    merchant = None
+    customer = None
+
+    if project_id:
+        try:
+            project = Corporate.objects.get(project_id=project_id)
+        except Corporate.DoesNotExist:
+            project = None  # or handle error
+
+    if merchant_id:
+        try:
+            merchant = Merchant.objects.get(merchant_id=merchant_id)
+        except Merchant.DoesNotExist:
+            merchant = None
+
+    if customer_id:
+        try:
+            customer = Customer.objects.get(customer_id=customer_id)
+        except Customer.DoesNotExist:
+            customer = None
+
+    notification = Notification.objects.create(
+        project_id=project,
+        merchant_id=merchant,
+        customer_id=customer,
+        notification_type=notification_type,
+        title=title,
+        description=description
+    )
+
+    # Send WebSocket notification code unchanged
+    # Determine the group name dynamically
+    channel_layer = get_channel_layer()
+    if merchant:
+        group_name = f"merchant_{merchant.merchant_id}"
+    elif customer:
+        group_name = f"customer_{customer.customer_id}"
+    else:
+        # Optional: fallback group if no merchant/customer
+        group_name = "general_notifications"
+
+    async_to_sync(channel_layer.group_send)(
+        group_name,
+        {
+            "type": "send_notification",
+            "message": {
+                "title": title,
+                "description": description,
+                "type": notification_type,
+                "timestamp": str(notification.created_at),
+            }
+        }
+    )
+
+def create_notification_view(request):
+    if request.method == "POST":
+        form_type = request.POST.get("form_type")
+
+        project_id = request.POST.get("project_id") or None
+        merchant_id = request.POST.get("merchant_id") or None
+        customer_id = request.POST.get("customer_id") or None
+        notification_type = request.POST.get("notification_type")
+        title = request.POST.get("notification_title")
+        description = request.POST.get("description")
 
 
-# def send_notifications(request):
-#     corporates = Corporate.objects.all()
+        create_notification(
+            project_id=project_id,
+            merchant_id=merchant_id,
+            customer_id=customer_id,
+            notification_type=notification_type,
+            title=title,
+            description=description
+        )
 
-#     if request.method == "POST":
-#         form_type = request.POST.get("form_type")
-#         project = request.POST.get("project")
-#         notification_type = request.POST.get("notification_type")
-#         notification_title = request.POST.get("notification_title")
-#         description = request.POST.get("description")
+        messages.success(request, "Notification sent successfully.")
+        return redirect('send_notifications')
 
-#         if form_type == "single":
-#             merchant_id = request.POST.get("merchant")
-#             merchant = Merchant.objects.get(merchant_id=merchant_id)
+    return redirect('send_notifications')
 
-#             # Save the notification
-#             Notification.objects.create(
-#                 project_id=project,
-#                 merchant_id=merchant_id,
-#                 notification_type=notification_type,
-#                 title=notification_title,
-#                 description=description
-#             )
-
-#             # Create message and send via SMS
-#             message = f"{notification_type} - {notification_title}:\n{description}"
-#             send_sms(merchant.mobile, message)
-
-#         elif form_type == "all":
-#             merchants = Merchant.objects.filter(corporate_id=project)
-#             for merchant in merchants:
-#                 Notification.objects.create(
-#                     project_id=project,
-#                     merchant_id=merchant.merchant_id,
-#                     notification_type=notification_type,
-#                     title=notification_title,
-#                     description=description
-#                 )
-
-#                 message = f"{notification_type} - {notification_title}:\n{description}"
-#                 send_sms(merchant.mobile, message)
-
-#         return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-#             'corporates': corporates,
-#             'message': 'Notification(s) sent via SMS!'
-#         })
-
-#     return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-#         'corporates': corporates
-#     })
 
 
 def send_notifications(request): 

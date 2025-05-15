@@ -4,6 +4,8 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 from django.db import models
 from django.contrib.auth.hashers import make_password
 
+# from accounts.models import Corporate, Customer, Merchant
+
 
 # Create your models here.
 class BopoAdminManager(BaseUserManager):
@@ -148,9 +150,9 @@ class UploadedFile(models.Model):
         return f"{self.file_type} - {self.file.name}"
 
 class Notification(models.Model):
-    project_id = models.CharField(max_length=20, null=True, blank=True)
-    merchant_id = models.CharField(max_length=20, null=True, blank=True)
-    customer_id = models.CharField(max_length=20, null=True, blank=True)
+    project_id = models.ForeignKey('accounts.Corporate' , max_length=20, null=True, blank=True, on_delete=models.CASCADE)
+    merchant_id = models.ForeignKey('accounts.Merchant', max_length=20, null=True, blank=True, on_delete=models.CASCADE)
+    customer_id = models.ForeignKey('accounts.Customer', max_length=20, null=True, blank=True, on_delete=models.CASCADE)
     notification_type = models.CharField(max_length=255, null=True, blank=True)
     title = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
