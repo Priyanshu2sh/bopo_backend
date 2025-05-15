@@ -133,12 +133,16 @@
                                 <td>{{ merchant.city }}</td>
                                 <td>{{ points_mapping|get_item:merchant.id }}</td>
                                 <td>
-                                    <label class="switch">
-                                        <input type="checkbox" class="status-toggle" {% if merchant.status == "Active" %}checked{% endif %} data-id="{{ merchant.id }} ">
-                                        <span class="slider round"></span>
-                                    </label>
-                                    <span class="status-label {% if merchant.status == 'Active' %}text-success{% else %}text-danger{% endif %}" id="status-label-{{ merchant.id }}"></span>
-                                </td>
+                                <label class="switch">
+                                    <input type="checkbox" class="status-toggle"
+                                        {% if merchant.status == "Active" %}checked{% endif %}
+                                        data-id="{{ merchant.merchant_id }}"
+                                        data-entity-type="merchant">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span class="status-label {% if merchant.status == 'Active' %}text-success{% else %}text-danger{% endif %}" id="status-label-{{ merchant.id }}"></span>
+                            </td>
+
                                 <td>
                                     <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ merchant.id }}')">✏️ Edit</button>
                                     {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteMerchant('{{ merchant.id }}')">🗑️ Delete</button> {% endcomment %}
@@ -382,52 +386,62 @@ window.onclick = function(event) {
     }
 };
 
-document.addEventListener('DOMContentLoaded', function () {
-    const toggles = document.querySelectorAll('.status-toggle');
 
-    toggles.forEach(toggle => {
-        toggle.addEventListener('change', function () {
-            const merchantId = this.getAttribute('data-id');
-            const isActive = this.checked;
+ document.addEventListener('DOMContentLoaded', function () {
+  const toggles = document.querySelectorAll('.status-toggle');
 
-            fetch(`/toggle-status/${merchantId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-                body: JSON.stringify({ is_active: isActive })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    alert("Failed to update status");
-                    this.checked = !isActive;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("Something went wrong");
-                this.checked = !isActive;
-            });
-        });
+  toggles.forEach(toggle => {
+    toggle.addEventListener('change', function () {
+      const entityId = this.getAttribute('data-id')?.trim();
+      const entityType = this.getAttribute('data-entity-type')?.trim();
+      const isActive = this.checked;
+
+      fetch(`/toggle-status/${entityType}/${entityId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ is_active: isActive })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        if (!data.success) {
+          alert("Failed to update status: " + (data.error || ""));
+          this.checked = !isActive;
+        } else {
+          alert(`Status updated successfully to "${data.status}"`);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert("Something went wrong");
+        this.checked = !isActive;
+      });
     });
+  });
+});
 
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Match cookie name
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
         }
-        return cookieValue;
     }
-});
+    return cookieValue;
+}
 
     
 document.getElementById("editmerchantForm").onsubmit = function (e) {

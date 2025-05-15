@@ -132,7 +132,7 @@
                                 <td>{{ employee.username }}</td>
                                 <td>{{ employee.password }}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ employee.employee_id }}')">✏️Edit</button>
+                                    <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ employee.employee_id }}')">✏️ Edit</button>
                                     {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteEmployee('{{ employee.employee_id }}')">🗑️Delete</button> {% endcomment %}
                                 </td>
                             </tr>
@@ -165,7 +165,7 @@
                                 <label for="edit_employee_name">Employee Name</label>
                                 <div class="addemployee-input-container">
                                     <i class="fas fa-user"></i>
-                                    <input type="text" id="edit_employee_name" name="employee_name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" required>
+                                    <input type="text" id="edit_employee_name" name="employee_name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" disabled>
                                 </div>
 
                                 <label for="edit_email">Email ID</label>
@@ -177,24 +177,26 @@
                                 <label for="edit_aadhaar">Aadhaar Number</label>
                                 <div class="addemployee-input-container">
                                     <i class="fas fa-id-card"></i>
-                                    <input type="text" id="edit_aadhaar" name="aadhaar" pattern="\d{12}" maxlength="12" required>
+                                    <input type="text" id="edit_aadhaar" name="aadhaar" pattern="\d{12}" maxlength="12" disabled>
                                 </div>
 
                                 <label for="edit_address">Address</label>
                                 <div class="addemployee-input-container">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <input type="text" id="edit_address" name="address" required>
+                                    <input type="text" id="edit_address" name="address" disabled>
                                 </div>
 
-                                <label for="edit_state">Select State</label>
-                                <select id="edit_state" name="state" class="select2" onchange="fetchCities(this.value)">
-                                    <option value=" ">Select State</option>
-                                </select>
+                                <label for="edit_state">State</label>
+                                <div class="addemployee-input-container">
+                                    <i class="fas fa-map"></i> 
+                                    <input type="text" id="edit_state" name="state" disabled>
+                                </div>
 
-                                <label for="edit_city">Select City</label>
-                                <select id="edit_city" name="city" class="select2" onchange="fetchCities()">
-                                    <option value=" ">Select City</option>
-                                </select>
+                                <label for="edit_city">City</label>
+                                <div class="addemployee-input-container">
+                                     <i class="fas fa-city"></i>
+                                    <input type="text" id="edit_city" name="city" disabled>
+                                </div>
 
                                 <label for="edit_country">Country</label>
                                 <div class="addemployee-input-container">
@@ -207,13 +209,13 @@
                                 <label for="edit_username">User Name</label>
                                 <div class="addemployee-input-container">
                                     <i class="fas fa-user"></i>
-                                    <input type="text" id="edit_username" name="username" required>
+                                    <input type="text" id="edit_username" name="username" disabled>
                                 </div>
 
                                 <label for="edit_password">Password</label>
-                                <div class="addemployee-input-container">
+                                <div class="addemployee-input-container" >
                                     <i class="fas fa-lock"></i>
-                                    <input type="password" id="edit_password" name="password" required class="password-field">
+                                    <input type="password" id="edit_password" name="password" class="password-field" disabled>
                                     <span class="password-toggle" onclick="togglePassword('edit_password')">
                                          <i class="fas fa-eye-slash"></i>
                                     </span>
@@ -221,9 +223,9 @@
                                 
 
                                 <label for="edit_confirmPassword">Confirm Password</label>
-                                <div class="addemployee-input-container">
+                                <div class="addemployee-input-container" disabled>
                                     <i class="fas fa-lock"></i>
-                                    <input type="password" id="edit_confirmPassword" name="confirm_password" required class="password-field">
+                                    <input type="password" id="edit_confirmPassword" name="confirm_password" class="password-field" disabled>
                                     <span class="password-toggle" onclick="togglePassword('edit_confirmPassword')">
                                         <i class="fas fa-eye-slash"></i>
                                     </span>
@@ -245,13 +247,13 @@
                                 <label for="edit_pan">Pan Number</label>
                                 <div class="addemployee-input-container">
                                     <i class="fas fa-id-card"></i>
-                                    <input type="text" id="edit_pan" name="pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" required>
+                                    <input type="text" id="edit_pan" name="pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" disabled>
                                 </div>
 
                                 <label for="edit_pincode">Pincode</label>
                                 <div class="addemployee-input-container">
                                     <i class="fas fa-home"></i>
-                                    <input type="text" id="edit_pincode" name="pincode" pattern="\d{6}" maxlength="6">
+                                    <input type="text" id="edit_pincode" name="pincode" pattern="\d{6}" maxlength="6" disabled>
                                 </div>
                             </div>
                         </div>
@@ -364,41 +366,10 @@ function filterTable(tableId, searchBoxId) {
                 document.getElementById("edit_mobile").value = data.mobile;
                 document.getElementById("edit_pan").value = data.pan;
                 document.getElementById("edit_pincode").value = data.pincode;
+                document.getElementById("edit_state").value = data.state;
+                document.getElementById("edit_city").value = data.city;
 
-                    // Load states
-                    const stateSelect = document.getElementById("edit_state");
-                    stateSelect.innerHTML = `<option value="">Select State</option>`;
-                    if (data.states && data.states.length > 0) {
-                        data.states.forEach(state => {
-                            const option = document.createElement("option");
-                            option.value = state.id;
-                            option.textContent = state.name;
-                            if (state.name === data.state) {
-                                option.selected = true;
-                            }
-                            stateSelect.appendChild(option);
-                        });
-                    } else {
-                        stateSelect.innerHTML = `<option value="">No states available</option>`;
-                    }
-        
-                    // Load cities based on selected state
-                    if (data.cities && data.cities.length > 0) {
-                        const citySelect = document.getElementById("edit_city");
-                        citySelect.innerHTML = `<option value="">Select City</option>`;
-                        data.cities.forEach(city => {
-                            const option = document.createElement("option");
-                            option.value = city.id;
-                            option.textContent = city.name;
-                            if (city.name === data.city) {
-                                option.selected = true;
-                            }
-                            citySelect.appendChild(option);
-                        });
-                    } else {
-                        document.getElementById("edit_city").innerHTML = `<option value="">No cities available</option>`;
-                    }
-        
+                   
                 // Display the modal
                 document.getElementById("editModal").style.display = "block";
             });
@@ -505,18 +476,21 @@ function filterTable(tableId, searchBoxId) {
 
 
 
-    function getCookie(name) {
-        let cookieValue = null;
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
         for (let cookie of cookies) {
             cookie = cookie.trim();
+            // Does this cookie string begin with the name we want?
             if (cookie.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(cookie.split('=')[1]);
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                 break;
             }
         }
-        return cookieValue;
     }
+    return cookieValue;
+}
 
 
 function showToast(message, type) {

@@ -416,7 +416,7 @@ button {
 .addmerchant-btn-submit {
     display: inline-block;
     padding: 10px 20px;
-    margin-top: 7%;
+    margin-top: 12%;
     width: 20%;
     font-size: 16px;
     color: white;
@@ -609,3 +609,45 @@ button {
   #cancelDelete:hover {
     background-color: #e53935;
   }
+  /* Toast container */
+#toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+/* Toast message */
+.toast {
+  min-width: 250px;
+  margin-bottom: 10px;
+  padding: 12px 20px;
+  border-radius: 5px;
+  color: white;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  opacity: 0.95;
+  animation: slideIn 0.3s ease forwards;
+}
+
+/* Success style */
+.toast.success {
+  background-color: #4caf50; /* green */
+}
+
+/* Error style */
+.toast.error {
+  background-color: #f44336; /* red */
+}
+
+/* Slide in animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 0.95;
+  }
+}

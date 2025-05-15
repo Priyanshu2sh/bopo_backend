@@ -72,6 +72,8 @@ urlpatterns = [
 
     path('get-merchants/', views.get_merchants_by_project, name='get_merchants_by_project'),
     path('get-merchants/', views.get_merchants, name='get_merchants'),
+    path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
+
     
 
     path('get-employee/<str:employee_id>/', views.get_employee, name='get_employee'),
@@ -166,7 +168,7 @@ urlpatterns = [
 
     path('get-payment-details/', views.get_payment_details, name='get_payment_details'),
     path('toggle-status/<int:merchant_id>/', toggle_status, name='toggle_status'),
-    path('toggle-status/<str:entity_type>/<int:entity_id>/', views.toggle_status, name='toggle_status'),
+    path('toggle-status/<str:entity_type>/<str:entity_id>/', views.toggle_status, name='toggle_status'),
 
 
      path('deduct-amount/', views.deduct_amount, name='deduct_amount'),

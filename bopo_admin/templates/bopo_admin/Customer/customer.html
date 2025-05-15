@@ -131,7 +131,13 @@
                         <td>{{ customer.city }}</td>
                         <td>
                             <label class="switch">
-                               <input type="checkbox" {% if customer.status == "Active" %}checked{% endif %} data-id="{{ customer.id }}" data-type="customer" class="status-toggle">
+                               <input type="checkbox"
+                                {% if customer.status == "Active" %}checked{% endif %}
+                                data-id="{{ customer.customer_id }}"
+                                data-entity-type="customer"
+                                class="status-toggle">
+
+
                                 <span class="slider round"></span>
                             </label>
                         </td>
@@ -258,17 +264,17 @@
                     </div>
 
                <label for="gender">Gender</label>
-<div class="addcustomer-input-container">
-    <i class="fas fa-venus-mars"></i>
-    <select name="gender_disabled" id="edit_gender">
-        <option value="">Select Gender</option>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-        <option value="Other">Other</option>
-    </select>
-    <!-- Hidden input to submit the selected gender -->
-    <input type="hidden" id="hidden_gender" name="gender" value="" />
-</div>
+                <div class="addcustomer-input-container">
+                    <i class="fas fa-venus-mars"></i>
+                    <select name="gender_disabled" id="edit_gender">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <!-- Hidden input to submit the selected gender -->
+                    <input type="hidden" id="hidden_gender" name="gender" value="" />
+                </div>
 
  
                    
@@ -319,54 +325,62 @@
 
 <!-- JavaScript for Search Filtering and Modal -->
 <script>
+    
+  document.addEventListener('DOMContentLoaded', function () {
+  const toggles = document.querySelectorAll('.status-toggle');
 
+  toggles.forEach(toggle => {
+    toggle.addEventListener('change', function () {
+      const entityId = this.getAttribute('data-id');
+      const entityType = this.getAttribute('data-entity-type');
+      const isActive = this.checked;
 
-document.addEventListener('DOMContentLoaded', function () {
-    const toggles = document.querySelectorAll('.status-toggle');
-
-    toggles.forEach(toggle => {
-        toggle.addEventListener('change', function () {
-            const merchantId = this.getAttribute('data-id');
-            const isActive = this.checked;
-
-            fetch(`/toggle-status/${merchantId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-                body: JSON.stringify({ is_active: isActive })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    alert("Failed to update status");
-                    this.checked = !isActive;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("Something went wrong");
-                this.checked = !isActive;
-            });
-        });
+      fetch(`/toggle-status/${entityType}/${entityId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ is_active: isActive })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+       if (data.success) {
+        showToast(`Status updated successfully to "${data.status}"`, 'success');
+      } else {
+        showToast('Failed to update status: ' + (data.error || 'Unknown error'), 'error');
+        this.checked = !isActive;  // revert toggle
+      }
+    })
+      .catch(error => {
+        console.error('Error:', error);
+        alert("Something went wrong");
+        this.checked = !isActive; // revert checkbox on error
+      });
     });
+  });
+});
 
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Match cookie name
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
         }
-        return cookieValue;
     }
-});
+    return cookieValue;
+}
 
 
 function setGenderReadOnly(genderValue) {

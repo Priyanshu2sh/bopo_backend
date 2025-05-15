@@ -587,7 +587,7 @@ def individual_list(request):
 #             return JsonResponse({"success": False, "error": str(e)})
 #     return JsonResponse({"success": False, "error": "Invalid request"})
 
-
+from django.utils import timezone
 
 def toggle_status(request, entity_type, entity_id):
     if request.method == "POST":
@@ -595,19 +595,17 @@ def toggle_status(request, entity_type, entity_id):
             data = json.loads(request.body)
             is_active = data.get("is_active")
 
-            # Handle all entity types
             if entity_type == "customer":
-                instance = Customer.objects.get(id=entity_id)
+                instance = Customer.objects.get(customer_id=entity_id)
             elif entity_type == "merchant":
-                instance = Merchant.objects.get(id=entity_id)
+                instance = Merchant.objects.get(merchant_id=entity_id)
             elif entity_type == "corporate":
-                instance = Corporate.objects.get(id=entity_id)
+                instance = Corporate.objects.get(corporate_id=entity_id)
             else:
                 return JsonResponse({"success": False, "error": "Invalid entity type"})
 
-            # Set status and verified_at
             instance.status = "Active" if is_active else "Inactive"
-            instance.verified_at = datetime.now() if is_active else None
+            instance.verified_at = timezone.now() if is_active else None
             instance.save()
 
             return JsonResponse({"success": True, "status": instance.status})
@@ -850,24 +848,23 @@ from accounts.models import Corporate
 
 def update_corporate(request, corporate_id):
     if request.method == 'POST':
-        # corporate_id = request.POST.get('corporate_id')
         try:
             corporate = Corporate.objects.get(corporate_id=corporate_id)
 
-            corporate.first_name = request.POST.get('first_name', '').strip()
-            corporate.last_name = request.POST.get('last_name', '').strip()
-            corporate.email = request.POST.get('email', '').strip()
-            corporate.mobile = request.POST.get('mobile', '').strip()
-            corporate.aadhaar_number = request.POST.get('aadhaar_number', '').strip()
-            corporate.pin = request.POST.get('pin', '').strip()
-            corporate.pan_number = request.POST.get('pan_number', '').strip()
-            corporate.gst_number = request.POST.get('gst_number', '').strip()
-            corporate.legal_name = request.POST.get('legal_name', '').strip()
-            corporate.shop_name = request.POST.get('shop_name', '').strip()
-            corporate.address = request.POST.get('address', '').strip()
-            corporate.pincode = request.POST.get('pincode', '').strip()
-            corporate.project_name = request.POST.get('project_name', '').strip()
-            corporate.country = request.POST.get('country', 'India').strip()
+            corporate.first_name = request.POST.get('first_name', '')
+            corporate.last_name = request.POST.get('last_name', '')
+            corporate.email = request.POST.get('email', '')
+            corporate.mobile = request.POST.get('mobile', '')
+            corporate.aadhaar_number = request.POST.get('aadhaar_number', '')
+            corporate.pin = request.POST.get('pin', '')
+            corporate.pan_number = request.POST.get('pan_number', '')
+            corporate.gst_number = request.POST.get('gst_number', '')
+            corporate.legal_name = request.POST.get('legal_name', '')
+            corporate.shop_name = request.POST.get('shop_name', '')
+            corporate.address = request.POST.get('address', '')
+            corporate.pincode = request.POST.get('pincode')
+            corporate.project_name = request.POST.get('project_name', '')
+            corporate.country = request.POST.get('country', 'India')
 
             state_id = request.POST.get('state')
             city_id = request.POST.get('city')
@@ -895,6 +892,7 @@ def update_corporate(request, corporate_id):
                     'city': corporate.city,
                 }
             })
+
         except Corporate.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Corporate not found'}, status=404)
         except State.DoesNotExist:
@@ -903,8 +901,6 @@ def update_corporate(request, corporate_id):
             return JsonResponse({'success': False, 'error': 'City not found'}, status=404)
 
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
-
-
 
 from django.http import JsonResponse
 from accounts.models import Merchant
@@ -928,6 +924,7 @@ def get_copmerchant(request, merchant_id):
             'aadhaar_number': merchant.aadhaar_number,
             'pan_number': merchant.pan_number,
             'gst_number': merchant.gst_number,
+            'pin': merchant.pin,
             'legal_name': merchant.legal_name,
             'project_name': merchant.project_name.project_name if merchant.project_name else None,  # ✅ FIXED
             'shop_name': merchant.shop_name,
@@ -955,9 +952,9 @@ from django.http import JsonResponse
 from accounts.models import Merchant, Corporate
 
 
+
 def update_copmerchant(request, merchant_id):
     if request.method == "POST":
-        merchant_id = request.POST.get('merchant_id')
         if not merchant_id:
             return JsonResponse({'success': False, 'error': 'Missing merchant ID'}, status=400)
 
@@ -979,7 +976,7 @@ def update_copmerchant(request, merchant_id):
             merchant.pincode = request.POST.get('pincode', '').strip()
             merchant.country = request.POST.get("country", "India").strip()
 
-            # Resolve and set foreign key fields using IDs
+            # Resolve and set foreign key fields using IDs for state and city
             state_id = request.POST.get('state')
             city_id = request.POST.get('city')
             if state_id:
@@ -995,15 +992,17 @@ def update_copmerchant(request, merchant_id):
                 except City.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'City not found'}, status=404)
 
-            # Resolve project_name field (assumed to be a foreign key to Corporate)
-            # Here we assume the submitted value is the corporate_id of the project
-            project_identifier = request.POST.get('project_name', '').strip()
-            if project_identifier:
+            # Handle project_name (ForeignKey to Corporate) by project_name string lookup
+            project_name_str = request.POST.get('project_name', '').strip()
+            if project_name_str:
                 try:
-                    corporate_obj = Corporate.objects.get(corporate_id=project_identifier)
+                    corporate_obj = Corporate.objects.get(project_name=project_name_str)
                     merchant.project_name = corporate_obj
                 except Corporate.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'Corporate (project) not found'}, status=404)
+            else:
+                # Clear the project_name relation if empty string provided
+                merchant.project_name = None
 
             merchant.save()
 
@@ -1017,7 +1016,8 @@ def update_copmerchant(request, merchant_id):
                     "email": merchant.email,
                     "mobile": merchant.mobile,
                     "state": merchant.state,
-                    "city": merchant.city
+                    "city": merchant.city,
+                    "project_name": merchant.project_name.project_name if merchant.project_name else None,
                 }
             })
 
@@ -1028,49 +1028,49 @@ def update_copmerchant(request, merchant_id):
 
 
 
-from django.http import JsonResponse
-from accounts.models import Merchant
+# from django.http import JsonResponse
+# from accounts.models import Merchant
 
-def get_copmerchant(request, merchant_id):
-    try:
-        merchant = Merchant.objects.get(id=merchant_id)
+# def get_copmerchant(request, merchant_id):
+#     try:
+#         merchant = Merchant.objects.get(id=merchant_id)
 
-        state_obj = State.objects.get(name=merchant.state)
-        city_obj = City.objects.get(name=merchant.city)
+#         state_obj = State.objects.get(name=merchant.state)
+#         city_obj = City.objects.get(name=merchant.city)
 
-        cities = City.objects.filter(state=state_obj)
-        city_data = [{"id": city.id, "name": city.name} for city in cities]
+#         cities = City.objects.filter(state=state_obj)
+#         city_data = [{"id": city.id, "name": city.name} for city in cities]
 
-        data = {
-            'merchant_id': merchant.id,
-            'first_name': merchant.first_name,
-            'last_name': merchant.last_name,
-            'email': merchant.email,
-            'mobile': merchant.mobile,
-            'aadhaar_number': merchant.aadhaar_number,
-            'pin': merchant.pin,
-            'pan_number': merchant.pan_number,
-            'gst_number': merchant.gst_number,
-            'legal_name': merchant.legal_name,
-            'project_name': merchant.project_name.project_name if merchant.project_name else None,  # ✅ FIXED
-            'shop_name': merchant.shop_name,
-            'address': merchant.address,
-            'pincode': merchant.pincode,
-            "state": merchant.state,
-            "city": merchant.city,
-            'country': merchant.country,
-            "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],
-            "cities": city_data,
-        }
+#         data = {
+#             'merchant_id': merchant.id,
+#             'first_name': merchant.first_name,
+#             'last_name': merchant.last_name,
+#             'email': merchant.email,
+#             'mobile': merchant.mobile,
+#             'aadhaar_number': merchant.aadhaar_number,
+#             'pin': merchant.pin,
+#             'pan_number': merchant.pan_number,
+#             'gst_number': merchant.gst_number,
+#             'legal_name': merchant.legal_name,
+#             'project_name': merchant.project_name.project_name if merchant.project_name else None,  # ✅ FIXED
+#             'shop_name': merchant.shop_name,
+#             'address': merchant.address,
+#             'pincode': merchant.pincode,
+#             "state": merchant.state,
+#             "city": merchant.city,
+#             'country': merchant.country,
+#             "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],
+#             "cities": city_data,
+#         }
 
-        return JsonResponse(data)
+#         return JsonResponse(data)
 
-    except Merchant.DoesNotExist:
-        return JsonResponse({'error': 'Merchant not found'}, status=404)
-    except State.DoesNotExist:
-        return JsonResponse({'error': 'State not found'}, status=404)
-    except City.DoesNotExist:
-        return JsonResponse({'error': 'City not found'}, status=404)
+#     except Merchant.DoesNotExist:
+#         return JsonResponse({'error': 'Merchant not found'}, status=404)
+#     except State.DoesNotExist:
+#         return JsonResponse({'error': 'State not found'}, status=404)
+#     except City.DoesNotExist:
+#         return JsonResponse({'error': 'City not found'}, status=404)
 
 
 
@@ -1817,24 +1817,23 @@ def send_sms(to_number, message_body):
 #         'corporates': corporates
 #     })
 
-
 def send_notifications(request): 
     corporates = Corporate.objects.all()
 
     if request.method == "POST":
         form_type = request.POST.get("form_type")
-        project = request.POST.get("project")
+        project = request.POST.get("project")  # May be None for individuals
         notification_type = request.POST.get("notification_type")
         notification_title = request.POST.get("notification_title")
         description = request.POST.get("description")
 
-        # ✅ Improved SMS format
         message = (
             f"{notification_type}\n"
             f"Title: {notification_title}\n"
             f"Description: {description}"
         )
 
+        # ✅ Send to a single merchant (corporate)
         if form_type == "single":
             merchant_id = request.POST.get("merchant")
             try:
@@ -1861,6 +1860,33 @@ def send_notifications(request):
                     'message': 'Merchant not found.'
                 })
 
+        # ✅ Send to a single individual merchant
+        elif form_type == "single_individual":
+            merchant_id = request.POST.get("merchant")
+            try:
+                merchant = Merchant.objects.get(merchant_id=merchant_id, user_type='individual')
+
+                Notification.objects.create(
+                    merchant_id=merchant_id,
+                    notification_type=notification_type,
+                    title=notification_title,
+                    description=description
+                )
+
+                send_sms(merchant.mobile, message)
+
+                return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+                    'corporates': corporates,
+                    'message': 'Notification sent to individual merchant.'
+                })
+
+            except Merchant.DoesNotExist:
+                return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+                    'corporates': corporates,
+                    'message': 'Individual Merchant not found.'
+                })
+
+        # ✅ Send to all corporate merchants under a project
         elif form_type == "all":
             merchants = Merchant.objects.filter(project_name__project_id=project)
 
@@ -1895,9 +1921,44 @@ def send_notifications(request):
                 'message': msg
             })
 
+        # ✅ Send to all individual merchants
+        elif form_type == "all_individual":
+            merchants = Merchant.objects.filter(user_type='individual')
+
+            if not merchants.exists():
+                return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+                    'corporates': corporates,
+                    'message': 'No individual merchants found.'
+                })
+
+            failed_merchants = []
+
+            for merchant in merchants:
+                Notification.objects.create(
+                    merchant_id=merchant.merchant_id,
+                    notification_type=notification_type,
+                    title=notification_title,
+                    description=description
+                )
+
+                try:
+                    send_sms(merchant.mobile, message)
+                except Exception as e:
+                    failed_merchants.append((merchant.merchant_id, str(e)))
+
+            msg = f"Notifications sent to {merchants.count()} individual merchants."
+            if failed_merchants:
+                msg += f" But failed for: {', '.join([m[0] for m in failed_merchants])}"
+
+            return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+                'corporates': corporates,
+                'message': msg
+            })
+
     return render(request, 'bopo_admin/Merchant/send_notifications.html', {
         'corporates': corporates
     })
+
 
 def received_offers(request):
     return render(request, 'bopo_admin/Merchant/received_offers.html')
@@ -2122,8 +2183,8 @@ def update_employee(request):
         email = request.POST.get('email')
         aadhaar = request.POST.get("aadhaar")
         address = request.POST.get("address")
-        state_id = request.POST.get("state")
-        city_id = request.POST.get("city")
+        state_name = request.POST.get('state')
+        city_name = request.POST.get('city')
         mobile = request.POST.get("mobile")
         pan = request.POST.get("pan")
         pincode = request.POST.get("pincode")
@@ -2135,8 +2196,11 @@ def update_employee(request):
             # Use employee_id instead of id
             employee = Employee.objects.get(employee_id=employee_id)  # Fixed here
             
-            state_name = State.objects.get(id=state_id).name
-            city_name = City.objects.get(id=city_id).name
+            if not State.objects.filter(name=state_name).exists():
+                return JsonResponse({'success': False, 'error': 'State not found'})
+
+            if not City.objects.filter(name=city_name).exists():
+                return JsonResponse({'success': False, 'error': 'City not found'})
 
             employee.name = name
             employee.email = email
@@ -2619,7 +2683,7 @@ def export_projects(request):
     # Add headers to the sheet
     headers = [
         "Corporate ID", "Project ID", "Project Name", "First Name", "Last Name",
-        "Email", "Mobile", "Aadhaar", "GST Number", "PAN", "Shop Name",
+        "Email", "Mobile", "aadhaar number", "GST Number", "PAN", "Shop Name",
         "Address", "City", "State", "Country", "Pincode", "Created At"
     ]
     for col_num, header in enumerate(headers, 1):
@@ -2643,7 +2707,7 @@ def export_projects(request):
         sheet.cell(row=row_num, column=5, value=corporate.last_name or "")
         sheet.cell(row=row_num, column=6, value=corporate.email or "")
         sheet.cell(row=row_num, column=7, value=corporate.mobile or "")
-        sheet.cell(row=row_num, column=8, value=corporate.aadhaar or "")
+        sheet.cell(row=row_num, column=8, value=corporate.aadhaar_number or "")
         sheet.cell(row=row_num, column=9, value=corporate.gst_number or "")
         sheet.cell(row=row_num, column=10, value=corporate.pan_number or "")
         sheet.cell(row=row_num, column=11, value=corporate.shop_name or "")
@@ -2695,7 +2759,7 @@ def export_merchants(request):
     for row_num, merchant in enumerate(merchants, 2):
         sheet.cell(row=row_num, column=1, value=merchant.merchant_id or "")
         sheet.cell(row=row_num, column=2, value=merchant.user_type or "")
-        sheet.cell(row=row_num, column=3, value=merchant.project_name or "")
+        sheet.cell(row=row_num, column=3, value=str(merchant.project_name) if merchant.project_name else "")
         sheet.cell(row=row_num, column=4, value=merchant.first_name or "")
         sheet.cell(row=row_num, column=5, value=merchant.last_name or "")
         sheet.cell(row=row_num, column=6, value=merchant.email or "")
@@ -3722,3 +3786,20 @@ def send_customer_credentials(request):
     return render(request, 'bopo_admin/Customer/send_customer_credentials.html', {
         'customers': customers
     })
+    
+    
+    
+    
+def get_individual_merchants(request):
+    merchants = Merchant.objects.filter(user_type='individual')
+    data = {
+        "merchants": [
+            {
+                "merchant_id": m.merchant_id,
+                "first_name": m.first_name,
+                "last_name": m.last_name,
+            }
+            for m in merchants
+        ]
+    }
+    return JsonResponse(data)
