@@ -257,18 +257,19 @@
                         <input type="tel" id="edit_mobile" name="mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
                     </div>
 
-                 <label for="gender">Gender</label>
-                <div class="addcustomer-input-container">
-                    <i class="fas fa-venus-mars"></i>
-                    <select name="gender_disabled" id="edit_gender" disabled>
-                        <option value="">Select Gender</option>
-                        <option value="Male" selected>Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
-                    <!-- Hidden input to submit the selected gender -->
-                    <input type="hidden" name="gender" id="hidden_gender" value="Male" />
-                </div>
+               <label for="gender">Gender</label>
+<div class="addcustomer-input-container">
+    <i class="fas fa-venus-mars"></i>
+    <select name="gender_disabled" id="edit_gender">
+        <option value="">Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+    </select>
+    <!-- Hidden input to submit the selected gender -->
+    <input type="hidden" id="hidden_gender" name="gender" value="" />
+</div>
+
  
                    
                     <label for="pan">Pan Number</label>
@@ -368,6 +369,24 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
+function setGenderReadOnly(genderValue) {
+    const select = document.getElementById('edit_gender');
+    const hidden = document.getElementById('hidden_gender');
+
+    // Set select's selected option
+    select.value = genderValue;
+
+    // Log for debugging
+    console.log('Set gender:', genderValue, 'Selected:', select.value);
+
+    // Set hidden input's value
+    hidden.value = genderValue;
+
+    // Disable select to make it readonly
+    select.disabled = true;
+}
+
+
 function openEditModal(customerId) {
     console.log('Opening modal for customer:', customerId);
 
@@ -394,8 +413,10 @@ function openEditModal(customerId) {
             document.getElementById("edit_city").value = customer.city || "";
             document.getElementById("edit_state").value = customer.state || "";
             document.getElementById("edit_pincode").value = customer.pincode || "";
-            document.getElementById("edit_gender").value = customer.gender || "";
             document.getElementById("edit_pan").value = customer.pan_number || "";
+
+            // Set gender select readonly with hidden input
+            setGenderReadOnly(customer.gender || "");
 
             // Show the modal after data is loaded
             document.getElementById("editCustomerModal").style.display = "block";
