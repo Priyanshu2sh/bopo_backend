@@ -1683,32 +1683,74 @@ def send_sms(to_number, message_body):
         print(f"❌ Twilio SMS error: {str(e)}")
         return None
 
+# def create_notification(project_id, merchant_id, customer_id, notification_type, title, description):
+#     # print("Creating notification...")
+
+#     project = None
+#     merchant = None
+#     customer = None
+
+#     if project_id:
+#         try:
+#             project = Corporate.objects.get(project_id=project_id)
+#         except Corporate.DoesNotExist:
+#             project = None  # or handle error
+
+#     if merchant_id:
+#         try:
+#             merchant = Merchant.objects.get(merchant_id=merchant_id)
+#         except Merchant.DoesNotExist:
+#             merchant = None
+
+#     if customer_id:
+#         try:
+#             customer = Customer.objects.get(customer_id=customer_id)
+#         except Customer.DoesNotExist:
+#             customer = None
+
+#     notification = Notification.objects.create(
+#         project_id=project,
+#         merchant_id=merchant,
+#         customer_id=customer,
+#         notification_type=notification_type,
+#         title=title,
+#         description=description
+#     )
+
+#     # Send WebSocket notification code unchanged
+#     # Determine the group name dynamically
+#     channel_layer = get_channel_layer()
+#     if merchant:
+#         group_name = f"merchant_{merchant.merchant_id}"
+#     elif customer:
+#         group_name = f"customer_{customer.customer_id}"
+#     else:
+#         # Optional: fallback group if no merchant/customer
+#         group_name = "general_notifications"
+
+#     async_to_sync(channel_layer.group_send)(
+#         group_name,
+#         {
+#             "type": "send_notification",
+#             "message": {
+#                 "title": title,
+#                 "description": description,
+#                 "type": notification_type,
+#                 "timestamp": str(notification.created_at),
+#             }
+#         }
+#     )
+
+from django.db.models import F
+
 def create_notification(project_id, merchant_id, customer_id, notification_type, title, description):
-    # print("Creating notification...")
+    # Resolve project, merchant, and customer objects
+    project = Corporate.objects.filter(project_id=project_id).first() if project_id else None
+    merchant = Merchant.objects.filter(merchant_id=merchant_id).first() if merchant_id else None
+    customer = Customer.objects.filter(customer_id=customer_id).first() if customer_id else None
 
-    project = None
-    merchant = None
-    customer = None
-
-    if project_id:
-        try:
-            project = Corporate.objects.get(project_id=project_id)
-        except Corporate.DoesNotExist:
-            project = None  # or handle error
-
-    if merchant_id:
-        try:
-            merchant = Merchant.objects.get(merchant_id=merchant_id)
-        except Merchant.DoesNotExist:
-            merchant = None
-
-    if customer_id:
-        try:
-            customer = Customer.objects.get(customer_id=customer_id)
-        except Customer.DoesNotExist:
-            customer = None
-
-    notification = Notification.objects.create(
+    # Create notification object
+    Notification.objects.create(
         project_id=project,
         merchant_id=merchant,
         customer_id=customer,
@@ -1717,30 +1759,33 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
         description=description
     )
 
-    # Send WebSocket notification code unchanged
-    # Determine the group name dynamically
-    channel_layer = get_channel_layer()
+    # Update unread notification count
     if merchant:
-        group_name = f"merchant_{merchant.merchant_id}"
+        Merchant.objects.filter(merchant_id=merchant_id).update(
+            unread_notification=F('unread_notification') + 1
+        )
+        unread_count = merchant.unread_notification + 1
+        group_name = f"merchant_{merchant_id}"
     elif customer:
-        group_name = f"customer_{customer.customer_id}"
+        Customer.objects.filter(customer_id=customer_id).update(
+            unread_notification=F('unread_notification') + 1
+        )
+        unread_count = customer.unread_notification + 1
+        group_name = f"customer_{customer_id}"
     else:
-        # Optional: fallback group if no merchant/customer
-        group_name = "general_notifications"
+        unread_count = 0
+        group_name = "general_notifications"  # Optional fallback
 
+    # Send updated unread notification count via WebSocket
+    channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         group_name,
         {
             "type": "send_notification",
-            "message": {
-                "title": title,
-                "description": description,
-                "type": notification_type,
-                "timestamp": str(notification.created_at),
-            }
+            "unread_count": unread_count
         }
     )
-
+    
 def create_notification_view(request):
     if request.method == "POST":
         form_type = request.POST.get("form_type")
