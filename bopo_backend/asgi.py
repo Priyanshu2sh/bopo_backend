@@ -1,47 +1,23 @@
-"""
-ASGI config for bopo_backend project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
-"""
-
 import os
-import bopo_admin.routing
 import django
-
 from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bopo_backend.settings')
-django.setup()
-from channels.routing import ProtocolTypeRouter, URLRouter
+django.setup()  # Make sure Django is fully setup before importing app modules
+
+# Import your routing after setup
+import bopo_admin.routing
+
+# Get Django's default ASGI application
+django_asgi_app = get_asgi_application()
 
 application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
-    "websocket": URLRouter(
-        bopo_admin.routing.websocket_urlpatterns
-    )
+    "http": django_asgi_app,
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+            bopo_admin.routing.websocket_urlpatterns
+        )
+    ),
 })
-
-# bopo_backend/asgi.py
-
-# import os
-# import django
-
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bopo_backend.settings')
-# django.setup()   # <-- THIS IS THE KEY
-
-# # Now safely import things that touch models
-# import bopo_admin.routing
-
-# from channels.routing import ProtocolTypeRouter, URLRouter
-# from channels.auth import AuthMiddlewareStack
-
-# application = ProtocolTypeRouter({
-#     "websocket": AuthMiddlewareStack(
-#         URLRouter(
-#             bopo_admin.routing.websocket_urlpatterns
-#         )
-#     ),
-# })

@@ -55,6 +55,8 @@ INSTALLED_APPS = [
 
     'qr_store', 
     'transfer',
+
+    'channels',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -112,7 +114,7 @@ TEMPLATES = [
 ]
 
 # WSGI_APPLICATION = 'bopo_backend.wsgi.application'
-ASGI_APPLICATION = "bopo_backend.asgi.application"
+ASGI_APPLICATION = "bopo_backend.routing.application"
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
@@ -139,11 +141,11 @@ DATABASES = {
     
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'my_django_db',
-        'USER': 'django_user',
-        'PASSWORD': 'NewPassword',
+        'NAME': 'bopolocal',
+        'USER': 'bopouser',
+        'PASSWORD': 'Bopo@1234',
         'HOST': 'localhost',  # Or IP if remote DB # or '127.0.0.1'
-        'PORT': '3305',
+        'PORT': '3306',
     }
 }
 

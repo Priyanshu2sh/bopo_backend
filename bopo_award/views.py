@@ -15,7 +15,7 @@ from django.db import transaction
 
 from .serializers import BankDetailSerializer, CashOutSerializer, CorporateProjectSerializer, CustomerCashOutSerializer, HelpSerializer, MerchantCashOutSerializer, PaymentDetailsSerializer
 
-from .models import AwardPoints, BankDetail, CashOut, CorporateRedeem, CustomerToCustomer, GlobalPoints, Help, MerchantToMerchant, ModelPlan, PaymentDetails
+from .models import AwardPoints, BankDetail, CashOut, CustomerToCustomer, GlobalPoints, Help, MerchantToMerchant, ModelPlan, PaymentDetails
 from accounts.models import Corporate, Customer, Logo, Merchant, Terminal
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 

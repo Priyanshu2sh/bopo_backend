@@ -13,7 +13,7 @@
     </div>
 
     <!-- To Single Merchant -->
-    <form method="POST" action="{% url 'send_notifications' %}">
+    <form method="POST" action="{% url 'create_notification' %}">
         {% csrf_token %}
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-single" class="toggle-checkbox">
@@ -25,7 +25,7 @@
                 <input type="hidden" name="form_type" value="single">
                 <div class="form-group">
                     <label>Select Project:</label>
-                    <select id="single_project" name="project" onchange="fetchMerchants()">
+                    <select id="single_project" name="project_id" onchange="fetchMerchants()">
                         <option value="">Select a project</option>
                         {% for corporate in corporates %}
                         <option value="{{ corporate.project_id }}">{{ corporate.project_name }}</option>
@@ -35,7 +35,7 @@
 
                 <div class="form-group">
                     <label>Select Merchant ID:</label>
-                    <select id="select-merchant" name="merchant">
+                    <select id="select-merchant" name="merchant_id">
                         <option value="">-- Select a Merchant --</option>
                     </select>
                 </div>
