@@ -32,8 +32,8 @@ class MerchantSerializer(serializers.ModelSerializer):
 
     merchant_id = serializers.CharField()
     email = serializers.EmailField(required=False, allow_null=True, allow_blank=True) 
-    logo_data = Base64ImageField(write_only=True, required=False)
-    logo = serializers.SerializerMethodField()  # show full image URL
+    logo_data = Base64ImageField(required=False)  # ✅ Allow read and write
+    logo = serializers.SerializerMethodField()     # ✅ Returns base64 in response
     class Meta:
         model = Merchant
         fields = '__all__'
@@ -42,31 +42,31 @@ class MerchantSerializer(serializers.ModelSerializer):
                         'shop_name':{'required':False}, 'plan-type':{'required': False}, 'gst_number':{'required':False}, 'project_name':{'required':False}, 'employee_id':{'required':False} }
 
     def get_logo(self, obj):
-        request = self.context.get('request')
-        if request and obj.logo and obj.logo.logo:
-            return request.build_absolute_uri(obj.logo.logo.url)
-        elif obj.logo and obj.logo.logo:
-            return obj.logo.logo.url  # fallback to relative URL
+        """
+        Return base64-encoded image for the logo field in the response.
+        """
+        if obj.logo and obj.logo.logo:
+            try:
+                with obj.logo.logo.open('rb') as image_file:
+                    return base64.b64encode(image_file.read()).decode('utf-8')
+            except Exception:
+                return None
         return None
-
 
     def create(self, validated_data):
         logo_data = validated_data.pop('logo_data', None)
-
         if logo_data:
             logo_instance = Logo.objects.create(logo=logo_data)
             validated_data['logo'] = logo_instance
-
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
         logo_data = validated_data.pop('logo_data', None)
-
         if logo_data:
             logo_instance = Logo.objects.create(logo=logo_data)
             validated_data['logo'] = logo_instance
-
         return super().update(instance, validated_data)
+    
 
 class CustomerSerializer(serializers.ModelSerializer):
    

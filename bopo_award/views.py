@@ -21,10 +21,11 @@ from .models import AwardPoints, BankDetail, CashOut, CustomerToCustomer, Global
 from accounts.models import Corporate, Customer, Logo, Merchant, Terminal
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
+
 class RedeemPointsAPIView(APIView):
     """
     API for Customer to Merchant point transfer.
-    Also moves expired CustomerPoints (older than 6 months) to GlobalPoints with normal_global deduction.
+    Also moves expired CustomerPoints (older than 6 months) to GlobalPoints with no deduction.
     """
 
     def post(self, request):
@@ -52,6 +53,9 @@ class RedeemPointsAPIView(APIView):
         # ✅ Validate PIN
         if str(customer.pin) != str(pin):
             return Response({'error': 'Please enter the correct PIN.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # ✅ Call global point deduction if customer is inactive
+        self.deduct_inactive_global_points(customer)
 
         # ✅ Fetch or create merchant
         merchant = None
@@ -78,51 +82,58 @@ class RedeemPointsAPIView(APIView):
         try:
             setting = DeductSetting.objects.get(id=1)
             cust_merch_deduct = setting.cust_merch
-            
         except DeductSetting.DoesNotExist:
-            cust_merch_deduct = 5.0
-            
+            cust_merch_deduct = 5.0  # default 5%
 
         cust_merch_factor = (100 - cust_merch_deduct) / 100
         merchant_points_to_credit = round(points * cust_merch_factor, 2)
 
         # ✅ Move expired points to GlobalPoints without deduction
-        six_months_ago = timezone.now() - timedelta(minutes=1)
+        six_months_ago = timezone.now() - timedelta(minutes=180)
 
         expired_entries = CustomerPoints.objects.filter(
             customer=customer,
             updated_at__lt=six_months_ago,
             points__gt=0
         )
-
+        
         with transaction.atomic():
+            total_expired_points = 0
+
             for expired in expired_entries:
                 original_points = expired.points
                 if original_points <= 0:
                     continue
 
-                # Set original entry points to 0
+                # Decrease expired points
                 expired.points = 0
                 expired.save(update_fields=['points', 'updated_at'])
 
-                # 👉 No deduction applied here
-                global_entry, created = GlobalPoints.objects.get_or_create(
-                    customer=customer,
-                    defaults={'points': original_points}
-                )
-                if not created:
-                    global_entry.points += original_points
-                    global_entry.save(update_fields=['points', 'updated_at'])
+                total_expired_points += original_points
 
+                # Optional: log this in history
                 History.objects.create(
                     customer=customer,
                     merchant=expired.merchant,
                     points=original_points,
-                    transaction_type='redeem'
+                    transaction_type='expired'
                 )
+                
+
+            if total_expired_points > 0:
+                global_point_entry, created = GlobalPoints.objects.get_or_create(
+                    customer=customer,
+                    defaults={'points': total_expired_points}
+                )
+                if not created:
+                    global_point_entry.points += total_expired_points
+                    global_point_entry.save(update_fields=['points', 'updated_at'])
 
         # ✅ Check active CustomerPoints for this merchant
-        total_customer_points = CustomerPoints.objects.filter(customer=customer, merchant=merchant).aggregate(total=Sum('points'))['total'] or 0
+        total_customer_points = CustomerPoints.objects.filter(
+            customer=customer,
+            merchant=merchant
+        ).aggregate(total=Sum('points'))['total'] or 0
 
         if total_customer_points < points:
             return Response({'error': 'Insufficient points with this merchant. Transfer not allowed.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -130,7 +141,10 @@ class RedeemPointsAPIView(APIView):
         # ✅ Redeem active points
         with transaction.atomic():
             points_to_deduct = points
-            customer_point_entries = CustomerPoints.objects.filter(customer=customer, merchant=merchant).order_by('-points').select_for_update()
+            customer_point_entries = CustomerPoints.objects.filter(
+                customer=customer,
+                merchant=merchant
+            ).order_by('-points').select_for_update()
 
             for entry in customer_point_entries:
                 if points_to_deduct <= 0:
@@ -146,7 +160,7 @@ class RedeemPointsAPIView(APIView):
 
                 entry.save(update_fields=['points'])
 
-            # ✅ Credit merchant
+            # ✅ Credit to merchant
             merchant_points, created = MerchantPoints.objects.get_or_create(
                 merchant=merchant,
                 defaults={'points': merchant_points_to_credit}
@@ -173,8 +187,49 @@ class RedeemPointsAPIView(APIView):
             'deduction_percentage_applied': cust_merch_deduct,
             'user_type': merchant.user_type
         }, status=status.HTTP_200_OK)
-    
         
+    def deduct_inactive_global_points(self, customer):
+        from django.utils.timezone import now
+        from datetime import timedelta
+
+        inactive_cutoff = now() - timedelta(minutes=5)
+
+        # Check for any activity in 6 months
+        has_award = MerchantPoints.objects.filter(customer=customer, created_at__gte=inactive_cutoff).exists()
+        has_redeem = CustomerPoints.objects.filter(customer=customer, created_at__gte=inactive_cutoff).exists()
+        has_transfer = CustomerToCustomer.objects.filter(sender_customer=customer, created_at__gte=inactive_cutoff).exists()
+
+        if has_award or has_redeem or has_transfer:
+            return  # Active, no deduction
+
+        # Inactive → apply global deduction
+        try:
+            deduct_setting = DeductSetting.objects.first()
+            global_deduct = deduct_setting.normal_global
+        except:
+            global_deduct = 0
+
+        if global_deduct <= 0:
+            return  # Nothing to deduct
+
+        try:
+            global_entry = GlobalPoints.objects.get(customer=customer)
+            if global_entry.points >= global_deduct:
+                global_entry.points -= global_deduct
+                global_entry.save(update_fields=['points', 'updated_at'])
+
+                # Log the deduction
+                History.objects.create(
+                    customer=customer,
+                    merchant=None,
+                    points=global_deduct,
+                    transaction_type='global_deduct'
+                )
+        except GlobalPoints.DoesNotExist:
+            pass
+
+        
+           
 # class RedeemPointsAPIView(APIView):
 #     """
 #     API for Customer to Merchant point transfer (with dynamic deduction % based on Super Admin setting).
@@ -944,21 +999,44 @@ class UpdateMerchantProfileAPIView(APIView):
         """
         merchant = get_object_or_404(Merchant, merchant_id=merchant_id)
         
-        # ✅ Pass request in context
+        # Extract logo_data separately to handle it manually
+        logo_data = request.data.get('logo_data', None)
+
         serializer = MerchantSerializer(merchant, data=request.data, partial=True, context={'request': request})
 
+        logo_message = None
+
         if serializer.is_valid():
-            serializer.save()
+            try:
+                # Save main merchant fields including logo_data if it's valid
+                serializer.save()
 
-            # ✅ Set is_profile_updated to True
-            merchant.is_profile_updated = True
-            merchant.save(update_fields=["is_profile_updated"])
+                # Set is_profile_updated flag
+                merchant.is_profile_updated = True
+                merchant.save(update_fields=["is_profile_updated"])
 
-            return Response({
-                "message": "Merchant profile updated successfully.",
-                "merchant_id": merchant.merchant_id,
-                "updated_data": serializer.data
-            }, status=status.HTTP_200_OK)
+                # Determine logo upload message
+                if logo_data:
+                    logo_message = "Logo updated successfully."
+                else:
+                    logo_message = "No logo data provided."
+
+                return Response({
+                    "message": "Merchant profile updated successfully.",
+                    "merchant_id": merchant.merchant_id,
+                    "updated_data": serializer.data,
+                    "logo_status": logo_message
+                }, status=status.HTTP_200_OK)
+
+            except Exception as e:
+                # If logo update fails or any unexpected error occurs
+                return Response({
+                    "message": "Merchant profile updated, but failed to upload logo.",
+                    "error": str(e),
+                    "merchant_id": merchant.merchant_id,
+                    "updated_data": serializer.data,
+                    "logo_status": "Failed to upload logo."
+                }, status=status.HTTP_200_OK)
 
         return Response({
             "message": "Validation error",
@@ -1086,11 +1164,12 @@ class PaymentDetailsListCreateAPIView(APIView):
         if serializer.is_valid():
             payment = serializer.save()
 
+            # Optional logic if Merchant has a plan_type field
             merchant_instance = serializer.validated_data.get('merchant')
             plan_type_instance = serializer.validated_data.get('plan_type')
 
-            if merchant_instance and plan_type_instance:
-                merchant_instance.plan_type = plan_type_instance.plan_type  # Fix is here
+            if merchant_instance and plan_type_instance and hasattr(merchant_instance, 'plan_type'):
+                merchant_instance.plan_type = plan_type_instance.plan_type
                 merchant_instance.save()
 
             return Response(

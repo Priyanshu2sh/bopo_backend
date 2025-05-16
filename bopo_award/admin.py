@@ -6,7 +6,7 @@
 
 
 from django.contrib import admin
-from .models import AwardPoints, BankDetail, CashOut, CustomerPoints, GlobalPoints, Help, MerchantPoints, ModelPlan, PaymentDetails
+from .models import AwardPoints, BankDetail, CashOut, CustomerPoints, GlobalPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails
 from .models import AwardPoints, BankDetail, CashOut, CustomerPoints, GlobalPoints, Help, MerchantPoints, ModelPlan, PaymentDetails
 
 # class TransferPointAdmin(admin.ModelAdmin):
@@ -41,6 +41,7 @@ class PaymentDetailsAdmin(admin.ModelAdmin):
 admin.site.register(PaymentDetails, PaymentDetailsAdmin)
 admin.site.register(BankDetail)
 admin.site.register(Help)
+admin.site.register(History)
 admin.site.register(ModelPlan)
 admin.site.register(CashOut)
 admin.site.register(AwardPoints)

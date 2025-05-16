@@ -42,11 +42,16 @@ class HistorySerializer(serializers.ModelSerializer):
 class PaymentDetailsSerializer(serializers.ModelSerializer):
     merchant = serializers.SlugRelatedField(
         queryset=Merchant.objects.all(),
-        slug_field='merchant_id'  # Use your unique merchant code field
+        slug_field='merchant_id'
     )
+    plan_type = serializers.PrimaryKeyRelatedField(
+        queryset=ModelPlan.objects.all()  # Expecting plan_type as the ModelPlan ID
+    )
+
     class Meta:
         model = PaymentDetails
         fields = ['merchant', 'paid_amount', 'transaction_id', 'payment_mode', 'plan_type', 'created_at']
+
         
 
 class BankDetailSerializer(serializers.ModelSerializer):

@@ -97,10 +97,10 @@ class GlobalPoints(models.Model):
 
 class PaymentDetails(models.Model):
     
-    PLAN_CHOICES = [
-        ('prepaid', 'Prepaid'),
-        ('rental', 'Rental'),
-    ] 
+    # PLAN_CHOICES = [
+    #     ('prepaid', 'Prepaid'),
+    #     ('rental', 'Rental'),
+    # ] 
     STATUS_CHOICES = [
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
@@ -114,7 +114,7 @@ class PaymentDetails(models.Model):
         ('Debit Card', 'Debit Card'),
         ('Net Banking', 'Net Banking'),
     ])
-    plan_type = models.CharField(max_length=255, null=True, blank=True, choices=PLAN_CHOICES,  help_text='Select plan type: Prepaid or Rental')
+    plan_type = models.ForeignKey('bopo_award.ModelPlan', on_delete=models.SET_NULL, null=True, blank=True)
      
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -184,6 +184,9 @@ class ModelPlan(models.Model):
     plan_type = models.CharField(max_length=255)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.plan_type} - {self.id} "
     
 
 class CashOut(models.Model):
