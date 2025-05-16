@@ -2672,58 +2672,55 @@ def update_profile(request):
 
 #     return render(request, 'bopo_admin/login.html')
 
+from django.db.models import Sum
 
-  
 def export_projects(request):
-    # Create an Excel workbook and sheet
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     sheet.title = "Corporate Projects"
 
-    # Add headers to the sheet
+    # Add headers (now including Total Points)
     headers = [
-        "Corporate ID", "Project ID", "Project Name", "First Name", "Last Name",
-        "Email", "Mobile", "aadhaar number", "GST Number", "PAN", "Shop Name",
-        "Address", "City", "State", "Country", "Pincode", "Created At"
+        "Corporate ID", "Project Name", "First Name", "Last Name",
+        "Email", "Mobile", "Aadhaar Number", "GST Number", "PAN", "Shop Name",
+        "Address", "City", "State", "Country", "Pincode", "Created At", "Total Balance"
     ]
+
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
         cell.value = header
-        cell.font =  Font(bold=True)
+        cell.font = Font(bold=True)
 
-    # Fetch data from the Corporate table
     corporates = Corporate.objects.all()
-    print("Total corporates:", corporates.count())
 
-    if not corporates.exists():
-        print("No data found in the Corporate table.")  # Debugging log
-
-    # Add data to the Excel sheet
     for row_num, corporate in enumerate(corporates, 2):
-        sheet.cell(row=row_num, column=1, value=corporate.corporate_id or "")
-        sheet.cell(row=row_num, column=2, value=corporate.project_id or "")
-        sheet.cell(row=row_num, column=3, value=corporate.project_name or "")
-        sheet.cell(row=row_num, column=4, value=corporate.first_name or "")
-        sheet.cell(row=row_num, column=5, value=corporate.last_name or "")
-        sheet.cell(row=row_num, column=6, value=corporate.email or "")
-        sheet.cell(row=row_num, column=7, value=corporate.mobile or "")
-        sheet.cell(row=row_num, column=8, value=corporate.aadhaar_number or "")
-        sheet.cell(row=row_num, column=9, value=corporate.gst_number or "")
-        sheet.cell(row=row_num, column=10, value=corporate.pan_number or "")
-        sheet.cell(row=row_num, column=11, value=corporate.shop_name or "")
-        sheet.cell(row=row_num, column=12, value=corporate.address or "")
-        sheet.cell(row=row_num, column=13, value=corporate.city or "")
-        sheet.cell(row=row_num, column=14, value=corporate.state or "")
-        sheet.cell(row=row_num, column=15, value=corporate.country or "")
-        sheet.cell(row=row_num, column=16, value=corporate.pincode or "")
-        sheet.cell(row=row_num, column=17, value=corporate.created_at.strftime("%Y-%m-%d %H:%M:%S") if corporate.created_at else "")
+        # Get merchants under this corporate project
+        merchants = Merchant.objects.filter(project_name=corporate)
+        total_points = MerchantPoints.objects.filter(merchant__in=merchants).aggregate(total=Sum('points'))['total'] or 0
 
-    # Save the workbook to a BytesIO buffer
+        sheet.cell(row=row_num, column=1, value=corporate.corporate_id or "")
+        sheet.cell(row=row_num, column=2, value=corporate.project_name or "")
+        sheet.cell(row=row_num, column=3, value=corporate.first_name or "")
+        sheet.cell(row=row_num, column=4, value=corporate.last_name or "")
+        sheet.cell(row=row_num, column=5, value=corporate.email or "")
+        sheet.cell(row=row_num, column=6, value=corporate.mobile or "")
+        sheet.cell(row=row_num, column=7, value=corporate.aadhaar_number or "")
+        sheet.cell(row=row_num, column=8, value=corporate.gst_number or "")
+        sheet.cell(row=row_num, column=9, value=corporate.pan_number or "")
+        sheet.cell(row=row_num, column=10, value=corporate.shop_name or "")
+        sheet.cell(row=row_num, column=11, value=corporate.address or "")
+        sheet.cell(row=row_num, column=12, value=corporate.city or "")
+        sheet.cell(row=row_num, column=13, value=corporate.state or "")
+        sheet.cell(row=row_num, column=14, value=corporate.country or "")
+        sheet.cell(row=row_num, column=15, value=corporate.pincode or "")
+        sheet.cell(row=row_num, column=16, value=corporate.created_at.strftime("%Y-%m-%d %H:%M:%S") if corporate.created_at else "")
+        sheet.cell(row=row_num, column=17, value=total_points)
+
+
     buffer = BytesIO()
     workbook.save(buffer)
     buffer.seek(0)
 
-    # Set the response to download the file
     response = HttpResponse(
         content=buffer,
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -2731,7 +2728,7 @@ def export_projects(request):
     response["Content-Disposition"] = 'attachment; filename="Corporate_Projects.xlsx"'
 
     return response
- 
+
 
 def export_merchants(request):
     # Create an Excel workbook and sheet
@@ -2816,7 +2813,7 @@ def export_disabled_merchants(request):
     for row_num, merchant in enumerate(disabled_merchants, 2):
         sheet.cell(row=row_num, column=1, value=merchant.merchant_id or "")
         sheet.cell(row=row_num, column=2, value=merchant.user_type or "")
-        sheet.cell(row=row_num, column=3, value=merchant.project_name or "")
+        sheet.cell(row=row_num, column=3, value=str(merchant.project_name) if merchant.project_name else "")
         sheet.cell(row=row_num, column=4, value=merchant.first_name or "")
         sheet.cell(row=row_num, column=5, value=merchant.last_name or "")
         sheet.cell(row=row_num, column=6, value=merchant.email or "")
@@ -2859,7 +2856,7 @@ def export_merchant_wise_balance(request):
     # Add headers to the sheet
     headers = [
         "Merchant ID", "Merchant Name", "Email", "Mobile", 
-        "Available Points", "Status", "Created At"
+        "Available Balance", "Status", "Created At"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
@@ -2904,6 +2901,54 @@ def export_merchant_wise_balance(request):
     return response
 
 
+# def export_customer_wise_balance(request):
+#     # Create an Excel workbook and sheet
+#     workbook = openpyxl.Workbook()
+#     sheet = workbook.active
+#     sheet.title = "Customer-Wise Balance"
+
+#     # Add headers to the sheet
+#     headers = [
+#         "Customer ID", "Customer Name", "Email", "Mobile", 
+#         "Available Balance", "Created At"
+#     ]
+#     for col_num, header in enumerate(headers, 1):
+#         cell = sheet.cell(row=1, column=col_num)
+#         cell.value = header
+#         cell.font = Font(bold=True)
+
+#     # Fetch data from the CustomerPoints table
+#     customer_points = CustomerPoints.objects.select_related('customer').all()
+#     if not customer_points.exists():
+#         print("No customer points found.")  # Debugging log
+
+#     # Add data to the Excel sheet
+#     for row_num, customer_point in enumerate(customer_points, 2):
+#         available_points = customer_point.points
+
+#         customer = customer_point.customer
+#         sheet.cell(row=row_num, column=1, value=customer.customer_id or "")
+#         sheet.cell(row=row_num, column=2, value=f"{customer.first_name} {customer.last_name}" or "")
+#         sheet.cell(row=row_num, column=3, value=customer.email or "")
+#         sheet.cell(row=row_num, column=4, value=customer.mobile or "")
+#         sheet.cell(row=row_num, column=5, value=available_points)
+#         # sheet.cell(row=row_num, column=6, value=customer.status or "")
+#         sheet.cell(row=row_num, column=7, value=customer.created_at.strftime("%Y-%m-%d %H:%M:%S") if customer.created_at else "")
+
+#     # Save the workbook to a BytesIO buffer
+#     buffer = BytesIO()
+#     workbook.save(buffer)
+#     buffer.seek(0)
+
+#     # Set the response to download the file
+#     response = HttpResponse(
+#         content=buffer,
+#         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+#     )
+#     response["Content-Disposition"] = 'attachment; filename="Customer_wise_Balance.xlsx"'
+
+#     return response
+
 def export_customer_wise_balance(request):
     # Create an Excel workbook and sheet
     workbook = openpyxl.Workbook()
@@ -2912,31 +2957,36 @@ def export_customer_wise_balance(request):
 
     # Add headers to the sheet
     headers = [
-        "Customer ID", "Customer Name", "Email", "Mobile", 
-        "Available Points", "Created At"
+        "Customer ID", "Customer Name", "Email", "Mobile",
+        "Available Balance", "Created At"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
         cell.value = header
         cell.font = Font(bold=True)
 
-    # Fetch data from the CustomerPoints table
-    customer_points = CustomerPoints.objects.select_related('customer').all()
-    if not customer_points.exists():
-        print("No customer points found.")  # Debugging log
+    # Fetch total available points per customer
+    customer_points = (
+        CustomerPoints.objects
+        .values(
+            'customer__customer_id',
+            'customer__first_name',
+            'customer__last_name',
+            'customer__email',
+            'customer__mobile',
+            'customer__created_at'
+        )
+        .annotate(total_points=Sum('points'))
+    )
 
     # Add data to the Excel sheet
-    for row_num, customer_point in enumerate(customer_points, 2):
-        available_points = customer_point.points
-
-        customer = customer_point.customer
-        sheet.cell(row=row_num, column=1, value=customer.customer_id or "")
-        sheet.cell(row=row_num, column=2, value=f"{customer.first_name} {customer.last_name}" or "")
-        sheet.cell(row=row_num, column=3, value=customer.email or "")
-        sheet.cell(row=row_num, column=4, value=customer.mobile or "")
-        sheet.cell(row=row_num, column=5, value=available_points)
-        # sheet.cell(row=row_num, column=6, value=customer.status or "")
-        sheet.cell(row=row_num, column=7, value=customer.created_at.strftime("%Y-%m-%d %H:%M:%S") if customer.created_at else "")
+    for row_num, cp in enumerate(customer_points, 2):
+        sheet.cell(row=row_num, column=1, value=cp['customer__customer_id'] or "")
+        sheet.cell(row=row_num, column=2, value=f"{cp['customer__first_name']} {cp['customer__last_name']}" or "")
+        sheet.cell(row=row_num, column=3, value=cp['customer__email'] or "")
+        sheet.cell(row=row_num, column=4, value=cp['customer__mobile'] or "")
+        sheet.cell(row=row_num, column=5, value=cp['total_points'] or 0)
+        sheet.cell(row=row_num, column=6, value=cp['customer__created_at'].strftime("%Y-%m-%d %H:%M:%S") if cp['customer__created_at'] else "")
 
     # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
@@ -2952,8 +3002,7 @@ def export_customer_wise_balance(request):
 
     return response
 
-
-    
+ 
 def export_customer_transaction(request):
     # Create an Excel workbook and sheet
     workbook = openpyxl.Workbook()
@@ -2963,7 +3012,7 @@ def export_customer_transaction(request):
     # Add headers to the sheet
     headers = [
         "Customer ID", "Customer Name", "Email", "Mobile", 
-        "Transaction Type", "Points"
+        "Transaction Type", "Points", "Transaction Date & Time"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
@@ -2972,28 +3021,27 @@ def export_customer_transaction(request):
 
     # Fetch data from the History table
     transactions = History.objects.select_related('customer').all()
-    if not transactions.exists():
-        print("No transaction history found.")  # Debugging log
 
     # Add data to the Excel sheet
     for row_num, transaction in enumerate(transactions, 2):
         customer = transaction.customer
-        # sheet.cell(row=row_num, column=1, value=transaction.id or "")
-        sheet.cell(row=row_num, column=1, value=customer.customer_id or "")
-        sheet.cell(row=row_num, column=2, value=f"{customer.first_name} {customer.last_name}" or "")
-        sheet.cell(row=row_num, column=3, value=customer.email or "")
-        sheet.cell(row=row_num, column=4, value=customer.mobile or "")
+        sheet.cell(row=row_num, column=1, value=customer.customer_id if customer else "")
+        sheet.cell(row=row_num, column=2, value=f"{customer.first_name} {customer.last_name}" if customer else "")
+        sheet.cell(row=row_num, column=3, value=customer.email if customer else "")
+        sheet.cell(row=row_num, column=4, value=customer.mobile if customer else "")
         sheet.cell(row=row_num, column=5, value=transaction.transaction_type or "")
         sheet.cell(row=row_num, column=6, value=transaction.points or 0)
-        # sheet.cell(row=row_num, column=8, value=transaction.transaction_date.strftime("%Y-%m-%d %H:%M:%S") if transaction.transaction_date else "")
-        # sheet.cell(row=row_num, column=9, value=transaction.description or "")
+        sheet.cell(
+            row=row_num, column=7,
+            value=transaction.created_at.strftime("%Y-%m-%d %H:%M:%S") if transaction.created_at else ""
+        )
 
     # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
     workbook.save(buffer)
     buffer.seek(0)
 
-    # Set the response to download the file
+    # Return response to trigger file download
     response = HttpResponse(
         content=buffer,
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -3001,9 +3049,53 @@ def export_customer_transaction(request):
     response["Content-Disposition"] = 'attachment; filename="Customer_Transaction_History.xlsx"'
 
     return response
-
 def export_payment_dues(request):
-    return render(request, 'bopo_admin/Payment/reports.html') 
+    today = date.today()
+    seven_days_ago = today - timedelta(days=7)
+
+    # Filter PaymentDetails with expiry_date in the last 7 days
+    dues = PaymentDetails.objects.filter(expiry_date__range=(seven_days_ago, today)).select_related('merchant')
+
+    # Create Excel workbook
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Payment Dues - Last 7 Days"
+
+    # Headers - fixed comma missing between "Plan Type" and "Payment Mode"
+    headers = [
+        "Merchant ID", "Merchant Name", "Mobile", "Email", 
+        "Plan Type", "Payment Mode", "Paid Amount", "Validity (days)", "Expiry Date"
+    ]
+    for col_num, header in enumerate(headers, 1):
+        cell = sheet.cell(row=1, column=col_num)
+        cell.value = header
+        cell.font = Font(bold=True)
+
+    # Fill data matching the headers order
+    for row_num, due in enumerate(dues, 2):
+        merchant = due.merchant
+        sheet.cell(row=row_num, column=1, value=merchant.id)
+        sheet.cell(row=row_num, column=2, value=f"{merchant.first_name} {merchant.last_name}" if hasattr(merchant, 'first_name') and hasattr(merchant, 'last_name') else "")
+        sheet.cell(row=row_num, column=3, value=merchant.mobile if hasattr(merchant, 'mobile') else "")
+        sheet.cell(row=row_num, column=4, value=merchant.email if hasattr(merchant, 'email') else "")
+        sheet.cell(row=row_num, column=5, value=due.plan_type)
+        sheet.cell(row=row_num, column=6, value=due.payment_mode)
+        sheet.cell(row=row_num, column=7, value=due.paid_amount)
+        sheet.cell(row=row_num, column=8, value=due.validity_days)
+        sheet.cell(row=row_num, column=9, value=due.expiry_date.strftime("%Y-%m-%d") if due.expiry_date else "")
+
+    # Return Excel as response
+    buffer = BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+
+    response = HttpResponse(
+        content=buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="Merchant_Payment_Dues.xlsx"'
+    return response
+
 
 def export_award_transaction(request):
     from openpyxl import Workbook
