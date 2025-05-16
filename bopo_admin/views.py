@@ -1826,6 +1826,8 @@ def send_sms(to_number, message_body):
 from django.db.models import F
 
 def create_notification(project_id, merchant_id, customer_id, notification_type, title, description):
+    print("Creating notification...")
+    print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
     # Resolve project, merchant, and customer objects
     project = Corporate.objects.filter(project_id=project_id).first() if project_id else None
     merchant = Merchant.objects.filter(merchant_id=merchant_id).first() if merchant_id else None
@@ -1846,6 +1848,8 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
             unread_notification=F('unread_notification') + 1
         )
         unread_count = merchant.unread_notification + 1
+        print(unread_count)
+        print(merchant.merchant_id)
         group_name = f"merchant_{merchant_id}"
 
         # Send updated unread notification count via WebSocket
@@ -1942,6 +1946,8 @@ def create_notification_view(request):
         notification_type = request.POST.get("notification_type")
         title = request.POST.get("notification_title")
         description = request.POST.get("description")
+        
+        print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
 
 
         create_notification(
