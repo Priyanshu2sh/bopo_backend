@@ -17,7 +17,7 @@ from django.db import transaction
 
 from .serializers import BankDetailSerializer, CashOutSerializer, CorporateProjectSerializer, CustomerCashOutSerializer, HelpSerializer, MerchantCashOutSerializer, PaymentDetailsSerializer
 
-from .models import BankDetail, CashOut, CustomerToCustomer, GlobalPoints, Help, MerchantToMerchant, ModelPlan, PaymentDetails
+from .models import AwardPoints, BankDetail, CashOut, CustomerToCustomer, GlobalPoints, Help, MerchantToMerchant, ModelPlan, PaymentDetails
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
@@ -54,8 +54,7 @@ class RedeemPointsAPIView(APIView):
         if str(customer.pin) != str(pin):
             return Response({'error': 'Please enter the correct PIN.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # ✅ Call global point deduction if customer is inactive
-        self.deduct_inactive_global_points(customer)
+       
 
         # ✅ Fetch or create merchant
         merchant = None
@@ -188,47 +187,7 @@ class RedeemPointsAPIView(APIView):
             'user_type': merchant.user_type
         }, status=status.HTTP_200_OK)
         
-    def deduct_inactive_global_points(self, customer):
-        from django.utils.timezone import now
-        from datetime import timedelta
-
-        inactive_cutoff = now() - timedelta(minutes=5)
-
-        # Check for any activity in 6 months
-        has_award = MerchantPoints.objects.filter(customer=customer, created_at__gte=inactive_cutoff).exists()
-        has_redeem = CustomerPoints.objects.filter(customer=customer, created_at__gte=inactive_cutoff).exists()
-        has_transfer = CustomerToCustomer.objects.filter(sender_customer=customer, created_at__gte=inactive_cutoff).exists()
-
-        if has_award or has_redeem or has_transfer:
-            return  # Active, no deduction
-
-        # Inactive → apply global deduction
-        try:
-            deduct_setting = DeductSetting.objects.first()
-            global_deduct = deduct_setting.normal_global
-        except:
-            global_deduct = 0
-
-        if global_deduct <= 0:
-            return  # Nothing to deduct
-
-        try:
-            global_entry = GlobalPoints.objects.get(customer=customer)
-            if global_entry.points >= global_deduct:
-                global_entry.points -= global_deduct
-                global_entry.save(update_fields=['points', 'updated_at'])
-
-                # Log the deduction
-                History.objects.create(
-                    customer=customer,
-                    merchant=None,
-                    points=global_deduct,
-                    transaction_type='global_deduct'
-                )
-        except GlobalPoints.DoesNotExist:
-            pass
-
-        
+    
            
 # class RedeemPointsAPIView(APIView):
 #     """

@@ -114,7 +114,7 @@ class Merchant(models.Model):
     mobile = models.CharField(max_length=15, unique=True)
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
-    pin = models.IntegerField(unique=True, null=True)
+    pin = models.IntegerField( null=True, blank=True)
     age = models.IntegerField(blank=True, null=True)
     reference = models.CharField(max_length=200, choices=REFERENCE_CHOICES, null=True, blank=True)
     employee_id = models.ForeignKey('bopo_admin.Employee', to_field='employee_id', on_delete=models.CASCADE, null=True, blank=True)
