@@ -97,7 +97,7 @@
     </form>
 
     <!-- To Single Individual Merchant -->
-    <form method="POST" action="{% url 'send_notifications' %}">
+    <form method="POST" action="{% url 'create_notification' %}">
         {% csrf_token %}
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-individual" class="toggle-checkbox">
@@ -108,7 +108,7 @@
                 <input type="hidden" name="form_type" value="single_individual">
                 <div class="form-group">
                     <label>Select Merchant ID:</label>
-                    <select id="select-individual-merchant" name="merchant">
+                    <select id="select-individual-merchant" name="merchant_id">
                         <option value="">-- Select a Merchant --</option>
                     </select>
                 </div>
@@ -133,10 +133,10 @@
     </form>
 
     <!-- To All Individual Merchants -->
-    <form method="POST" action="{% url 'send_notifications' %}">
+    <form method="POST" action="{% url 'create_notification' %}">
         {% csrf_token %}
         <div class="send-notification-item">
-            <input type="checkbox" id="toggle-all-individual" class="toggle-checkbox">
+            <input type="checkbox" id="toggle-all-individual" class="toggle-checkbox" name="to_all_ind_merch" value="true">
             <label for="toggle-all-individual" class="send-notification-label">
                 <span class="send-notification-icon">👤</span> To All Individual Merchants
             </label>

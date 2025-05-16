@@ -23,7 +23,7 @@
         
             <div class="send-notification-form">
                 <br>
-                <form method="POST" action="{% url 'send_notification_customer' %}">
+                <form method="POST" action="{% url 'create_notification' %}">
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="select-customer">Select Customer:</label>
@@ -64,8 +64,11 @@
         
         
         <!-- To All Customers -->
+        <form method="POST" action="{% url 'create_notification' %}">
+            {% csrf_token %}
         <div class="send-notification-item">
-            <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox"name="send_to_all" id="send_to_all">
+            
+            <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox" id="send_to_all" name="to_all_customer" value="true">
             <label for="toggle-all-customers" class="send-notification-label">
                 <span class="send-notification-icon">🏢</span>
                 <span>To All Customers</span>
@@ -74,26 +77,26 @@
             <div class="send-notification-form"><br>
                 <div class="form-group">
                     <label for="notification-type-all">Notification Type:</label>
-                    <input type="text" id="notification-type-all" class="form-control" placeholder="Enter notification type">
+                    <input type="text" id="notification-type-all" class="form-control" placeholder="Enter notification type" name="notification_type">
                 </div>
 
                 <div class="form-group">
                     <label for="notification-title-all">Title:</label>
-                    <input type="text" id="notification-title-all" class="form-control" placeholder="Enter title">
+                    <input type="text" id="notification-title-all" class="form-control" placeholder="Enter title" name="notification_title">
                 </div>
 
                 <div class="form-group">
                     <label for="notification-description-all">Description:</label>
-                    <textarea id="notification-description-all" class="form-control" rows="4" placeholder="Enter description"></textarea>
+                    <textarea id="notification-description-all" class="form-control" rows="4" placeholder="Enter description" name="description"></textarea>                    </textarea>
                 </div>
-
                 <div class="button-container">
                     <button class="cancel-btn">Cancel</button>
                     <button class="send-btn" onclick="showAlert()">Send Notification</button>
                 </div>
             </div>
+         
         </div>
-
+    </form>
       
 
         <!-- To Corporate Customers -->
