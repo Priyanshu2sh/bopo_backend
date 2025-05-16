@@ -10,27 +10,29 @@
         <!-- Card Container -->
         <div class="card-container">
             <div class="card">
-                <div class="card-header">PROJECTS</div>
-                <div class="card-body">
-                    <span class="value">{{ total_projects }}</span>
-                    <div class="progress-container">
-                        <span class="progress-text">{{ project_progress|floatformat:2 }}% ⬆</span>
-                    </div>
-                    <div class="progress-bar">
-                        <span style="width: {{ project_progress }}%;"></span>
-                    </div>
-                </div>
-            </div>
+    <div class="card-header">PROJECTS</div>
+    <div class="card-body">
+        <span class="value">{{ total_projects }}</span>
+        <div class="progress-container">
+            <span class="progress-text">{{ daily_project_growth|floatformat:2 }}% ⬆</span>
+
+        </div>
+        <div class="progress-bar">
+            <span style="width: {{ daily_project_growth }}%; background-color: #3498db;"></span>
+        </div>
+    </div>
+</div>
+
 
             <div class="card">
                 <div class="card-header">MERCHANTS</div>
                 <div class="card-body">
                     <span class="value">{{ total_merchants }}</span>
                     <div class="progress-container">
-                        <span class="progress-text">{{ merchant_progress|floatformat:2 }}% ⬆</span>
+                        <span class="progress-text">{{ daily_merchant_growth|floatformat:2 }}% ⬆</span>
                     </div>
                     <div class="progress-bar">
-                        <span style="width: {{ merchant_progress }}%;"></span>
+                        <span style="width: {{ daily_merchant_growth }}%; background-color: #2ecc71;"></span>
                     </div>
                 </div>
             </div>
@@ -40,26 +42,28 @@
                 <div class="card-body">
                     <span class="value">{{ total_customers }}</span>
                     <div class="progress-container">
-                        <span class="progress-text">{{ customer_progress|floatformat:2 }}% ⬆</span>
+                        <span class="progress-text">{{ daily_customer_growth|floatformat:2 }}% ⬆</span>
                     </div>
                     <div class="progress-bar">
-                        <span style="width: {{ customer_progress }}%;"></span>
+                        <span style="width: {{ daily_customer_growth }}%; background-color: #e74c3c;"></span>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">TOTAL USERS</div>
-                <div class="card-body">
-                    <span class="value">{{ total_users }}</span>
-                    <div class="progress-container">
-                        <span class="progress-text">100% ⬆</span> <!-- Total users always represent 100% -->
-                    </div>
-                    <div class="progress-bar">
-                        <span style="width: 100%;"></span> <!-- Progress bar always full for total users -->
-                    </div>
-                </div>
-            </div>
+          <!-- Total Users Card -->
+<div class="card">
+    <div class="card-header">TOTAL USERS</div>
+    <div class="card-body">
+        <span class="value">{{ total_users }}</span>
+        <div class="progress-container">
+            <span class="progress-text">{{ daily_user_growth|floatformat:2 }}% ⬆</span>
+        </div>
+        <div class="progress-bar">
+            <span style="width: {{ daily_user_growth }}%; background-color: #f39c12;"></span>
+        </div>
+    </div>
+</div>
+
         </div>
 
         <!-- Analysis Section -->
@@ -98,7 +102,7 @@
                     },
                     {
                         label: 'Active',
-                        data: [{{ chart_data.projects.1 }}, {{ chart_data.merchants.1 }}, 0],
+                       data: [{{ chart_data.projects.1 }}, {{ chart_data.merchants.1 }}, {{ chart_data.customers.1 }}],
                         backgroundColor: [
                             'rgba(155, 89, 182, 0.5)',  // Purple for Projects
                             // 'rgba(241, 196, 15, 0.5)',  // Yellow for Merchants

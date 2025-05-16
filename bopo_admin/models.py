@@ -150,9 +150,27 @@ class UploadedFile(models.Model):
         return f"{self.file_type} - {self.file.name}"
 
 class Notification(models.Model):
-    project_id = models.ForeignKey('accounts.Corporate' , max_length=20, null=True, blank=True, on_delete=models.CASCADE)
-    merchant_id = models.ForeignKey('accounts.Merchant', max_length=20, null=True, blank=True, on_delete=models.CASCADE)
-    customer_id = models.ForeignKey('accounts.Customer', max_length=20, null=True, blank=True, on_delete=models.CASCADE)
+    project_id = models.ForeignKey(
+        'accounts.Corporate',
+        max_length=20,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
+    
+    # ManyToMany relationships
+    merchants = models.ManyToManyField(
+        'accounts.Merchant',
+        blank=True,
+        related_name='notifications'
+    )
+    
+    customers = models.ManyToManyField(
+        'accounts.Customer',
+        blank=True,
+        related_name='notifications'
+    )
+    
     notification_type = models.CharField(max_length=255, null=True, blank=True)
     title = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)

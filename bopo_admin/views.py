@@ -235,6 +235,7 @@ def home(request):
     merchant_progress = (active_merchants / total_merchants * 100) if total_merchants > 0 else 0
 
     total_customers = Customer.objects.count()
+    active_customers = Customer.objects.filter(status="Active").count() 
     total_users = total_customers + total_merchants + total_projects
 
     # Daily counts
@@ -251,12 +252,27 @@ def home(request):
     daily_project_growth = ((daily_projects - yesterday_projects) / yesterday_projects * 100) if yesterday_projects > 0 else 0
     daily_merchant_growth = ((daily_merchants - yesterday_merchants) / yesterday_merchants * 100) if yesterday_merchants > 0 else 0
     daily_customer_growth = ((daily_customers - yesterday_customers) / yesterday_customers * 100) if yesterday_customers > 0 else 0
+    
+        # Growth compared to yesterday with capped 100% when no previous data
+    # daily_project_growth = 100 if yesterday_projects == 0 and daily_projects > 0 else 0 if yesterday_projects == 0 else ((daily_projects - yesterday_projects) / yesterday_projects * 100)
+    # daily_merchant_growth = 100 if yesterday_merchants == 0 and daily_merchants > 0 else 0 if yesterday_merchants == 0 else ((daily_merchants - yesterday_merchants) / yesterday_merchants * 100)
+    # daily_customer_growth = 100 if yesterday_customers == 0 and daily_customers > 0 else 0 if yesterday_customers == 0 else ((daily_customers - yesterday_customers) / yesterday_customers * 100)
+
+    # Daily Total Users Growth
+    daily_total_users = daily_projects + daily_merchants + daily_customers
+    yesterday_total_users = yesterday_projects + yesterday_merchants + yesterday_customers
+
+    daily_user_growth = (
+        ((daily_total_users - yesterday_total_users) / yesterday_total_users * 100)
+        if yesterday_total_users > 0 else 0
+    )
+
 
     # Chart data for bar graph
     chart_data = {
         "projects": [total_projects, completed_projects],
         "merchants": [total_merchants, active_merchants],
-        "customers": [total_customers],
+        "customers": [total_customers, active_customers],
     }
 
     context = {
@@ -281,48 +297,91 @@ def home(request):
         "daily_project_growth": daily_project_growth,
         "daily_merchant_growth": daily_merchant_growth,
         "daily_customer_growth": daily_customer_growth,
+        "daily_user_growth": daily_user_growth,
 
         # Chart data
         "chart_data": chart_data,
     }
 
+    # Get the corporate admin
     if user.role == 'corporate_admin':
         corporate = user.corporate
 
-        # Merchants under corporate
+        # ----- Merchants under corporate -----
         project_merchants = Merchant.objects.filter(project_name=corporate)
+
         total_project_merchants = project_merchants.count()
         active_project_merchants = project_merchants.filter(status="Active").count()
-        project_merchant_progress = (active_project_merchants / total_project_merchants * 100) if total_project_merchants > 0 else 0
 
-        # Daily merchants under corporate project
+        # Calculate merchant progress (percentage of active merchants)
+        project_merchant_progress = (
+            (active_project_merchants / total_project_merchants * 100)
+            if total_project_merchants > 0 else 0
+        )
+
+        # Calculate daily growth of merchants
         daily_project_merchants = project_merchants.filter(created_at__date=today).count()
         yesterday_project_merchants = project_merchants.filter(created_at__date=yesterday).count()
-        daily_project_merchant_growth = ((daily_project_merchants - yesterday_project_merchants) / yesterday_project_merchants * 100) if yesterday_project_merchants > 0 else 0
+        daily_project_merchant_growth = (
+            ((daily_project_merchants - yesterday_project_merchants) / yesterday_project_merchants * 100)
+            if yesterday_project_merchants > 0 else 0
+        )
 
-        # ----- Terminals Data -----
+        # ----- Terminals under corporate -----
         project_terminals = Terminal.objects.filter(merchant_id__project_name=corporate)
+
         total_project_terminals = project_terminals.count()
         active_project_terminals = project_terminals.filter(status="Active").count()
-        project_terminal_progress = (active_project_terminals / total_project_terminals * 100) if total_project_terminals > 0 else 0
 
-        # Chart data for corporate view
+        # Calculate terminal progress (percentage of active terminals)
+        project_terminal_progress = (
+            (active_project_terminals / total_project_terminals * 100)
+            if total_project_terminals > 0 else 0
+        )
+
+        # Calculate daily growth of terminals
+        daily_project_terminals = project_terminals.filter(created_at__date=today).count()
+        yesterday_project_terminals = project_terminals.filter(created_at__date=yesterday).count()
+        daily_project_terminal_growth = (
+            ((daily_project_terminals - yesterday_project_terminals) / yesterday_project_terminals * 100)
+            if yesterday_project_terminals > 0 else 0
+        )
+
+
+        
+       # Total Users = Total Merchants + Terminals
+        total_users = total_project_merchants + total_project_terminals
+
+        # Daily growth of total users (merchant + terminal)
+        daily_total_users = daily_project_merchants + daily_project_terminals
+        yesterday_total_users = yesterday_project_merchants + yesterday_project_terminals
+
+        daily_user_growth = (
+            ((daily_total_users - yesterday_total_users) / yesterday_total_users * 100)
+            if yesterday_total_users > 0 else 0
+        )
+
+
+        # ----- Chart Data for Corporate Admin -----
         chart_data = {
             "merchants": [total_project_merchants, active_project_merchants],
-            "customers": [0],
             "terminals": [total_project_terminals, active_project_terminals],
         }
 
-        chart_labels = ["Merchants", "Customers", "Terminals"]
+        chart_labels = ["Merchants", "Terminals"]
 
+        # Passing the context data to the template
         context.update({
             "total_merchants": total_project_merchants,
             "merchant_progress": project_merchant_progress,
-            "daily_merchants": daily_project_merchants,
             "daily_merchant_growth": daily_project_merchant_growth,
 
             "total_terminals": total_project_terminals,
             "terminal_progress": project_terminal_progress,
+            "daily_terminal_growth": daily_project_terminal_growth,
+            
+            "total_users": total_users,
+            "daily_user_growth": daily_user_growth,
 
             "chart_data": chart_data,
             "chart_labels": chart_labels,
@@ -397,31 +456,36 @@ def get_customer(request, customer_id):
     }
 
     return JsonResponse(data)
-
-from django.shortcuts import render, get_object_or_404, redirect
-from accounts.models import Customer
-from django.http import JsonResponse
-
-
-def update_customer(request, customer_id):  # <-- accept customer_id here
+def update_customer(request, customer_id):
     if request.method == "POST":
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        mobile = request.POST.get('mobile')
-        age = request.POST.get('age')
-        aadhar_number = request.POST.get('aadhar_number')
-        pin = request.POST.get('pin')
-        address = request.POST.get('address')
-        state_id = request.POST.get('state')
-        city_id = request.POST.get('city')
-        pincode = request.POST.get('pincode')
-        gender = request.POST.get('gender')
-        pan_number = request.POST.get('pan_number')
-
         try:
-            customer = Customer.objects.get(customer_id=customer_id)  # Note: use `customer_id` field
+            customer = Customer.objects.get(customer_id=customer_id)
 
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            email = request.POST.get('email')
+            mobile = request.POST.get('mobile')
+            age = request.POST.get('age')
+            aadhar_number = request.POST.get('aadhar_number')
+            pin = request.POST.get('pin')
+            address = request.POST.get('address')
+            state_name = request.POST.get('state')
+            city_name = request.POST.get('city')
+            pincode = request.POST.get('pincode')
+            gender = request.POST.get('gender')
+            pan_number = request.POST.get('pan_number')
+
+            # Validation for required fields
+            if not gender:
+                return JsonResponse({'success': False, 'error': 'Gender field is required'})
+            
+            if not State.objects.filter(name=state_name).exists():
+                return JsonResponse({'success': False, 'error': 'State not found'})
+
+            if not City.objects.filter(name=city_name).exists():
+                return JsonResponse({'success': False, 'error': 'City not found'})
+
+            # Update
             customer.first_name = first_name
             customer.last_name = last_name
             customer.email = email
@@ -433,13 +497,8 @@ def update_customer(request, customer_id):  # <-- accept customer_id here
             customer.pincode = pincode
             customer.gender = gender
             customer.pan_number = pan_number
-
-            if state_id:
-                state_obj = State.objects.get(id=state_id)
-                customer.state = state_obj.name  # or assign FK if applicable
-            if city_id:
-                city_obj = City.objects.get(id=city_id)
-                customer.city = city_obj.name  # or assign FK if applicable
+            customer.state = state_name
+            customer.city = city_name
 
             customer.save()
 
@@ -450,10 +509,6 @@ def update_customer(request, customer_id):  # <-- accept customer_id here
 
         except Customer.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Customer not found'})
-        except State.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'State not found'})
-        except City.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'City not found'})
 
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
@@ -510,28 +565,53 @@ def individual_list(request):
     })
 
 
-def toggle_status(request, merchant_id):
+# def toggle_status(request, merchant_id):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             is_active = data.get("is_active")
+
+#             merchant = Merchant.objects.get(id=merchant_id)
+
+#             if is_active:
+#                 merchant.status = "Active"
+#                 merchant.verified_at = datetime.now()
+#             else:
+#                 merchant.status = "Inactive"
+#                 merchant.verified_at = None
+
+#             merchant.save()
+
+#             return JsonResponse({"success": True, "status": merchant.status})
+#         except Exception as e:
+#             return JsonResponse({"success": False, "error": str(e)})
+#     return JsonResponse({"success": False, "error": "Invalid request"})
+
+from django.utils import timezone
+
+def toggle_status(request, entity_type, entity_id):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             is_active = data.get("is_active")
 
-            merchant = Merchant.objects.get(id=merchant_id)
-
-            if is_active:
-                merchant.status = "Active"
-                merchant.verified_at = datetime.now()
+            if entity_type == "customer":
+                instance = Customer.objects.get(customer_id=entity_id)
+            elif entity_type == "merchant":
+                instance = Merchant.objects.get(merchant_id=entity_id)
+            elif entity_type == "corporate":
+                instance = Corporate.objects.get(corporate_id=entity_id)
             else:
-                merchant.status = "Inactive"
-                merchant.verified_at = None
+                return JsonResponse({"success": False, "error": "Invalid entity type"})
 
-            merchant.save()
+            instance.status = "Active" if is_active else "Inactive"
+            instance.verified_at = timezone.now() if is_active else None
+            instance.save()
 
-            return JsonResponse({"success": True, "status": merchant.status})
+            return JsonResponse({"success": True, "status": instance.status})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
-    return JsonResponse({"success": False, "error": "Invalid request"})
-
+    return JsonResponse({"success": False, "error": "Invalid request method"})
 
 
 from django.shortcuts import render, redirect
@@ -766,26 +846,25 @@ from django.http import JsonResponse
 from accounts.models import Corporate
 
 
-def update_corporate(request):
+def update_corporate(request, corporate_id):
     if request.method == 'POST':
-        corporate_id = request.POST.get('corporate_id')
         try:
             corporate = Corporate.objects.get(corporate_id=corporate_id)
 
-            corporate.first_name = request.POST.get('first_name', '').strip()
-            corporate.last_name = request.POST.get('last_name', '').strip()
-            corporate.email = request.POST.get('email', '').strip()
-            corporate.mobile = request.POST.get('mobile', '').strip()
-            corporate.aadhaar_number = request.POST.get('aadhaar_number', '').strip()
-            corporate.pin = request.POST.get('pin', '').strip()
-            corporate.pan_number = request.POST.get('pan_number', '').strip()
-            corporate.gst_number = request.POST.get('gst_number', '').strip()
-            corporate.legal_name = request.POST.get('legal_name', '').strip()
-            corporate.shop_name = request.POST.get('shop_name', '').strip()
-            corporate.address = request.POST.get('address', '').strip()
-            corporate.pincode = request.POST.get('pincode', '').strip()
-            corporate.project_name = request.POST.get('project_name', '').strip()
-            corporate.country = request.POST.get('country', 'India').strip()
+            corporate.first_name = request.POST.get('first_name', '')
+            corporate.last_name = request.POST.get('last_name', '')
+            corporate.email = request.POST.get('email', '')
+            corporate.mobile = request.POST.get('mobile', '')
+            corporate.aadhaar_number = request.POST.get('aadhaar_number', '')
+            corporate.pin = request.POST.get('pin', '')
+            corporate.pan_number = request.POST.get('pan_number', '')
+            corporate.gst_number = request.POST.get('gst_number', '')
+            corporate.legal_name = request.POST.get('legal_name', '')
+            corporate.shop_name = request.POST.get('shop_name', '')
+            corporate.address = request.POST.get('address', '')
+            corporate.pincode = request.POST.get('pincode')
+            corporate.project_name = request.POST.get('project_name', '')
+            corporate.country = request.POST.get('country', 'India')
 
             state_id = request.POST.get('state')
             city_id = request.POST.get('city')
@@ -813,6 +892,7 @@ def update_corporate(request):
                     'city': corporate.city,
                 }
             })
+
         except Corporate.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Corporate not found'}, status=404)
         except State.DoesNotExist:
@@ -821,8 +901,6 @@ def update_corporate(request):
             return JsonResponse({'success': False, 'error': 'City not found'}, status=404)
 
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
-
-
 
 from django.http import JsonResponse
 from accounts.models import Merchant
@@ -846,6 +924,7 @@ def get_copmerchant(request, merchant_id):
             'aadhaar_number': merchant.aadhaar_number,
             'pan_number': merchant.pan_number,
             'gst_number': merchant.gst_number,
+            'pin': merchant.pin,
             'legal_name': merchant.legal_name,
             'project_name': merchant.project_name.project_name if merchant.project_name else None,  # ✅ FIXED
             'shop_name': merchant.shop_name,
@@ -873,9 +952,9 @@ from django.http import JsonResponse
 from accounts.models import Merchant, Corporate
 
 
-def update_copmerchant(request):
+
+def update_copmerchant(request, merchant_id):
     if request.method == "POST":
-        merchant_id = request.POST.get('merchant_id')
         if not merchant_id:
             return JsonResponse({'success': False, 'error': 'Missing merchant ID'}, status=400)
 
@@ -897,7 +976,7 @@ def update_copmerchant(request):
             merchant.pincode = request.POST.get('pincode', '').strip()
             merchant.country = request.POST.get("country", "India").strip()
 
-            # Resolve and set foreign key fields using IDs
+            # Resolve and set foreign key fields using IDs for state and city
             state_id = request.POST.get('state')
             city_id = request.POST.get('city')
             if state_id:
@@ -913,15 +992,17 @@ def update_copmerchant(request):
                 except City.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'City not found'}, status=404)
 
-            # Resolve project_name field (assumed to be a foreign key to Corporate)
-            # Here we assume the submitted value is the corporate_id of the project
-            project_identifier = request.POST.get('project_name', '').strip()
-            if project_identifier:
+            # Handle project_name (ForeignKey to Corporate) by project_name string lookup
+            project_name_str = request.POST.get('project_name', '').strip()
+            if project_name_str:
                 try:
-                    corporate_obj = Corporate.objects.get(corporate_id=project_identifier)
+                    corporate_obj = Corporate.objects.get(project_name=project_name_str)
                     merchant.project_name = corporate_obj
                 except Corporate.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'Corporate (project) not found'}, status=404)
+            else:
+                # Clear the project_name relation if empty string provided
+                merchant.project_name = None
 
             merchant.save()
 
@@ -935,7 +1016,8 @@ def update_copmerchant(request):
                     "email": merchant.email,
                     "mobile": merchant.mobile,
                     "state": merchant.state,
-                    "city": merchant.city
+                    "city": merchant.city,
+                    "project_name": merchant.project_name.project_name if merchant.project_name else None,
                 }
             })
 
@@ -946,49 +1028,49 @@ def update_copmerchant(request):
 
 
 
-from django.http import JsonResponse
-from accounts.models import Merchant
+# from django.http import JsonResponse
+# from accounts.models import Merchant
 
-def get_copmerchant(request, merchant_id):
-    try:
-        merchant = Merchant.objects.get(id=merchant_id)
+# def get_copmerchant(request, merchant_id):
+#     try:
+#         merchant = Merchant.objects.get(id=merchant_id)
 
-        state_obj = State.objects.get(name=merchant.state)
-        city_obj = City.objects.get(name=merchant.city)
+#         state_obj = State.objects.get(name=merchant.state)
+#         city_obj = City.objects.get(name=merchant.city)
 
-        cities = City.objects.filter(state=state_obj)
-        city_data = [{"id": city.id, "name": city.name} for city in cities]
+#         cities = City.objects.filter(state=state_obj)
+#         city_data = [{"id": city.id, "name": city.name} for city in cities]
 
-        data = {
-            'merchant_id': merchant.id,
-            'first_name': merchant.first_name,
-            'last_name': merchant.last_name,
-            'email': merchant.email,
-            'mobile': merchant.mobile,
-            'aadhaar_number': merchant.aadhaar_number,
-            'pin': merchant.pin,
-            'pan_number': merchant.pan_number,
-            'gst_number': merchant.gst_number,
-            'legal_name': merchant.legal_name,
-            'project_name': merchant.project_name.project_name if merchant.project_name else None,  # ✅ FIXED
-            'shop_name': merchant.shop_name,
-            'address': merchant.address,
-            'pincode': merchant.pincode,
-            "state": merchant.state,
-            "city": merchant.city,
-            'country': merchant.country,
-            "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],
-            "cities": city_data,
-        }
+#         data = {
+#             'merchant_id': merchant.id,
+#             'first_name': merchant.first_name,
+#             'last_name': merchant.last_name,
+#             'email': merchant.email,
+#             'mobile': merchant.mobile,
+#             'aadhaar_number': merchant.aadhaar_number,
+#             'pin': merchant.pin,
+#             'pan_number': merchant.pan_number,
+#             'gst_number': merchant.gst_number,
+#             'legal_name': merchant.legal_name,
+#             'project_name': merchant.project_name.project_name if merchant.project_name else None,  # ✅ FIXED
+#             'shop_name': merchant.shop_name,
+#             'address': merchant.address,
+#             'pincode': merchant.pincode,
+#             "state": merchant.state,
+#             "city": merchant.city,
+#             'country': merchant.country,
+#             "states": [{"id": state.id, "name": state.name} for state in State.objects.all()],
+#             "cities": city_data,
+#         }
 
-        return JsonResponse(data)
+#         return JsonResponse(data)
 
-    except Merchant.DoesNotExist:
-        return JsonResponse({'error': 'Merchant not found'}, status=404)
-    except State.DoesNotExist:
-        return JsonResponse({'error': 'State not found'}, status=404)
-    except City.DoesNotExist:
-        return JsonResponse({'error': 'City not found'}, status=404)
+#     except Merchant.DoesNotExist:
+#         return JsonResponse({'error': 'Merchant not found'}, status=404)
+#     except State.DoesNotExist:
+#         return JsonResponse({'error': 'State not found'}, status=404)
+#     except City.DoesNotExist:
+#         return JsonResponse({'error': 'City not found'}, status=404)
 
 
 
@@ -1683,64 +1765,173 @@ def send_sms(to_number, message_body):
         print(f"❌ Twilio SMS error: {str(e)}")
         return None
 
+# def create_notification(project_id, merchant_id, customer_id, notification_type, title, description):
+#     # print("Creating notification...")
+
+#     project = None
+#     merchant = None
+#     customer = None
+
+#     if project_id:
+#         try:
+#             project = Corporate.objects.get(project_id=project_id)
+#         except Corporate.DoesNotExist:
+#             project = None  # or handle error
+
+#     if merchant_id:
+#         try:
+#             merchant = Merchant.objects.get(merchant_id=merchant_id)
+#         except Merchant.DoesNotExist:
+#             merchant = None
+
+#     if customer_id:
+#         try:
+#             customer = Customer.objects.get(customer_id=customer_id)
+#         except Customer.DoesNotExist:
+#             customer = None
+
+#     notification = Notification.objects.create(
+#         project_id=project,
+#         merchant_id=merchant,
+#         customer_id=customer,
+#         notification_type=notification_type,
+#         title=title,
+#         description=description
+#     )
+
+#     # Send WebSocket notification code unchanged
+#     # Determine the group name dynamically
+#     channel_layer = get_channel_layer()
+#     if merchant:
+#         group_name = f"merchant_{merchant.merchant_id}"
+#     elif customer:
+#         group_name = f"customer_{customer.customer_id}"
+#     else:
+#         # Optional: fallback group if no merchant/customer
+#         group_name = "general_notifications"
+
+#     async_to_sync(channel_layer.group_send)(
+#         group_name,
+#         {
+#             "type": "send_notification",
+#             "message": {
+#                 "title": title,
+#                 "description": description,
+#                 "type": notification_type,
+#                 "timestamp": str(notification.created_at),
+#             }
+#         }
+#     )
+
+from django.db.models import F
+
 def create_notification(project_id, merchant_id, customer_id, notification_type, title, description):
-    # print("Creating notification...")
+    # Resolve project, merchant, and customer objects
+    project = Corporate.objects.filter(project_id=project_id).first() if project_id else None
+    merchant = Merchant.objects.filter(merchant_id=merchant_id).first() if merchant_id else None
+    customer = Customer.objects.filter(customer_id=customer_id).first() if customer_id else None
 
-    project = None
-    merchant = None
-    customer = None
-
-    if project_id:
-        try:
-            project = Corporate.objects.get(project_id=project_id)
-        except Corporate.DoesNotExist:
-            project = None  # or handle error
-
-    if merchant_id:
-        try:
-            merchant = Merchant.objects.get(merchant_id=merchant_id)
-        except Merchant.DoesNotExist:
-            merchant = None
-
-    if customer_id:
-        try:
-            customer = Customer.objects.get(customer_id=customer_id)
-        except Customer.DoesNotExist:
-            customer = None
-
-    notification = Notification.objects.create(
-        project_id=project,
-        merchant_id=merchant,
-        customer_id=customer,
-        notification_type=notification_type,
-        title=title,
-        description=description
-    )
-
-    # Send WebSocket notification code unchanged
-    # Determine the group name dynamically
-    channel_layer = get_channel_layer()
     if merchant:
-        group_name = f"merchant_{merchant.merchant_id}"
-    elif customer:
-        group_name = f"customer_{customer.customer_id}"
-    else:
-        # Optional: fallback group if no merchant/customer
-        group_name = "general_notifications"
+        # Create notification and associate with the merchant
+        notification = Notification.objects.create(
+            project_id=project,
+            notification_type=notification_type,
+            title=title,
+            description=description
+        )
+        notification.merchants.add(merchant)  # Add the merchant to the notification
 
-    async_to_sync(channel_layer.group_send)(
-        group_name,
-        {
-            "type": "send_notification",
-            "message": {
-                "title": title,
-                "description": description,
-                "type": notification_type,
-                "timestamp": str(notification.created_at),
+        # Update unread notification count for the merchant
+        Merchant.objects.filter(merchant_id=merchant_id).update(
+            unread_notification=F('unread_notification') + 1
+        )
+        unread_count = merchant.unread_notification + 1
+        group_name = f"merchant_{merchant_id}"
+
+        # Send updated unread notification count via WebSocket
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "send_notification",
+                "unread_count": unread_count
             }
-        }
-    )
+        )
+    elif project:
+        # Fetch all merchants under the same project
+        merchants = Merchant.objects.filter(project_name=project)
 
+        # Create a notification and associate it with all merchants
+        notification = Notification.objects.create(
+            project_id=project,
+            notification_type=notification_type,
+            title=title,
+            description=description
+        )
+        notification.merchants.set(merchants)  # Add all merchants to the notification
+
+        for merchant in merchants:
+            # Update unread notification count for each merchant
+            Merchant.objects.filter(merchant_id=merchant.merchant_id).update(
+                unread_notification=F('unread_notification') + 1
+            )
+
+            # Fetch the updated unread count
+            unread_count = merchant.unread_notification + 1
+
+            # Send updated unread notification count via WebSocket
+            group_name = f"merchant_{merchant.merchant_id}"
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    "type": "send_notification",
+                    "unread_count": unread_count
+                }
+            )
+    elif customer:
+        # Create notification and associate with the customer
+        notification = Notification.objects.create(
+            project_id=project,
+            notification_type=notification_type,
+            title=title,
+            description=description
+        )
+        notification.customers.add(customer)  # Add the customer to the notification
+
+        # Update unread notification count for the customer
+        Customer.objects.filter(customer_id=customer_id).update(
+            unread_notification=F('unread_notification') + 1
+        )
+        unread_count = customer.unread_notification + 1
+        group_name = f"customer_{customer_id}"
+
+        # Send updated unread notification count via WebSocket
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "send_notification",
+                "unread_count": unread_count
+            }
+        )
+    else:
+        # Fallback for general notifications
+        group_name = "general_notifications"
+        unread_count = 0
+
+        # Send updated unread notification count via WebSocket
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "send_notification",
+                "unread_count": unread_count
+            }
+        )
+  
+  
+    
 def create_notification_view(request):
     if request.method == "POST":
         form_type = request.POST.get("form_type")
@@ -1768,24 +1959,23 @@ def create_notification_view(request):
     return redirect('send_notifications')
 
 
-
 def send_notifications(request): 
     corporates = Corporate.objects.all()
 
     if request.method == "POST":
         form_type = request.POST.get("form_type")
-        project = request.POST.get("project")
+        project = request.POST.get("project")  # May be None for individuals
         notification_type = request.POST.get("notification_type")
         notification_title = request.POST.get("notification_title")
         description = request.POST.get("description")
 
-        # ✅ Improved SMS format
         message = (
             f"{notification_type}\n"
             f"Title: {notification_title}\n"
             f"Description: {description}"
         )
 
+        # ✅ Send to a single merchant (corporate)
         if form_type == "single":
             merchant_id = request.POST.get("merchant")
             try:
@@ -1812,6 +2002,33 @@ def send_notifications(request):
                     'message': 'Merchant not found.'
                 })
 
+        # ✅ Send to a single individual merchant
+        elif form_type == "single_individual":
+            merchant_id = request.POST.get("merchant")
+            try:
+                merchant = Merchant.objects.get(merchant_id=merchant_id, user_type='individual')
+
+                Notification.objects.create(
+                    merchant_id=merchant_id,
+                    notification_type=notification_type,
+                    title=notification_title,
+                    description=description
+                )
+
+                send_sms(merchant.mobile, message)
+
+                return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+                    'corporates': corporates,
+                    'message': 'Notification sent to individual merchant.'
+                })
+
+            except Merchant.DoesNotExist:
+                return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+                    'corporates': corporates,
+                    'message': 'Individual Merchant not found.'
+                })
+
+        # ✅ Send to all corporate merchants under a project
         elif form_type == "all":
             merchants = Merchant.objects.filter(project_name__project_id=project)
 
@@ -1846,9 +2063,44 @@ def send_notifications(request):
                 'message': msg
             })
 
+        # ✅ Send to all individual merchants
+        elif form_type == "all_individual":
+            merchants = Merchant.objects.filter(user_type='individual')
+
+            if not merchants.exists():
+                return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+                    'corporates': corporates,
+                    'message': 'No individual merchants found.'
+                })
+
+            failed_merchants = []
+
+            for merchant in merchants:
+                Notification.objects.create(
+                    merchant_id=merchant.merchant_id,
+                    notification_type=notification_type,
+                    title=notification_title,
+                    description=description
+                )
+
+                try:
+                    send_sms(merchant.mobile, message)
+                except Exception as e:
+                    failed_merchants.append((merchant.merchant_id, str(e)))
+
+            msg = f"Notifications sent to {merchants.count()} individual merchants."
+            if failed_merchants:
+                msg += f" But failed for: {', '.join([m[0] for m in failed_merchants])}"
+
+            return render(request, 'bopo_admin/Merchant/send_notifications.html', {
+                'corporates': corporates,
+                'message': msg
+            })
+
     return render(request, 'bopo_admin/Merchant/send_notifications.html', {
         'corporates': corporates
     })
+
 
 def received_offers(request):
     return render(request, 'bopo_admin/Merchant/received_offers.html')
@@ -2066,49 +2318,74 @@ from django.http import JsonResponse
 from .models import Employee
 
 
-def update_employee(request): 
-    if request.method == "POST":
-        employee_id = request.POST.get('employee_id')  # Keep 'employee_id'
-        name = request.POST.get('employee_name')
+# def update_employee(request): 
+#     if request.method == "POST":
+#         employee_id = request.POST.get('employee_id')  # Keep 'employee_id'
+#         name = request.POST.get('employee_name')
+#         email = request.POST.get('email')
+#         aadhaar = request.POST.get("aadhaar")
+#         address = request.POST.get("address")
+#         state_name = request.POST.get('state')
+#         city_name = request.POST.get('city')
+#         mobile = request.POST.get("mobile")
+#         pan = request.POST.get("pan")
+#         pincode = request.POST.get("pincode")
+#         username = request.POST.get("username")
+#         password = request.POST.get("password")
+#         country = request.POST.get("country", "India")
+
+#         try:
+#             # Use employee_id instead of id
+#             employee = Employee.objects.get(employee_id=employee_id)  # Fixed here
+            
+#             if not State.objects.filter(name=state_name).exists():
+#                 return JsonResponse({'success': False, 'error': 'State not found'})
+
+#             if not City.objects.filter(name=city_name).exists():
+#                 return JsonResponse({'success': False, 'error': 'City not found'})
+
+#             employee.name = name
+#             employee.email = email
+#             employee.aadhaar = aadhaar
+#             employee.address = address
+#             employee.state = state_name
+#             employee.city = city_name
+#             employee.mobile = mobile
+#             employee.pan = pan
+#             employee.pincode = pincode
+#             employee.username = username
+#             employee.password = password
+#             employee.country = country
+
+#             employee.save()
+
+#             return JsonResponse({'status': 'success', 'message': 'Employee updated successfully'})
+#         except Employee.DoesNotExist:
+#             return JsonResponse({'status': 'error', 'message': 'Employee not found'})
+#         except (State.DoesNotExist, City.DoesNotExist):
+#             return JsonResponse({'status': 'error', 'message': 'Invalid state or city'})
+#     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+
+@csrf_exempt  # Not needed if you pass CSRF token
+def update_employee(request):
+    if request.method == 'POST':
+        employee_id = request.POST.get('employee_id')
         email = request.POST.get('email')
-        aadhaar = request.POST.get("aadhaar")
-        address = request.POST.get("address")
-        state_id = request.POST.get("state")
-        city_id = request.POST.get("city")
-        mobile = request.POST.get("mobile")
-        pan = request.POST.get("pan")
-        pincode = request.POST.get("pincode")
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        country = request.POST.get("country", "India")
+        mobile = request.POST.get('mobile')
+        password = request.POST.get('password')  # Optional: encrypt if needed
 
         try:
-            # Use employee_id instead of id
-            employee = Employee.objects.get(employee_id=employee_id)  # Fixed here
-            
-            state_name = State.objects.get(id=state_id).name
-            city_name = City.objects.get(id=city_id).name
-
-            employee.name = name
+            employee = Employee.objects.get(employee_id=employee_id)
             employee.email = email
-            employee.aadhaar = aadhaar
-            employee.address = address
-            employee.state = state_name
-            employee.city = city_name
             employee.mobile = mobile
-            employee.pan = pan
-            employee.pincode = pincode
-            employee.username = username
-            employee.password = password
-            employee.country = country
-
+            if password:
+                employee.password = password  # Hash if necessary
             employee.save()
-
-            return JsonResponse({'status': 'success', 'message': 'Employee updated successfully'})
+            return JsonResponse({'status': 'success'})
         except Employee.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Employee not found'})
-        except (State.DoesNotExist, City.DoesNotExist):
-            return JsonResponse({'status': 'error', 'message': 'Invalid state or city'})
+    
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
 
@@ -2558,43 +2835,37 @@ def update_profile(request):
 #         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
 
 #     return render(request, 'bopo_admin/login.html')
-
-
-  
 def export_projects(request):
-    # Create an Excel workbook and sheet
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     sheet.title = "Corporate Projects"
 
-    # Add headers to the sheet
+    # Add "Sr No." as the first column
     headers = [
-        "Corporate ID", "Project ID", "Project Name", "First Name", "Last Name",
-        "Email", "Mobile", "Aadhaar", "GST Number", "PAN", "Shop Name",
+        "Sr No.", "Corporate ID", "Project Name", "First Name", "Last Name",
+        "Email", "Mobile", "Aadhaar Number", "GST Number", "PAN", "Shop Name",
         "Address", "City", "State", "Country", "Pincode", "Created At"
     ]
+
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
         cell.value = header
-        cell.font =  Font(bold=True)
+        cell.font = Font(bold=True)
 
-    # Fetch data from the Corporate table
     corporates = Corporate.objects.all()
-    print("Total corporates:", corporates.count())
 
-    if not corporates.exists():
-        print("No data found in the Corporate table.")  # Debugging log
-
-    # Add data to the Excel sheet
     for row_num, corporate in enumerate(corporates, 2):
-        sheet.cell(row=row_num, column=1, value=corporate.corporate_id or "")
-        sheet.cell(row=row_num, column=2, value=corporate.project_id or "")
+        # Sr No.
+        sheet.cell(row=row_num, column=1, value=row_num - 1)
+        
+        # Data columns shifted by 1
+        sheet.cell(row=row_num, column=2, value=corporate.corporate_id or "")
         sheet.cell(row=row_num, column=3, value=corporate.project_name or "")
         sheet.cell(row=row_num, column=4, value=corporate.first_name or "")
         sheet.cell(row=row_num, column=5, value=corporate.last_name or "")
         sheet.cell(row=row_num, column=6, value=corporate.email or "")
         sheet.cell(row=row_num, column=7, value=corporate.mobile or "")
-        sheet.cell(row=row_num, column=8, value=corporate.aadhaar or "")
+        sheet.cell(row=row_num, column=8, value=corporate.aadhaar_number or "")
         sheet.cell(row=row_num, column=9, value=corporate.gst_number or "")
         sheet.cell(row=row_num, column=10, value=corporate.pan_number or "")
         sheet.cell(row=row_num, column=11, value=corporate.shop_name or "")
@@ -2605,12 +2876,10 @@ def export_projects(request):
         sheet.cell(row=row_num, column=16, value=corporate.pincode or "")
         sheet.cell(row=row_num, column=17, value=corporate.created_at.strftime("%Y-%m-%d %H:%M:%S") if corporate.created_at else "")
 
-    # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
     workbook.save(buffer)
     buffer.seek(0)
 
-    # Set the response to download the file
     response = HttpResponse(
         content=buffer,
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -2618,7 +2887,6 @@ def export_projects(request):
     response["Content-Disposition"] = 'attachment; filename="Corporate_Projects.xlsx"'
 
     return response
- 
 
 def export_merchants(request):
     # Create an Excel workbook and sheet
@@ -2626,9 +2894,9 @@ def export_merchants(request):
     sheet = workbook.active
     sheet.title = "Merchant Details"
 
-    # Add headers to the sheet
+    # Add headers to the sheet, including "Sr No."
     headers = [
-        "Merchant ID", "User Type", "Project Name", "First Name", "Last Name",
+        "Sr No.", "Merchant ID", "User Type", "Project Name", "First Name", "Last Name",
         "Email", "Mobile", "Aadhaar", "GST Number", "PAN", "Shop Name",
         "Address", "City", "State", "Country", "Pincode", "Created At"
     ]
@@ -2644,23 +2912,24 @@ def export_merchants(request):
 
     # Add data to the Excel sheet
     for row_num, merchant in enumerate(merchants, 2):
-        sheet.cell(row=row_num, column=1, value=merchant.merchant_id or "")
-        sheet.cell(row=row_num, column=2, value=merchant.user_type or "")
-        sheet.cell(row=row_num, column=3, value=merchant.project_name or "")
-        sheet.cell(row=row_num, column=4, value=merchant.first_name or "")
-        sheet.cell(row=row_num, column=5, value=merchant.last_name or "")
-        sheet.cell(row=row_num, column=6, value=merchant.email or "")
-        sheet.cell(row=row_num, column=7, value=merchant.mobile or "")
-        sheet.cell(row=row_num, column=8, value=merchant.aadhaar_number or "")
-        sheet.cell(row=row_num, column=9, value=merchant.gst_number or "")
-        sheet.cell(row=row_num, column=10, value=merchant.pan_number or "")
-        sheet.cell(row=row_num, column=11, value=merchant.shop_name or "")
-        sheet.cell(row=row_num, column=12, value=merchant.address or "")
-        sheet.cell(row=row_num, column=13, value=merchant.city or "")
-        sheet.cell(row=row_num, column=14, value=merchant.state or "")
-        sheet.cell(row=row_num, column=15, value=merchant.country or "")
-        sheet.cell(row=row_num, column=16, value=merchant.pincode or "")
-        sheet.cell(row=row_num, column=17, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
+        sheet.cell(row=row_num, column=1, value=row_num - 1)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=merchant.merchant_id or "")
+        sheet.cell(row=row_num, column=3, value=merchant.user_type or "")
+        sheet.cell(row=row_num, column=4, value=str(merchant.project_name) if merchant.project_name else "")
+        sheet.cell(row=row_num, column=5, value=merchant.first_name or "")
+        sheet.cell(row=row_num, column=6, value=merchant.last_name or "")
+        sheet.cell(row=row_num, column=7, value=merchant.email or "")
+        sheet.cell(row=row_num, column=8, value=merchant.mobile or "")
+        sheet.cell(row=row_num, column=9, value=merchant.aadhaar_number or "")
+        sheet.cell(row=row_num, column=10, value=merchant.gst_number or "")
+        sheet.cell(row=row_num, column=11, value=merchant.pan_number or "")
+        sheet.cell(row=row_num, column=12, value=merchant.shop_name or "")
+        sheet.cell(row=row_num, column=13, value=merchant.address or "")
+        sheet.cell(row=row_num, column=14, value=merchant.city or "")
+        sheet.cell(row=row_num, column=15, value=merchant.state or "")
+        sheet.cell(row=row_num, column=16, value=merchant.country or "")
+        sheet.cell(row=row_num, column=17, value=merchant.pincode or "")
+        sheet.cell(row=row_num, column=18, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
 
     # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
@@ -2676,16 +2945,15 @@ def export_merchants(request):
 
     return response
 
-
 def export_disabled_merchants(request):
     # Create an Excel workbook and sheet
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     sheet.title = "Disabled Merchants"
 
-    # Add headers to the sheet
+    # Add headers to the sheet, including "Sr No."
     headers = [
-        "Merchant ID", "User Type", "Project Name", "First Name", "Last Name",
+        "Sr No.", "Merchant ID", "User Type", "Project Name", "First Name", "Last Name",
         "Email", "Mobile", "Aadhaar", "GST Number", "PAN", "Shop Name",
         "Address", "City", "State", "Country", "Pincode", "Status", "Created At"
     ]
@@ -2701,24 +2969,25 @@ def export_disabled_merchants(request):
 
     # Add data to the Excel sheet
     for row_num, merchant in enumerate(disabled_merchants, 2):
-        sheet.cell(row=row_num, column=1, value=merchant.merchant_id or "")
-        sheet.cell(row=row_num, column=2, value=merchant.user_type or "")
-        sheet.cell(row=row_num, column=3, value=merchant.project_name or "")
-        sheet.cell(row=row_num, column=4, value=merchant.first_name or "")
-        sheet.cell(row=row_num, column=5, value=merchant.last_name or "")
-        sheet.cell(row=row_num, column=6, value=merchant.email or "")
-        sheet.cell(row=row_num, column=7, value=merchant.mobile or "")
-        sheet.cell(row=row_num, column=8, value=merchant.aadhaar_number or "")
-        sheet.cell(row=row_num, column=9, value=merchant.gst_number or "")
-        sheet.cell(row=row_num, column=10, value=merchant.pan_number or "")
-        sheet.cell(row=row_num, column=11, value=merchant.shop_name or "")
-        sheet.cell(row=row_num, column=12, value=merchant.address or "")
-        sheet.cell(row=row_num, column=13, value=merchant.city or "")
-        sheet.cell(row=row_num, column=14, value=merchant.state or "")
-        sheet.cell(row=row_num, column=15, value=merchant.country or "")
-        sheet.cell(row=row_num, column=16, value=merchant.pincode or "")
-        sheet.cell(row=row_num, column=17, value=merchant.status or "")
-        sheet.cell(row=row_num, column=18, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
+        sheet.cell(row=row_num, column=1, value=row_num - 1)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=merchant.merchant_id or "")
+        sheet.cell(row=row_num, column=3, value=merchant.user_type or "")
+        sheet.cell(row=row_num, column=4, value=str(merchant.project_name) if merchant.project_name else "")
+        sheet.cell(row=row_num, column=5, value=merchant.first_name or "")
+        sheet.cell(row=row_num, column=6, value=merchant.last_name or "")
+        sheet.cell(row=row_num, column=7, value=merchant.email or "")
+        sheet.cell(row=row_num, column=8, value=merchant.mobile or "")
+        sheet.cell(row=row_num, column=9, value=merchant.aadhaar_number or "")
+        sheet.cell(row=row_num, column=10, value=merchant.gst_number or "")
+        sheet.cell(row=row_num, column=11, value=merchant.pan_number or "")
+        sheet.cell(row=row_num, column=12, value=merchant.shop_name or "")
+        sheet.cell(row=row_num, column=13, value=merchant.address or "")
+        sheet.cell(row=row_num, column=14, value=merchant.city or "")
+        sheet.cell(row=row_num, column=15, value=merchant.state or "")
+        sheet.cell(row=row_num, column=16, value=merchant.country or "")
+        sheet.cell(row=row_num, column=17, value=merchant.pincode or "")
+        sheet.cell(row=row_num, column=18, value=merchant.status or "")
+        sheet.cell(row=row_num, column=19, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
 
     # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
@@ -2734,8 +3003,65 @@ def export_disabled_merchants(request):
 
     return response
 
+from django.db.models import Sum
+
 def export_project_wise_balance(request):
-    return render(request, 'bopo_admin/Payment/reports.html') 
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Projects-Wise Balance"
+
+    # Add headers (now including Sr No.)
+    headers = [
+        "Sr No.", "Corporate ID", "Project Name", "First Name", "Last Name",
+        "Email", "Mobile", "Aadhaar Number", "GST Number", "PAN", "Shop Name",
+        "Address", "City", "State", "Country", "Pincode", "Created At", "Total Balance"
+    ]
+
+    for col_num, header in enumerate(headers, 1):
+        cell = sheet.cell(row=1, column=col_num)
+        cell.value = header
+        cell.font = Font(bold=True)
+
+    corporates = Corporate.objects.all()
+
+    for row_num, corporate in enumerate(corporates, 2):
+        # Get merchants under this corporate project
+        merchants = Merchant.objects.filter(project_name=corporate)
+        total_points = MerchantPoints.objects.filter(merchant__in=merchants).aggregate(total=Sum('points'))['total'] or 0
+
+        # Sr No.
+        sheet.cell(row=row_num, column=1, value=row_num - 1)
+
+        # Corporate Details
+        sheet.cell(row=row_num, column=2, value=corporate.corporate_id or "")
+        sheet.cell(row=row_num, column=3, value=corporate.project_name or "")
+        sheet.cell(row=row_num, column=4, value=corporate.first_name or "")
+        sheet.cell(row=row_num, column=5, value=corporate.last_name or "")
+        sheet.cell(row=row_num, column=6, value=corporate.email or "")
+        sheet.cell(row=row_num, column=7, value=corporate.mobile or "")
+        sheet.cell(row=row_num, column=8, value=corporate.aadhaar_number or "")
+        sheet.cell(row=row_num, column=9, value=corporate.gst_number or "")
+        sheet.cell(row=row_num, column=10, value=corporate.pan_number or "")
+        sheet.cell(row=row_num, column=11, value=corporate.shop_name or "")
+        sheet.cell(row=row_num, column=12, value=corporate.address or "")
+        sheet.cell(row=row_num, column=13, value=corporate.city or "")
+        sheet.cell(row=row_num, column=14, value=corporate.state or "")
+        sheet.cell(row=row_num, column=15, value=corporate.country or "")
+        sheet.cell(row=row_num, column=16, value=corporate.pincode or "")
+        sheet.cell(row=row_num, column=17, value=corporate.created_at.strftime("%Y-%m-%d %H:%M:%S") if corporate.created_at else "")
+        sheet.cell(row=row_num, column=18, value=total_points)
+
+    buffer = BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+
+    response = HttpResponse(
+        content=buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="Projects_Wise_Balance.xlsx"'
+
+    return response
 
 def export_merchant_wise_balance(request):
     # Create an Excel workbook and sheet
@@ -2743,10 +3069,10 @@ def export_merchant_wise_balance(request):
     sheet = workbook.active
     sheet.title = "Merchant-Wise Balance"
 
-    # Add headers to the sheet
+    # Add headers to the sheet (including Sr No.)
     headers = [
-        "Merchant ID", "Merchant Name", "Email", "Mobile", 
-        "Available Points", "Status", "Created At"
+        "Sr No.", "Merchant ID", "Merchant Name", "Email", "Mobile", 
+        "Available Balance", "Status", "Created At"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
@@ -2759,22 +3085,19 @@ def export_merchant_wise_balance(request):
         print("No merchant points found.")  # Debugging log
 
     # Add data to the Excel sheet
-    for row_num, merchant_point in enumerate(merchant_points, 2):
-        # total_points = getattr(merchant_point, "total_points", 0)
-        # used_points = getattr(merchant_point, "used_points", 0)
+    for index, merchant_point in enumerate(merchant_points, start=1):
+        row_num = index + 1  # Excel row (start from 2)
         available_points = merchant_point.points
-
         merchant = merchant_point.merchant
-        sheet.cell(row=row_num, column=1, value=merchant.merchant_id or "")
-        sheet.cell(row=row_num, column=2, value=f"{merchant.first_name} {merchant.last_name}" or "")
-        sheet.cell(row=row_num, column=3, value=merchant.email or "")
-        sheet.cell(row=row_num, column=4, value=merchant.mobile or "")
-        # sheet.cell(row=row_num, column=5, value=merchant.project_name or "")
-        # sheet.cell(row=row_num, column=6, value=total_points)
-        # sheet.cell(row=row_num, column=7, value=used_points)
-        sheet.cell(row=row_num, column=5, value=available_points)
-        sheet.cell(row=row_num, column=6, value=merchant.status or "")
-        sheet.cell(row=row_num, column=7, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
+
+        sheet.cell(row=row_num, column=1, value=index)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=merchant.merchant_id or "")
+        sheet.cell(row=row_num, column=3, value=f"{merchant.first_name} {merchant.last_name}" or "")
+        sheet.cell(row=row_num, column=4, value=merchant.email or "")
+        sheet.cell(row=row_num, column=5, value=merchant.mobile or "")
+        sheet.cell(row=row_num, column=6, value=available_points)
+        sheet.cell(row=row_num, column=7, value=merchant.status or "")
+        sheet.cell(row=row_num, column=8, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
 
     # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
@@ -2791,46 +3114,97 @@ def export_merchant_wise_balance(request):
     return response
 
 
+
+# def export_customer_wise_balance(request):
+#     # Create an Excel workbook and sheet
+#     workbook = openpyxl.Workbook()
+#     sheet = workbook.active
+#     sheet.title = "Customer-Wise Balance"
+
+#     # Add headers to the sheet
+#     headers = [
+#         "Customer ID", "Customer Name", "Email", "Mobile", 
+#         "Available Balance", "Created At"
+#     ]
+#     for col_num, header in enumerate(headers, 1):
+#         cell = sheet.cell(row=1, column=col_num)
+#         cell.value = header
+#         cell.font = Font(bold=True)
+
+#     # Fetch data from the CustomerPoints table
+#     customer_points = CustomerPoints.objects.select_related('customer').all()
+#     if not customer_points.exists():
+#         print("No customer points found.")  # Debugging log
+
+#     # Add data to the Excel sheet
+#     for row_num, customer_point in enumerate(customer_points, 2):
+#         available_points = customer_point.points
+
+#         customer = customer_point.customer
+#         sheet.cell(row=row_num, column=1, value=customer.customer_id or "")
+#         sheet.cell(row=row_num, column=2, value=f"{customer.first_name} {customer.last_name}" or "")
+#         sheet.cell(row=row_num, column=3, value=customer.email or "")
+#         sheet.cell(row=row_num, column=4, value=customer.mobile or "")
+#         sheet.cell(row=row_num, column=5, value=available_points)
+#         # sheet.cell(row=row_num, column=6, value=customer.status or "")
+#         sheet.cell(row=row_num, column=7, value=customer.created_at.strftime("%Y-%m-%d %H:%M:%S") if customer.created_at else "")
+
+#     # Save the workbook to a BytesIO buffer
+#     buffer = BytesIO()
+#     workbook.save(buffer)
+#     buffer.seek(0)
+
+#     # Set the response to download the file
+#     response = HttpResponse(
+#         content=buffer,
+#         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+#     )
+#     response["Content-Disposition"] = 'attachment; filename="Customer_wise_Balance.xlsx"'
+
+#     return response
+
 def export_customer_wise_balance(request):
-    # Create an Excel workbook and sheet
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     sheet.title = "Customer-Wise Balance"
 
-    # Add headers to the sheet
+    # Add headers (including Sr No.)
     headers = [
-        "Customer ID", "Customer Name", "Email", "Mobile", 
-        "Available Points", "Created At"
+        "Sr No.", "Customer ID", "Customer Name", "Email", "Mobile",
+        "Available Balance", "Created At"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
         cell.value = header
         cell.font = Font(bold=True)
 
-    # Fetch data from the CustomerPoints table
-    customer_points = CustomerPoints.objects.select_related('customer').all()
-    if not customer_points.exists():
-        print("No customer points found.")  # Debugging log
+    customer_points = (
+        CustomerPoints.objects
+        .values(
+            'customer__customer_id',
+            'customer__first_name',
+            'customer__last_name',
+            'customer__email',
+            'customer__mobile',
+            'customer__created_at'
+        )
+        .annotate(total_points=Sum('points'))
+    )
 
-    # Add data to the Excel sheet
-    for row_num, customer_point in enumerate(customer_points, 2):
-        available_points = customer_point.points
+    for index, cp in enumerate(customer_points, start=1):
+        row_num = index + 1
+        sheet.cell(row=row_num, column=1, value=index)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=cp['customer__customer_id'] or "")
+        sheet.cell(row=row_num, column=3, value=f"{cp['customer__first_name']} {cp['customer__last_name']}" or "")
+        sheet.cell(row=row_num, column=4, value=cp['customer__email'] or "")
+        sheet.cell(row=row_num, column=5, value=cp['customer__mobile'] or "")
+        sheet.cell(row=row_num, column=6, value=cp['total_points'] or 0)
+        sheet.cell(row=row_num, column=7, value=cp['customer__created_at'].strftime("%Y-%m-%d %H:%M:%S") if cp['customer__created_at'] else "")
 
-        customer = customer_point.customer
-        sheet.cell(row=row_num, column=1, value=customer.customer_id or "")
-        sheet.cell(row=row_num, column=2, value=f"{customer.first_name} {customer.last_name}" or "")
-        sheet.cell(row=row_num, column=3, value=customer.email or "")
-        sheet.cell(row=row_num, column=4, value=customer.mobile or "")
-        sheet.cell(row=row_num, column=5, value=available_points)
-        # sheet.cell(row=row_num, column=6, value=customer.status or "")
-        sheet.cell(row=row_num, column=7, value=customer.created_at.strftime("%Y-%m-%d %H:%M:%S") if customer.created_at else "")
-
-    # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
     workbook.save(buffer)
     buffer.seek(0)
 
-    # Set the response to download the file
     response = HttpResponse(
         content=buffer,
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -2840,47 +3214,42 @@ def export_customer_wise_balance(request):
     return response
 
 
-    
 def export_customer_transaction(request):
-    # Create an Excel workbook and sheet
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     sheet.title = "Customer Transaction History"
 
-    # Add headers to the sheet
+    # Add headers (including Sr No.)
     headers = [
-        "Customer ID", "Customer Name", "Email", "Mobile", 
-        "Transaction Type", "Points"
+        "Sr No.", "Customer ID", "Customer Name", "Email", "Mobile", 
+        "Transaction Type", "Points", "Transaction Date & Time"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
         cell.value = header
         cell.font = Font(bold=True)
 
-    # Fetch data from the History table
     transactions = History.objects.select_related('customer').all()
-    if not transactions.exists():
-        print("No transaction history found.")  # Debugging log
 
-    # Add data to the Excel sheet
-    for row_num, transaction in enumerate(transactions, 2):
+    for index, transaction in enumerate(transactions, start=1):
+        row_num = index + 1
         customer = transaction.customer
-        # sheet.cell(row=row_num, column=1, value=transaction.id or "")
-        sheet.cell(row=row_num, column=1, value=customer.customer_id or "")
-        sheet.cell(row=row_num, column=2, value=f"{customer.first_name} {customer.last_name}" or "")
-        sheet.cell(row=row_num, column=3, value=customer.email or "")
-        sheet.cell(row=row_num, column=4, value=customer.mobile or "")
-        sheet.cell(row=row_num, column=5, value=transaction.transaction_type or "")
-        sheet.cell(row=row_num, column=6, value=transaction.points or 0)
-        # sheet.cell(row=row_num, column=8, value=transaction.transaction_date.strftime("%Y-%m-%d %H:%M:%S") if transaction.transaction_date else "")
-        # sheet.cell(row=row_num, column=9, value=transaction.description or "")
+        sheet.cell(row=row_num, column=1, value=index)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=customer.customer_id if customer else "")
+        sheet.cell(row=row_num, column=3, value=f"{customer.first_name} {customer.last_name}" if customer else "")
+        sheet.cell(row=row_num, column=4, value=customer.email if customer else "")
+        sheet.cell(row=row_num, column=5, value=customer.mobile if customer else "")
+        sheet.cell(row=row_num, column=6, value=transaction.transaction_type or "")
+        sheet.cell(row=row_num, column=7, value=transaction.points or 0)
+        sheet.cell(
+            row=row_num, column=8,
+            value=transaction.created_at.strftime("%Y-%m-%d %H:%M:%S") if transaction.created_at else ""
+        )
 
-    # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
     workbook.save(buffer)
     buffer.seek(0)
 
-    # Set the response to download the file
     response = HttpResponse(
         content=buffer,
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -2890,7 +3259,57 @@ def export_customer_transaction(request):
     return response
 
 def export_payment_dues(request):
-    return render(request, 'bopo_admin/Payment/reports.html') 
+    today = date.today()
+    seven_days_ago = today - timedelta(days=7)
+
+    # Filter PaymentDetails with expiry_date in the last 7 days
+    dues = PaymentDetails.objects.filter(expiry_date__range=(seven_days_ago, today)).select_related('merchant')
+
+    # Create Excel workbook
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Payment Dues - Last 7 Days"
+
+    # Headers (added Sr No.)
+    headers = [
+        "Sr No.", "Merchant ID", "Merchant Name", "Mobile", "Email", 
+        "Plan Type", "Payment Mode", "Paid Amount", "Validity (days)", "Expiry Date"
+    ]
+    for col_num, header in enumerate(headers, 1):
+        cell = sheet.cell(row=1, column=col_num)
+        cell.value = header
+        cell.font = Font(bold=True)
+
+    # Fill data (start serial number from 1)
+    for index, due in enumerate(dues, start=1):
+        row_num = index + 1
+        merchant = due.merchant
+        sheet.cell(row=row_num, column=1, value=index)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=merchant.merchant_id or "")
+        sheet.cell(
+            row=row_num, column=3,
+            value=f"{merchant.first_name} {merchant.last_name}" if hasattr(merchant, 'first_name') and hasattr(merchant, 'last_name') else ""
+        )
+        sheet.cell(row=row_num, column=4, value=merchant.mobile if hasattr(merchant, 'mobile') else "")
+        sheet.cell(row=row_num, column=5, value=merchant.email if hasattr(merchant, 'email') else "")
+        sheet.cell(row=row_num, column=6, value=due.plan_type)
+        sheet.cell(row=row_num, column=7, value=due.payment_mode)
+        sheet.cell(row=row_num, column=8, value=due.paid_amount)
+        sheet.cell(row=row_num, column=9, value=due.validity_days)
+        sheet.cell(row=row_num, column=10, value=due.expiry_date.strftime("%Y-%m-%d") if due.expiry_date else "")
+
+    # Return Excel as response
+    buffer = BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+
+    response = HttpResponse(
+        content=buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="Merchant_Payment_Dues.xlsx"'
+    return response
+
 
 def export_award_transaction(request):
     from openpyxl import Workbook
@@ -3718,3 +4137,20 @@ def send_customer_credentials(request):
     return render(request, 'bopo_admin/Customer/send_customer_credentials.html', {
         'customers': customers
     })
+    
+    
+    
+    
+def get_individual_merchants(request):
+    merchants = Merchant.objects.filter(user_type='individual')
+    data = {
+        "merchants": [
+            {
+                "merchant_id": m.merchant_id,
+                "first_name": m.first_name,
+                "last_name": m.last_name,
+            }
+            for m in merchants
+        ]
+    }
+    return JsonResponse(data)

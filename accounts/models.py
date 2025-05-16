@@ -147,7 +147,8 @@ class Merchant(models.Model):
     corporate_id = models.CharField(max_length=20, null=True, blank=True)  # Add this field
     project_name = models.ForeignKey(Corporate, on_delete=models.SET_NULL, null=True)
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
-
+    
+    unread_notification = models.IntegerField(default=0)  # New field added
   
     def save(self, *args, **kwargs):
         if self.security_question:
@@ -209,6 +210,8 @@ class Customer(models.Model):
     verified_at = models.DateTimeField(null=True, blank=True) 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='customer')
+    
+    unread_notification = models.IntegerField(default=0)  # New field added
 
     def save(self, *args, **kwargs):
         # Generate customer ID if not already set

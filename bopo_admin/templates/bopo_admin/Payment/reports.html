@@ -67,11 +67,12 @@
             </div>
             <p>Balance Tables</p>
             <p class="description">This report contains project-wise balance tables.</p>
-            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
-                <button class="download-btn" window.href="{% url 'export_project_wise_balance' %}">
-                    <i class="fas fa-download"></i> Download
-                </button>
-            </a>
+            <a href="{% url 'export_project_wise_balance' %}">
+    <button class="download-btn">
+        <i class="fas fa-download"></i> Download
+    </button>
+</a>
+
         </div>
 
         <!-- Merchant-Wise Balance Table -->
@@ -127,15 +128,16 @@
             </div>
             <p>Last 7 Days</p>
             <p class="description">This report contains merchant details whose due date is in the last 7 days.</p>
-            <a href="{% static 'bopo_admin/css/reports/dummy_report.xlsx' %}" download>
-                <button class="download-btn" window.href="{% url 'export_payment_dues' %}">
+           <a href="{% url 'export_payment_dues' %}">
+                <button class="download-btn">
                     <i class="fas fa-download"></i> Download
                 </button>
             </a>
+
         </div>
 
         <!-- Award Transactions -->
-        <div class="report-card">
+        {% comment %} <div class="report-card">
             <div class="card-header">
                 <i class="fas fa-gift icon"></i>
                 <h3>Award Transactions</h3>
@@ -147,10 +149,10 @@
                     <i class="fas fa-download"></i> Download
                 </button>
             </a>
-        </div>
+        </div> {% endcomment %}
 
         <!-- Corporate Merchant ReCon Report -->
-        <div class="report-card">
+        {% comment %} <div class="report-card">
             <div class="card-header">
                 <i class="fas fa-sync-alt icon"></i>
                 <h3>Corporate Merchant ReCon</h3>
@@ -162,7 +164,7 @@
                     <i class="fas fa-download"></i> Download
                 </button>
             </a>
-        </div>
+        </div> {% endcomment %}
 
     </div>
 </div>

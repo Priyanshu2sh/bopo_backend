@@ -48,13 +48,22 @@
                                     <td>{{ forloop.counter }}</td>
                                     {% comment %} <td>{{ data.corporate.project_id }}</td> {% endcomment %}
                                      <td>{{ data.corporate.corporate_id }}</td>
-                                     <td>-</td>
+                                     <td>Admin</td>
                                     <td>{{ data.corporate.first_name }} {{ data.corporate.last_name }}</td>
                                     <td>{{ data.corporate.mobile }}</td>
                                     <td>{{ data.corporate.shop_name }}</td>
                                     <td>{{ data.corporate.city }}</td>
-                                    <td><label class="switch"><input type="checkbox" {% if data.corporate.verified_at %}checked{% endif %} data-id="{{ data.corporate.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
+                                        <label class="switch">
+                                            <input type="checkbox"
+                                            {% if data.corporate.status == "Active" %}checked{% endif %}
+                                            data-id="{{ data.corporate.corporate_id }}" 
+                                            data-type="corporate"
+                                            class="status-toggle">
+                                            <span class="slider round"></span>
+                                        </label>
+                                        </td>                       
+                                        <td>
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ data.corporate.corporate_id }}', 'corporate')">✏️ Edit</button>
                                       {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑️ Delete</button>  {% endcomment %}
                                     </td>
@@ -68,9 +77,18 @@
                                     <td>{{ merchant.mobile }}</td>
                                     <td>{{ merchant.shop_name }}</td>
                                     <td>{{ merchant.city }}</td>
-                                    <td><label class="switch"><input type="checkbox" {% if merchant.verified_at %}checked{% endif %} data-id="{{ merchant.id }}" class="verify-toggle"><span class="slider round"></span></label></td>
                                     <td>
-                                        <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal({{ merchant.id }}, 'merchant')">✏️ Edit</button>
+                                    <label class="switch">
+                                        <input type="checkbox"
+                                        {% if merchant.status == "Active" %}checked{% endif %}
+                                        data-id="{{ merchant.merchant_id }}" 
+                                        data-type="merchant"
+                                        class="status-toggle">
+                                        <span class="slider round"></span>
+                                    </label>
+                                    </td>                
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ merchant.id }}', 'merchant')">✏️ Edit</button>
                                         {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button>  {% endcomment %}
                                     </td>
                                 </tr>
@@ -97,20 +115,6 @@
             <input type="hidden" name="corporate_id" id="edit_corporate_id">
             <input type="hidden" name="merchant_id" id="edit_merchant_id">
 
-          
-           <!-- Select Project Dropdown (Hidden Initially) -->
-           {% comment %} <div id="select-project-container" class="hidden">
-            <label for="select_project">Select Project:</label>
-            <div class="addmerchant-input-container">
-                <select id="edit_select_project" name="select_project">
-                    <option value="">Select a project</option>
-                    {% for corporate in corporates %}
-                        <option value="{{ corporate.id }}">{{ corporate.project_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div> {% endcomment %}
-
             <!-- Project Name Input Field (Initially Hidden) -->
             <div id="project-name-container" class="hidden">
                 <label for="project_name">Project Name:</label>
@@ -126,7 +130,7 @@
                     <label>First Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="first_name" id='edit_first_name' required>
+                        <input type="text" name="first_name" id='edit_first_name' disabled>
                     </div>
                     <label>Email ID</label>
                     <div class="addmerchant-input-container">
@@ -136,22 +140,29 @@
                     <label>Aadhaar Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar_number" id ="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
+                        <input type="text" name="aadhaar_number" id ="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" disabled>
                     </div>
                     <label>Shop Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-store"></i>
-                        <input type="text" name="shop_name" id="edit_shop_name" required>
+                        <input type="text" name="shop_name" id="edit_shop_name" disabled>
                     </div>
                     <label>Address</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-map-marker-alt"></i>
-                        <input type="text" name="address" id="edit_address" required>
+                        <input type="text" name="address" id="edit_address" disabled>
                     </div>
-                    <label>Select State</label>
-                        <select id="edit_state" name="state" class="select2"  onchange="fetchCities()">
-                             <option value="">Select State</option>
-                        </select>
+                     <label>State</label>
+                        <div class="addmerchant-input-container">
+                                <i class="fas fa-map"></i>
+                                <input type="text" name="state" id="edit_state" disabled>
+                        </div>
+
+                             <label>City</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-city"></i>
+                        <input type="text" name="city" id="edit_city" disabled>
+                    </div>
                                 
                     <label>Country</label>
                     <div class="addmerchant-input-container">
@@ -164,17 +175,23 @@
                     <label>Last Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="last_name" id ="edit_last_name" required>
+                        <input type="text" name="last_name" id ="edit_last_name" disabled>
                     </div>
                     <label>Mobile Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-mobile-alt"></i>
                         <input type="text" name="mobile" id="edit_mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
                     </div>
+                    <label>Pin</label>
+                        <div class="addmerchant-input-container">
+                            <i class="fas fa-thumbtack"></i>
+                            <input type="text" name="pin" id="edit_pin" disabled>
+                        </div>
+
                     <label>GST Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-file-invoice"></i>
-                        <input type="text" name="gst_number" id="edit_gst_number" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" required>
+                        <input type="text" name="gst_number" id="edit_gst_number" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" disabled>
                     </div>
                     <div id="gst_error" style="display: none; margin-top: 10px;">
                         <div style="background-color: #ffe6e6; border: 1px solid #ff4d4d; color: #d8000c; padding: 10px; border-radius: 5px; font-size: 14px; display: flex; align-items: center;">
@@ -186,26 +203,22 @@
                     <label>Pan Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" required>
+                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" disabled>
                     </div>
                     <label>Legal Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-building"></i>
-                        <input type="text" name="legal_name" id="edit_legal_name" required>
+                        <input type="text" name="legal_name" id="edit_legal_name" disabled>
                     </div>
 
-                    <label>Select City</label>
-                        <select id="edit_city" name="city" class="select2">
-                             <option value="">Select City</option>
-                        </select>
-
-                    <label>Pincode</label>
+                      <label>Pincode</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-home"></i>
-                        <input type="text" name="pincode" id="edit_pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" required>
+                        <input type="text" name="pincode" id="edit_pincode" disabled>
+
                     </div>
                 </div>
-            </div>
+            </div><br>
 
             <button type="submit" class="addmerchant-btn-submit">Submit</button>
         </form>
@@ -231,168 +244,199 @@
 
 <script>
 
+    // Create toast container if it doesn't exist
+if (!document.getElementById('toast-container')) {
+  const container = document.createElement('div');
+  container.id = 'toast-container';
+  document.body.appendChild(container);
+}
 
-    function openEditCorporateModal(id, type = 'corporate') {
-        // Dynamically set the URL based on the type (corporate or merchant)
-        const url = type === 'merchant'
-            ?` /get-copmerchant/${id}/`
-            : `/get-corporate/${id}/`;
-    
-        // Log the URL for debugging purposes
-        console.log("Fetching URL: ", url);
-    
-        // Fetch the data from the server
-        fetch(url)
-            .then(res => res.json())
-            .then(data => {
-                console.log("Fetched Data:", data);
-    
-                // Check if the response contains an error
-                if (data.error) {
-                    showToast(data.error);
-                    return;
-                }
-    
-                // Set modal title dynamically based on type
-                const modalTitle = type === 'merchant' ? "Edit Merchant" : "Edit Corporate";
-                const modalTitleElement = document.getElementById('modalTitle');
-                if (modalTitleElement) {
-                    modalTitleElement.textContent = modalTitle;
-                } else {
-                    console.error("Modal title element not found!");
-                }
-    
-                // Pre-fill the form fields
-                const idField = type === 'merchant' ? 'merchant_id' : 'corporate_id';
-                document.getElementById`(edit_${idField}).value = type === 'merchant' `? data.merchant_id : data.corporate_id;
-                document.getElementById('edit_first_name').value = data.first_name || '';
-                document.getElementById('edit_last_name').value = data.last_name || '';
-                document.getElementById('edit_email').value = data.email || '';
-                document.getElementById('edit_mobile').value = data.mobile || '';
-                document.getElementById('edit_address').value = data.address || '';
-                document.getElementById('edit_shop_name').value = data.shop_name || '';
-                document.getElementById('edit_aadhaar_number').value = data.aadhaar_number || '';
-                document.getElementById('edit_gst_number').value = data.gst_number || '';
-                document.getElementById('edit_pan').value = data.pan_number || '';
-                document.getElementById('edit_legal_name').value = data.legal_name || '';
-                document.getElementById('edit_pincode').value = data.pincode || '';
-                document.getElementById('edit_project_name').value = data.project_name || '';
-    
-                // Populate states dropdown
-                const stateSelect = document.getElementById("edit_state");
-                stateSelect.innerHTML = <option value="">Select State</option>;
-                if (data.states) {
-                    data.states.forEach(state => {
-                        const option = document.createElement("option");
-                        option.value = state.id;
-                        option.textContent = state.name;
-                        if (state.name === data.state) option.selected = true;
-                        stateSelect.appendChild(option);
-                    });
-                }
-    
-                // Populate cities dropdown
-                const citySelect = document.getElementById("edit_city");
-                citySelect.innerHTML = <option value="">Select City</option>;
-                if (data.cities) {
-                    data.cities.forEach(city => {
-                        const option = document.createElement("option");
-                        option.value = city.id;
-                        option.textContent = city.name;
-                        if (city.name === data.city) option.selected = true;
-                        citySelect.appendChild(option);
-                    });
-                }
-    
-                // Open the modal
-                document.getElementById("editCorporateModal").style.display = "block";
-            })
-            .catch(error => {
-                console.error("Error loading data:", error);
-                showToast("Error loading data, please try again.");
-            });
-    }
-    
-    // Function to close the modal
-    function closeEditModal() {
-        const modal = document.getElementById('editCorporateModal');
-        if (modal) {
-            modal.style.display = 'none';
-        }
-    }
-    
-    // Close modal when clicked outside
-    window.onclick = function(event) {
-        let modal = document.getElementById("editCorporateModal");
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    };
-    
-    // Function to show a toast message (optional)
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.classList.add('toast');
-        toast.innerText = message;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            toast.remove();
-        }, 3000); // Remove toast after 3 seconds
-    }
+function showToast(message, type = 'success', duration = 3000) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.classList.add('toast', type);
+  toast.textContent = message;
+  
+  container.appendChild(toast);
+  
+  // Remove toast after duration
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      container.removeChild(toast);
+    }, 300);
+  }, duration);
+}
 
-    $('#editCorporateForm').submit(function(e) {
-        e.preventDefault();  // Stop the default form submission
-    
-        let formData = new FormData(this);
-        const corporateId = formData.get('corporate_id');
-        const merchantId = formData.get('merchant_id');
-    
-        let formType = '';
-        let url = '';
-    
-        if (merchantId) {
-            formType = 'merchant';
-            url = '/bopo_admin/update-copmerchant/';
-        } else if (corporateId) {
-            formType = 'corporate';
-            url = '/bopo_admin/update-corporate/';
-        } else {
-            showToast('Unknown form type.', 'error');
-            return;
-        }
-    
-        $.ajax({
-            url: url,
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                "X-CSRFToken": getCookie('csrftoken') // Add CSRF token to headers
-            },
-            success: function(response) {
-                if (response.success) {
-                    showToast(`${formType.charAt(0).toUpperCase() + formType.slice(1)} updated successfully.`, 'success');
-                    setTimeout(() => {
-                        closeEditModal();
-                        location.reload(); 
-                    }, 1000);
-    
-                    if (formType === 'merchant' && typeof updateMerchantInList === 'function') {
-                        updateMerchantInList(response.updatedMerchant);
-                    } else if (formType === 'corporate' && typeof updateCorporateInList === 'function') {
-                        updateCorporateInList(response.updatedCorporate);
-                    }
-                } else {
-                    showToast(response.error || 'Update failed.', 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Error:", error);
-                showToast(`An error occurred while updating the ${formType}.`, 'error');
-            }
-        });
+
+document.querySelectorAll('.status-toggle').forEach(toggle => {
+  toggle.addEventListener('change', function () {
+    const id = this.getAttribute('data-id');       
+    const type = this.getAttribute('data-type');   
+    const isActive = this.checked;
+
+    const url = `/toggle-status/${type}/${id}/`;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify({ is_active: isActive })
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        showToast(`Status updated successfully to "${data.status}"`, 'success');
+      } else {
+        showToast('Failed to update status: ' + (data.error || 'Unknown error'), 'error');
+        this.checked = !isActive;  // revert toggle
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showToast('Something went wrong', 'error');
+      this.checked = !isActive;    // revert toggle
     });
+  });
+});
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+
+function openEditCorporateModal(id, type = 'corporate') {
+    const url = type === 'merchant' ? `/get-copmerchant/${id}/` : `/get-corporate/${id}/`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                showToast(data.error);
+                return;
+            }
+
+            const modalTitle = type === 'merchant' ? "Edit Merchant" : "Edit Corporate";
+            document.getElementById('modalTitle').textContent = modalTitle;
+
+            document.getElementById('edit_corporate_id').value = type === 'corporate' ? data.corporate_id : '';
+            document.getElementById('edit_merchant_id').value = type === 'merchant' ? data.merchant_id : '';
+
+            document.getElementById('edit_first_name').value = data.first_name || '';
+            document.getElementById('edit_last_name').value = data.last_name || '';
+            document.getElementById('edit_email').value = data.email || '';
+            document.getElementById('edit_mobile').value = data.mobile || '';
+            document.getElementById('edit_address').value = data.address || '';
+            document.getElementById('edit_shop_name').value = data.shop_name || '';
+            document.getElementById('edit_aadhaar_number').value = data.aadhaar_number || '';
+            document.getElementById('edit_gst_number').value = data.gst_number || '';
+            document.getElementById('edit_pan').value = data.pan_number || '';
+             document.getElementById('edit_pin').value = data.pin || '';
+            document.getElementById('edit_legal_name').value = data.legal_name || '';
+            document.getElementById('edit_pincode').value = data.pincode || '';
+            document.getElementById('edit_project_name').value = data.project_name || '';
+
+            // Set prefilled state and city (not as dropdowns)
+            document.getElementById("edit_state").value = data.state || '';
+            document.getElementById("edit_city").value = data.city || '';
+
+            console.log("Pincode value being sent:", document.getElementById('edit_pincode').value);
+
+            
+
+            // Show the modal
+            document.getElementById("editCorporateModal").style.display = "block";
+        })
+        .catch(error => {
+            console.error("Error loading data:", error);
+            showToast("Error loading data, please try again.");
+        });
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editCorporateModal');
+    if (modal) modal.style.display = 'none';
+}
+
+window.onclick = function (event) {
+    let modal = document.getElementById("editCorporateModal");
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+};
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.classList.add('toast');
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// ✅ Submit form using AJAX
+$('#editCorporateForm').submit(function (e) {
+    e.preventDefault();
+
+    let formData = new FormData(this);
+    const corporateId = formData.get('corporate_id');
+    const merchantId = formData.get('merchant_id');
+
+    let url = '';
+    let formType = '';
+
+    if (merchantId) {
+        formType = 'merchant';
+        url = `/update-copmerchant/${merchantId}/`;
+    } else if (corporateId) {
+        formType = 'corporate';
+        url = `/update-corporate/${corporateId}/`;
+    }
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        },
+        body: formData
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(`${formType.charAt(0).toUpperCase() + formType.slice(1)} updated successfully`);
+                closeEditModal();
+                setTimeout(() => {
+                    location.reload(); // Refresh to reflect changes
+                }, 1000);
+            } else {
+                showToast(data.error || "Update failed");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast("An error occurred during update");
+        });
+});
+
+   
     
     function getCookie(name) {
         var cookieValue = null;
