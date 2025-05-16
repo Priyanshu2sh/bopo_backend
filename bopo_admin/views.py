@@ -2671,17 +2671,184 @@ def update_profile(request):
 #         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
 
 #     return render(request, 'bopo_admin/login.html')
-
-from django.db.models import Sum
-
 def export_projects(request):
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     sheet.title = "Corporate Projects"
 
-    # Add headers (now including Total Points)
+    # Add "Sr No." as the first column
     headers = [
-        "Corporate ID", "Project Name", "First Name", "Last Name",
+        "Sr No.", "Corporate ID", "Project Name", "First Name", "Last Name",
+        "Email", "Mobile", "Aadhaar Number", "GST Number", "PAN", "Shop Name",
+        "Address", "City", "State", "Country", "Pincode", "Created At"
+    ]
+
+    for col_num, header in enumerate(headers, 1):
+        cell = sheet.cell(row=1, column=col_num)
+        cell.value = header
+        cell.font = Font(bold=True)
+
+    corporates = Corporate.objects.all()
+
+    for row_num, corporate in enumerate(corporates, 2):
+        # Sr No.
+        sheet.cell(row=row_num, column=1, value=row_num - 1)
+        
+        # Data columns shifted by 1
+        sheet.cell(row=row_num, column=2, value=corporate.corporate_id or "")
+        sheet.cell(row=row_num, column=3, value=corporate.project_name or "")
+        sheet.cell(row=row_num, column=4, value=corporate.first_name or "")
+        sheet.cell(row=row_num, column=5, value=corporate.last_name or "")
+        sheet.cell(row=row_num, column=6, value=corporate.email or "")
+        sheet.cell(row=row_num, column=7, value=corporate.mobile or "")
+        sheet.cell(row=row_num, column=8, value=corporate.aadhaar_number or "")
+        sheet.cell(row=row_num, column=9, value=corporate.gst_number or "")
+        sheet.cell(row=row_num, column=10, value=corporate.pan_number or "")
+        sheet.cell(row=row_num, column=11, value=corporate.shop_name or "")
+        sheet.cell(row=row_num, column=12, value=corporate.address or "")
+        sheet.cell(row=row_num, column=13, value=corporate.city or "")
+        sheet.cell(row=row_num, column=14, value=corporate.state or "")
+        sheet.cell(row=row_num, column=15, value=corporate.country or "")
+        sheet.cell(row=row_num, column=16, value=corporate.pincode or "")
+        sheet.cell(row=row_num, column=17, value=corporate.created_at.strftime("%Y-%m-%d %H:%M:%S") if corporate.created_at else "")
+
+    buffer = BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+
+    response = HttpResponse(
+        content=buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="Corporate_Projects.xlsx"'
+
+    return response
+
+def export_merchants(request):
+    # Create an Excel workbook and sheet
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Merchant Details"
+
+    # Add headers to the sheet, including "Sr No."
+    headers = [
+        "Sr No.", "Merchant ID", "User Type", "Project Name", "First Name", "Last Name",
+        "Email", "Mobile", "Aadhaar", "GST Number", "PAN", "Shop Name",
+        "Address", "City", "State", "Country", "Pincode", "Created At"
+    ]
+    for col_num, header in enumerate(headers, 1):
+        cell = sheet.cell(row=1, column=col_num)
+        cell.value = header
+        cell.font = Font(bold=True)
+
+    # Fetch data from the Merchant table
+    merchants = Merchant.objects.all()
+    if not merchants.exists():
+        print("No data found in the Merchant table.")  # Debugging log
+
+    # Add data to the Excel sheet
+    for row_num, merchant in enumerate(merchants, 2):
+        sheet.cell(row=row_num, column=1, value=row_num - 1)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=merchant.merchant_id or "")
+        sheet.cell(row=row_num, column=3, value=merchant.user_type or "")
+        sheet.cell(row=row_num, column=4, value=str(merchant.project_name) if merchant.project_name else "")
+        sheet.cell(row=row_num, column=5, value=merchant.first_name or "")
+        sheet.cell(row=row_num, column=6, value=merchant.last_name or "")
+        sheet.cell(row=row_num, column=7, value=merchant.email or "")
+        sheet.cell(row=row_num, column=8, value=merchant.mobile or "")
+        sheet.cell(row=row_num, column=9, value=merchant.aadhaar_number or "")
+        sheet.cell(row=row_num, column=10, value=merchant.gst_number or "")
+        sheet.cell(row=row_num, column=11, value=merchant.pan_number or "")
+        sheet.cell(row=row_num, column=12, value=merchant.shop_name or "")
+        sheet.cell(row=row_num, column=13, value=merchant.address or "")
+        sheet.cell(row=row_num, column=14, value=merchant.city or "")
+        sheet.cell(row=row_num, column=15, value=merchant.state or "")
+        sheet.cell(row=row_num, column=16, value=merchant.country or "")
+        sheet.cell(row=row_num, column=17, value=merchant.pincode or "")
+        sheet.cell(row=row_num, column=18, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
+
+    # Save the workbook to a BytesIO buffer
+    buffer = BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+
+    # Set the response to download the file
+    response = HttpResponse(
+        content=buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="Merchants_Projects.xlsx"'
+
+    return response
+
+def export_disabled_merchants(request):
+    # Create an Excel workbook and sheet
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Disabled Merchants"
+
+    # Add headers to the sheet, including "Sr No."
+    headers = [
+        "Sr No.", "Merchant ID", "User Type", "Project Name", "First Name", "Last Name",
+        "Email", "Mobile", "Aadhaar", "GST Number", "PAN", "Shop Name",
+        "Address", "City", "State", "Country", "Pincode", "Status", "Created At"
+    ]
+    for col_num, header in enumerate(headers, 1):
+        cell = sheet.cell(row=1, column=col_num)
+        cell.value = header
+        cell.font = Font(bold=True)
+
+    # Fetch data for merchants with status "Inactive"
+    disabled_merchants = Merchant.objects.filter(status="Inactive")
+    if not disabled_merchants.exists():
+        print("No disabled merchants found.")  # Debugging log
+
+    # Add data to the Excel sheet
+    for row_num, merchant in enumerate(disabled_merchants, 2):
+        sheet.cell(row=row_num, column=1, value=row_num - 1)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=merchant.merchant_id or "")
+        sheet.cell(row=row_num, column=3, value=merchant.user_type or "")
+        sheet.cell(row=row_num, column=4, value=str(merchant.project_name) if merchant.project_name else "")
+        sheet.cell(row=row_num, column=5, value=merchant.first_name or "")
+        sheet.cell(row=row_num, column=6, value=merchant.last_name or "")
+        sheet.cell(row=row_num, column=7, value=merchant.email or "")
+        sheet.cell(row=row_num, column=8, value=merchant.mobile or "")
+        sheet.cell(row=row_num, column=9, value=merchant.aadhaar_number or "")
+        sheet.cell(row=row_num, column=10, value=merchant.gst_number or "")
+        sheet.cell(row=row_num, column=11, value=merchant.pan_number or "")
+        sheet.cell(row=row_num, column=12, value=merchant.shop_name or "")
+        sheet.cell(row=row_num, column=13, value=merchant.address or "")
+        sheet.cell(row=row_num, column=14, value=merchant.city or "")
+        sheet.cell(row=row_num, column=15, value=merchant.state or "")
+        sheet.cell(row=row_num, column=16, value=merchant.country or "")
+        sheet.cell(row=row_num, column=17, value=merchant.pincode or "")
+        sheet.cell(row=row_num, column=18, value=merchant.status or "")
+        sheet.cell(row=row_num, column=19, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
+
+    # Save the workbook to a BytesIO buffer
+    buffer = BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+
+    # Set the response to download the file
+    response = HttpResponse(
+        content=buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="Disabled_Merchants.xlsx"'
+
+    return response
+
+from django.db.models import Sum
+
+def export_project_wise_balance(request):
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Projects-Wise Balance"
+
+    # Add headers (now including Sr No.)
+    headers = [
+        "Sr No.", "Corporate ID", "Project Name", "First Name", "Last Name",
         "Email", "Mobile", "Aadhaar Number", "GST Number", "PAN", "Shop Name",
         "Address", "City", "State", "Country", "Pincode", "Created At", "Total Balance"
     ]
@@ -2698,24 +2865,27 @@ def export_projects(request):
         merchants = Merchant.objects.filter(project_name=corporate)
         total_points = MerchantPoints.objects.filter(merchant__in=merchants).aggregate(total=Sum('points'))['total'] or 0
 
-        sheet.cell(row=row_num, column=1, value=corporate.corporate_id or "")
-        sheet.cell(row=row_num, column=2, value=corporate.project_name or "")
-        sheet.cell(row=row_num, column=3, value=corporate.first_name or "")
-        sheet.cell(row=row_num, column=4, value=corporate.last_name or "")
-        sheet.cell(row=row_num, column=5, value=corporate.email or "")
-        sheet.cell(row=row_num, column=6, value=corporate.mobile or "")
-        sheet.cell(row=row_num, column=7, value=corporate.aadhaar_number or "")
-        sheet.cell(row=row_num, column=8, value=corporate.gst_number or "")
-        sheet.cell(row=row_num, column=9, value=corporate.pan_number or "")
-        sheet.cell(row=row_num, column=10, value=corporate.shop_name or "")
-        sheet.cell(row=row_num, column=11, value=corporate.address or "")
-        sheet.cell(row=row_num, column=12, value=corporate.city or "")
-        sheet.cell(row=row_num, column=13, value=corporate.state or "")
-        sheet.cell(row=row_num, column=14, value=corporate.country or "")
-        sheet.cell(row=row_num, column=15, value=corporate.pincode or "")
-        sheet.cell(row=row_num, column=16, value=corporate.created_at.strftime("%Y-%m-%d %H:%M:%S") if corporate.created_at else "")
-        sheet.cell(row=row_num, column=17, value=total_points)
+        # Sr No.
+        sheet.cell(row=row_num, column=1, value=row_num - 1)
 
+        # Corporate Details
+        sheet.cell(row=row_num, column=2, value=corporate.corporate_id or "")
+        sheet.cell(row=row_num, column=3, value=corporate.project_name or "")
+        sheet.cell(row=row_num, column=4, value=corporate.first_name or "")
+        sheet.cell(row=row_num, column=5, value=corporate.last_name or "")
+        sheet.cell(row=row_num, column=6, value=corporate.email or "")
+        sheet.cell(row=row_num, column=7, value=corporate.mobile or "")
+        sheet.cell(row=row_num, column=8, value=corporate.aadhaar_number or "")
+        sheet.cell(row=row_num, column=9, value=corporate.gst_number or "")
+        sheet.cell(row=row_num, column=10, value=corporate.pan_number or "")
+        sheet.cell(row=row_num, column=11, value=corporate.shop_name or "")
+        sheet.cell(row=row_num, column=12, value=corporate.address or "")
+        sheet.cell(row=row_num, column=13, value=corporate.city or "")
+        sheet.cell(row=row_num, column=14, value=corporate.state or "")
+        sheet.cell(row=row_num, column=15, value=corporate.country or "")
+        sheet.cell(row=row_num, column=16, value=corporate.pincode or "")
+        sheet.cell(row=row_num, column=17, value=corporate.created_at.strftime("%Y-%m-%d %H:%M:%S") if corporate.created_at else "")
+        sheet.cell(row=row_num, column=18, value=total_points)
 
     buffer = BytesIO()
     workbook.save(buffer)
@@ -2725,127 +2895,9 @@ def export_projects(request):
         content=buffer,
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-    response["Content-Disposition"] = 'attachment; filename="Corporate_Projects.xlsx"'
+    response["Content-Disposition"] = 'attachment; filename="Projects_Wise_Balance.xlsx"'
 
     return response
-
-
-def export_merchants(request):
-    # Create an Excel workbook and sheet
-    workbook = openpyxl.Workbook()
-    sheet = workbook.active
-    sheet.title = "Merchant Details"
-
-    # Add headers to the sheet
-    headers = [
-        "Merchant ID", "User Type", "Project Name", "First Name", "Last Name",
-        "Email", "Mobile", "Aadhaar", "GST Number", "PAN", "Shop Name",
-        "Address", "City", "State", "Country", "Pincode", "Created At"
-    ]
-    for col_num, header in enumerate(headers, 1):
-        cell = sheet.cell(row=1, column=col_num)
-        cell.value = header
-        cell.font = Font(bold=True)
-
-    # Fetch data from the Merchant table
-    merchants = Merchant.objects.all()
-    if not merchants.exists():
-        print("No data found in the Merchant table.")  # Debugging log
-
-    # Add data to the Excel sheet
-    for row_num, merchant in enumerate(merchants, 2):
-        sheet.cell(row=row_num, column=1, value=merchant.merchant_id or "")
-        sheet.cell(row=row_num, column=2, value=merchant.user_type or "")
-        sheet.cell(row=row_num, column=3, value=str(merchant.project_name) if merchant.project_name else "")
-        sheet.cell(row=row_num, column=4, value=merchant.first_name or "")
-        sheet.cell(row=row_num, column=5, value=merchant.last_name or "")
-        sheet.cell(row=row_num, column=6, value=merchant.email or "")
-        sheet.cell(row=row_num, column=7, value=merchant.mobile or "")
-        sheet.cell(row=row_num, column=8, value=merchant.aadhaar_number or "")
-        sheet.cell(row=row_num, column=9, value=merchant.gst_number or "")
-        sheet.cell(row=row_num, column=10, value=merchant.pan_number or "")
-        sheet.cell(row=row_num, column=11, value=merchant.shop_name or "")
-        sheet.cell(row=row_num, column=12, value=merchant.address or "")
-        sheet.cell(row=row_num, column=13, value=merchant.city or "")
-        sheet.cell(row=row_num, column=14, value=merchant.state or "")
-        sheet.cell(row=row_num, column=15, value=merchant.country or "")
-        sheet.cell(row=row_num, column=16, value=merchant.pincode or "")
-        sheet.cell(row=row_num, column=17, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
-
-    # Save the workbook to a BytesIO buffer
-    buffer = BytesIO()
-    workbook.save(buffer)
-    buffer.seek(0)
-
-    # Set the response to download the file
-    response = HttpResponse(
-        content=buffer,
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-    response["Content-Disposition"] = 'attachment; filename="Merchants_Projects.xlsx"'
-
-    return response
-
-
-def export_disabled_merchants(request):
-    # Create an Excel workbook and sheet
-    workbook = openpyxl.Workbook()
-    sheet = workbook.active
-    sheet.title = "Disabled Merchants"
-
-    # Add headers to the sheet
-    headers = [
-        "Merchant ID", "User Type", "Project Name", "First Name", "Last Name",
-        "Email", "Mobile", "Aadhaar", "GST Number", "PAN", "Shop Name",
-        "Address", "City", "State", "Country", "Pincode", "Status", "Created At"
-    ]
-    for col_num, header in enumerate(headers, 1):
-        cell = sheet.cell(row=1, column=col_num)
-        cell.value = header
-        cell.font = Font(bold=True)
-
-    # Fetch data for merchants with status "Inactive"
-    disabled_merchants = Merchant.objects.filter(status="Inactive")
-    if not disabled_merchants.exists():
-        print("No disabled merchants found.")  # Debugging log
-
-    # Add data to the Excel sheet
-    for row_num, merchant in enumerate(disabled_merchants, 2):
-        sheet.cell(row=row_num, column=1, value=merchant.merchant_id or "")
-        sheet.cell(row=row_num, column=2, value=merchant.user_type or "")
-        sheet.cell(row=row_num, column=3, value=str(merchant.project_name) if merchant.project_name else "")
-        sheet.cell(row=row_num, column=4, value=merchant.first_name or "")
-        sheet.cell(row=row_num, column=5, value=merchant.last_name or "")
-        sheet.cell(row=row_num, column=6, value=merchant.email or "")
-        sheet.cell(row=row_num, column=7, value=merchant.mobile or "")
-        sheet.cell(row=row_num, column=8, value=merchant.aadhaar_number or "")
-        sheet.cell(row=row_num, column=9, value=merchant.gst_number or "")
-        sheet.cell(row=row_num, column=10, value=merchant.pan_number or "")
-        sheet.cell(row=row_num, column=11, value=merchant.shop_name or "")
-        sheet.cell(row=row_num, column=12, value=merchant.address or "")
-        sheet.cell(row=row_num, column=13, value=merchant.city or "")
-        sheet.cell(row=row_num, column=14, value=merchant.state or "")
-        sheet.cell(row=row_num, column=15, value=merchant.country or "")
-        sheet.cell(row=row_num, column=16, value=merchant.pincode or "")
-        sheet.cell(row=row_num, column=17, value=merchant.status or "")
-        sheet.cell(row=row_num, column=18, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
-
-    # Save the workbook to a BytesIO buffer
-    buffer = BytesIO()
-    workbook.save(buffer)
-    buffer.seek(0)
-
-    # Set the response to download the file
-    response = HttpResponse(
-        content=buffer,
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-    response["Content-Disposition"] = 'attachment; filename="Disabled_Merchants.xlsx"'
-
-    return response
-
-def export_project_wise_balance(request):
-    return render(request, 'bopo_admin/Payment/reports.html') 
 
 def export_merchant_wise_balance(request):
     # Create an Excel workbook and sheet
@@ -2853,9 +2905,9 @@ def export_merchant_wise_balance(request):
     sheet = workbook.active
     sheet.title = "Merchant-Wise Balance"
 
-    # Add headers to the sheet
+    # Add headers to the sheet (including Sr No.)
     headers = [
-        "Merchant ID", "Merchant Name", "Email", "Mobile", 
+        "Sr No.", "Merchant ID", "Merchant Name", "Email", "Mobile", 
         "Available Balance", "Status", "Created At"
     ]
     for col_num, header in enumerate(headers, 1):
@@ -2869,22 +2921,19 @@ def export_merchant_wise_balance(request):
         print("No merchant points found.")  # Debugging log
 
     # Add data to the Excel sheet
-    for row_num, merchant_point in enumerate(merchant_points, 2):
-        # total_points = getattr(merchant_point, "total_points", 0)
-        # used_points = getattr(merchant_point, "used_points", 0)
+    for index, merchant_point in enumerate(merchant_points, start=1):
+        row_num = index + 1  # Excel row (start from 2)
         available_points = merchant_point.points
-
         merchant = merchant_point.merchant
-        sheet.cell(row=row_num, column=1, value=merchant.merchant_id or "")
-        sheet.cell(row=row_num, column=2, value=f"{merchant.first_name} {merchant.last_name}" or "")
-        sheet.cell(row=row_num, column=3, value=merchant.email or "")
-        sheet.cell(row=row_num, column=4, value=merchant.mobile or "")
-        # sheet.cell(row=row_num, column=5, value=merchant.project_name or "")
-        # sheet.cell(row=row_num, column=6, value=total_points)
-        # sheet.cell(row=row_num, column=7, value=used_points)
-        sheet.cell(row=row_num, column=5, value=available_points)
-        sheet.cell(row=row_num, column=6, value=merchant.status or "")
-        sheet.cell(row=row_num, column=7, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
+
+        sheet.cell(row=row_num, column=1, value=index)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=merchant.merchant_id or "")
+        sheet.cell(row=row_num, column=3, value=f"{merchant.first_name} {merchant.last_name}" or "")
+        sheet.cell(row=row_num, column=4, value=merchant.email or "")
+        sheet.cell(row=row_num, column=5, value=merchant.mobile or "")
+        sheet.cell(row=row_num, column=6, value=available_points)
+        sheet.cell(row=row_num, column=7, value=merchant.status or "")
+        sheet.cell(row=row_num, column=8, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
 
     # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
@@ -2899,6 +2948,7 @@ def export_merchant_wise_balance(request):
     response["Content-Disposition"] = 'attachment; filename="Merchant_Wise_Balance.xlsx"'
 
     return response
+
 
 
 # def export_customer_wise_balance(request):
@@ -2950,14 +3000,13 @@ def export_merchant_wise_balance(request):
 #     return response
 
 def export_customer_wise_balance(request):
-    # Create an Excel workbook and sheet
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     sheet.title = "Customer-Wise Balance"
 
-    # Add headers to the sheet
+    # Add headers (including Sr No.)
     headers = [
-        "Customer ID", "Customer Name", "Email", "Mobile",
+        "Sr No.", "Customer ID", "Customer Name", "Email", "Mobile",
         "Available Balance", "Created At"
     ]
     for col_num, header in enumerate(headers, 1):
@@ -2965,7 +3014,6 @@ def export_customer_wise_balance(request):
         cell.value = header
         cell.font = Font(bold=True)
 
-    # Fetch total available points per customer
     customer_points = (
         CustomerPoints.objects
         .values(
@@ -2979,21 +3027,20 @@ def export_customer_wise_balance(request):
         .annotate(total_points=Sum('points'))
     )
 
-    # Add data to the Excel sheet
-    for row_num, cp in enumerate(customer_points, 2):
-        sheet.cell(row=row_num, column=1, value=cp['customer__customer_id'] or "")
-        sheet.cell(row=row_num, column=2, value=f"{cp['customer__first_name']} {cp['customer__last_name']}" or "")
-        sheet.cell(row=row_num, column=3, value=cp['customer__email'] or "")
-        sheet.cell(row=row_num, column=4, value=cp['customer__mobile'] or "")
-        sheet.cell(row=row_num, column=5, value=cp['total_points'] or 0)
-        sheet.cell(row=row_num, column=6, value=cp['customer__created_at'].strftime("%Y-%m-%d %H:%M:%S") if cp['customer__created_at'] else "")
+    for index, cp in enumerate(customer_points, start=1):
+        row_num = index + 1
+        sheet.cell(row=row_num, column=1, value=index)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=cp['customer__customer_id'] or "")
+        sheet.cell(row=row_num, column=3, value=f"{cp['customer__first_name']} {cp['customer__last_name']}" or "")
+        sheet.cell(row=row_num, column=4, value=cp['customer__email'] or "")
+        sheet.cell(row=row_num, column=5, value=cp['customer__mobile'] or "")
+        sheet.cell(row=row_num, column=6, value=cp['total_points'] or 0)
+        sheet.cell(row=row_num, column=7, value=cp['customer__created_at'].strftime("%Y-%m-%d %H:%M:%S") if cp['customer__created_at'] else "")
 
-    # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
     workbook.save(buffer)
     buffer.seek(0)
 
-    # Set the response to download the file
     response = HttpResponse(
         content=buffer,
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -3002,16 +3049,15 @@ def export_customer_wise_balance(request):
 
     return response
 
- 
+
 def export_customer_transaction(request):
-    # Create an Excel workbook and sheet
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     sheet.title = "Customer Transaction History"
 
-    # Add headers to the sheet
+    # Add headers (including Sr No.)
     headers = [
-        "Customer ID", "Customer Name", "Email", "Mobile", 
+        "Sr No.", "Customer ID", "Customer Name", "Email", "Mobile", 
         "Transaction Type", "Points", "Transaction Date & Time"
     ]
     for col_num, header in enumerate(headers, 1):
@@ -3019,29 +3065,27 @@ def export_customer_transaction(request):
         cell.value = header
         cell.font = Font(bold=True)
 
-    # Fetch data from the History table
     transactions = History.objects.select_related('customer').all()
 
-    # Add data to the Excel sheet
-    for row_num, transaction in enumerate(transactions, 2):
+    for index, transaction in enumerate(transactions, start=1):
+        row_num = index + 1
         customer = transaction.customer
-        sheet.cell(row=row_num, column=1, value=customer.customer_id if customer else "")
-        sheet.cell(row=row_num, column=2, value=f"{customer.first_name} {customer.last_name}" if customer else "")
-        sheet.cell(row=row_num, column=3, value=customer.email if customer else "")
-        sheet.cell(row=row_num, column=4, value=customer.mobile if customer else "")
-        sheet.cell(row=row_num, column=5, value=transaction.transaction_type or "")
-        sheet.cell(row=row_num, column=6, value=transaction.points or 0)
+        sheet.cell(row=row_num, column=1, value=index)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=customer.customer_id if customer else "")
+        sheet.cell(row=row_num, column=3, value=f"{customer.first_name} {customer.last_name}" if customer else "")
+        sheet.cell(row=row_num, column=4, value=customer.email if customer else "")
+        sheet.cell(row=row_num, column=5, value=customer.mobile if customer else "")
+        sheet.cell(row=row_num, column=6, value=transaction.transaction_type or "")
+        sheet.cell(row=row_num, column=7, value=transaction.points or 0)
         sheet.cell(
-            row=row_num, column=7,
+            row=row_num, column=8,
             value=transaction.created_at.strftime("%Y-%m-%d %H:%M:%S") if transaction.created_at else ""
         )
 
-    # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
     workbook.save(buffer)
     buffer.seek(0)
 
-    # Return response to trigger file download
     response = HttpResponse(
         content=buffer,
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -3049,6 +3093,7 @@ def export_customer_transaction(request):
     response["Content-Disposition"] = 'attachment; filename="Customer_Transaction_History.xlsx"'
 
     return response
+
 def export_payment_dues(request):
     today = date.today()
     seven_days_ago = today - timedelta(days=7)
@@ -3061,9 +3106,9 @@ def export_payment_dues(request):
     sheet = workbook.active
     sheet.title = "Payment Dues - Last 7 Days"
 
-    # Headers - fixed comma missing between "Plan Type" and "Payment Mode"
+    # Headers (added Sr No.)
     headers = [
-        "Merchant ID", "Merchant Name", "Mobile", "Email", 
+        "Sr No.", "Merchant ID", "Merchant Name", "Mobile", "Email", 
         "Plan Type", "Payment Mode", "Paid Amount", "Validity (days)", "Expiry Date"
     ]
     for col_num, header in enumerate(headers, 1):
@@ -3071,18 +3116,23 @@ def export_payment_dues(request):
         cell.value = header
         cell.font = Font(bold=True)
 
-    # Fill data matching the headers order
-    for row_num, due in enumerate(dues, 2):
+    # Fill data (start serial number from 1)
+    for index, due in enumerate(dues, start=1):
+        row_num = index + 1
         merchant = due.merchant
-        sheet.cell(row=row_num, column=1, value=merchant.id)
-        sheet.cell(row=row_num, column=2, value=f"{merchant.first_name} {merchant.last_name}" if hasattr(merchant, 'first_name') and hasattr(merchant, 'last_name') else "")
-        sheet.cell(row=row_num, column=3, value=merchant.mobile if hasattr(merchant, 'mobile') else "")
-        sheet.cell(row=row_num, column=4, value=merchant.email if hasattr(merchant, 'email') else "")
-        sheet.cell(row=row_num, column=5, value=due.plan_type)
-        sheet.cell(row=row_num, column=6, value=due.payment_mode)
-        sheet.cell(row=row_num, column=7, value=due.paid_amount)
-        sheet.cell(row=row_num, column=8, value=due.validity_days)
-        sheet.cell(row=row_num, column=9, value=due.expiry_date.strftime("%Y-%m-%d") if due.expiry_date else "")
+        sheet.cell(row=row_num, column=1, value=index)  # Sr No.
+        sheet.cell(row=row_num, column=2, value=merchant.merchant_id or "")
+        sheet.cell(
+            row=row_num, column=3,
+            value=f"{merchant.first_name} {merchant.last_name}" if hasattr(merchant, 'first_name') and hasattr(merchant, 'last_name') else ""
+        )
+        sheet.cell(row=row_num, column=4, value=merchant.mobile if hasattr(merchant, 'mobile') else "")
+        sheet.cell(row=row_num, column=5, value=merchant.email if hasattr(merchant, 'email') else "")
+        sheet.cell(row=row_num, column=6, value=due.plan_type)
+        sheet.cell(row=row_num, column=7, value=due.payment_mode)
+        sheet.cell(row=row_num, column=8, value=due.paid_amount)
+        sheet.cell(row=row_num, column=9, value=due.validity_days)
+        sheet.cell(row=row_num, column=10, value=due.expiry_date.strftime("%Y-%m-%d") if due.expiry_date else "")
 
     # Return Excel as response
     buffer = BytesIO()
