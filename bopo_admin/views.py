@@ -2176,52 +2176,74 @@ from django.http import JsonResponse
 from .models import Employee
 
 
-def update_employee(request): 
-    if request.method == "POST":
-        employee_id = request.POST.get('employee_id')  # Keep 'employee_id'
-        name = request.POST.get('employee_name')
+# def update_employee(request): 
+#     if request.method == "POST":
+#         employee_id = request.POST.get('employee_id')  # Keep 'employee_id'
+#         name = request.POST.get('employee_name')
+#         email = request.POST.get('email')
+#         aadhaar = request.POST.get("aadhaar")
+#         address = request.POST.get("address")
+#         state_name = request.POST.get('state')
+#         city_name = request.POST.get('city')
+#         mobile = request.POST.get("mobile")
+#         pan = request.POST.get("pan")
+#         pincode = request.POST.get("pincode")
+#         username = request.POST.get("username")
+#         password = request.POST.get("password")
+#         country = request.POST.get("country", "India")
+
+#         try:
+#             # Use employee_id instead of id
+#             employee = Employee.objects.get(employee_id=employee_id)  # Fixed here
+            
+#             if not State.objects.filter(name=state_name).exists():
+#                 return JsonResponse({'success': False, 'error': 'State not found'})
+
+#             if not City.objects.filter(name=city_name).exists():
+#                 return JsonResponse({'success': False, 'error': 'City not found'})
+
+#             employee.name = name
+#             employee.email = email
+#             employee.aadhaar = aadhaar
+#             employee.address = address
+#             employee.state = state_name
+#             employee.city = city_name
+#             employee.mobile = mobile
+#             employee.pan = pan
+#             employee.pincode = pincode
+#             employee.username = username
+#             employee.password = password
+#             employee.country = country
+
+#             employee.save()
+
+#             return JsonResponse({'status': 'success', 'message': 'Employee updated successfully'})
+#         except Employee.DoesNotExist:
+#             return JsonResponse({'status': 'error', 'message': 'Employee not found'})
+#         except (State.DoesNotExist, City.DoesNotExist):
+#             return JsonResponse({'status': 'error', 'message': 'Invalid state or city'})
+#     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+
+@csrf_exempt  # Not needed if you pass CSRF token
+def update_employee(request):
+    if request.method == 'POST':
+        employee_id = request.POST.get('employee_id')
         email = request.POST.get('email')
-        aadhaar = request.POST.get("aadhaar")
-        address = request.POST.get("address")
-        state_name = request.POST.get('state')
-        city_name = request.POST.get('city')
-        mobile = request.POST.get("mobile")
-        pan = request.POST.get("pan")
-        pincode = request.POST.get("pincode")
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        country = request.POST.get("country", "India")
+        mobile = request.POST.get('mobile')
+        password = request.POST.get('password')  # Optional: encrypt if needed
 
         try:
-            # Use employee_id instead of id
-            employee = Employee.objects.get(employee_id=employee_id)  # Fixed here
-            
-            if not State.objects.filter(name=state_name).exists():
-                return JsonResponse({'success': False, 'error': 'State not found'})
-
-            if not City.objects.filter(name=city_name).exists():
-                return JsonResponse({'success': False, 'error': 'City not found'})
-
-            employee.name = name
+            employee = Employee.objects.get(employee_id=employee_id)
             employee.email = email
-            employee.aadhaar = aadhaar
-            employee.address = address
-            employee.state = state_name
-            employee.city = city_name
             employee.mobile = mobile
-            employee.pan = pan
-            employee.pincode = pincode
-            employee.username = username
-            employee.password = password
-            employee.country = country
-
+            if password:
+                employee.password = password  # Hash if necessary
             employee.save()
-
-            return JsonResponse({'status': 'success', 'message': 'Employee updated successfully'})
+            return JsonResponse({'status': 'success'})
         except Employee.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Employee not found'})
-        except (State.DoesNotExist, City.DoesNotExist):
-            return JsonResponse({'status': 'error', 'message': 'Invalid state or city'})
+    
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
 
