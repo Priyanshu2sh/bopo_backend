@@ -1825,7 +1825,7 @@ def send_sms(to_number, message_body):
 
 from django.db.models import F
 
-def create_notification(project_id, merchant_id, customer_id, notification_type, title, description, to_all_ind_merch):
+def create_notification(project_id, merchant_id, customer_id, notification_type, title, description, to_all_ind_merch, to_all_customer):
     print("Creating notification...")
     print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
     print(f"To All Individual Merchants: {to_all_ind_merch}")
@@ -1834,6 +1834,35 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
     merchant = Merchant.objects.filter(merchant_id=merchant_id).first() if merchant_id else None
     customer = Customer.objects.filter(customer_id=customer_id).first() if customer_id else None
 
+
+    if to_all_customer:
+        customers = Customer.objects.all()
+
+        notification = Notification.objects.create(
+            project_id=project,
+            notification_type=notification_type,
+            title=title,
+            description=description
+        )
+        notification.customers.set(customers)
+
+        for c in customers:
+            Customer.objects.filter(customer_id=c.customer_id).update(
+                unread_notification=F('unread_notification') + 1
+            )
+
+            unread_count = c.unread_notification + 1
+            group_name = f"customer_{c.customer_id}"
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    "type": "send_notification",
+                    "unread_count": unread_count
+                }
+            )
+        return
+    
     # If sending to all individual merchants
     if to_all_ind_merch:
         individual_merchants = Merchant.objects.filter(user_type='individual')
@@ -1954,6 +1983,7 @@ def create_notification_view(request):
         title = request.POST.get("notification_title")
         description = request.POST.get("description")
         to_all_ind_merch = request.POST.get("to_all_ind_merch") == "true"
+        to_all_customer = request.POST.get("to_all_customer") == "true"
         
         print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
 
@@ -1965,11 +1995,15 @@ def create_notification_view(request):
             notification_type=notification_type,
             title=title,
             description=description,
-            to_all_ind_merch=to_all_ind_merch
+            to_all_ind_merch=to_all_ind_merch,
+            to_all_customer=to_all_customer
         )
 
         messages.success(request, "Notification sent successfully.")
-        return redirect('send_notifications')
+        if customer_id:
+            return redirect('send_customer_notifications')
+        else:
+            return redirect('send_notifications')
 
     return redirect('send_notifications')
 
