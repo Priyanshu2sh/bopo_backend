@@ -443,6 +443,7 @@ class LoginAPIView(APIView):
             merchant.pin,
             merchant.aadhaar_number,
             merchant.pan_number,
+            merchant.gender,
             merchant.shop_name,
             merchant.address,
             merchant.city,
@@ -492,8 +493,8 @@ class LoginAPIView(APIView):
                 if not user.pin or str(user.pin) != str(pin):
                     return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
                 
-                # ----> Always assign Logo with ID = 7 for customers
-                logo_instance = Logo.objects.filter(id=7).first()
+                # ----> Always assign Logo with ID = 1 for customers
+                logo_instance = Logo.objects.filter(id=1).first()
                 if logo_instance:
                     user.logo = logo_instance
                     user.save(update_fields=["logo"])
@@ -543,7 +544,7 @@ class LoginAPIView(APIView):
                     return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
 
                 if not user.logo:
-                    default_logo = Logo.objects.filter(id=7).first()
+                    default_logo = Logo.objects.filter(id=1).first()
                     if default_logo:
                         user.logo = default_logo
                         user.save(update_fields=["logo"])

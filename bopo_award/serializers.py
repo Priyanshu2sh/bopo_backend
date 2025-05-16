@@ -17,7 +17,6 @@ from rest_framework import serializers
 from accounts.models import Corporate, Customer, Merchant
 from bopo_admin.models import EmployeeRole
 from .models import BankDetail, CashOut, CustomerPoints, GlobalPoints, Help, MerchantPoints, History, ModelPlan, PaymentDetails, SuperAdminPayment
-from .models import BankDetail, CashOut, CustomerPoints, Help, MerchantPoints, History, PaymentDetails, SuperAdminPayment
 
 
 class CustomerPointsSerializer(serializers.ModelSerializer):

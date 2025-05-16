@@ -4,6 +4,8 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 from django.db import models
 from django.contrib.auth.hashers import make_password
 
+# from accounts.models import Corporate, Customer, Merchant
+
 
 # Create your models here.
 class BopoAdminManager(BaseUserManager):
@@ -148,9 +150,27 @@ class UploadedFile(models.Model):
         return f"{self.file_type} - {self.file.name}"
 
 class Notification(models.Model):
-    project_id = models.CharField(max_length=20, null=True, blank=True)
-    merchant_id = models.CharField(max_length=20, null=True, blank=True)
-    customer_id = models.CharField(max_length=20, null=True, blank=True)
+    project_id = models.ForeignKey(
+        'accounts.Corporate',
+        max_length=20,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
+    
+    # ManyToMany relationships
+    merchants = models.ManyToManyField(
+        'accounts.Merchant',
+        blank=True,
+        related_name='notifications'
+    )
+    
+    customers = models.ManyToManyField(
+        'accounts.Customer',
+        blank=True,
+        related_name='notifications'
+    )
+    
     notification_type = models.CharField(max_length=255, null=True, blank=True)
     title = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -226,6 +246,7 @@ class UserBalance(models.Model):
     
 class SecurityQuestion(models.Model):
     question = models.CharField(max_length=255)
+    ans = models.CharField(max_length=200)
     is_taken = models.BooleanField(default=False)  # Add the is_taken field
 
     def __str__(self):
@@ -233,11 +254,18 @@ class SecurityQuestion(models.Model):
 
 
 class DeductSetting(models.Model):
-    deduct_percentage = models.FloatField(default=5.0)  # Default 5% if not set
+    # deduct_percentage = models.FloatField(default=5.0)  # Default 5% if not set
+    cust_merch = models.FloatField(default=5.0, null=True, blank=True)  
+    # merch_cust = models.FloatField(default=5.0, null=True, blank=True)
+    merch_merch = models.FloatField(default=5.0, null=True, blank=True)
+    cust_cust = models.FloatField(default=5.0, null=True, blank=True)
+    normal_global = models.FloatField(default=5.0, null=True, blank=True)
+    # expire_cust_global = models.FloatField(default=5.0, null=True, blank=True)
+    
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"Deduct {self.deduct_percentage}%"
+    # def __str__(self):
+    #     return f"Deduct {self.deduct_percentage}%"
 
 
     

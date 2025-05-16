@@ -123,7 +123,7 @@ class Merchant(models.Model):
     legal_name = models.CharField(max_length=255, blank=True, null=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
     is_profile_updated = models.BooleanField(default=False)
-    security_question_fk = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
+    security_question = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
     answer = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Active')
     pincode = models.IntegerField(null=True, blank=True)
@@ -147,12 +147,13 @@ class Merchant(models.Model):
     corporate_id = models.CharField(max_length=20, null=True, blank=True)  # Add this field
     project_name = models.ForeignKey(Corporate, on_delete=models.SET_NULL, null=True)
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
-
+    
+    unread_notification = models.IntegerField(default=0)  # New field added
   
     def save(self, *args, **kwargs):
-        if self.security_question_fk:
-            self.security_question_fk.is_taken = True
-            self.security_question_fk.save()
+        if self.security_question:
+            self.security_question.is_taken = True
+            self.security_question.save()
         super(Merchant, self).save(*args, **kwargs)
 
 
@@ -196,7 +197,7 @@ class Customer(models.Model):
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
     pin = models.IntegerField(null=True, blank=True)
-    security_question_fk = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='customers') 
+    security_question = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='customers') 
     answer = models.CharField(max_length=255, null=True, blank=True)
     aadhar_number = models.CharField(max_length=255, null=True, blank=True)
     pan_number = models.CharField(max_length=255, null=True, blank=True, unique=True)
@@ -209,6 +210,8 @@ class Customer(models.Model):
     verified_at = models.DateTimeField(null=True, blank=True) 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='customer')
+    
+    unread_notification = models.IntegerField(default=0)  # New field added
 
     def save(self, *args, **kwargs):
         # Generate customer ID if not already set
@@ -225,31 +228,32 @@ class Customer(models.Model):
                     self.customer_id = "CUST0000001"
 
         # Mark security question as taken
-        if self.security_question_fk:
-            self.security_question_fk.is_taken = True
-            self.security_question_fk.save()
+        if self.security_question:
+            self.security_question.is_taken = True
+            self.security_question.save()
 
         super(Customer, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.first_name or ''} {self.last_name or ''}".strip() or self.mobile
     
-class SecurityQue(models.Model):
-    security_question = models.CharField(max_length=255)
-    answer = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.security_question
-
-  
-
-
+    
 class Logo(models.Model):
     logo = models.ImageField(upload_to='logos/')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Logo {self.id}"
+
+  
+
+
+# class Logo(models.Model):
+#     logo = models.ImageField(upload_to='logos/')
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return f"Logo {self.id}"
 
 
 

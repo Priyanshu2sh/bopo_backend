@@ -689,7 +689,7 @@ def add_merchant(request):
                 # random_number = ''.join(random.choices(string.digits, k=11))
                 # merchant_id = f"{project_abbr}{random_number}"
                 
-                prefix = "MEID"
+                prefix = "MID"
                 merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
                 # otp = random.randint(100000, 999999)
 
@@ -1234,8 +1234,8 @@ def add_individual_merchant(request):
             # Generate merchant_id
             last_merchant = Merchant.objects.order_by('-id').first()
             next_id = 1 if not last_merchant else last_merchant.id + 1
-            # merchant_id = f"MEID{str(next_id).zfill(11)}"
-            prefix = "MEID"
+            # merchant_id = f"MID{str(next_id).zfill(11)}"
+            prefix = "MID"
             merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
             
             
@@ -1699,57 +1699,248 @@ def send_sms(to_number, message_body):
         print(f"❌ Twilio SMS error: {str(e)}")
         return None
 
+# def create_notification(project_id, merchant_id, customer_id, notification_type, title, description):
+#     # print("Creating notification...")
 
+#     project = None
+#     merchant = None
+#     customer = None
 
-# def send_notifications(request):
-#     corporates = Corporate.objects.all()
+#     if project_id:
+#         try:
+#             project = Corporate.objects.get(project_id=project_id)
+#         except Corporate.DoesNotExist:
+#             project = None  # or handle error
 
-#     if request.method == "POST":
-#         form_type = request.POST.get("form_type")
-#         project = request.POST.get("project")
-#         notification_type = request.POST.get("notification_type")
-#         notification_title = request.POST.get("notification_title")
-#         description = request.POST.get("description")
-
-#         if form_type == "single":
-#             merchant_id = request.POST.get("merchant")
+#     if merchant_id:
+#         try:
 #             merchant = Merchant.objects.get(merchant_id=merchant_id)
+#         except Merchant.DoesNotExist:
+#             merchant = None
 
-#             # Save the notification
-#             Notification.objects.create(
-#                 project_id=project,
-#                 merchant_id=merchant_id,
-#                 notification_type=notification_type,
-#                 title=notification_title,
-#                 description=description
-#             )
+#     if customer_id:
+#         try:
+#             customer = Customer.objects.get(customer_id=customer_id)
+#         except Customer.DoesNotExist:
+#             customer = None
 
-#             # Create message and send via SMS
-#             message = f"{notification_type} - {notification_title}:\n{description}"
-#             send_sms(merchant.mobile, message)
+#     notification = Notification.objects.create(
+#         project_id=project,
+#         merchant_id=merchant,
+#         customer_id=customer,
+#         notification_type=notification_type,
+#         title=title,
+#         description=description
+#     )
 
-#         elif form_type == "all":
-#             merchants = Merchant.objects.filter(corporate_id=project)
-#             for merchant in merchants:
-#                 Notification.objects.create(
-#                     project_id=project,
-#                     merchant_id=merchant.merchant_id,
-#                     notification_type=notification_type,
-#                     title=notification_title,
-#                     description=description
-#                 )
+#     # Send WebSocket notification code unchanged
+#     # Determine the group name dynamically
+#     channel_layer = get_channel_layer()
+#     if merchant:
+#         group_name = f"merchant_{merchant.merchant_id}"
+#     elif customer:
+#         group_name = f"customer_{customer.customer_id}"
+#     else:
+#         # Optional: fallback group if no merchant/customer
+#         group_name = "general_notifications"
 
-#                 message = f"{notification_type} - {notification_title}:\n{description}"
-#                 send_sms(merchant.mobile, message)
+#     async_to_sync(channel_layer.group_send)(
+#         group_name,
+#         {
+#             "type": "send_notification",
+#             "message": {
+#                 "title": title,
+#                 "description": description,
+#                 "type": notification_type,
+#                 "timestamp": str(notification.created_at),
+#             }
+#         }
+#     )
 
-#         return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-#             'corporates': corporates,
-#             'message': 'Notification(s) sent via SMS!'
-#         })
+from django.db.models import F
 
-#     return render(request, 'bopo_admin/Merchant/send_notifications.html', {
-#         'corporates': corporates
-#     })
+def create_notification(project_id, merchant_id, customer_id, notification_type, title, description, to_all_ind_merch, to_all_customer):
+    print("Creating notification...")
+    print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
+    print(f"To All Individual Merchants: {to_all_ind_merch}")
+
+    project = Corporate.objects.filter(project_id=project_id).first() if project_id else None
+    merchant = Merchant.objects.filter(merchant_id=merchant_id).first() if merchant_id else None
+    customer = Customer.objects.filter(customer_id=customer_id).first() if customer_id else None
+
+
+    if to_all_customer:
+        customers = Customer.objects.all()
+
+        notification = Notification.objects.create(
+            project_id=project,
+            notification_type=notification_type,
+            title=title,
+            description=description
+        )
+        notification.customers.set(customers)
+
+        for c in customers:
+            Customer.objects.filter(customer_id=c.customer_id).update(
+                unread_notification=F('unread_notification') + 1
+            )
+
+            unread_count = c.unread_notification + 1
+            group_name = f"customer_{c.customer_id}"
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    "type": "send_notification",
+                    "unread_count": unread_count
+                }
+            )
+        return
+    
+    # If sending to all individual merchants
+    if to_all_ind_merch:
+        individual_merchants = Merchant.objects.filter(user_type='individual')
+
+        notification = Notification.objects.create(
+            project_id=project,
+            notification_type=notification_type,
+            title=title,
+            description=description
+        )
+        notification.merchants.set(individual_merchants)
+
+        for m in individual_merchants:
+            Merchant.objects.filter(merchant_id=m.merchant_id).update(
+                unread_notification=F('unread_notification') + 1
+            )
+
+            unread_count = m.unread_notification + 1
+            group_name = f"merchant_{m.merchant_id}"
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    "type": "send_notification",
+                    "unread_count": unread_count
+                }
+            )
+        return  # Exit the function early since we've already processed this case
+
+    # ✅ If individual merchant is specified
+    if merchant:
+        notification = Notification.objects.create(
+            project_id=project,
+            notification_type=notification_type,
+            title=title,
+            description=description
+        )
+        notification.merchants.add(merchant)
+        Merchant.objects.filter(merchant_id=merchant_id).update(
+            unread_notification=F('unread_notification') + 1
+        )
+        unread_count = merchant.unread_notification + 1
+        group_name = f"merchant_{merchant_id}"
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "send_notification",
+                "unread_count": unread_count
+            }
+        )
+    elif project:
+        merchants = Merchant.objects.filter(project_name=project)
+        notification = Notification.objects.create(
+            project_id=project,
+            notification_type=notification_type,
+            title=title,
+            description=description
+        )
+        notification.merchants.set(merchants)
+        for m in merchants:
+            Merchant.objects.filter(merchant_id=m.merchant_id).update(
+                unread_notification=F('unread_notification') + 1
+            )
+            unread_count = m.unread_notification + 1
+            group_name = f"merchant_{m.merchant_id}"
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    "type": "send_notification",
+                    "unread_count": unread_count
+                }
+            )
+    elif customer:
+        notification = Notification.objects.create(
+            project_id=project,
+            notification_type=notification_type,
+            title=title,
+            description=description
+        )
+        notification.customers.add(customer)
+        Customer.objects.filter(customer_id=customer_id).update(
+            unread_notification=F('unread_notification') + 1
+        )
+        unread_count = customer.unread_notification + 1
+        group_name = f"customer_{customer_id}"
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "send_notification",
+                "unread_count": unread_count
+            }
+        )
+    else:
+        group_name = "general_notifications"
+        unread_count = 0
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "send_notification",
+                "unread_count": unread_count
+            }
+        )
+
+  
+    
+def create_notification_view(request):
+    if request.method == "POST":
+        form_type = request.POST.get("form_type")
+
+        project_id = request.POST.get("project_id") or None
+        merchant_id = request.POST.get("merchant_id") or None
+        customer_id = request.POST.get("customer_id") or None
+        notification_type = request.POST.get("notification_type")
+        title = request.POST.get("notification_title")
+        description = request.POST.get("description")
+        to_all_ind_merch = request.POST.get("to_all_ind_merch") == "true"
+        to_all_customer = request.POST.get("to_all_customer") == "true"
+        
+        print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
+
+
+        create_notification(
+            project_id=project_id,
+            merchant_id=merchant_id,
+            customer_id=customer_id,
+            notification_type=notification_type,
+            title=title,
+            description=description,
+            to_all_ind_merch=to_all_ind_merch,
+            to_all_customer=to_all_customer
+        )
+
+        messages.success(request, "Notification sent successfully.")
+        if customer_id:
+            return redirect('send_customer_notifications')
+        else:
+            return redirect('send_notifications')
+
+    return redirect('send_notifications')
+
 
 def send_notifications(request): 
     corporates = Corporate.objects.all()
@@ -3356,30 +3547,75 @@ def update_security_question(request, question_id):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
+# def get_deduct_amount(request):
+#     try:
+#         setting = DeductSetting.objects.get(id=1)
+#         return JsonResponse({'deduct_amount': setting.deduct_percentage})
+#     except DeductSetting.DoesNotExist:
+#         return JsonResponse({'deduct_amount': 0})  # default if not set    
+
+
 def get_deduct_amount(request):
     try:
         setting = DeductSetting.objects.get(id=1)
-        return JsonResponse({'deduct_amount': setting.deduct_percentage})
+        return JsonResponse({
+            'deduct_percentage': setting.deduct_percentage,
+            'cust_merch': setting.cust_merch,
+            'merch_merch': setting.merch_merch,
+            'cust_cust': setting.cust_cust,
+            'normal_global': setting.normal_global,
+        })
     except DeductSetting.DoesNotExist:
-        return JsonResponse({'deduct_amount': 0})  # default if not set    
+        return JsonResponse({'message': 'Not set yet.'})
+
     
-def set_deduct_amount(request):
+# def set_deduct_amount(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         deduct_amount = data.get('deduct_amount')
+
+#         if deduct_amount is None or deduct_amount < 0:
+#             return JsonResponse({'error': 'Invalid deduct amount.'}, status=400)
+
+#         # Always store in ID=1 (single row)
+#         setting, created = DeductSetting.objects.get_or_create(id=1)
+#         setting.deduct_percentage = deduct_amount
+#         setting.save()
+
+#         return JsonResponse({'message': 'Deduct amount updated successfully.', 'deduct_percentage': setting.deduct_percentage})
+    
+#     return JsonResponse({'error': 'Invalid method.'}, status=405)
+
+@csrf_exempt
+def save_deduct_settings(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        deduct_amount = data.get('deduct_amount')
+        try:
+            data = json.loads(request.body)
 
-        if deduct_amount is None or deduct_amount < 0:
-            return JsonResponse({'error': 'Invalid deduct amount.'}, status=400)
+            cust_merch = data.get('deduct_customer_merchant')
+            merch_merch = data.get('deduct_merchant_merchant')
+            cust_cust = data.get('deduct_customer_customer')
+            normal_global = data.get('deduct_no_usage_six_months')
 
-        # Always store in ID=1 (single row)
-        setting, created = DeductSetting.objects.get_or_create(id=1)
-        setting.deduct_percentage = deduct_amount
-        setting.save()
+            # Validate values (optional)
+            for value in [cust_merch, merch_merch, cust_cust, normal_global]:
+                if value is not None and (float(value) < 0 or float(value) > 100):
+                    return JsonResponse({'error': 'Deduction values must be between 0 and 100.'}, status=400)
 
-        return JsonResponse({'message': 'Deduct amount updated successfully.', 'deduct_percentage': setting.deduct_percentage})
-    
+            # Save to DB (single row ID=1)
+            setting, created = DeductSetting.objects.get_or_create(id=1)
+            setting.cust_merch = cust_merch
+            setting.merch_merch = merch_merch
+            setting.cust_cust = cust_cust
+            setting.normal_global = normal_global
+            setting.save()
+
+            return JsonResponse({'message': 'Deduction settings saved successfully.'})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
     return JsonResponse({'error': 'Invalid method.'}, status=405)
-
 
 # def save_model_plan(request):
 #     if request.method == "POST":
