@@ -13,131 +13,70 @@
             {% if user.profile_image %}
                 <img src="{{ user.profile_image.url }}" alt="Profile Image" class="profile-img">
             {% else %}
-                <img src="{% static 'bopo_admin/css/images/profile.jpg' %}" alt="Default Profile Image" class="profile-img">
+                <img src="{% static 'bopo_admin/css/images/profile1.svg' %}" alt="Default Profile Image" class="profile-img">
             {% endif %}
         </div>
 
-        <!-- Right Side: Profile Card with User Info -->
-        <div class="profile-card">
-            <div class="profile-info">
-                <!-- Role-Specific Profile Details -->
-                {% if role == "corporate_admin" %}
-                    <p><strong>Project Name:</strong> {{ profile.project_name }}</p>
-                    <p><strong>Corporate Email:</strong> {{ profile.email }}</p>
-                    <p><strong>Mobile:</strong> {{ profile.mobile }}</p>
-                    <p><strong>City:</strong> {{ profile.city }}</p>
+     <div class="profile-card">
+    <div class="profile-info">
+        <!-- View Mode -->
+        <div id="profile-view">
+            {% if role == "corporate_admin" %}
+                <p><strong>Project Name:</strong> {{ profile.project_name }}</p>
+                <p><strong>Corporate Email:</strong> {{ profile.email }}</p>
+                <p><strong>Mobile:</strong> {{ profile.mobile }}</p>
+                <p><strong>City:</strong> {{ profile.city }}</p>
 
-                {% elif role == "employee" %}
-                    <p><strong>Name:</strong> {{ profile.name }}</p>
-                    <p><strong>Email:</strong> {{ profile.email }}</p>
-                    <p><strong>Mobile:</strong> {{ profile.mobile }}</p>
-                    <p><strong>City:</strong> {{ profile.city }}</p>
+            {% elif role == "employee" %}
+                <p><strong>Name:</strong> {{ profile.name }}</p>
+                <p><strong>Email:</strong> {{ profile.email }}</p>
+                <p><strong>Mobile:</strong> {{ profile.mobile }}</p>
+                <p><strong>City:</strong> {{ profile.city }}</p>
 
-                {% elif role == "super_admin" %}
-                    <p><strong>Username:</strong> {{ user.username }}</p>
-                    <p><strong>Email:</strong>admin12@gmail.com</p>
-                    <p><strong>Mobile:</strong>9423432604</p>
-                {% endif %}
-                <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
-            </div>
+            {% elif role == "super_admin" %}
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Email:</strong> admin12@gmail.com</p>
+                <p><strong>Mobile:</strong> 9423432604</p>
+            {% endif %}
+            <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
         </div>
-    </div>
-</div>
 
-<!-- Edit Profile Modal -->
-<div id="edit-profile-modal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" id="close-modal">&times;</span>
-        <h3>Edit Profile</h3>
-        <form method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data">
+        <!-- Edit Mode -->
+        <form id="profile-edit-form" style="display: none;" method="post" action="{% url 'update_profile' %}">
             {% csrf_token %}
-            
-            {% if role == 'corporate_admin' %}
-                <div class="form-group">
-                    <label for="project_name">Project Name</label>
-                    <input type="text" name="project_name" id="project_name" value="{{ profile.project_name }}" class="form-control">
-                </div>
+            {% if role == "corporate_admin" %}
+                <div><label>Project Name:</label> <input type="text" name="project_name" value="{{ profile.project_name }}"></div>
+                <div><label>Email:</label> <input type="email" name="email" value="{{ profile.email }}"></div>
+                <div><label>Mobile:</label> <input type="text" name="mobile" value="{{ profile.mobile }}"></div>
+                <div><label>City:</label> <input type="text" name="city" value="{{ profile.city }}"></div>
 
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" name="email" id="email" value="{{ profile.email }}" class="form-control">
-                </div>
+            {% elif role == "employee" %}
+                <div><label>Name:</label> <input type="text" name="name" value="{{ profile.name }}"></div>
+                <div><label>Email:</label> <input type="email" name="email" value="{{ profile.email }}"></div>
+                <div><label>Mobile:</label> <input type="text" name="mobile" value="{{ profile.mobile }}"></div>
+                <div><label>City:</label> <input type="text" name="city" value="{{ profile.city }}"></div>
 
-                <div class="form-group">
-                    <label for="mobile">Mobile</label>
-                    <input type="text" name="mobile" id="mobile" value="{{ profile.mobile }}" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label for="city">City</label>
-                    <input type="text" name="city" id="city" value="{{ profile.city }}" class="form-control">
-                </div>
-
-            {% elif role == 'employee' %}
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" name="name" id="name" value="{{ profile.name }}" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" name="email" id="email" value="{{ profile.email }}" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label for="mobile">Mobile</label>
-                    <input type="text" name="mobile" id="mobile" value="{{ profile.mobile }}" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label for="city">City</label>
-                    <input type="text" name="city" id="city" value="{{ profile.city }}" class="form-control">
-                </div>
-
-            {% elif role == 'super_admin' %}
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" name="username" id="username" value="{{ user.username }}" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" name="email" id="email" value="{{ user.email }}" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label for="mobile">Mobile</label>
-                    <input type="text" name="mobile" id="mobile" value="{{ user.mobile }}" class="form-control">
-                </div>
+            {% elif role == "super_admin" %}
+                <div><label>Username:</label> <input type="text" name="username" value="{{ user.username }}"></div>
+                <div><label>Email:</label> <input type="email" name="email" value="admin12@gmail.com"></div>
+                <div><label>Mobile:</label> <input type="text" name="mobile" value="9423432604"></div>
             {% endif %}
-            
-            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="submit" class="btn btn-success"><i class="fa fa-paper-plane"></i> Update</button>
+            <button type="button" id="cancel-edit-btn" class="btn btn-secondary"><i class="fa fa-times-circle"></i> Cancel</button>
         </form>
     </div>
 </div>
 
 <script>
-    // JavaScript to handle modal functionality
-    var modal = document.getElementById("edit-profile-modal");
-    var btn = document.getElementById("edit-profile-btn");
-    var closeBtn = document.getElementById("close-modal");
+ document.getElementById("edit-profile-btn").addEventListener("click", function() {
+        document.getElementById("profile-view").style.display = "none";
+        document.getElementById("profile-edit-form").style.display = "block";
+    });
 
-    // Open the modal when the "Edit Profile" button is clicked
-    btn.onclick = function() {
-        modal.style.display = "block";
-    }
-
-    // Close the modal when the close button is clicked
-    closeBtn.onclick = function() {
-        modal.style.display = "none";
-    }
-
-    // Close the modal if the user clicks anywhere outside the modal
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
+    document.getElementById("cancel-edit-btn").addEventListener("click", function() {
+        document.getElementById("profile-view").style.display = "block";
+        document.getElementById("profile-edit-form").style.display = "none";
+    });
 </script>
 
 {% endblock %}
