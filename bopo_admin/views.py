@@ -1825,34 +1825,58 @@ def send_sms(to_number, message_body):
 
 from django.db.models import F
 
-def create_notification(project_id, merchant_id, customer_id, notification_type, title, description):
+def create_notification(project_id, merchant_id, customer_id, notification_type, title, description, to_all_ind_merch):
     print("Creating notification...")
     print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
-    # Resolve project, merchant, and customer objects
+    print(f"To All Individual Merchants: {to_all_ind_merch}")
+
     project = Corporate.objects.filter(project_id=project_id).first() if project_id else None
     merchant = Merchant.objects.filter(merchant_id=merchant_id).first() if merchant_id else None
     customer = Customer.objects.filter(customer_id=customer_id).first() if customer_id else None
 
-    if merchant:
-        # Create notification and associate with the merchant
+    # If sending to all individual merchants
+    if to_all_ind_merch:
+        individual_merchants = Merchant.objects.filter(user_type='individual')
+
         notification = Notification.objects.create(
             project_id=project,
             notification_type=notification_type,
             title=title,
             description=description
         )
-        notification.merchants.add(merchant)  # Add the merchant to the notification
+        notification.merchants.set(individual_merchants)
 
-        # Update unread notification count for the merchant
+        for m in individual_merchants:
+            Merchant.objects.filter(merchant_id=m.merchant_id).update(
+                unread_notification=F('unread_notification') + 1
+            )
+
+            unread_count = m.unread_notification + 1
+            group_name = f"merchant_{m.merchant_id}"
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    "type": "send_notification",
+                    "unread_count": unread_count
+                }
+            )
+        return  # Exit the function early since we've already processed this case
+
+    # ✅ If individual merchant is specified
+    if merchant:
+        notification = Notification.objects.create(
+            project_id=project,
+            notification_type=notification_type,
+            title=title,
+            description=description
+        )
+        notification.merchants.add(merchant)
         Merchant.objects.filter(merchant_id=merchant_id).update(
             unread_notification=F('unread_notification') + 1
         )
         unread_count = merchant.unread_notification + 1
-        print(unread_count)
-        print(merchant.merchant_id)
         group_name = f"merchant_{merchant_id}"
-
-        # Send updated unread notification count via WebSocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             group_name,
@@ -1862,29 +1886,20 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
             }
         )
     elif project:
-        # Fetch all merchants under the same project
         merchants = Merchant.objects.filter(project_name=project)
-
-        # Create a notification and associate it with all merchants
         notification = Notification.objects.create(
             project_id=project,
             notification_type=notification_type,
             title=title,
             description=description
         )
-        notification.merchants.set(merchants)  # Add all merchants to the notification
-
-        for merchant in merchants:
-            # Update unread notification count for each merchant
-            Merchant.objects.filter(merchant_id=merchant.merchant_id).update(
+        notification.merchants.set(merchants)
+        for m in merchants:
+            Merchant.objects.filter(merchant_id=m.merchant_id).update(
                 unread_notification=F('unread_notification') + 1
             )
-
-            # Fetch the updated unread count
-            unread_count = merchant.unread_notification + 1
-
-            # Send updated unread notification count via WebSocket
-            group_name = f"merchant_{merchant.merchant_id}"
+            unread_count = m.unread_notification + 1
+            group_name = f"merchant_{m.merchant_id}"
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
                 group_name,
@@ -1894,23 +1909,18 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
                 }
             )
     elif customer:
-        # Create notification and associate with the customer
         notification = Notification.objects.create(
             project_id=project,
             notification_type=notification_type,
             title=title,
             description=description
         )
-        notification.customers.add(customer)  # Add the customer to the notification
-
-        # Update unread notification count for the customer
+        notification.customers.add(customer)
         Customer.objects.filter(customer_id=customer_id).update(
             unread_notification=F('unread_notification') + 1
         )
         unread_count = customer.unread_notification + 1
         group_name = f"customer_{customer_id}"
-
-        # Send updated unread notification count via WebSocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             group_name,
@@ -1920,11 +1930,8 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
             }
         )
     else:
-        # Fallback for general notifications
         group_name = "general_notifications"
         unread_count = 0
-
-        # Send updated unread notification count via WebSocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             group_name,
@@ -1933,7 +1940,7 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
                 "unread_count": unread_count
             }
         )
-  
+
   
     
 def create_notification_view(request):
@@ -1946,6 +1953,7 @@ def create_notification_view(request):
         notification_type = request.POST.get("notification_type")
         title = request.POST.get("notification_title")
         description = request.POST.get("description")
+        to_all_ind_merch = request.POST.get("to_all_ind_merch") == "true"
         
         print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
 
@@ -1956,7 +1964,8 @@ def create_notification_view(request):
             customer_id=customer_id,
             notification_type=notification_type,
             title=title,
-            description=description
+            description=description,
+            to_all_ind_merch=to_all_ind_merch
         )
 
         messages.success(request, "Notification sent successfully.")
