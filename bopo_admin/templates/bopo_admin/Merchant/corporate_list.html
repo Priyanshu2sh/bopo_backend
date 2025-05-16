@@ -7,6 +7,81 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+
+ <!-- Select2 CSS & JS -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- DataTables & Buttons CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+  div.dataTables_filter {
+    display: none !important;
+}
+
+.top-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.search-box {
+    padding: 6px 10px;
+    width: 250px;
+}
+
+#corporate-table tbody tr:hover {
+    background-color: #f8f8f8;
+    transition: background-color 0.3s ease;
+}
+
+#corporate-table tbody tr:hover td:first-child {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    color: #333;
+    transition: background-color 0.3s ease;
+}
+
+.dataTables_paginate {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.dataTables_paginate .paginate_button {
+    background: linear-gradient(135deg, #ff7b54, #ff4e00);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(52, 49, 48, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+.dataTables_paginate .paginate_button:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+    box-shadow: 0 6px 12px rgba(41, 39, 38, 0.4);
+}
+
+.dataTables_paginate .paginate_button.current {
+    background: linear-gradient(135deg, #333, #111);
+    color: #fff;
+    font-weight: bold;
+    border: 2px solid #ff4e00;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+</style>
+
 <div class="merchant-container">
     <div class="merchant-header">
 
@@ -25,7 +100,14 @@
                 <span>Corporate Merchants List</span>
             </label>
             <div class="merchant-table open">  <!-- Add 'open' class here -->
-                <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table', 'search-corporate')" placeholder="Search corporate merchants...">
+                               
+                <div class="top-controls">
+    <input type="text" class="search-box" id="search-corporate" placeholder="Search corporate merchants...">
+    <div id="custom-buttons"></div>
+</div>
+
+               
+               
                 <div class="table-wrapper">
                     <table id="corporate-table">
                         <thead>
@@ -65,7 +147,7 @@
                                         </td>                       
                                         <td>
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ data.corporate.corporate_id }}', 'corporate')">✏️ Edit</button>
-                                      <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑️ Delete</button> 
+                                      {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑️ Delete</button>  {% endcomment %}
                                     </td>
                                 </tr>
                                 {% for merchant in data.merchants %}
@@ -89,21 +171,60 @@
                                     </td>                
                                     <td>
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ merchant.id }}', 'merchant')">✏️ Edit</button>
-                                        {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button>  {% endcomment %}
+                                       {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button>   {% endcomment %}
                                     </td>
                                 </tr>
                                 {% endfor %}
                             {% endfor %}
                         </tbody>
                     </table>
-          
-                
-                <!-- Pagination controls -->
-                <div id="pagination-controls" class="pagination-controls"></div>
-
-            </div>
+                      </div>
             </div>
         </div>
+</div>
+
+
+         <!-- DataTables & Buttons JS --> 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+
+    <script>
+ $(document).ready(function () {
+    const table = $('#corporate-table').DataTable({
+        dom: 'Bfrtip',
+        pageLength: 6,
+        order: [], // disables default sorting
+        buttons: [
+            {
+                extend: 'colvis',
+                text: '<i class="fas fa-table"></i>',
+                className: 'btn btn-success',
+                columns: ':not(.noVis)'
+            }
+        ],
+        columnDefs: [
+            { targets: 0, className: 'noVis' }
+        ],
+        stripeClasses: []
+    });
+
+    // Log total rows detected by DataTables
+    console.log("Total rows:", table.rows().count());
+
+    // Move buttons to the right
+    table.buttons().container().appendTo('#custom-buttons');
+
+    // Custom search box binding
+    $('#search-corporate').on('keyup', function () {
+        table.search(this.value).draw();
+    });
+});
+
+    </script>
+
+
 
 <!-- Edit Merchant Modal -->
 <div id="editCorporateModal" class="modal">
@@ -594,61 +715,6 @@ function fetchCities(state) {
                 cityDropdown.appendChild(option);
             });
         });
-}
-
-
-const rowsPerPage = 5;
-let currentPage = 1;
-
-function paginateTable() {
-    const tbody = document.getElementById("corporate-table-body");
-    const rows = Array.from(tbody.getElementsByTagName("tr"));
-    const totalPages = Math.ceil(rows.length / rowsPerPage);
-    const paginationDiv = document.getElementById("pagination-controls");
-
-    // Hide rows based on current page
-    rows.forEach((row, index) => {
-        row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? "" : "none";
-    });
-
-    // Clear pagination controls
-    paginationDiv.innerHTML = "";
-
-    // Create Previous button
-    const prevButton = document.createElement("button");
-    prevButton.textContent = "Prev";
-    prevButton.disabled = currentPage === 1; // Disable if on the first page
-    prevButton.onclick = () => {
-        if (currentPage > 1) {
-            currentPage--;
-            paginateTable();
-        }
-    };
-    paginationDiv.appendChild(prevButton);
-
-    // Create page buttons
-    for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        btn.className = i === currentPage ? "active-page" : "";
-        btn.onclick = () => {
-            currentPage = i;
-            paginateTable();
-        };
-        paginationDiv.appendChild(btn);
-    }
-
-    // Create Next button
-    const nextButton = document.createElement("button");
-    nextButton.textContent = "Next";
-    nextButton.disabled = currentPage === totalPages; // Disable if on the last page
-    nextButton.onclick = () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            paginateTable();
-        }
-    };
-    paginationDiv.appendChild(nextButton);
 }
 
 </script>
