@@ -779,7 +779,7 @@ def add_merchant(request):
 
         except Exception as e:
             print("Error saving merchant:", e)
-            return JsonResponse({"success": False, "message": "Something went wrong. Please check your inputs."})
+            return JsonResponse({"success": False, "message": "wrong from backend."})
 
     corporates = Corporate.objects.all()
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})

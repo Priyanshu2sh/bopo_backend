@@ -342,113 +342,116 @@
        }
    };
 
-        // Live validation
+      // Live validation
+    Object.keys(validators).forEach(name => {
+        const input = document.getElementsByName(name)[0];
+        if (!input) return;
+
+        input.addEventListener("input", () => {
+            const value = input.value.trim();
+            const errorMessage = validators[name](value);
+            input.setCustomValidity(errorMessage);
+            input.reportValidity();
+        });
+    });
+
+    document.querySelector("form").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const form = this;
+        let isValid = true;
+
         Object.keys(validators).forEach(name => {
             const input = document.getElementsByName(name)[0];
-            if (!input) return;
-    
-            input.addEventListener("input", () => {
-                const value = input.value.trim();
-                const errorMessage = validators[name](value);
-                input.setCustomValidity(errorMessage);
+            const value = input.value.trim();
+            const errorMessage = validators[name](value);
+            input.setCustomValidity(errorMessage);
+            if (errorMessage) {
                 input.reportValidity();
-            });
+                isValid = false;
+            }
         });
-    
 
-            document.querySelector("form").addEventListener("submit", function (event) {
-                event.preventDefault(); // Add this to stop default form submit
-            
-                const form = this;
-                let isValid = true;
-        
-                Object.keys(validators).forEach(name => {
-                    const input = document.getElementsByName(name)[0];
-                    const value = input.value.trim();
-                    const errorMessage = validators[name](value);
-                    input.setCustomValidity(errorMessage);
-                    if (errorMessage) {
-                        input.reportValidity();
-                        isValid = false;
+        if (!isValid) return;
+
+        const formData = new FormData(form);
+
+        fetch(form.action || window.location.href, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "success");
+
+                // Show modal to upload logo if corporate_id sent from backend
+                if (data.corporate_id) {
+                    const modal = new bootstrap.Modal(document.getElementById("uploadLogoModal"));
+                    document.querySelector("#uploadLogoModal input[name='corporate_id']").value = data.corporate_id;
+                    modal.show();
+                }
+
+                setTimeout(() => {
+                    form.reset();
+                    // Reset select2 dropdowns if you use them
+                    if (typeof $ !== "undefined" && $.fn.select2) {
+                        $('.select2').val(null).trigger('change');
                     }
-                });
-        
-                if (!isValid) return;
-        
-                let formData = new FormData(form);
-                   // Submit the form via AJAX (Fetch API)
-                   fetch(form.action || window.location.href, {
-                       method: "POST",
-                       body: formData,
-                       headers: {
-                           "X-Requested-With": "XMLHttpRequest"
-                       }
-                   })
-                   .then(response => response.json())
-                   .then(data => {
-                       if (data.success) {
-                           showToast(data.message, "success");
-                           // Clear the form only upon successful submission
+                    window.location.href = "/corporate/list/";
+                }, 3500);
+            } else {
+                showToast(data.message || "Error submitting form.", "error");
+            }
+        })
+        .catch(error => {
+            console.error("Error submitting form:", error);
+            showToast("An unexpected error occurred in frontend.", "error");
+        });
+    });
 
-                             // ✅ Show modal to upload logo
-        const corporateId = data.corporate_id;
-        const modal = new bootstrap.Modal(document.getElementById("uploadLogoModal"));
-        document.querySelector("#uploadLogoModal input[name='corporate_id']").value = corporateId;
-        modal.show();
+    // Toast auto-hide if already visible
+    const toast = document.getElementById("toast");
+    if (toast && toast.classList.contains("toast-show")) {
+        setTimeout(() => {
+            toast.classList.add("toast-hide");
+            setTimeout(() => {
+                toast.classList.remove("toast-show", "toast-hide");
+            }, 500);
+        }, 3000);
+    }
+});
 
-                           setTimeout(() => {
-                               form.reset();
-                               $('.select2').val(null).trigger('change');
-                               window.location.href = "/corporate/list/";
-                           }, 3500);
-                       } else {
-                           showToast(data.message, "error");
-                       }
-                   })
-                   .catch(error => {
-                       console.error("Error submitting form:", error);
-                       showToast("An unexpected error occurred. Please try again later.", "error");
-                   });
-               });
-               
-               // Auto-hide any toast if already visible (such as success messages passed from server)
-               const toast = document.getElementById("toast");
-               if (toast && toast.classList.contains("toast-show")) {
-                   setTimeout(() => {
-                       toast.classList.add("toast-hide");
-                       setTimeout(() => {
-                           toast.classList.remove("toast-show", "toast-hide");
-                       }, 500);
-                   }, 3000);
-               }
-           });
-   
-           // Simple toast function to display messages
-           function showToast(message, type) {
-               let toast = document.getElementById("toast");
-               // Remove any pre-existing type-specific classes
-               toast.classList.remove("toast-success", "toast-error");
-           
-               // Set the text
-               toast.querySelector(".toast-message").textContent = message;
-           
-               // Add the new class based on the type
-               if (type === "success") {
-                   toast.classList.add("toast-success");
-               } else if (type === "error") {
-                   toast.classList.add("toast-error");
-               }
-           
-               // Show the toast
-               toast.classList.add("toast-show");
-               setTimeout(() => {
-                   toast.classList.add("toast-hide");
-                   setTimeout(() => {
-                       toast.classList.remove("toast-show", "toast-hide");
-                   }, 500);
-               }, 3000);
-           }
-           
+// Simple toast function
+function showToast(message, type) {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+
+    toast.classList.remove("toast-success", "toast-error");
+    toast.querySelector(".toast-message").textContent = message;
+
+    if (type === "success") {
+        toast.classList.add("toast-success");
+    } else if (type === "error") {
+        toast.classList.add("toast-error");
+    }
+
+    toast.classList.add("toast-show");
+    setTimeout(() => {
+        toast.classList.add("toast-hide");
+        setTimeout(() => {
+            toast.classList.remove("toast-show", "toast-hide");
+        }, 500);
+    }, 3000);
+}
 
  
 
