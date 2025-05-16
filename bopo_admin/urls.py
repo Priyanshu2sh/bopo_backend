@@ -57,11 +57,11 @@ urlpatterns = [
     path('export-projects/', views.export_projects, name='export_projects'),
     path('export_merchants/', views.export_merchants, name='export_merchants'),
     path('export_disabled_merchants/', views.export_disabled_merchants, name='export_disabled_merchants'),
-    path('export_project_wise_balance/', views.export_projects, name='export_project_wise_balance'),
+    path('export_project_wise_balance/', views.export_project_wise_balance, name='export_project_wise_balance'),
     path('export_merchant_wise_balance/', views.export_merchant_wise_balance, name='export_merchant_wise_balance'),
     path('export_customer_wise_balance/', views.export_customer_wise_balance, name='export_customer_wise_balance'),
     path('export_customer_transaction/', views.export_customer_transaction, name='export_customer_transaction'),
-    path('export_payment_dues/', views.export_projects, name='export_payment_dues'),
+    path('export_payment_dues/', views.export_payment_dues, name='export_payment_dues'),
     path('export_award_transaction/', views.export_projects, name='export_award_transaction'),
     path('export_corporate_merchant/', views.export_projects, name='export_corporate_merchant'),
     path("get-merchant-details/", views.get_merchant_details, name="get_merchant_details"),
@@ -72,6 +72,8 @@ urlpatterns = [
 
     path('get-merchants/', views.get_merchants_by_project, name='get_merchants_by_project'),
     path('get-merchants/', views.get_merchants, name='get_merchants'),
+    path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
+
     
 
     path('get-employee/<str:employee_id>/', views.get_employee, name='get_employee'),
@@ -87,8 +89,9 @@ urlpatterns = [
     # path('edit-copmerchant/<int:merchant_id>/', views.edit_copmerchant, name='edit_copmerchant'),
     path('get-corporate/<str:corporate_id>/', views.get_corporate, name='get_corporate'),
     path('get-copmerchant/<str:merchant_id>/', views.get_copmerchant, name='get_copmerchant'),
-    path('update-corporate/', views.update_corporate, name='update_corporate'),
-    path('update-copmerchant/', views.update_copmerchant, name='update_copmerchant'),
+    path('update-corporate/<str:corporate_id>/', views.update_corporate, name='update_corporate'),
+    path('update-copmerchant/<int:merchant_id>/', views.update_copmerchant, name='update_copmerchant'),
+
        
     
     
@@ -165,6 +168,8 @@ urlpatterns = [
 
     path('get-payment-details/', views.get_payment_details, name='get_payment_details'),
     path('toggle-status/<int:merchant_id>/', toggle_status, name='toggle_status'),
+    path('toggle-status/<str:entity_type>/<str:entity_id>/', views.toggle_status, name='toggle_status'),
+
 
      path('deduct-amount/', views.deduct_amount, name='deduct_amount'),
 

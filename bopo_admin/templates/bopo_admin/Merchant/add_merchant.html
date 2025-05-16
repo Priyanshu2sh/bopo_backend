@@ -198,13 +198,20 @@
                             <input type="text" name="pincode" id="pincode"  maxlength="6" >
                   </div>
 
-                  <div id="upload-logo-container" style="display: none;">
+                  {% comment %} <label>Upload Logo</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-image"></i>
+                        <input type="file" name="logo" accept="image/*">
+                    </div> {% endcomment %}
+
+                    <div id="upload-logo-container" style="display: none;">
                         <label>Upload Logo</label>
                         <div class="addmerchant-input-container">
                             <i class="fas fa-image"></i>
                             <input type="file" name="logo" accept="image/*">
                         </div>
-                  </div>
+                    </div>
+
 
                 </div>
                                    
@@ -516,7 +523,7 @@
         newProjectRadio.addEventListener("change", toggleProjectFields);
 
         toggleProjectFields(); // Initial check
-    });
+    });
 </script>
 
 

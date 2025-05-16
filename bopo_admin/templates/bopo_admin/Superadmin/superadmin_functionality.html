@@ -16,6 +16,13 @@
 
     <div class="send-notification-list">
         
+  <!-- Deduct Amount -->
+<div class="send-notification-item">
+  <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
+  <label for="toggle-all-customers" class="send-notification-label">
+    <span class="send-notification-icon">💰</span>
+    <span>Deduct Percentage</span>
+  </label>
         <!-- Deduct Amount -->
 <div class="send-notification-item">
   <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
@@ -23,6 +30,41 @@
     <span class="send-notification-icon">💰</span>
     <span>Deduct Percentage</span>
   </label>
+
+  <div class="send-notification-form"><br>
+    <!-- New Multi-Input Deduction Layout -->
+    <div class="deduction-cards">
+
+        <div class="deduction-card">
+        <h4>Customer to Merchant</h4>
+        <input type="number" placeholder="Enter %" name="deduct_customer_merchant" min="0" max="100" step="0.1" />
+      </div>
+
+     <div class="deduction-card">
+        <h4>Merchant to Merchant</h4>
+        <input type="number" placeholder="Enter %" name="deduct_merchant_merchant" min="0" max="100" step="0.1" />
+      </div>
+ 
+      <div class="deduction-card">
+        <h4>Customer to Customer</h4>
+        <input type="number" placeholder="Enter %" name="deduct_customer_customer" min="0" max="100" step="0.1" />
+      </div>
+
+   
+      <div class="deduction-card">
+        <h4>Normal Account to Global Account</h4>
+        <input type="number" placeholder="Enter %" name="deduct_no_usage_six_months" min="0" max="100" step="0.1" />
+    </div>
+
+    </div>
+
+    <!-- Buttons -->
+    <div class="button-container">
+      <button class="send-btn" onclick="showAlert()">Save</button>
+      <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
+    </div>
+  </div>
+</div>
 
   <div class="send-notification-form"><br>
     <!-- New Multi-Input Deduction Layout -->

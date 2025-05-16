@@ -18,9 +18,8 @@
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-single" class="toggle-checkbox">
             <label for="toggle-single" class="send-notification-label">
-                <span class="send-notification-icon">🏢</span> To Single Merchant
+                <span class="send-notification-icon">🏢</span> To Single Corporate Merchant
             </label>
-
             <div class="send-notification-form">
                 <input type="hidden" name="form_type" value="single">
                 <div class="form-group">
@@ -32,29 +31,24 @@
                         {% endfor %}
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Select Merchant ID:</label>
                     <select id="select-merchant" name="merchant_id">
                         <option value="">-- Select a Merchant --</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Notification Type:</label>
                     <input type="text" name="notification_type" required>
                 </div>
-
                 <div class="form-group">
                     <label>Title:</label>
                     <input type="text" name="notification_title" required>
                 </div>
-
                 <div class="form-group">
                     <label>Description:</label>
                     <textarea name="description" rows="4" required></textarea>
                 </div>
-
                 <div class="button-container">
                     <button type="button" class="cancel-btn">Cancel</button>
                     <button type="submit" class="send-btn">Send Notification</button>
@@ -67,14 +61,12 @@
     <form method="POST" action="{% url 'create_notification' %}">
         {% csrf_token %}
         <div class="send-notification-item">
-            <input type="checkbox" id="toggle-all" class="toggle-checkbox">
-            <label for="toggle-all" class="send-notification-label">
-                <span class="send-notification-icon">👤</span> To All Merchants in a Projectt
+            <input type="checkbox" id="toggle-all-corporate" class="toggle-checkbox">
+            <label for="toggle-all-corporate" class="send-notification-label">
+                <span class="send-notification-icon">👥</span> To All Corporate Merchants in a Project
             </label>
-
             <div class="send-notification-form">
                 <input type="hidden" name="form_type" value="all">
-
                 <div class="form-group">
                     <label>Select Project:</label>
                     <select name="project_id" required>
@@ -84,22 +76,84 @@
                         {% endfor %}
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Notification Type:</label>
                     <input type="text" name="notification_type" required>
                 </div>
-
                 <div class="form-group">
                     <label>Title:</label>
                     <input type="text" name="notification_title" required>
                 </div>
-
                 <div class="form-group">
                     <label>Description:</label>
                     <textarea name="description" rows="4" required></textarea>
                 </div>
+                <div class="button-container">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="send-btn">Send Notification</button>
+                </div>
+            </div>
+        </div>
+    </form>
 
+    <!-- To Single Individual Merchant -->
+    <form method="POST" action="{% url 'send_notifications' %}">
+        {% csrf_token %}
+        <div class="send-notification-item">
+            <input type="checkbox" id="toggle-individual" class="toggle-checkbox">
+            <label for="toggle-individual" class="send-notification-label">
+                <span class="send-notification-icon">🏬</span> To Single Individual Merchant
+            </label>
+            <div class="send-notification-form">
+                <input type="hidden" name="form_type" value="single_individual">
+                <div class="form-group">
+                    <label>Select Merchant ID:</label>
+                    <select id="select-individual-merchant" name="merchant">
+                        <option value="">-- Select a Merchant --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notification Type:</label>
+                    <input type="text" name="notification_type" required>
+                </div>
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" name="notification_title" required>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea name="description" rows="4" required></textarea>
+                </div>
+                <div class="button-container">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="send-btn">Send Notification</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- To All Individual Merchants -->
+    <form method="POST" action="{% url 'send_notifications' %}">
+        {% csrf_token %}
+        <div class="send-notification-item">
+            <input type="checkbox" id="toggle-all-individual" class="toggle-checkbox">
+            <label for="toggle-all-individual" class="send-notification-label">
+                <span class="send-notification-icon">👤</span> To All Individual Merchants
+            </label>
+            <div class="send-notification-form">
+                <input type="hidden" name="form_type" value="all_individual">
+                <div class="form-group">
+                    <label>Notification Type:</label>
+                    <input type="text" name="notification_type" required>
+                </div>
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" name="notification_title" required>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea name="description" rows="4" required></textarea>
+                </div>
                 <div class="button-container">
                     <button type="button" class="cancel-btn">Cancel</button>
                     <button type="submit" class="send-btn">Send Notification</button>
@@ -109,12 +163,11 @@
     </form>
 </div>
 
-
-
 <script>
-   function fetchMerchants() {
+function fetchMerchants() {
     const projectId = document.getElementById("single_project").value;
     const merchantDropdown = document.getElementById("select-merchant");
+    merchantDropdown.innerHTML = '<option value="">Loading...</option>';
 
     if (projectId) {
         fetch(`/get-merchants/?project_id=${projectId}`)
@@ -128,42 +181,58 @@
             })
             .catch(error => {
                 console.error("Error fetching merchants:", error);
+                merchantDropdown.innerHTML = '<option value="">Error loading merchants</option>';
             });
-    } else {
-        merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
     }
 }
 
+function fetchIndividualMerchants() {
+    const merchantDropdown = document.getElementById("select-individual-merchant");
+    merchantDropdown.innerHTML = '<option value="">Loading...</option>';
 
-    document.addEventListener("DOMContentLoaded", function () {
-        const singleToggle = document.getElementById("toggle-single");
-        const allToggle = document.getElementById("toggle-all");
-
-        const singleForm = singleToggle.closest(".send-notification-item").querySelector(".send-notification-form");
-        const allForm = allToggle.closest(".send-notification-item").querySelector(".send-notification-form");
-
-        singleForm.style.display = "none";
-        allForm.style.display = "none";
-
-        singleToggle.addEventListener("change", function () {
-            if (this.checked) {
-                allToggle.checked = false;
-                singleForm.style.display = "block";
-                allForm.style.display = "none";
-            } else {
-                singleForm.style.display = "none";
-            }
+    fetch('/get-individual-merchants/')
+        .then(response => response.json())
+        .then(data => {
+            merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
+            data.merchants.forEach(merchant => {
+                const fullName = `${merchant.first_name} ${merchant.last_name || ''}`.trim();
+                merchantDropdown.innerHTML += `<option value="${merchant.merchant_id}">${merchant.merchant_id} - ${fullName}</option>`;
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching individual merchants:", error);
+            merchantDropdown.innerHTML = '<option value="">Error loading merchants</option>';
         });
+}
 
-        allToggle.addEventListener("change", function () {
-            if (this.checked) {
-                singleToggle.checked = false;
-                allForm.style.display = "block";
-                singleForm.style.display = "none";
+document.addEventListener("DOMContentLoaded", () => {
+    const toggles = [
+        { id: "toggle-single", form: null, onShow: fetchMerchants },
+        { id: "toggle-all-corporate", form: null },
+        { id: "toggle-individual", form: null, onShow: fetchIndividualMerchants },
+        { id: "toggle-all-individual", form: null }
+    ];
+
+    toggles.forEach(t => {
+        const checkbox = document.getElementById(t.id);
+        t.form = checkbox.closest(".send-notification-item").querySelector(".send-notification-form");
+        t.form.style.display = "none";
+        checkbox.addEventListener("change", () => {
+            toggles.forEach(other => {
+                const otherCheckbox = document.getElementById(other.id);
+                if (otherCheckbox !== checkbox) {
+                    otherCheckbox.checked = false;
+                    other.form.style.display = "none";
+                }
+            });
+            if (checkbox.checked) {
+                t.form.style.display = "block";
+                if (t.onShow) t.onShow();
             } else {
-                allForm.style.display = "none";
+                t.form.style.display = "none";
             }
         });
     });
+});
 </script>
 {% endblock %}

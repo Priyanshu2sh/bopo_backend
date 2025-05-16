@@ -133,12 +133,16 @@
                                 <td>{{ merchant.city }}</td>
                                 <td>{{ points_mapping|get_item:merchant.id }}</td>
                                 <td>
-                                    <label class="switch">
-                                        <input type="checkbox" class="status-toggle" {% if merchant.status == "Active" %}checked{% endif %} data-id="{{ merchant.id }}">
-                                        <span class="slider round"></span>
-                                    </label>
-                                    <span class="status-label {% if merchant.status == 'Active' %}text-success{% else %}text-danger{% endif %}" id="status-label-{{ merchant.id }}"></span>
-                                </td>
+                                <label class="switch">
+                                    <input type="checkbox" class="status-toggle"
+                                        {% if merchant.status == "Active" %}checked{% endif %}
+                                        data-id="{{ merchant.merchant_id }}"
+                                        data-entity-type="merchant">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span class="status-label {% if merchant.status == 'Active' %}text-success{% else %}text-danger{% endif %}" id="status-label-{{ merchant.id }}"></span>
+                            </td>
+
                                 <td>
                                     <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ merchant.id }}')">✏️ Edit</button>
                                     {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteMerchant('{{ merchant.id }}')">🗑️ Delete</button> {% endcomment %}
@@ -209,7 +213,7 @@
                                 <label>First Name</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-user"></i>
-                                    <input type="text" name="first_name" id="edit_first_name" required>
+                                    <input type="text" name="first_name" id="edit_first_name" readonly>
                                 </div>
 
                                 <label>Email ID</label>
@@ -221,25 +225,27 @@
                                 <label>Aadhaar Number</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-id-card"></i>
-                                    <input type="text" name="aadhaar_number"  id="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
+                                    <input type="text" name="aadhaar_number"  id="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" readonly>
                                 </div>
 
                                 <label>Shop Name</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-store"></i>
-                                    <input type="text" name="shop_name" id="edit_shop_name" required>
+                                    <input type="text" name="shop_name" id="edit_shop_name" readonly>
                                 </div>
 
                                 <label>Address</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <input type="text" name="address" id="edit_address" required>
+                                    <input type="text" name="address" id="edit_address" readonly>
                                 </div>
 
-                                <label>Select State</label>
-                                <select id="edit_state" name="state" class="select2"  onchange="fetchCities()">
-                                    <option value="">Select State</option>
-                                </select>
+                                <label>State</label>
+                                    <div class="add_individual_merchant-input-container">
+                                        <i class="fas fa-map"></i>
+                                        <input type="text" name="state" id="edit_state" disabled>
+                                    </div>
+
 
                                 <label>Country</label>
                                 <div class="add_individual_merchant-input-container">
@@ -252,7 +258,7 @@
                                 <label>Last Name</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-user"></i>
-                                    <input type="text" name="last_name" id="edit_last_name"required>
+                                    <input type="text" name="last_name" id="edit_last_name" readonly>
                                 </div>
 
                                 <label>Mobile Number</label>
@@ -264,7 +270,7 @@
                                 <label>GST Number</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-file-invoice"></i>
-                                    <input type="text" name="gst" id="edit_gst" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" required>
+                                    <input type="text" name="gst" id="edit_gst" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" readonly>
                                 </div>
                                 <div id="gst_error" style="display: none; margin-top: 10px;">
                                     <div style="background-color: #ffe6e6; border: 1px solid #ff4d4d; color: #d8000c; padding: 10px; border-radius: 5px; font-size: 14px; display: flex; align-items: center;">
@@ -276,24 +282,26 @@
                                 <label>Pan Number</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-id-card"></i>
-                                    <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" required>
+                                    <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" readonly>
                                 </div>
 
                                 <label>Legal Name</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-building"></i>
-                                    <input type="text" name="legal_name" id="edit_legal_name" required>
+                                    <input type="text" name="legal_name" id="edit_legal_name" readonly>
                                 </div>
 
-                                <label>Select City</label>
-                                <select id="edit_city" name="city" class="select2">
-                                    <option value="">Select City</option>
-                                </select>
+                                <label>City</label>
+                                <div class="add_individual_merchant-input-container">
+                                    <i class="fas fa-city"></i>
+                                    <input type="text" name="city" id="edit_city" disabled>
+                                </div>
+
 
                                 <label>Pincode</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-home"></i>
-                                    <input type="text" name="pincode" id="edit_pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" required>
+                                    <input type="text" name="pincode" id="edit_pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" readonly>
                                 </div>
                             </div>
                           
@@ -358,39 +366,9 @@ function openEditModal(merchantId) {
             document.getElementById("edit_pincode").value = data.pincode;
 
                 // Load states
-            const stateSelect = document.getElementById("edit_state");
-            stateSelect.innerHTML = `<option value="">Select State</option>`;
-            if (data.states && data.states.length > 0) {
-                data.states.forEach(state => {
-                    const option = document.createElement("option");
-                    option.value = state.id;
-                    option.textContent = state.name;
-                    if (state.name === data.state) {
-                        option.selected = true;
-                    }
-                    stateSelect.appendChild(option);
-                });
-            } else {
-                stateSelect.innerHTML = `<option value="">No states available</option>`;
-            }
-
-            // Load cities based on selected state
-            if (data.cities && data.cities.length > 0) {
-                const citySelect = document.getElementById("edit_city");
-                citySelect.innerHTML = `<option value="">Select City</option>`;
-                data.cities.forEach(city => {
-                    const option = document.createElement("option");
-                    option.value = city.id;
-                    option.textContent = city.name;
-                    if (city.name === data.city) {
-                        option.selected = true;
-                    }
-                    citySelect.appendChild(option);
-                });
-            } else {
-                document.getElementById("edit_city").innerHTML = `<option value="">No cities available</option>`;
-            }
-
+            // Set prefilled state and city (not as dropdowns)
+            document.getElementById("edit_state").value = data.state || '';
+            document.getElementById("edit_city").value = data.city || '';
             
 
             document.getElementById("editModal").style.display = "block";
@@ -408,52 +386,62 @@ window.onclick = function(event) {
     }
 };
 
-document.addEventListener('DOMContentLoaded', function () {
-    const toggles = document.querySelectorAll('.status-toggle');
 
-    toggles.forEach(toggle => {
-        toggle.addEventListener('change', function () {
-            const merchantId = this.getAttribute('data-id');
-            const isActive = this.checked;
+ document.addEventListener('DOMContentLoaded', function () {
+  const toggles = document.querySelectorAll('.status-toggle');
 
-            fetch(`/toggle-status/${merchantId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-                body: JSON.stringify({ is_active: isActive })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    alert("Failed to update status");
-                    this.checked = !isActive;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("Something went wrong");
-                this.checked = !isActive;
-            });
-        });
+  toggles.forEach(toggle => {
+    toggle.addEventListener('change', function () {
+      const entityId = this.getAttribute('data-id')?.trim();
+      const entityType = this.getAttribute('data-entity-type')?.trim();
+      const isActive = this.checked;
+
+      fetch(`/toggle-status/${entityType}/${entityId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ is_active: isActive })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        if (!data.success) {
+          alert("Failed to update status: " + (data.error || ""));
+          this.checked = !isActive;
+        } else {
+          alert(`Status updated successfully to "${data.status}"`);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert("Something went wrong");
+        this.checked = !isActive;
+      });
     });
+  });
+});
 
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Match cookie name
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
         }
-        return cookieValue;
     }
-});
+    return cookieValue;
+}
 
     
 document.getElementById("editmerchantForm").onsubmit = function (e) {

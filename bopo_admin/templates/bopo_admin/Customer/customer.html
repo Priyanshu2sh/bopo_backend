@@ -131,7 +131,13 @@
                         <td>{{ customer.city }}</td>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" {% if customer.verified_at == "Active" %}checked{% endif %} data-id="{{ customer.id }}" class="customer-status-toggle">
+                               <input type="checkbox"
+                                {% if customer.status == "Active" %}checked{% endif %}
+                                data-id="{{ customer.customer_id }}"
+                                data-entity-type="customer"
+                                class="status-toggle">
+
+
                                 <span class="slider round"></span>
                             </label>
                         </td>
@@ -154,6 +160,7 @@
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
 <script>
+
     $(document).ready(function () {
         
         const table = $('#customer-table').DataTable({
@@ -184,10 +191,6 @@
     });
 </script>
 
-
-
-
-
     <div id="editCustomerModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
         <span class="close" onclick="closeEditModal()">&times;</span>
@@ -205,7 +208,7 @@
                    <label for="first_name">First Name</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text"  id="edit_first_name" name="first_name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" required>
+                        <input type="text"  id="edit_first_name" name="first_name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" readonly>
                     </div>
 
                     <label for="email">Email ID</label>
@@ -217,25 +220,26 @@
                     <label for="age">Age</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-calendar"></i>
-                        <input type="number" id="edit_age" name="age" min="1" max="120" title="Enter age between 1 and 120" required>
+                        <input type="number" id="edit_age" name="age" min="1" max="120" title="Enter age between 1 and 120" readonly>
                     </div>
 
                     <label for="aadhaar">Aadhaar Number</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" id="edit_aadhaar" name=" aadhar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" >
+                        <input type="text" id="edit_aadhaar" name="aadhar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" readonly>
                     </div>
 
                     <label for="address">Address</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-map-marker-alt"></i>
-                        <input type="text" id="edit_address" name="address" required>
+                        <input type="text" id="edit_address" name="address" readonly>
                     </div>
 
-                    <label for="city">Select City </label>
-                    <select id="edit_city" name="city" class="select2">
-                        <option value="">Select City</option>
-                    </select>
+                    <label for="edit_city">City</label>
+                    <div class="addcustomer-input-container">
+                        <i class="fas fa-city"></i>  <!-- City icon -->
+                    <input type="text" id="edit_city" name="city" readonly />
+                    </div>
 
                    
                     <label for="country">Country</label>
@@ -250,7 +254,7 @@
                     <label for="last_name">Last Name</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" id="edit_last_name" name="last_name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" required>
+                        <input type="text" id="edit_last_name" name="last_name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" readonly>
                     </div>
 
                     <label for="mobile">Mobile Number</label>
@@ -259,34 +263,37 @@
                         <input type="tel" id="edit_mobile" name="mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
                     </div>
 
-                    <label for="gender">Gender</label>
-                    <div class="addcustomer-input-container">
-                        <i class="fas fa-venus-mars"></i>
-                        <select name="gender" id="edit_gender"required>
-                            <option value="">Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                            
+               <label for="gender">Gender</label>
+                <div class="addcustomer-input-container">
+                    <i class="fas fa-venus-mars"></i>
+                    <select name="gender_disabled" id="edit_gender">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <!-- Hidden input to submit the selected gender -->
+                    <input type="hidden" id="hidden_gender" name="gender" value="" />
+                </div>
+
+ 
                    
                     <label for="pan">Pan Number</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)">
+                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" readonly>
                     </div>
 
-                    <label for="state">Select State </label>
-                    <select id="edit_state" name="state" class="select2" onchange="fetchCities()">
-                        <option value="">Select State</option>
-                    </select>
-
+                    <label for="edit_state">State</label>
+                        <div class="addcustomer-input-container">
+                            <i class="fas fa-map"></i>  <!-- State/location icon -->
+                        <input type="text" id="edit_state" name="state" readonly />
+                    </div>
                  
                     <label for="pincode">Pincode</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-home"></i>
-                        <input type="text" id="edit_pincode" name="pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode">
+                        <input type="text" id="edit_pincode" name="pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" readonly>
                     </div>
                 </div>
             </div>
@@ -318,72 +325,126 @@
 
 <!-- JavaScript for Search Filtering and Modal -->
 <script>
-    function openEditModal(customerId) {
-        document.getElementById("editCustomerId").value = customerId;
     
-        fetch(`/bopo_admin/get-customer/${customerId}/`)
-            .then(response => response.json())
-            .then(customer => {  // Remove the `async` here since `then` is asynchronous
-                // Set basic fields
-                document.getElementById("edit_first_name").value = customer.first_name;
-                document.getElementById("edit_last_name").value = customer.last_name;
-                document.getElementById("edit_email").value = customer.email;
-                document.getElementById("edit_mobile").value = customer.mobile;
-                document.getElementById("edit_age").value = customer.age;
-                document.getElementById("edit_aadhaar").value = customer.aadhar_number;
-                document.getElementById("edit_pin").value = customer.pin;
-                document.getElementById("edit_address").value = customer.address;
-                document.getElementById("edit_pincode").value = customer.pincode;
-                document.getElementById("edit_gender").value = customer.gender;
-                document.getElementById("edit_pan").value = customer.pan_number;
-    
-                const stateSelect = document.getElementById("edit_state");
-                stateSelect.innerHTML = `<option value="">Select State</option>`;
-                
-                // Populate the state dropdown
-                if (customer.states && customer.states.length > 0) {
-                    customer.states.forEach(state => {
-                        const option = document.createElement("option");
-                        option.value = state.id;
-                        option.textContent = state.name;
-                        if (state.name === customer.state) {  // Check if the current state is the selected one
-                            option.selected = true;
-                        }
-                        stateSelect.appendChild(option);
-                    });
-                } else {
-                    stateSelect.innerHTML = `<option value="">No states available</option>`;
-                }
-    
-                // Load cities based on selected state
-                const citySelect = document.getElementById("edit_city");
-                citySelect.innerHTML = `<option value="">Select City</option>`;  // Clear the city dropdown
-    
-                if (customer.cities && customer.cities.length > 0) {
-                    customer.cities.forEach(city => {
-                        const option = document.createElement("option");
-                        option.value = city.id;
-                        option.textContent = city.name;
-                        if (city.name === customer.city) {  // Check if the current city is the selected one
-                            option.selected = true;
-                        }
-                        citySelect.appendChild(option);
-                    });
-                } else {
-                    citySelect.innerHTML = `<option value="">No cities available</option>`;
-                }
-    
-                // Show modal
-                document.getElementById("editCustomerModal").style.display = "block";
-            })
-            .catch(error => {
-                console.error('Error fetching customer data:', error);
-            });
+  document.addEventListener('DOMContentLoaded', function () {
+  const toggles = document.querySelectorAll('.status-toggle');
+
+  toggles.forEach(toggle => {
+    toggle.addEventListener('change', function () {
+      const entityId = this.getAttribute('data-id');
+      const entityType = this.getAttribute('data-entity-type');
+      const isActive = this.checked;
+
+      fetch(`/toggle-status/${entityType}/${entityId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ is_active: isActive })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+       if (data.success) {
+        showToast(`Status updated successfully to "${data.status}"`, 'success');
+      } else {
+        showToast('Failed to update status: ' + (data.error || 'Unknown error'), 'error');
+        this.checked = !isActive;  // revert toggle
+      }
+    })
+      .catch(error => {
+        console.error('Error:', error);
+        alert("Something went wrong");
+        this.checked = !isActive; // revert checkbox on error
+      });
+    });
+  });
+});
+
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Match cookie name
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
     }
-    
-    function closeEditModal() {
-        document.getElementById("editCustomerModal").style.display = "none";
-    }
+    return cookieValue;
+}
+
+
+function setGenderReadOnly(genderValue) {
+    const select = document.getElementById('edit_gender');
+    const hidden = document.getElementById('hidden_gender');
+
+    // Set select's selected option
+    select.value = genderValue;
+
+    // Log for debugging
+    console.log('Set gender:', genderValue, 'Selected:', select.value);
+
+    // Set hidden input's value
+    hidden.value = genderValue;
+
+    // Disable select to make it readonly
+    select.disabled = true;
+}
+
+
+function openEditModal(customerId) {
+    console.log('Opening modal for customer:', customerId);
+
+    // Set the hidden input value with the customer ID
+    document.getElementById("editCustomerId").value = customerId;
+
+    // Fetch customer data from server
+    fetch(`/bopo_admin/get-customer/${customerId}/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(customer => {
+            // Fill the modal form fields with customer data
+            document.getElementById("edit_first_name").value = customer.first_name || "";
+            document.getElementById("edit_last_name").value = customer.last_name || "";
+            document.getElementById("edit_email").value = customer.email || "";
+            document.getElementById("edit_mobile").value = customer.mobile || "";
+            document.getElementById("edit_age").value = customer.age || "";
+            document.getElementById("edit_aadhaar").value = customer.aadhar_number || "";
+            document.getElementById("edit_address").value = customer.address || "";
+            document.getElementById("edit_city").value = customer.city || "";
+            document.getElementById("edit_state").value = customer.state || "";
+            document.getElementById("edit_pincode").value = customer.pincode || "";
+            document.getElementById("edit_pan").value = customer.pan_number || "";
+
+            // Set gender select readonly with hidden input
+            setGenderReadOnly(customer.gender || "");
+
+            // Show the modal after data is loaded
+            document.getElementById("editCustomerModal").style.display = "block";
+        })
+        .catch(err => {
+            console.error("Error loading customer data", err);
+            alert("Failed to load customer data");
+        });
+}
+
+function closeEditModal() {
+    document.getElementById("editCustomerModal").style.display = "none";
+}
+
     
 
     window.onclick = function(event) {

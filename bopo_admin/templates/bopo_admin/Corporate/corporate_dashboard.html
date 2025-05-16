@@ -1,3 +1,4 @@
+
 {% extends "bopo_admin/base.html" %}
 
 {% block content %}
@@ -9,28 +10,16 @@
 
         <!-- Card Container -->
         <div class="card-container">
-            <!-- <div class="card">
-                <div class="card-header">PROJECTS</div>
-                <div class="card-body">
-                    <span class="value">{{ total_projects }}</span>
-                    <div class="progress-container">
-                        <span class="progress-text">{{ project_progress|floatformat:2 }}% ⬆</span>
-                    </div>
-                    <div class="progress-bar">
-                        <span style="width: {{ project_progress }}%;"></span>
-                    </div>
-                </div>
-            </div> -->
-
+         
             <div class="card">
                 <div class="card-header">MERCHANTS</div>
                 <div class="card-body">
                     <span class="value">{{ total_merchants }}</span>
                     <div class="progress-container">
-                        <span class="progress-text">{{ merchant_progress|floatformat:2 }}% ⬆</span>
+                         <span class="progress-text">{{ daily_merchant_growth|floatformat:2 }}% ⬆</span>
                     </div>
                     <div class="progress-bar">
-                        <span style="width: {{ merchant_progress }}%;"></span>
+                        <span style="width: {{ daily_merchant_growth }}%; background-color: #2ecc71;"></span>
                     </div>
                 </div>
             </div>
@@ -41,41 +30,30 @@
                 <div class="card-body">
                     <span class="value">{{ total_terminals }}</span>
                     <div class="progress-container">
-                        <span class="progress-text">{{ terminal_progress|floatformat:2 }}% ⬆</span>
+                         <span class="progress-text">{{ daily_terminal_growth|floatformat:2 }}% ⬆</span>
                     </div>
                     <div class="progress-bar">
-                        <span style="width: {{ terminal_progress }}%;"></span>
+                        <span style="width: {{ daily_terminal_growth }}%; background-color: #2ecc71;"></span>
                     </div>
                 </div>
             </div>
-            
-            
-            <!-- <div class="card">
-                <div class="card-header">CUSTOMERS</div>
-                <div class="card-body">
-                    <span class="value">{{ total_customers }}</span>
-                    <div class="progress-container">
-                        <span class="progress-text">{{ customer_progress|floatformat:2 }}% ⬆</span>
-                    </div>
-                    <div class="progress-bar">
-                        <span style="width: {{ customer_progress }}%;"></span>
-                    </div>
-                </div>
-            </div>
+
 
             <div class="card">
                 <div class="card-header">TOTAL USERS</div>
                 <div class="card-body">
                     <span class="value">{{ total_users }}</span>
                     <div class="progress-container">
-                        <span class="progress-text">100% ⬆</span>
+                        <span class="progress-text">{{ daily_user_growth|floatformat:2 }}% ⬆</span>
                     </div>
                     <div class="progress-bar">
-                        <span style="width: 100%;"></span>
+                        <span style="width: {{ daily_user_growth }}%; background-color: #f39c12;"></span>
                     </div>
                 </div>
-            </div> -->
-        </div>
+</div>
+
+
+          </div>
 
         <!-- Analysis Section -->
         <div class="analysis-section">

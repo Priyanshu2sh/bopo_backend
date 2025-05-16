@@ -17,8 +17,8 @@ from django.db import transaction
 
 from .serializers import BankDetailSerializer, CashOutSerializer, CorporateProjectSerializer, CustomerCashOutSerializer, HelpSerializer, MerchantCashOutSerializer, PaymentDetailsSerializer
 
-from .models import AwardPoints, BankDetail, CashOut, CustomerToCustomer, GlobalPoints, Help, MerchantToMerchant, ModelPlan, PaymentDetails
-from accounts.models import Corporate, Customer, Logo, Merchant, Terminal
+from .models import BankDetail, CashOut, CustomerToCustomer, GlobalPoints, Help, MerchantToMerchant, ModelPlan, PaymentDetails
+from accounts.models import Corporate, Customer, Merchant, Terminal
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
 class RedeemPointsAPIView(APIView):
@@ -125,7 +125,7 @@ class RedeemPointsAPIView(APIView):
         total_customer_points = CustomerPoints.objects.filter(customer=customer, merchant=merchant).aggregate(total=Sum('points'))['total'] or 0
 
         if total_customer_points < points:
-            return Response({'error': 'Insufficient points with this merchant. Transfer not allowed.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Insufficient points. Transfer not allowed.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # ✅ Redeem active points
         with transaction.atomic():
