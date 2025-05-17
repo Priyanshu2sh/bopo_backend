@@ -12,6 +12,9 @@
         <h2>Send Notifications</h2>
     </div>
 
+    
+    <div class="send-notification-list">
+
     <!-- To Single Merchant -->
     <form method="POST" action="{% url 'create_notification' %}">
         {% csrf_token %}
@@ -21,7 +24,7 @@
                 <span class="send-notification-icon">🏢</span> To Single Corporate Merchant
             </label>
             <div class="send-notification-form">
-                <input type="hidden" name="form_type" value="single">
+                <input type="hidden" name="form_type" value="single"><br>
                 <div class="form-group">
                     <label>Select Project:</label>
                     <select id="single_project" name="project_id" onchange="fetchMerchants()">
@@ -50,8 +53,9 @@
                     <textarea name="description" rows="4" required></textarea>
                 </div>
                 <div class="button-container">
-                    <button type="button" class="cancel-btn">Cancel</button>
-                    <button type="submit" class="send-btn">Send Notification</button>
+                     <button type="submit" class="send-btn"><i class="fa fa-paper-plane"></i> Send </button>
+                    <button type="button" class="cancel-btn"><i class="fa fa-times-circle"></i> Cancel</button>
+                   
                 </div>
             </div>
         </div>
@@ -66,7 +70,7 @@
                 <span class="send-notification-icon">👥</span> To All Corporate Merchants in a Project
             </label>
             <div class="send-notification-form">
-                <input type="hidden" name="form_type" value="all">
+                <input type="hidden" name="form_type" value="all"><br>
                 <div class="form-group">
                     <label>Select Project:</label>
                     <select name="project_id" required>
@@ -89,8 +93,9 @@
                     <textarea name="description" rows="4" required></textarea>
                 </div>
                 <div class="button-container">
-                    <button type="button" class="cancel-btn">Cancel</button>
-                    <button type="submit" class="send-btn">Send Notification</button>
+                    <button type="submit" class="send-btn"><i class="fa fa-paper-plane"></i> Send </button>
+                    <button type="button" class="cancel-btn"><i class="fa fa-times-circle"></i> Cancel</button>
+                    
                 </div>
             </div>
         </div>
@@ -105,7 +110,7 @@
                 <span class="send-notification-icon">🏬</span> To Single Individual Merchant
             </label>
             <div class="send-notification-form">
-                <input type="hidden" name="form_type" value="single_individual">
+                <input type="hidden" name="form_type" value="single_individual"><br>
                 <div class="form-group">
                     <label>Select Merchant ID:</label>
                     <select id="select-individual-merchant" name="merchant_id">
@@ -125,8 +130,9 @@
                     <textarea name="description" rows="4" required></textarea>
                 </div>
                 <div class="button-container">
-                    <button type="button" class="cancel-btn">Cancel</button>
-                    <button type="submit" class="send-btn">Send Notification</button>
+                      <button type="submit" class="send-btn"><i class="fa fa-paper-plane"></i> Send</button>
+                    <button type="button" class="cancel-btn"><i class="fa fa-times-circle"></i> Cancel</button>
+                  
                 </div>
             </div>
         </div>
@@ -141,7 +147,7 @@
                 <span class="send-notification-icon">👤</span> To All Individual Merchants
             </label>
             <div class="send-notification-form">
-                <input type="hidden" name="form_type" value="all_individual">
+                <input type="hidden" name="form_type" value="all_individual"><br>
                 <div class="form-group">
                     <label>Notification Type:</label>
                     <input type="text" name="notification_type" required>
@@ -155,13 +161,16 @@
                     <textarea name="description" rows="4" required></textarea>
                 </div>
                 <div class="button-container">
-                    <button type="button" class="cancel-btn">Cancel</button>
-                    <button type="submit" class="send-btn">Send Notification</button>
+                    <button type="submit" class="send-btn"><i class="fa fa-paper-plane"></i> Send</button>
+                    <button type="button" class="cancel-btn"><i class="fa fa-times-circle"></i> Cancel</button>
+                    
                 </div>
             </div>
         </div>
     </form>
 </div>
+<div>
+
 
 <script>
 function fetchMerchants() {
