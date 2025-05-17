@@ -2753,12 +2753,12 @@ def profile(request):
 
     return render(request, 'bopo_admin/profile.html', context)
 
+
 @login_required
 def update_profile(request):
     user = request.user
 
     if request.method == 'POST':
-        # Check user's role and update profile accordingly
         if user.role == 'corporate_admin' and user.corporate:
             profile = user.corporate
             profile.project_name = request.POST.get('project_name')
@@ -2766,6 +2766,7 @@ def update_profile(request):
             profile.mobile = request.POST.get('mobile')
             profile.city = request.POST.get('city')
             profile.save()
+            messages.success(request, "Corporate profile updated successfully!")
 
         elif user.role == 'employee' and user.employee:
             profile = user.employee
@@ -2774,16 +2775,16 @@ def update_profile(request):
             profile.mobile = request.POST.get('mobile')
             profile.city = request.POST.get('city')
             profile.save()
+            messages.success(request, "Employee profile updated successfully!")
 
         elif user.role == 'super_admin':
             user.username = request.POST.get('username')
-            user.email = request.POST.get('email')
-            user.mobile = request.POST.get('mobile')
             user.save()
+            messages.success(request, "Super admin profile updated successfully!")
 
-        return redirect('profile')  # Redirect to profile page after saving changes
+        return redirect('profile')
 
-    return redirect('profile')  # Redirect if not POST
+    return redirect('profile')
 
 # from datetime import timedelta
 # from django.utils import timezone
@@ -3559,7 +3560,7 @@ def get_deduct_amount(request):
     try:
         setting = DeductSetting.objects.get(id=1)
         return JsonResponse({
-            'deduct_percentage': setting.deduct_percentage,
+            # 'deduct_percentage': setting.deduct_percentage,
             'cust_merch': setting.cust_merch,
             'merch_merch': setting.merch_merch,
             'cust_cust': setting.cust_cust,
@@ -3610,7 +3611,7 @@ def save_deduct_settings(request):
             setting.normal_global = normal_global
             setting.save()
 
-            return JsonResponse({'message': 'Deduction settings saved successfully.'})
+            return JsonResponse({'status': 'success','message': 'Deduct percentages saved successfully!.'})
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)

@@ -323,6 +323,7 @@
     <span class="toast-message">{{ message }}</span>
 </div>
 
+
 <!-- Custom Confirmation Modal -->
 <div id="confirmationModal" class="custom-modal">
     <div class="custom-modal-content">
@@ -410,10 +411,10 @@ window.onclick = function(event) {
       })
       .then(data => {
         if (!data.success) {
-          alert("Failed to update status: " + (data.error || ""));
+          showToast("Failed to update status: " + (data.error || ""));
           this.checked = !isActive;
         } else {
-          alert(`Status updated successfully to "${data.status}"`);
+          showToast(`Status updated successfully to "${data.status}"`);
         }
       })
       .catch(error => {

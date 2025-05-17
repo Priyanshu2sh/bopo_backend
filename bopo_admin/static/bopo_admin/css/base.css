@@ -112,7 +112,7 @@ body {
 }
 
 #belowCustomer.dropdown-open {
-    margin-top: 120px; /* Adjust this value as per dropdown height */
+    margin-top: 170px; /* Adjust this value as per dropdown height */
 }
 .sidebar .dropdown-menu a {
     color: black;

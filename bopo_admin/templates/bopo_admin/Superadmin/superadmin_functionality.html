@@ -16,13 +16,7 @@
 
     <div class="send-notification-list">
         
-  <!-- Deduct Amount -->
-<div class="send-notification-item">
-  <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
-  <label for="toggle-all-customers" class="send-notification-label">
-    <span class="send-notification-icon">💰</span>
-    <span>Deduct Percentage</span>
-  </label>
+
         <!-- Deduct Amount -->
 <div class="send-notification-item">
   <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
@@ -61,48 +55,12 @@
     <!-- Buttons -->
     <div class="button-container">
       <button class="send-btn" onclick="showAlert()">Save</button>
-      <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
+       <button class="cancel-btn" onclick="confirmCancelAward()">Cancel</button>
     </div>
   </div>
 </div>
 
-  <div class="send-notification-form"><br>
-    <!-- New Multi-Input Deduction Layout -->
-    <div class="deduction-cards">
-
-        <div class="deduction-card">
-        <h4>Customer to Merchant</h4>
-        <input type="number" placeholder="Enter %" name="deduct_customer_merchant" min="0" max="100" step="0.1" />
-      </div>
-
-     <div class="deduction-card">
-        <h4>Merchant to Merchant</h4>
-        <input type="number" placeholder="Enter %" name="deduct_merchant_merchant" min="0" max="100" step="0.1" />
-      </div>
- 
-      <div class="deduction-card">
-        <h4>Customer to Customer</h4>
-        <input type="number" placeholder="Enter %" name="deduct_customer_customer" min="0" max="100" step="0.1" />
-      </div>
-
-   
-      <div class="deduction-card">
-        <h4>Normal account to global account</h4>
-        <input type="number" placeholder="Enter %" name="deduct_no_usage_six_months" min="0" max="100" step="0.1" />
-    </div>
-
-    </div>
-
-    <!-- Buttons -->
-    <div class="button-container">
-      <button class="send-btn" onclick="showAlert()">Save</button>
-      <button class="cancel-btn" onclick="confirmCancelDeduction()">Cancel</button>
-    </div>
-  </div>
-</div>
-
-
-        <!-- Security Questions -->
+    <!-- Security Questions -->
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
             <label for="toggle-single-customer" class="send-notification-label">
@@ -263,7 +221,7 @@
 
             <div class="button-container">
                 <button class="send-btn" onclick="saveLogo()">Save</button>
-                <button class="cancel-btn" onclick="confirmCancelLogo()">Cancel</button>
+                <button class="cancel-btn" onclick="confirmCancelAward()">Cancel</button>
             </div>
         </div>
     </div>
@@ -393,30 +351,33 @@ function getCookie(name) {
                     const cb = f.closest(".send-notification-item").querySelector(".toggle-checkbox");
                     if (cb) cb.checked = false;
                 }
-            });
-if (this.checked) {
-    form.style.display = "block";
+                });
+    if (this.checked) {
+        form.style.display = "block";
 
-    if (this.id === "toggle-all-customers") {
-        // Only fetch deduction amount if the toggle is for 'Deduct Percentage'
-        fetch('/api/get-deduct-amount/')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('deduct-amount').value = data.deduct_amount || '';
-            })
-            .catch(() => {
-                alert("Failed to fetch deduction amount.");
-            });
+        if (this.id === "toggle-all-customers") {
+            // Fetch deduction amounts from backend API
+            fetch('/api/get-deduct-amount/')
+                .then(response => response.json())
+                .then(data => {
+                    // Set values in the inputs by name attribute
+                    form.querySelector('input[name="deduct_customer_merchant"]').value = data.cust_merch ?? '';
+                    form.querySelector('input[name="deduct_merchant_merchant"]').value = data.merch_merch ?? '';
+                    form.querySelector('input[name="deduct_customer_customer"]').value = data.cust_cust ?? '';
+                    form.querySelector('input[name="deduct_no_usage_six_months"]').value = data.normal_global ?? '';
+                })
+                .catch(() => {
+                    alert("Failed to fetch deduction amount.");
+                });
+        }
+
+        if (this.id === "toggle-single-customer") {
+            loadSecurityQuestions();
+        }
+    } else {
+        form.style.display = "none";
     }
 
-    if (this.id === "toggle-single-customer") {
-        // Load security questions only when this section is opened
-        loadSecurityQuestions();
-    }
-
-} else {
-    form.style.display = "none";
-}
 
         });
     });
@@ -472,20 +433,6 @@ function showAlert() {
         }
         return '';
     }
-{% comment %} 
-    function loadSecurityQuestions() {
-        fetch('/api/security-questions/')
-        .then(res => res.json())
-        .then(data => {
-            const tbody = document.getElementById("security-questions-body");
-            tbody.innerHTML = '';
-            data.forEach(q => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `<td>${q.question}</td>`;
-                tbody.appendChild(tr);
-            });
-        });
-    } {% endcomment %}
 
 function loadSecurityQuestions() {
     fetch('/api/security-questions/')
@@ -701,6 +648,8 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("award-edit").style.display = "none";
         document.getElementById("award-text").style.display = "block";
     }
+
+    
   function saveAward() {
     const newPercentage = parseInt(document.getElementById("award-input").value, 10);
 
@@ -725,6 +674,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Show success toast
             showToast("Award points updated successfully!", true);
+            setTimeout(() => {
+              location.reload();
+        }, 3500);
+
         } else {
             alert("Failed to update.");
         }
@@ -868,6 +821,7 @@ function showToast(message, isSuccess = true) {
         }
         return cookieValue;
     }
+
 function confirmCancelAward() {
     // Show the custom modal
     const modal = document.getElementById('cancelConfirmationModal');
@@ -889,6 +843,9 @@ function confirmCancelAward() {
 
         // Close the confirmation modal
         modal.style.display = 'none';
+
+           // Reload the page
+    location.reload();
     };
 
     // When the user clicks "No"
@@ -989,7 +946,8 @@ function showAlert() {
     fetch('/save-deduct-settings/', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()  // Optional if needed in your setup
         },
         body: JSON.stringify({
             deduct_customer_merchant: custMerch,
@@ -1000,13 +958,22 @@ function showAlert() {
     })
     .then(response => response.json())
     .then(data => {
-        alert(data.message || 'Saved successfully');
+        if (data.status === 'success') {
+            showToast(data.message || "Deduct percentages saved successfully!", true);
+              // Reload after toast disappears
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showToast(data.message || "Failed to save deduction percentages.", false);
+        }
     })
     .catch(error => {
-        alert('Error saving data');
+        showToast("An error occurred while saving deduction percentages.", false);
         console.error(error);
     });
 }
+
 </script>
 
 
