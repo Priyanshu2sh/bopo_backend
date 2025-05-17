@@ -194,9 +194,9 @@ def toggle_terminal_status(request, terminal_id):
             data = json.loads(request.body)
             is_active = data.get("is_active")
 
-            terminal = Terminal.objects.get(id=terminal_id)
+            # Lookup by terminal_id field, not id
+            terminal = Terminal.objects.get(terminal_id=terminal_id)
 
-            # Change terminal status based on the checkbox state
             if is_active:
                 terminal.status = "Active"
             else:
@@ -205,6 +205,8 @@ def toggle_terminal_status(request, terminal_id):
             terminal.save()
 
             return JsonResponse({"success": True, "status": terminal.status})
+        except Terminal.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Terminal not found"})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
 

@@ -4,11 +4,11 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/terminals.css' %}">
 
+<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <!-- Select2 CSS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
 <!-- Select2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
@@ -55,20 +55,24 @@
           <th style="width: 50%;">Action</th>
         </tr>
       </thead>
-      <tbody id="terminal-body"> 
+      <tbody id="terminal-body">
         {% for terminal in terminals %}
-        <tr>
-          <td>{{ terminal.terminal_id }}</td>
-          <td>
-            <label class="switch">
-              <input type="checkbox" onchange="toggleStatus({{ terminal.id }}, this)" {% if terminal.status == 'Active' %}checked{% endif %}>
-              <span class="slider round"></span>
-            </label>
-          </td>
-          <td>
-            <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="{{ terminal.id }}">✏️ Edit</button>
-          </td>
-        </tr>
+          <tr>
+            <td>{{ terminal.terminal_id }}</td>
+            <td>
+              <input type="text" value="{{ terminal.tid_pin }}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;">
+            </td>
+            <td>
+              <label class="switch">
+                <input type="checkbox" onchange="toggleStatus('{{ terminal.terminal_id }}', this)" {% if terminal.status == 'Active' %}checked{% endif %}>
+                <span class="slider round"></span>
+              </label>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="{{ terminal.terminal_id }}">✏️ Edit</button>
+              <button class="btn btn-sm btn-success save-btn" data-terminal-id="{{ terminal.terminal_id }}" style="display: none;">💾 Save</button>
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -76,33 +80,59 @@
 </div>
 
 <script>
-function toggleStatus(terminalId, checkboxElement) {
+document.addEventListener('DOMContentLoaded', function () {
+    const toggles = document.querySelectorAll('.terminal-status-toggle');
+
+    toggles.forEach(toggle => {
+        toggle.addEventListener('change', function () {
+            const terminalId = this.dataset.terminalId;
+            const isChecked = this.checked;
+
+            fetch(`/toggle-terminal-status/${terminalId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: isChecked })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Status updated successfully');
+                } else {
+                    alert('Failed to update status');
+                }
+            });
+        });
+    });
+});
+function toggleStatus(terminalId, checkbox) {
+  const isActive = checkbox.checked;
+  const csrfToken = '{{ csrf_token }}';
+
   fetch(`/toggle-terminal-status/${terminalId}/`, {
     method: 'POST',
     headers: {
-      'X-CSRFToken': '{{ csrf_token }}',
       'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken,
     },
-    body: JSON.stringify({
-      "is_active": checkboxElement.checked
-    }),
+    body: JSON.stringify({ is_active: isActive })
   })
   .then(response => response.json())
   .then(data => {
-    if (!data.success) {
-      checkboxElement.checked = !checkboxElement.checked;
-      showToast('Failed to update status.', 'error');
+    if (data.success) {
+      showToast(`Status updated successfully to "${data.status}"`);
     } else {
-      showToast('Terminal status updated successfully!', 'success');
+      showToast("Failed to update status: " + (data.error || ""));
     }
   })
-  .catch(error => {
-    console.error('Error:', error);
-    checkboxElement.checked = !checkboxElement.checked;
-    showToast('Error updating status.', 'error');
+  .catch(() => {
+    showToast('Error occurred while updating status', 'error');
   });
 }
 
+// Toast notification function
 function showToast(message, type) {
   const toast = document.createElement('div');
   toast.classList.add('toast', type);
@@ -128,7 +158,7 @@ function showToast(message, type) {
   }, 3000);
 }
 
-
+// Initialize Select2 and handle merchant selection change
 $(document).ready(function() {
   $('#merchant_id').select2({
     placeholder: "Select Merchant ID",
@@ -151,7 +181,12 @@ $(document).ready(function() {
             row.innerHTML = `
               <td>${terminal.terminal_id}</td>
               <td><input type="text" value="${terminal.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
-              <td>${terminal.status}</td>
+               <td>
+        <label class="switch">
+          <input type="checkbox" onchange="toggleStatus('${terminal.terminal_id}', this)" ${terminal.status === 'Active' ? 'checked' : ''}>
+          <span class="slider round"></span>
+        </label>
+      </td>
               <td>
                 <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${terminal.terminal_id}">✏️ Edit</button>
                 <button class="btn btn-sm btn-success save-btn" data-terminal-id="${terminal.terminal_id}" style="display: none;">💾 Save</button>
@@ -173,6 +208,7 @@ $(document).ready(function() {
   });
 });
 
+// Add new terminal button click handler
 document.getElementById('add-terminal-btn').addEventListener('click', function() {
   var merchantId = document.getElementById('merchant_id').value;
   if (merchantId) {
@@ -193,12 +229,15 @@ document.getElementById('add-terminal-btn').addEventListener('click', function()
         row.innerHTML = `
           <td>${data.terminal_id}</td>
           <td><input type="text" value="${data.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
-          <td>${data.status}</td>
           <td>
-            <div style="display: flex; gap: 5px; justify-content: center; align-items: center;">
-              <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${data.terminal_id}">✏️ Edit</button>
-              <button class="btn btn-sm btn-success save-btn" data-terminal-id="${data.terminal_id}" style="display: none;">💾 Save</button>
-            </div>
+            <label class="switch">
+              <input type="checkbox" onchange="toggleStatus('${data.id}', this)" ${data.status === 'Active' ? 'checked' : ''}>
+              <span class="slider round"></span>
+            </label>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${data.terminal_id}">✏️ Edit</button>
+            <button class="btn btn-sm btn-success save-btn" data-terminal-id="${data.terminal_id}" style="display: none;">💾 Save</button>
           </td>
         `;
         document.getElementById('terminal-body').appendChild(row);
@@ -212,6 +251,7 @@ document.getElementById('add-terminal-btn').addEventListener('click', function()
   }
 });
 
+// Handle Edit and Save button clicks with event delegation
 document.addEventListener('click', function(event) {
   if (event.target.classList.contains('edit-btn')) {
     var row = event.target.closest('tr');
@@ -260,7 +300,6 @@ document.addEventListener('click', function(event) {
         saveBtn.style.display = 'none';
         editBtn.style.display = 'inline-block';
         showToast('PIN updated successfully.', 'success');
-
       } else {
         showToast('Error updating PIN.', 'error');
       }
@@ -268,6 +307,7 @@ document.addEventListener('click', function(event) {
   }
 });
 
+// Utility to get CSRF token from cookies
 function getCSRFToken() {
   let cookieValue = null;
   const cookies = document.cookie.split(';');
@@ -281,6 +321,8 @@ function getCSRFToken() {
   return cookieValue;
 }
 </script>
+
+
 
 
 
