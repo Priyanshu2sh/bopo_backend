@@ -264,22 +264,11 @@
 <!-- JavaScript -->
 <script>
 
-function showToast(message, bgColor = '#333') {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.style.backgroundColor = bgColor;
-    toast.classList.add('show');
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
-}
-
 function saveLogo() {
     const logoUpload = document.getElementById('logo-upload').files[0];
 
     if (!logoUpload) {
-        showToast('⚠️ Please choose a logo to upload.', '#f44336');
+        showToast('⚠️ Please choose a logo to upload.', false);
         return;
     }
 
@@ -296,20 +285,21 @@ function saveLogo() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast('Logo updated successfully!', '#4CAF50');
+            showToast(' Logo updated successfully!', true);
             const logoImage = document.getElementById('logoImage');
-            if (logoImage) {
+            if (logoImage && data.url) {
                 logoImage.src = data.url;
             }
         } else {
-            showToast('❌ Failed to update logo.', '#f44336');
+            showToast('❌ Failed to update logo.', false);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showToast('❌ An error occurred while uploading the logo.', '#f44336');
+        showToast('❌ An error occurred while uploading the logo.', false);
     });
 }
+
 
 function confirmCancelLogo() {
     document.getElementById('cancelConfirmationModal').style.display = 'block';
@@ -556,7 +546,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 showToast("Question updated successfully", true);
                 closeEditModal();
                 setTimeout(() => {
-                    location.reload();
+                      loadSecurityQuestions();
                 }, 1000);
             } else {
                 showToast(data.error || "Failed to update", false);
@@ -612,7 +602,7 @@ document.addEventListener("DOMContentLoaded", function () {
         setTimeout(() => {
             cancelSecurityQuestion();  // Close modal
             loadSecurityQuestions();   // Reload the list of security questions
-            window.location.reload();  // Reload the page
+           
         }, 2500); // Match the duration of the toast
     })
     .catch(() => {
