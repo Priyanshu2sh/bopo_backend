@@ -80,6 +80,7 @@
 </div>
 
 <script>
+  
 document.addEventListener('DOMContentLoaded', function () {
     const toggles = document.querySelectorAll('.terminal-status-toggle');
 
@@ -107,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
 function toggleStatus(terminalId, checkbox) {
   const isActive = checkbox.checked;
   const csrfToken = '{{ csrf_token }}';

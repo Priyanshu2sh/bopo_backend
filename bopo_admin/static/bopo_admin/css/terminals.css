@@ -203,12 +203,12 @@ input:checked + .slider:before {
   position: fixed;
   top: 20px; /* Move to top */
   left: 40%; /* Align to right */
-  background-color: #333;
-  color: #fff;
+  color: #fff ;
   padding: 12px 20px;
   border-radius: 8px;
   opacity: 0;
   pointer-events: none;
+  background-color: #28a745;
   font-size: 17px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -218,7 +218,8 @@ input:checked + .slider:before {
   transform: translateY(-50%); /* Initial hidden position */
   transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
   z-index: 9999;
-    min-width: 200px;
+  min-width: 400px;
+  font-weight: bo;
 }
 .toast.show {
   opacity: 1;

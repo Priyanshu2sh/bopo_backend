@@ -7,7 +7,6 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-
  <!-- Select2 CSS & JS -->
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -183,7 +182,6 @@
         </div>
 </div>
 
-
          <!-- DataTables & Buttons JS --> 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -223,7 +221,6 @@
 });
 
     </script>
-
 
 
 <!-- Edit Merchant Modal -->
@@ -341,7 +338,7 @@
                 </div>
             </div><br>
 
-            <button type="submit" class="addmerchant-btn-submit">Update</button>
+            <button type="submit" class="addmerchant-btn-submit">Submit</button>
         </form>
     </div>
 </div>
@@ -389,7 +386,6 @@ function showToast(message, type = 'success', duration = 3000) {
     }, 300);
   }, duration);
 }
-
 
 document.querySelectorAll('.status-toggle').forEach(toggle => {
   toggle.addEventListener('change', function () {
@@ -442,7 +438,6 @@ function getCookie(name) {
   return cookieValue;
 }
 
-
 function openEditCorporateModal(id, type = 'corporate') {
     const url = type === 'merchant' ? `/get-copmerchant/${id}/` : `/get-corporate/${id}/`;
 
@@ -491,7 +486,7 @@ function openEditCorporateModal(id, type = 'corporate') {
         });
 }
 
-function closeModal() {
+function closeEditModal() {
     const modal = document.getElementById('editCorporateModal');
     if (modal) modal.style.display = 'none';
 }
@@ -720,4 +715,9 @@ function fetchCities(state) {
 </script>
     
 
-{% endblock %}
+{% endblock %}
+
+
+
+
+
