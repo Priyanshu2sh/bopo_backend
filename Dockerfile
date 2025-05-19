@@ -17,7 +17,9 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
+
 
 # Copy the entire project to the container
 COPY . .
@@ -27,5 +29,6 @@ EXPOSE 8000
 
 # Command to run Gunicorn as the WSGI server
 # CMD ["gunicorn", "--bind", "0.0.0.0:8001", "medical_books.wsgi:application"]
-CMD ["daphne" "-b" "0.0.0.0" "-p" "bopo_backend.asgi:application"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "bopo_backend.asgi:application"]
+
    
