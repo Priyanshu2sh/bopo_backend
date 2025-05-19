@@ -36,6 +36,7 @@ class MerchantPoints(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     points = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 
@@ -213,4 +214,8 @@ class SuperAdminPayment(models.Model):
     payment_method = models.CharField(max_length=50)
     cashout = models.ForeignKey(CashOut, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+class LastExpiryRun(models.Model):
+    last_run = models.DateField(auto_now=True)
+
 

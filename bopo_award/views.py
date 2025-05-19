@@ -1,5 +1,6 @@
 from datetime import timedelta, timezone
 import random
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,28 +8,49 @@ from rest_framework.views import APIView
 from django.db.models import F
 from django.db.models import Sum
 from django.utils import timezone
+from django.db.models import Q
+
 
 from datetime import timedelta
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.serializers import CustomerSerializer, MerchantSerializer
-from bopo_admin.models import DeductSetting, SecurityQuestion
+from bopo_admin.models import DeductSetting, Notification, SecurityQuestion
 from django.db import transaction
 
-from .serializers import BankDetailSerializer, CashOutSerializer, CorporateProjectSerializer, CustomerCashOutSerializer, HelpSerializer, MerchantCashOutSerializer, PaymentDetailsSerializer
+from .serializers import BankDetailSerializer, CashOutSerializer, CorporateProjectSerializer, CustomerCashOutSerializer, HelpSerializer, MerchantCashOutSerializer, NotificationSerializer, PaymentDetailsSerializer
 
-from .models import AwardPoints, BankDetail, CashOut, CustomerToCustomer, GlobalPoints, Help, MerchantToMerchant, ModelPlan, PaymentDetails
+from .models import AwardPoints, BankDetail, CashOut, CustomerToCustomer, GlobalPoints, Help, LastExpiryRun, MerchantToMerchant, ModelPlan, PaymentDetails
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
+from django.utils.timezone import localtime
+from datetime import date
 
 class RedeemPointsAPIView(APIView):
     """
     API for Customer to Merchant point transfer.
-    Also moves expired CustomerPoints (older than 6 months) to GlobalPoints with no deduction.
+    Also moves expired CustomerPoints (older than 6 months) to GlobalPoints with no deduction,
+    only once per day at midnight (checked on every API call).
     """
 
     def post(self, request):
+        # ⏰ DAILY MIDNIGHT EXPIRY CHECK
+        now = localtime(timezone.now())
+        today = now.date()
+
+        last_run = LastExpiryRun.objects.first()
+        if not last_run or last_run.last_run < today:
+            self.run_midnight_expiry()
+            # self.run_global_point_inactivity_deduction()
+
+            if last_run:
+                last_run.last_run = today
+                last_run.save(update_fields=['last_run'])
+            else:
+                LastExpiryRun.objects.create(last_run=today)
+
+        # ----- [Your existing logic starts here] -----
         customer_id = request.data.get('customer_id', '').strip()
         customer_mobile = request.data.get('customer_mobile', '').strip()
         merchant_id = request.data.get('merchant_id', '').strip()
@@ -53,8 +75,6 @@ class RedeemPointsAPIView(APIView):
         # ✅ Validate PIN
         if str(customer.pin) != str(pin):
             return Response({'error': 'Please enter the correct PIN.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-       
 
         # ✅ Fetch or create merchant
         merchant = None
@@ -87,47 +107,6 @@ class RedeemPointsAPIView(APIView):
         cust_merch_factor = (100 - cust_merch_deduct) / 100
         merchant_points_to_credit = round(points * cust_merch_factor, 2)
 
-        # ✅ Move expired points to GlobalPoints without deduction
-        six_months_ago = timezone.now() - timedelta(minutes=180)
-
-        expired_entries = CustomerPoints.objects.filter(
-            customer=customer,
-            updated_at__lt=six_months_ago,
-            points__gt=0
-        )
-        
-        with transaction.atomic():
-            total_expired_points = 0
-
-            for expired in expired_entries:
-                original_points = expired.points
-                if original_points <= 0:
-                    continue
-
-                # Decrease expired points
-                expired.points = 0
-                expired.save(update_fields=['points', 'updated_at'])
-
-                total_expired_points += original_points
-
-                # Optional: log this in history
-                History.objects.create(
-                    customer=customer,
-                    merchant=expired.merchant,
-                    points=original_points,
-                    transaction_type='expired'
-                )
-                
-
-            if total_expired_points > 0:
-                global_point_entry, created = GlobalPoints.objects.get_or_create(
-                    customer=customer,
-                    defaults={'points': total_expired_points}
-                )
-                if not created:
-                    global_point_entry.points += total_expired_points
-                    global_point_entry.save(update_fields=['points', 'updated_at'])
-
         # ✅ Check active CustomerPoints for this merchant
         total_customer_points = CustomerPoints.objects.filter(
             customer=customer,
@@ -157,7 +136,7 @@ class RedeemPointsAPIView(APIView):
                     entry.points = available - points_to_deduct
                     points_to_deduct = 0
 
-                entry.save(update_fields=['points'])
+                entry.save(update_fields=['points', 'updated_at'])
 
             # ✅ Credit to merchant
             merchant_points, created = MerchantPoints.objects.get_or_create(
@@ -186,6 +165,241 @@ class RedeemPointsAPIView(APIView):
             'deduction_percentage_applied': cust_merch_deduct,
             'user_type': merchant.user_type
         }, status=status.HTTP_200_OK)
+
+    def run_midnight_expiry(self):
+        """
+        Runs once daily: Moves expired CustomerPoints (>6 months old) to GlobalPoints.
+        """
+        six_months_ago = timezone.now() - timedelta(days=180)
+        expired_entries = CustomerPoints.objects.filter(
+            updated_at__lt=six_months_ago,
+            points__gt=0
+        )
+
+        with transaction.atomic():
+            for expired in expired_entries.select_for_update():
+                customer = expired.customer
+                merchant = expired.merchant
+                original_points = expired.points
+
+                expired.points = 0
+                expired.updated_at = timezone.now()
+                expired.save(update_fields=['points', 'updated_at'])
+
+                # Update or create GlobalPoints
+                global_point_entry, created = GlobalPoints.objects.get_or_create(
+                    customer=customer,
+                    defaults={'points': original_points}
+                )
+                if not created:
+                    global_point_entry.points += original_points
+                    global_point_entry.save(update_fields=['points', 'updated_at'])
+
+                # History log
+                History.objects.create(
+                    customer=customer,
+                    merchant=merchant,
+                    points=original_points,
+                    transaction_type='expired'
+                )
+                
+    # def run_global_point_inactivity_deduction():
+    #     """
+    #     Deduct GlobalPoints if customer hasn't received points in GlobalPoints table in last 6 months.
+    #     Runs once daily at midnight.
+    #     """
+
+    #     six_months_ago = timezone.now() - timedelta(days=180)
+
+    #     # Customers who have not had any updates in GlobalPoints in the last 6 months
+    #     inactive_global_points = GlobalPoints.objects.filter(
+    #         updated_at__lt=six_months_ago,
+    #         points__gt=0
+    #     )
+
+    #     with transaction.atomic():
+    #         for gp in inactive_global_points.select_for_update():
+    #             customer = gp.customer
+    #             original_points = gp.points
+
+    #             # Set global points to 0 (deduct all)
+    #             gp.points = 0
+    #             gp.save(update_fields=['points', 'updated_at'])
+
+    #             # Log in history
+    #             History.objects.create(
+    #                 customer=customer,
+    #                 merchant=None,  # No merchant involved
+    #                 points=original_points,
+    #                 transaction_type='global_expired'
+    #             )
+
+
+
+# class RedeemPointsAPIView(APIView):
+#     """
+#     API for Customer to Merchant point transfer.
+#     Also moves expired CustomerPoints (older than 6 months) to GlobalPoints with no deduction.
+#     """
+
+#     def post(self, request):
+#         customer_id = request.data.get('customer_id', '').strip()
+#         customer_mobile = request.data.get('customer_mobile', '').strip()
+#         merchant_id = request.data.get('merchant_id', '').strip()
+#         merchant_mobile = request.data.get('merchant_mobile', '').strip()
+#         pin = request.data.get('pin')
+#         points = int(request.data.get('points', 0))
+
+#         if points <= 0:
+#             return Response({'error': 'Points must be greater than zero'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # ✅ Fetch customer
+#         try:
+#             if customer_id:
+#                 customer = Customer.objects.get(customer_id__iexact=customer_id)
+#             elif customer_mobile:
+#                 customer = Customer.objects.get(mobile=customer_mobile)
+#             else:
+#                 return Response({'error': 'Customer ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
+#         except Customer.DoesNotExist:
+#             return Response({'error': 'Customer not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+#         # ✅ Validate PIN
+#         if str(customer.pin) != str(pin):
+#             return Response({'error': 'Please enter the correct PIN.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+       
+
+#         # ✅ Fetch or create merchant
+#         merchant = None
+#         if merchant_id:
+#             try:
+#                 merchant = Merchant.objects.get(merchant_id__iexact=merchant_id)
+#             except Merchant.DoesNotExist:
+#                 return Response({'error': f'Merchant not found for ID {merchant_id}'}, status=status.HTTP_404_NOT_FOUND)
+#         elif merchant_mobile:
+#             merchant, created = Merchant.objects.get_or_create(
+#                 mobile=merchant_mobile,
+#                 defaults={'merchant_id': f"M{random.randint(100000, 999999)}"}
+#             )
+#         else:
+#             return Response({'error': 'Merchant ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         if merchant.user_type.lower() == 'corporate':
+#             return Response(
+#                 {'error': 'Points redeem is only allowed to Individual merchants. Please choose another option for Corporate merchants.'},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+
+#         # ✅ Fetch deduction settings
+#         try:
+#             setting = DeductSetting.objects.get(id=1)
+#             cust_merch_deduct = setting.cust_merch
+#         except DeductSetting.DoesNotExist:
+#             cust_merch_deduct = 5.0  # default 5%
+
+#         cust_merch_factor = (100 - cust_merch_deduct) / 100
+#         merchant_points_to_credit = round(points * cust_merch_factor, 2)
+
+#         # ✅ Move expired points to GlobalPoints without deduction
+#         six_months_ago = timezone.now() - timedelta(minutes=180)
+
+#         expired_entries = CustomerPoints.objects.filter(
+#             customer=customer,
+#             updated_at__lt=six_months_ago,
+#             points__gt=0
+#         )
+        
+#         with transaction.atomic():
+#             total_expired_points = 0
+
+#             for expired in expired_entries:
+#                 original_points = expired.points
+#                 if original_points <= 0:
+#                     continue
+
+#                 # Decrease expired points
+#                 expired.points = 0
+#                 expired.save(update_fields=['points', 'updated_at'])
+
+#                 total_expired_points += original_points
+
+#                 # Optional: log this in history
+#                 History.objects.create(
+#                     customer=customer,
+#                     merchant=expired.merchant,
+#                     points=original_points,
+#                     transaction_type='expired'
+#                 )
+                
+
+#             if total_expired_points > 0:
+#                 global_point_entry, created = GlobalPoints.objects.get_or_create(
+#                     customer=customer,
+#                     defaults={'points': total_expired_points}
+#                 )
+#                 if not created:
+#                     global_point_entry.points += total_expired_points
+#                     global_point_entry.save(update_fields=['points', 'updated_at'])
+
+#         # ✅ Check active CustomerPoints for this merchant
+#         total_customer_points = CustomerPoints.objects.filter(
+#             customer=customer,
+#             merchant=merchant
+#         ).aggregate(total=Sum('points'))['total'] or 0
+
+#         if total_customer_points < points:
+#             return Response({'error': 'Insufficient points. Transfer not allowed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # ✅ Redeem active points
+#         with transaction.atomic():
+#             points_to_deduct = points
+#             customer_point_entries = CustomerPoints.objects.filter(
+#                 customer=customer,
+#                 merchant=merchant
+#             ).order_by('-points').select_for_update()
+
+#             for entry in customer_point_entries:
+#                 if points_to_deduct <= 0:
+#                     break
+
+#                 available = entry.points
+#                 if available <= points_to_deduct:
+#                     points_to_deduct -= available
+#                     entry.points = 0
+#                 else:
+#                     entry.points = available - points_to_deduct
+#                     points_to_deduct = 0
+
+#                 entry.save(update_fields=['points'])
+
+#             # ✅ Credit to merchant
+#             merchant_points, created = MerchantPoints.objects.get_or_create(
+#                 merchant=merchant,
+#                 defaults={'points': merchant_points_to_credit}
+#             )
+#             if not created:
+#                 merchant_points.points += merchant_points_to_credit
+#                 merchant_points.save(update_fields=['points'])
+
+#             # ✅ History log
+#             History.objects.create(
+#                 customer=customer,
+#                 merchant=merchant,
+#                 points=points,
+#                 transaction_type="redeem"
+#             )
+
+#         return Response({
+#             'message': 'Points redeemed successfully.',
+#             'merchant_id': merchant.merchant_id,
+#             'merchant_mobile': merchant.mobile,
+#             'points_entered_by_customer': points,
+#             'points_deducted_from_customer': points,
+#             'points_credited_to_merchant': merchant_points_to_credit,
+#             'deduction_percentage_applied': cust_merch_deduct,
+#             'user_type': merchant.user_type
+#         }, status=status.HTTP_200_OK)
         
     
            
@@ -1679,6 +1893,24 @@ class GlobalRedeemPointsAPIView(APIView):
     """
 
     def post(self, request):
+        
+        
+        # ⏰ DAILY MIDNIGHT EXPIRY CHECK
+        now = localtime(timezone.now())
+        today = now.date()
+
+        last_run = LastExpiryRun.objects.first()
+        if not last_run or last_run.last_run < today:
+            
+            self.run_global_point_inactivity_deduction()
+
+            if last_run:
+                last_run.last_run = today
+                last_run.save(update_fields=['last_run'])
+            else:
+                LastExpiryRun.objects.create(last_run=today)
+        
+        # ----- [Your existing logic starts here] -----
         customer_id = request.data.get('customer_id', '').strip()
         customer_mobile = request.data.get('customer_mobile', '').strip()
         merchant_id = request.data.get('merchant_id', '').strip()
@@ -1743,7 +1975,10 @@ class GlobalRedeemPointsAPIView(APIView):
         with transaction.atomic():
             # ✅ Deduct from GlobalPoints
             global_points.points -= points
-            global_points.save(update_fields=['points'])
+            global_points.updated_at = timezone.now() 
+            global_points.save(update_fields=['points', 'updated_at'])
+            
+           
 
             # ✅ Credit to MerchantPoints
             merchant_points, created = MerchantPoints.objects.get_or_create(
@@ -1774,6 +2009,56 @@ class GlobalRedeemPointsAPIView(APIView):
             'points_credited_to_merchant': merchant_points_to_credit,
             'deduction_percentage_applied': deduct_percentage
         }, status=status.HTTP_200_OK)
+        
+    def run_global_point_inactivity_deduction(self):
+        """
+        Deduct GlobalPoints if the customer hasn't transferred or received any points in the last 6 months.
+        Deduction is applied as per DeductSetting.normal_global.
+        Runs once daily at midnight.
+        """
+        six_months_ago = timezone.now() - timedelta(days=180)
+
+        try:
+            deduct_setting = DeductSetting.objects.get(id=1)
+            deduction_percent = deduct_setting.normal_global  # e.g., 5.0 for 5%
+        except DeductSetting.DoesNotExist:
+            deduction_percent = 5.0  # default to 5% if not set
+
+        inactive_global_points = GlobalPoints.objects.filter(points__gt=0)
+
+        with transaction.atomic():
+            for gp in inactive_global_points.select_for_update():
+                customer = gp.customer
+
+                # Check for transactions in the last 6 months
+                recent_transactions = History.objects.filter(
+                    customer=customer,
+                    created_at__gte=six_months_ago,
+                    transaction_type__in=['award', 'redeem']
+                ).exists()
+
+                if not recent_transactions:
+                    original_points = gp.points
+                    deducted_points = round(original_points * (deduction_percent / 100), 2)
+                    remaining_points = round(original_points - deducted_points, 2)
+
+                    gp.points = remaining_points
+                    gp.updated_at = timezone.now()
+                    gp.save(update_fields=['points', 'updated_at'])
+
+                    # Log deduction in history
+                    History.objects.create(
+                        customer=customer,
+                        merchant=None,
+                        points=deducted_points,
+                        transaction_type='global_expired'
+                    )
+
+                    print(f"Deducted {deducted_points} points from customer {customer.customer_id} due to inactivity.")
+
+
+    
+    
         
 class GetGlobalCustomerPointsAPIView(APIView):
 
@@ -1852,6 +2137,30 @@ class SecurityQuestionAPIView(APIView):
 
         return Response({"questions": list(questions)}, status=status.HTTP_200_OK)
     
+class HistoryAPIView(APIView):
+    """
+    API to get history of transactions for a given customer or merchant.
+    """
+
+    def get(self, request):
+        # Fetch all history records
+        histories = History.objects.all().order_by('-created_at')
+        if not histories:
+            return Response({"message": "No history records found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Prepare the response data
+        history_data = []
+        for history in histories:
+            history_data.append({
+                "customer_id": history.customer.customer_id if history.customer else None,
+                "merchant_id": history.merchant.merchant_id if history.merchant else None,
+                "points": history.points,
+                "transaction_type": history.transaction_type,
+                "created_at": history.created_at,
+            })
+
+        return Response({"history": history_data}, status=status.HTTP_200_OK)
+    
     
 class CorporateGlobalMerchantAPIView(APIView):
     """
@@ -1883,3 +2192,60 @@ class CorporateGlobalMerchantAPIView(APIView):
             })
 
         return Response({"merchants": merchants_data}, status=status.HTTP_200_OK)
+    
+def cron_trigger_global_point_deduction(request):
+    auto_deduct_inactive_global_points()
+    return JsonResponse({"status": "executed"}, status=200)
+
+
+def auto_deduct_inactive_global_points():
+    now = timezone.now()
+    six_months_ago = now - timedelta(days=180)
+
+    try:
+        deduct_setting = DeductSetting.objects.first()
+        deduct_percent = deduct_setting.normal_global
+    except (DeductSetting.DoesNotExist, AttributeError):
+        print("DeductSetting not configured.")
+        return
+
+    global_points = GlobalPoints.objects.all()
+
+    for gp in global_points:
+        customer = gp.customer
+        if gp.points <= 0:
+            continue
+
+        # Check if customer or merchant had activity in last 6 months
+        has_activity = History.objects.filter(
+            Q(customer_id=customer) | Q(merchant_id=customer),
+            created_at__gte=six_months_ago
+        ).exists()
+
+        if not has_activity:
+            original = gp.points
+            deducted_amount = round(original * (deduct_percent / 100), 2)
+            gp.points = original - deducted_amount
+            gp.save()
+
+            print(f"[{now}] Deducted {deducted_amount} from customer {customer.id}. Remaining: {gp.points}")
+            
+            
+class NotificationListAPIView(APIView):
+    def get(self, request):
+        customer_id = request.GET.get("customers")
+        merchant_id = request.GET.get("merchants")
+        project_id = request.GET.get("project_id")
+
+        notifications = Notification.objects.all()
+
+        if customer_id:
+            notifications = notifications.filter(customers=customer_id)
+        elif merchant_id:
+            notifications = notifications.filter(merchants=merchant_id)
+        elif project_id:
+            notifications = notifications.filter(project_id=project_id)
+
+        notifications = notifications.order_by('-created_at')  # latest first
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

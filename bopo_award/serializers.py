@@ -15,7 +15,7 @@ from rest_framework import serializers
 
 
 from accounts.models import Corporate, Customer, Merchant
-from bopo_admin.models import EmployeeRole
+from bopo_admin.models import EmployeeRole, Notification
 from .models import BankDetail, CashOut, CustomerPoints, GlobalPoints, Help, MerchantPoints, History, ModelPlan, PaymentDetails, SuperAdminPayment
 
 
@@ -140,3 +140,8 @@ class GlobalPointsSerializer(serializers.Serializer):
     class Meta:
         model = GlobalPoints
         fields = '__all__'
+        
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'title', 'description', 'created_at']

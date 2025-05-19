@@ -26,7 +26,7 @@ from .serializers import   CustomerSerializer, MerchantSerializer,  TerminalSeri
 logger = logging.getLogger(__name__)
 
 def generate_terminal_id():
-    return 'TERM' + ''.join(random.choices(string.digits, k=6))
+    return 'TID' + ''.join(random.choices(string.digits, k=8))
 
 class CreateTerminalAPIView(APIView):
     def post(self, request):
@@ -443,7 +443,6 @@ class LoginAPIView(APIView):
             merchant.pin,
             merchant.aadhaar_number,
             merchant.pan_number,
-            merchant.gender,
             merchant.shop_name,
             merchant.address,
             merchant.city,
@@ -963,3 +962,87 @@ class VerifyMobileChangeAPIView(APIView):
             return Response({'error': 'Invalid customer or merchant ID'}, status=status.HTTP_400_BAD_REQUEST)
         
 
+class RequestPinChangeAPIView(APIView):
+    def post(self, request):
+        customer_id = request.data.get('customer_id')
+        merchant_id = request.data.get('merchant_id')
+        new_pin = request.data.get('new_pin')
+
+        if not new_pin:
+            return Response({'error': 'New PIN is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp = str(random.randint(100000, 999999))  # Generate OTP
+
+        try:
+            if customer_id:
+                customer = Customer.objects.get(customer_id=customer_id)
+                customer.pin = new_pin  # Save new pin temporarily
+                customer.otp = otp
+                customer.save()
+
+                mobile_number = customer.mobile
+
+            elif merchant_id:
+                merchant = Merchant.objects.get(merchant_id=merchant_id)
+                merchant.pin = new_pin  # Save new pin temporarily
+                merchant.otp = otp
+                merchant.save()
+
+                mobile_number = merchant.mobile
+
+            else:
+                return Response({'error': 'Either customer_id or merchant_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Send OTP
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=f"Your BOPO OTP to update PIN is: {otp}",
+                from_=settings.TWILIO_PHONE_NUMBER,
+                to=f'+91{mobile_number}'
+            )
+
+            return Response({'message': 'OTP sent successfully to your registered mobile.'}, status=status.HTTP_200_OK)
+
+        except (Customer.DoesNotExist, Merchant.DoesNotExist):
+            return Response({'error': 'Invalid customer or merchant ID.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({'error': f'Failed to send OTP: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+class VerifyPinChangeAPIView(APIView):
+    def post(self, request):
+        customer_id = request.data.get('customer_id')
+        merchant_id = request.data.get('merchant_id')
+        mobile = request.data.get('mobile')  # required mobile input
+        otp = request.data.get('otp')
+
+        if not mobile or not otp:
+            return Response({'error': 'Mobile and OTP are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if customer_id:
+                customer = Customer.objects.get(customer_id=customer_id)
+                if customer.mobile == mobile and customer.otp == otp:
+                    customer.pin = customer.pin  # save the new pin
+                    customer.otp = None
+                    customer.save()
+                    return Response({'message': 'PIN updated successfully for customer.'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Invalid OTP or mobile number for customer.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            elif merchant_id:
+                merchant = Merchant.objects.get(merchant_id=merchant_id)
+                if merchant.mobile == mobile and merchant.otp == otp:
+                    merchant.pin = merchant.pin
+                    merchant.otp = None
+                    merchant.save()
+                    return Response({'message': 'PIN updated successfully for merchant.'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Invalid OTP or mobile number for merchant.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                return Response({'error': 'Either customer_id or merchant_id must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except (Customer.DoesNotExist, Merchant.DoesNotExist):
+            return Response({'error': 'Invalid customer or merchant ID.'}, status=status.HTTP_400_BAD_REQUEST)
