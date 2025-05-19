@@ -153,7 +153,7 @@ LOGIN_URL = '/login/'
 
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = "ACefc2b57333c60eaaea16e2ba775ade3c"
-TWILIO_AUTH_TOKEN = "1f74c22a0c836453ae608e6a37a1e965"
+TWILIO_AUTH_TOKEN = "75adc7278e10dcf639dc997548cad80d"
 TWILIO_PHONE_NUMBER = "+12706338124"
 
 # Internationalization
@@ -165,9 +165,11 @@ USE_I18N = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = [
+    BASE_DIR / 'bopo_admin/static/',
+]
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (Uploaded files)
 MEDIA_URL = '/media/'
@@ -175,10 +177,3 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# Ensure STATICFILES_DIRS points to existing directories
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # Ensure this directory exists
-]
