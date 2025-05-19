@@ -194,9 +194,9 @@ def toggle_terminal_status(request, terminal_id):
             data = json.loads(request.body)
             is_active = data.get("is_active")
 
-            terminal = Terminal.objects.get(id=terminal_id)
+            # Lookup by terminal_id field, not id
+            terminal = Terminal.objects.get(terminal_id=terminal_id)
 
-            # Change terminal status based on the checkbox state
             if is_active:
                 terminal.status = "Active"
             else:
@@ -205,6 +205,8 @@ def toggle_terminal_status(request, terminal_id):
             terminal.save()
 
             return JsonResponse({"success": True, "status": terminal.status})
+        except Terminal.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Terminal not found"})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
 
@@ -779,7 +781,7 @@ def add_merchant(request):
 
         except Exception as e:
             print("Error saving merchant:", e)
-            return JsonResponse({"success": False, "message": "Something went wrong. Please check your inputs."})
+            return JsonResponse({"success": False, "message": "wrong from backend."})
 
     corporates = Corporate.objects.all()
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
@@ -846,61 +848,36 @@ from django.http import JsonResponse
 from accounts.models import Corporate
 
 
+@csrf_exempt  # only if you're testing with tools like Postman; remove in production
 def update_corporate(request, corporate_id):
     if request.method == 'POST':
         try:
             corporate = Corporate.objects.get(corporate_id=corporate_id)
 
-            corporate.first_name = request.POST.get('first_name', '')
-            corporate.last_name = request.POST.get('last_name', '')
-            corporate.email = request.POST.get('email', '')
-            corporate.mobile = request.POST.get('mobile', '')
-            corporate.aadhaar_number = request.POST.get('aadhaar_number', '')
-            corporate.pin = request.POST.get('pin', '')
-            corporate.pan_number = request.POST.get('pan_number', '')
-            corporate.gst_number = request.POST.get('gst_number', '')
-            corporate.legal_name = request.POST.get('legal_name', '')
-            corporate.shop_name = request.POST.get('shop_name', '')
-            corporate.address = request.POST.get('address', '')
-            corporate.pincode = request.POST.get('pincode')
-            corporate.project_name = request.POST.get('project_name', '')
-            corporate.country = request.POST.get('country', 'India')
+            email = request.POST.get('email')
+            mobile = request.POST.get('mobile')
 
-            state_id = request.POST.get('state')
-            city_id = request.POST.get('city')
-
-            if state_id:
-                state = State.objects.get(id=state_id)
-                corporate.state = state.name
-
-            if city_id:
-                city = City.objects.get(id=city_id)
-                corporate.city = city.name
+            if email:
+                corporate.email = email
+            if mobile:
+                corporate.mobile = mobile
 
             corporate.save()
 
             return JsonResponse({
                 'success': True,
-                'message': 'Corporate updated successfully!',
+                'message': 'Email and mobile updated successfully!',
                 'updatedCorporate': {
                     'corporate_id': corporate.corporate_id,
-                    'first_name': corporate.first_name,
-                    'last_name': corporate.last_name,
                     'email': corporate.email,
                     'mobile': corporate.mobile,
-                    'state': corporate.state,
-                    'city': corporate.city,
                 }
             })
 
         except Corporate.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Corporate not found'}, status=404)
-        except State.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'State not found'}, status=404)
-        except City.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'City not found'}, status=404)
 
-    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
 
 from django.http import JsonResponse
 from accounts.models import Merchant
@@ -952,7 +929,6 @@ from django.http import JsonResponse
 from accounts.models import Merchant, Corporate
 
 
-
 def update_copmerchant(request, merchant_id):
     if request.method == "POST":
         if not merchant_id:
@@ -961,63 +937,23 @@ def update_copmerchant(request, merchant_id):
         try:
             merchant = Merchant.objects.get(id=merchant_id)
 
-            # Sanitize and update simple fields
-            merchant.first_name = request.POST.get('first_name', '').strip()
-            merchant.last_name = request.POST.get('last_name', '').strip()
-            merchant.email = request.POST.get('email', '').strip()
-            merchant.mobile = request.POST.get('mobile', '').strip()
-            merchant.aadhaar_number = request.POST.get('aadhaar_number', '').strip()
-            merchant.pin = request.POST.get('pin', '').strip()
-            merchant.pan_number = request.POST.get('pan_number', '').strip()
-            merchant.gst_number = request.POST.get('gst_number', '').strip()
-            merchant.legal_name = request.POST.get('legal_name', '').strip()
-            merchant.shop_name = request.POST.get('shop_name', '').strip()
-            merchant.address = request.POST.get('address', '').strip()
-            merchant.pincode = request.POST.get('pincode', '').strip()
-            merchant.country = request.POST.get("country", "India").strip()
+            email = request.POST.get('email', '').strip()
+            mobile = request.POST.get('mobile', '').strip()
 
-            # Resolve and set foreign key fields using IDs for state and city
-            state_id = request.POST.get('state')
-            city_id = request.POST.get('city')
-            if state_id:
-                try:
-                    state = State.objects.get(id=state_id)
-                    merchant.state = state.name
-                except State.DoesNotExist:
-                    return JsonResponse({'success': False, 'error': 'State not found'}, status=404)
-            if city_id:
-                try:
-                    city = City.objects.get(id=city_id)
-                    merchant.city = city.name
-                except City.DoesNotExist:
-                    return JsonResponse({'success': False, 'error': 'City not found'}, status=404)
-
-            # Handle project_name (ForeignKey to Corporate) by project_name string lookup
-            project_name_str = request.POST.get('project_name', '').strip()
-            if project_name_str:
-                try:
-                    corporate_obj = Corporate.objects.get(project_name=project_name_str)
-                    merchant.project_name = corporate_obj
-                except Corporate.DoesNotExist:
-                    return JsonResponse({'success': False, 'error': 'Corporate (project) not found'}, status=404)
-            else:
-                # Clear the project_name relation if empty string provided
-                merchant.project_name = None
+            if email:
+                merchant.email = email
+            if mobile:
+                merchant.mobile = mobile
 
             merchant.save()
 
             return JsonResponse({
                 "success": True,
-                "message": "Merchant updated successfully!",
+                "message": "Email and mobile updated successfully!",
                 "updatedMerchant": {
                     "id": merchant.id,
-                    "first_name": merchant.first_name,
-                    "last_name": merchant.last_name,
                     "email": merchant.email,
                     "mobile": merchant.mobile,
-                    "state": merchant.state,
-                    "city": merchant.city,
-                    "project_name": merchant.project_name.project_name if merchant.project_name else None,
                 }
             })
 
@@ -2819,12 +2755,12 @@ def profile(request):
 
     return render(request, 'bopo_admin/profile.html', context)
 
+
 @login_required
 def update_profile(request):
     user = request.user
 
     if request.method == 'POST':
-        # Check user's role and update profile accordingly
         if user.role == 'corporate_admin' and user.corporate:
             profile = user.corporate
             profile.project_name = request.POST.get('project_name')
@@ -2832,6 +2768,7 @@ def update_profile(request):
             profile.mobile = request.POST.get('mobile')
             profile.city = request.POST.get('city')
             profile.save()
+            messages.success(request, "Corporate profile updated successfully!")
 
         elif user.role == 'employee' and user.employee:
             profile = user.employee
@@ -2840,16 +2777,16 @@ def update_profile(request):
             profile.mobile = request.POST.get('mobile')
             profile.city = request.POST.get('city')
             profile.save()
+            messages.success(request, "Employee profile updated successfully!")
 
         elif user.role == 'super_admin':
             user.username = request.POST.get('username')
-            user.email = request.POST.get('email')
-            user.mobile = request.POST.get('mobile')
             user.save()
+            messages.success(request, "Super admin profile updated successfully!")
 
-        return redirect('profile')  # Redirect to profile page after saving changes
+        return redirect('profile')
 
-    return redirect('profile')  # Redirect if not POST
+    return redirect('profile')
 
 # from datetime import timedelta
 # from django.utils import timezone
@@ -3625,7 +3562,7 @@ def get_deduct_amount(request):
     try:
         setting = DeductSetting.objects.get(id=1)
         return JsonResponse({
-            'deduct_percentage': setting.deduct_percentage,
+            # 'deduct_percentage': setting.deduct_percentage,
             'cust_merch': setting.cust_merch,
             'merch_merch': setting.merch_merch,
             'cust_cust': setting.cust_cust,
@@ -3676,7 +3613,7 @@ def save_deduct_settings(request):
             setting.normal_global = normal_global
             setting.save()
 
-            return JsonResponse({'message': 'Deduction settings saved successfully.'})
+            return JsonResponse({'status': 'success','message': 'Deduct percentages saved successfully!.'})
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)

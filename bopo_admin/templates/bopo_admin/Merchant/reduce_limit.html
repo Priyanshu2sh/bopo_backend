@@ -70,7 +70,7 @@
 
 <!-- MERCHANT SECTION -->
 <div class="send-notification-item">
-    <input type="checkbox" id="toggle-all-merchants" class="toggle-checkbox">
+    <input type="checkbox" id="toggle-all-merchants" class="toggle-checkbox"  checked>
     <label for="toggle-all-merchants" class="send-notification-label">
         <span class="send-notification-icon">🏢</span>
         <span>Merchant</span>
@@ -156,102 +156,12 @@
         <button class="btn-save" onclick="submitCashOut()">Save</button>
     </div>
 </div>
-
-
         <!-- Toast -->
         <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
             <i class="fa fa-exclamation-circle"></i>
             <span class="toast-message">{{ message }}</span>
         </div>
-
-        {% comment %} <!-- Customer Notification Section -->
-        <div class="send-notification-item">
-            <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
-            <label for="toggle-single-customer" class="send-notification-label">
-                <span class="send-notification-icon">👤</span>
-                <span> Customer</span>
-            </label>
-
-            <div class="send-notification-form">
-                <div class="customer-list">
-                    <div class="customer-table">
-                        <div class="top-controls">
-                            <input type="text" class="search-box" id="search-customer" placeholder="Search ...">
-                            <div id="custom-buttons"></div>
-                        </div>
-
-                        <table id="customer-table" class="display" style="width:100%">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Customer ID</th>
-                                    <th>Contact Person</th>
-                                    <th>Mobile Number</th>
-                                    <th>Requested Amount (BBP)</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                         
-                            </thead>
-                            <tbody>
-                                {% for cash_out in customer_cash_outs %}
-                                    {% if cash_out.customer %}
-                                        <tr>
-                                            <td>{{ forloop.counter }}</td>
-                                            <td>{{ cash_out.customer_id }}</td>
-                                            <td>{{ cash_out.customer.first_name }} {{ cash_out.customer.last_name }}</td>
-                                            <td>{{ cash_out.customer.mobile }}</td>
-                                            <td>{{ cash_out.amount }}</td>
-                                            <td>
-                                                <label class="switch">
-                                                    <input type="checkbox" {% if cash_out.status == 'Active' %}checked{% endif %}>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-sm btn-success open-modal-btn" data-id="{{ cash_out.id }}">💸 Cash Out</button>
-                                            </td>
-                                        </tr>
-                                    {% endif %}
-                                {% endfor %}
-                            </tbody>
-                            
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-     <!-- Modal -->
-     <div class="modal-container" id="cashOutModal" style="display: none;">
-        <div class="modal-content-box">
-            <span class="modal-close-btn" onclick="closeCashOutModal()">&times;</span>
-            <div class="modal-header">Payment Details</div>
-
-            <div class="input-group">
-                <label for="transactionId">Transaction ID</label>
-                <input type="text" id="transactionId" class="input-field" placeholder="Enter Transaction ID">
-            </div>
-
-            <div class="input-group">
-                <label for="paymentMethod">Payment Method</label>
-                <select id="paymentMethod" class="input-field">
-                    <option value="">Select</option>
-                    <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="UPI">UPI</option>
-                    <option value="Credit Card">Credit Card</option>
-                    <option value="Debit Card">Debit Card</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label for="paymentDate">Payment Date</label>
-                <input type="date" id="paymentDate" class="input-field">
-            </div>
-
-            <button class="btn-save" onclick="submitCashOut()">Save</button>
-        </div>
-    </div> {% endcomment %}
-
+  
         </div>
     </div>
 </div>
@@ -291,10 +201,7 @@
         const id = $(this).data('id');
         openMerchantCashOutModal(id);
     });
-    
   
-
-    
     function closeCashOutModal() {
         $('#cashOutModal').fadeOut();
     }
@@ -306,73 +213,38 @@
         setTimeout(() => toast.removeClass('toast-show'), 3000);
     }
     
-{% comment %}     
-    $(document).ready(function () {
-        const table = $('#customer-table').DataTable({
-            dom: 'Bfrtip',
-            pageLength: 6,
-            lengthChange: false,
-            buttons: [
-                {
-                    extend: 'colvis',
-                    text: '<i class="fas fa-table"></i>',
-                    className: 'btn btn-light'
-                }
-            ],
-            stripeClasses: []
-        });
+   
+document.addEventListener("DOMContentLoaded", function () {
+    const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
 
-        table.buttons().container().appendTo('#custom-buttons');
-
-        $('#search-customer').on('keyup', function () {
-            table.search(this.value).draw();
-        });
-
-        // Modal open logic
-        $('.open-modal-btn').click(function () {
-            const id = $(this).data('id');
-            openCashOutModal(id);
-        });
-    });
-
-    function openCashOutModal(id) {
-        console.log("Opening Cash Out Modal for ID:", id);
-        $('#cashOutModal').fadeIn();
-    }
-
-    function closeCashOutModal() {
-        $('#cashOutModal').fadeOut();
-    }
- {% endcomment %}
-
-
-    
-    // Toggle section logic
-    document.addEventListener("DOMContentLoaded", function () {
-        const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
-
-        toggleCheckboxes.forEach((checkbox) => {
-            checkbox.addEventListener("change", function () {
-                const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
-
-                // Close all others
-                document.querySelectorAll(".send-notification-form").forEach((otherForm) => {
-                    if (otherForm !== form) {
-                        otherForm.style.display = "none";
-                        otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
-                    }
-                });
-
-                form.style.display = this.checked ? "block" : "none";
-            });
-        });
-
-        // Hide all initially
-        document.querySelectorAll(".send-notification-form").forEach((form) => {
+    toggleCheckboxes.forEach((checkbox) => {
+        // Show form if checkbox is already checked on load
+        const form = checkbox.closest(".send-notification-item").querySelector(".send-notification-form");
+        if (checkbox.checked) {
+            form.style.display = "block";
+        } else {
             form.style.display = "none";
+        }
+
+        checkbox.addEventListener("change", function () {
+            const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
+
+            // Close all other forms and uncheck their toggles
+            document.querySelectorAll(".send-notification-form").forEach((otherForm) => {
+                if (otherForm !== form) {
+                    otherForm.style.display = "none";
+                    otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
+                }
+            });
+
+            // Toggle this form based on checkbox
+            form.style.display = this.checked ? "block" : "none";
         });
     });
+});
 
+
+      
 
     $(document).ready(function () {
         $('#merchantTable').DataTable();

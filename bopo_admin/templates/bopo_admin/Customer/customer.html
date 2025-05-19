@@ -84,19 +84,18 @@
 <div class="customer-container">
     <div class="customer-header">
         <h2>Customer List</h2>
-        <div class="customer-buttons">
+      
             {% if request.user.role == 'super_admin' %}
             <button class="add-customer-btn" onclick="window.location.href='{% url 'add_customer' %}'">
                 + Add Customer
             </button>
             {% endif %}
-            {% if request.user.role == 'super_admin' or role_permissions.customer_send_notification == True %}
+            {% comment %} {% if request.user.role == 'super_admin' or role_permissions.customer_send_notification == True %}
             <button class="send-customer-btn" onclick="window.location.href='{% url 'send_customer_notifications' %}'">
                 + Send Notifications
             </button>
-            {% endif %}
-         
-        </div>
+            {% endif %} {% endcomment %}
+       
     </div>
 
     <div class="customer-list">
