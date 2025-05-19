@@ -193,7 +193,7 @@ LOGIN_URL = '/login/'
 
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = "ACefc2b57333c60eaaea16e2ba775ade3c"
-TWILIO_AUTH_TOKEN = "c28743a0cc8b40e3bb557acc9d13ae80"
+TWILIO_AUTH_TOKEN = "1f74c22a0c836453ae608e6a37a1e965"
 TWILIO_PHONE_NUMBER = "+12706338124"
 
 
@@ -213,9 +213,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
 
 # Media files (Uploaded files)
 MEDIA_URL = '/uploads/'
@@ -236,6 +235,5 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Ensure STATICFILES_DIRS points to existing directories
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # Ensure this directory exists
+    BASE_DIR / 'static',  # Ensure this directory exists
 ]
-

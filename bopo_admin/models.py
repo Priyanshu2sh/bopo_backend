@@ -153,8 +153,8 @@ class Notification(models.Model):
     project_id = models.ForeignKey('accounts.Corporate',max_length=20,null=True,blank=True,on_delete=models.CASCADE)
     
     # ManyToMany relationships
-    merchants = models.ManyToManyField('accounts.Merchant',blank=True, null=True, related_name='notifications')
-    customers = models.ManyToManyField('accounts.Customer',blank=True, null=True, related_name='notifications')
+    merchants = models.ManyToManyField('accounts.Merchant',blank=True, related_name='notifications')
+    customers = models.ManyToManyField('accounts.Customer',blank=True, related_name='notifications')
     
     notification_type = models.CharField(max_length=255, null=True, blank=True)
     title = models.CharField(max_length=255, null=True, blank=True)

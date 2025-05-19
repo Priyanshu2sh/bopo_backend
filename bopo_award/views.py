@@ -2055,10 +2055,7 @@ class GlobalRedeemPointsAPIView(APIView):
                     )
 
                     print(f"Deducted {deducted_points} points from customer {customer.customer_id} due to inactivity.")
-
-
-    
-    
+  
         
 class GetGlobalCustomerPointsAPIView(APIView):
 

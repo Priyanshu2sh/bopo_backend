@@ -117,6 +117,8 @@ class Merchant(models.Model):
     mobile = models.CharField(max_length=15, unique=True)
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
+    temp_pin = models.IntegerField( null=True, blank=True)
+
     pin = models.IntegerField( null=True, blank=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES) 
     age = models.IntegerField(blank=True, null=True)    
@@ -200,6 +202,7 @@ class Customer(models.Model):
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)   
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
+    temp_pin = models.IntegerField( null=True, blank=True)
     pin = models.IntegerField(null=True, blank=True)
     security_question = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='customers') 
     answer = models.CharField(max_length=255, null=True, blank=True)
