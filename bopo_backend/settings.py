@@ -12,11 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
-
 from dotenv import load_dotenv
-# from dotenv import load_dotenv
-
-# load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,20 +20,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load .env file
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-5+1e)3&p(_v%xx@oaugfu&f51l=7l*=^#r0@*p*4%^vbilr0po'
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-fallback-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = [
-    '*',
-]
-
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -59,16 +51,15 @@ INSTALLED_APPS = [
     'corsheaders',
     'qr_store', 
     'transfer',
-    
     'channels',
-    
-    
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -77,7 +68,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+
     'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
 ]
 
@@ -87,17 +78,11 @@ CORS_ALLOW_HEADERS = [
     'access-control-allow-origin',
 ]
 
-
 CSRF_TRUSTED_ORIGINS = [
     "https://8e09-103-211-60-165.ngrok-free.app",
-    "https://3fb0-2401-4900-79d1-d74-6851-4650-8615-f92c.ngrok-free.app",
+    "https://3fb0-2401-4900-79d1-d74-6851-4650-8615-4650-8615-f92c.ngrok-free.app",
     "https://7a22-2401-4900-57c6-ae7c-e933-a11b-70e7-85f4.ngrok-free.app",
 ]
-
-
-
-
-ALLOWED_HOSTS = ['*']
 
 ROOT_URLCONF = 'bopo_backend.urls'
 
@@ -119,46 +104,23 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = 'bopo_backend.wsgi.application'
+# ASGI application
 ASGI_APPLICATION = "bopo_backend.routing.application"
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [('127.0.0.1', 6379)],    #6379
+            'hosts': [('127.0.0.1', 6379)],    # Redis default port
         },
     },
 }
 
 # Timezone settings
-USE_TZ = True  # This enables time zone support
-TIME_ZONE = 'Asia/Kolkata'  # Set your preferred timezone (replace if needed)
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+USE_TZ = True
+TIME_ZONE = 'Asia/Kolkata'
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-# DATABASES = {
-    
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'my_django_db',
-#         'USER': 'django_user',
-#         'PASSWORD': 'NewPassword',
-#         'HOST': 'localhost',  # Or IP if remote DB # or '127.0.0.1'
-#         'PORT': '3305',
-#     }
-# }
-
-DEBUG = os.getenv("DEBUG", "False") == "True"
-# SECRET_KEY = os.getenv("SECRET_KEY")
-
-# Database example (PostgreSQL)
+# Database configuration from environment variables
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -171,8 +133,6 @@ DATABASES = {
 }
 
 # Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -196,46 +156,24 @@ TWILIO_ACCOUNT_SID = "ACefc2b57333c60eaaea16e2ba775ade3c"
 TWILIO_AUTH_TOKEN = "75adc7278e10dcf639dc997548cad80d"
 TWILIO_PHONE_NUMBER = "+12706338124"
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_TZ = True
-
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
-# Media files (Uploaded files)
-MEDIA_URL = '/uploads/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
-
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Ensure STATICFILES_DIRS points to existing directories
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # Ensure this directory exists
+    BASE_DIR / 'bopo_admin/static/',
 ]
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Media files (Uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

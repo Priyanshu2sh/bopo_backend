@@ -5,7 +5,7 @@ import os
 import random
 import string
 from sys import prefix
-from tkinter.font import Font
+# from tkinter.font import Font
 from django.db.models import Max
 from django.http import HttpResponse, JsonResponse
 from django.db.models.functions import Cast, Substr
