@@ -61,12 +61,10 @@
         <tr>
             <td>{{ terminal.terminal_id }}</td>
             <td>
-                <label class="switch">
-                    <input type="checkbox" onchange="toggleStatus({{ terminal.id }}, this)" {% if terminal.status == 'Active' %}checked{% endif %}>
-                    <span class="slider round"></span>
-
-                    <span class="status-label {% if terminal.status == 'Active' %}text-success{% else %}text-danger{% endif %}" id="status-label-{{terminal.id }}"></span>
-                </label>
+              <label class="switch">
+                <input type="checkbox" onchange="toggleStatus('{{ terminal.terminal_id }}', this)" {% if terminal.status == 'Active' %}checked{% endif %}>
+                <span class="slider round"></span>
+              </label>
             </td>
             <td>
                 <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="{{ terminal.id }}">✏️ Edit</button>
@@ -80,51 +78,88 @@
 
 <script>
   // Toggle status of terminal
-  function toggleStatus(terminalId, checkboxElement) {
-    fetch(`/toggle-terminal-status/${terminalId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            "is_active": checkboxElement.checked
-        }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (!data.success) {
-            alert('Failed to update status.');
-            checkboxElement.checked = !checkboxElement.checked; // revert back
-        } else {
-            showToast('Terminal status updated successfully!', 'success');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        checkboxElement.checked = !checkboxElement.checked; // revert back
+ 
+document.addEventListener('DOMContentLoaded', function () {
+    const toggles = document.querySelectorAll('.terminal-status-toggle');
+
+    toggles.forEach(toggle => {
+        toggle.addEventListener('change', function () {
+            const terminalId = this.dataset.terminalId;
+            const isChecked = this.checked;
+
+            fetch(`/toggle-terminal-status/${terminalId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: isChecked })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Status updated successfully');
+                } else {
+                    alert('Failed to update status');
+                }
+            });
+        });
     });
+});
+
+function toggleStatus(terminalId, checkbox) {
+  const isActive = checkbox.checked;
+  const csrfToken = '{{ csrf_token }}';
+
+  fetch(`/toggle-terminal-status/${terminalId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken,
+    },
+    body: JSON.stringify({ is_active: isActive })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showToast(`Status updated successfully to "${data.status}"`);
+    } else {
+      showToast("Failed to update status: " + (data.error || ""));
+    }
+  })
+  .catch(() => {
+    showToast('Error occurred while updating status', 'error');
+  });
+}
+
+// Toast notification function
+function showToast(message, type) {
+  const toast = document.createElement('div');
+  toast.classList.add('toast', type);
+
+  let icon = '';
+  if (type === 'success') {
+    icon = '<i class="fa fa-check-circle" style="margin-right: 8px;"></i>';
+  } else if (type === 'error') {
+    icon = '<i class="fa fa-times-circle" style="margin-right: 8px;"></i>';
+  } else if (type === 'warning') {
+    icon = '<i class="fa fa-exclamation-triangle" style="margin-right: 8px;"></i>';
+  } else {
+    icon = '<i class="fa fa-info-circle" style="margin-right: 8px;"></i>';
   }
 
-  // Show toast notifications
-  function showToast(message, type) {
-    const toast = document.createElement('div');
-    toast.classList.add('toast');
-    toast.classList.add(type);
-    toast.innerText = message;
-    document.body.appendChild(toast);
+  toast.innerHTML = `${icon}${message}`;
+  document.body.appendChild(toast);
 
-    setTimeout(() => {
-      toast.classList.add('show');
-    }, 100);
+  setTimeout(() => toast.classList.add('show'), 100);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => document.body.removeChild(toast), 300);
+  }, 3000);
+}
 
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        document.body.removeChild(toast);
-      }, 300);
-    }, 3000);
-  }
+
+
 $(document).ready(function() {
   // Initialize Select2 for the merchant_id dropdown
   $('#merchant_id').select2({
@@ -149,7 +184,12 @@ $(document).ready(function() {
               row.innerHTML = `
                 <td>${terminal.terminal_id}</td>
                 <td><input type="text" value="${terminal.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
-                <td>${terminal.status}</td>
+                   <td>
+        <label class="switch">
+          <input type="checkbox" onchange="toggleStatus('${terminal.terminal_id}', this)" ${terminal.status === 'Active' ? 'checked' : ''}>
+          <span class="slider round"></span>
+        </label>
+      </td>
                 <td>
                    <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${terminal.terminal_id}">✏️ Edit</button>
                    <button class="btn btn-sm btn-success save-btn" data-terminal-id="${terminal.terminal_id}" style="display: none;">💾 Save</button>
@@ -171,47 +211,51 @@ $(document).ready(function() {
     }
   });
 
-  // Handle Add Terminal button click
-  $('#add-terminal-btn').click(function() {
-    var merchantId = $('#merchant_id').val();
+  
 
-    if (merchantId) {
-      fetch(`/add_terminal/${merchantId}/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCSRFToken(),
-        },
-        body: JSON.stringify({}),
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.error) {
-          alert(data.error);
-        } else {
-          var tableBody = document.getElementById('terminal-body');
-          var row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${data.terminal_id}</td>
-            <td><input type="text" value="${data.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
-            <td>${data.status}</td>
-            <td>
-              <div style="display: flex; gap: 5px; justify-content: center; align-items: center;">
-                <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${data.terminal_id}">✏️ Edit</button>
-                <button class="btn btn-sm btn-success save-btn" data-terminal-id="${data.terminal_id}" style="display: none;">💾 Save</button>
-              </div>
-            </td>
-          `;
-          tableBody.appendChild(row);
+// Add new terminal button click handler
+document.getElementById('add-terminal-btn').addEventListener('click', function() {
+  var merchantId = document.getElementById('merchant_id').value;
+  if (merchantId) {
+    fetch(`/add_terminal/${merchantId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken(),
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        showToast(data.error, 'error');
+      } else {
+        var row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${data.terminal_id}</td>
+          <td><input type="text" value="${data.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
+          <td>
+            <label class="switch">
+              <input type="checkbox" onchange="toggleStatus('${data.id}', this)" ${data.status === 'Active' ? 'checked' : ''}>
+              <span class="slider round"></span>
+            </label>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${data.terminal_id}">✏️ Edit</button>
+            <button class="btn btn-sm btn-success save-btn" data-terminal-id="${data.terminal_id}" style="display: none;">💾 Save</button>
+          </td>
+        `;
+        document.getElementById('terminal-body').appendChild(row);
+        $('#empty-state').hide();
+        $('#terminal-table').show();
+        showToast('Terminal added successfully!', 'success');
+      }
+    });
+  } else {
+    showToast('Please select a merchant first.', 'warning');
+  }
+});
 
-          $('#empty-state').hide();
-          $('#terminal-table').show();
-        }
-      });
-    } else {
-      alert('Please select a merchant first');
-    }
-  });
 
   // Handle Edit and Save button clicks
   $(document).on('click', '.edit-btn', function() {
@@ -224,40 +268,41 @@ $(document).ready(function() {
     saveBtn.show();
     editBtn.hide();
   });
+  
+$(document).on('click', '.save-btn', function() {
+  var row = $(this).closest('tr');
+  var pinInput = row.find('.pin-input');
+  var terminalId = $(this).data('terminal-id');
+  var merchantId = $('#merchant_id').val();
+  var newPin = pinInput.val().trim();
 
-  $(document).on('click', '.save-btn', function() {
-    var row = $(this).closest('tr');
-    var pinInput = row.find('.pin-input');
-    var terminalId = $(this).data('terminal-id');
-    var merchantId = $('#merchant_id').val();
-    var newPin = pinInput.val().trim();
+  if (!newPin) {
+    showToast('PIN cannot be empty', 'warning');
+    return;
+  }
 
-    if (!newPin) {
-      alert('PIN cannot be empty');
-      return;
+  fetch(`/update_terminal_pin/${merchantId}/${terminalId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken(),
+    },
+    body: JSON.stringify({ tid_pin: newPin })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showToast('PIN updated successfully!', 'success');
+
+      pinInput.prop('readonly', true).css({'border': 'none', 'background': 'transparent'});
+      $(this).hide(); // hide save button
+      row.find('.edit-btn').show(); // show edit button
+    } else {
+      showToast('Error updating PIN', 'error');
     }
-
-    fetch(`/update_terminal_pin/${merchantId}/${terminalId}/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCSRFToken(),
-      },
-      body: JSON.stringify({ tid_pin: newPin })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        alert('PIN updated successfully');
-
-        pinInput.prop('readonly', true).css({'border': 'none', 'background': 'transparent'});
-        saveBtn.hide();
-        editBtn.show();
-      } else {
-        alert('Error updating PIN');
-      }
-    });
   });
+});
+
 
   // Get CSRF Token from cookies
   function getCSRFToken() {

@@ -154,7 +154,7 @@ class Notification(models.Model):
     
     # ManyToMany relationships
     merchants = models.ManyToManyField('accounts.Merchant',blank=True, related_name='notifications')
-    customers = models.ManyToManyField('accounts.Customer',blank=True,related_name='notifications')
+    customers = models.ManyToManyField('accounts.Customer',blank=True, related_name='notifications')
     
     notification_type = models.CharField(max_length=255, null=True, blank=True)
     title = models.CharField(max_length=255, null=True, blank=True)
@@ -239,7 +239,7 @@ class SecurityQuestion(models.Model):
 
 
 class DeductSetting(models.Model):
-    # deduct_percentage = models.FloatField(default=5.0)  # Default 5% if not set
+    #deduct_percentage = models.FloatField(default=5.0)  # Default 5% if not set
     cust_merch = models.FloatField(default=5.0, null=True, blank=True)  
     # merch_cust = models.FloatField(default=5.0, null=True, blank=True)
     merch_merch = models.FloatField(default=5.0, null=True, blank=True)

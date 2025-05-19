@@ -18,11 +18,10 @@ body {
 }
 
 /* Header */
-.customer-header {
+.customer-header h2 {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 15px;
+    margin-top: 6%;
     text-align: center;
     color: #004080;
     font-size: 26px;
@@ -31,29 +30,31 @@ body {
 }
 
 /* Buttons */
-.add-customer-btn, .send-customer-btn {
-    height: 50px; /* Increased size */
-    width: 180px; /* Increased width */
+.add-customer-btn{
+  background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
+    padding: 8px 15px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
+    width: 15%;
     font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 16px;
+    float: right;
+    margin-top: -9%;
+    text-decoration: none;
+    transition: background 0.3s ease;
 }
 
-.add-customer-btn {
 
-    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
-    background: linear-gradient(178deg, #e12503 0%, #85060c 100%)
-    
+.add-customer-btn:hover {    
+     background: linear-gradient(178deg, red 0%, #85060c 100%);
     }
-.add-customer-btn:hover {     background: linear-gradient(178deg, red 0%, #85060c 100%);}
 
-/* .send-customer-btn { background-color: #1c3a72; } */
-.send-customer-btn { background: linear-gradient(178deg, #004080 0%, #2c3e50 100%); }
-.send-customer-btn:hover { background-color: #7486b7; }
+
 
 
 .modal-content h2 {
@@ -86,28 +87,7 @@ body {
     align-items: center; /* Aligns buttons in the center */
 }
 
-.add-customer-btn, .send-customer-btn {
-    height: 50px; /* Increased height */
-    width: 200px; /* Increased width */
-    color: white;
-    border: none;
-    padding: 12px 20px; /* Adjusted padding */
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-}
 
-.send-customer-btn {
-    background-color: #1c3a72;
-    font-size: 18px; /* Increased font size */
-    width: 220px; /* Increased button width */
-}
-
-.send-customer-btn:hover { 
-    background-color: #7486b7;
-}
 
 /* Tables */
 table {

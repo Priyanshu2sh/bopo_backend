@@ -26,7 +26,7 @@ from .serializers import   CustomerSerializer, MerchantSerializer,  TerminalSeri
 logger = logging.getLogger(__name__)
 
 def generate_terminal_id():
-    return 'TERM' + ''.join(random.choices(string.digits, k=6))
+    return 'TID' + ''.join(random.choices(string.digits, k=8))
 
 class CreateTerminalAPIView(APIView):
     def post(self, request):
@@ -443,7 +443,6 @@ class LoginAPIView(APIView):
             merchant.pin,
             merchant.aadhaar_number,
             merchant.pan_number,
-            merchant.gender,
             merchant.shop_name,
             merchant.address,
             merchant.city,
@@ -962,4 +961,127 @@ class VerifyMobileChangeAPIView(APIView):
         except (Customer.DoesNotExist, Merchant.DoesNotExist):
             return Response({'error': 'Invalid customer or merchant ID'}, status=status.HTTP_400_BAD_REQUEST)
         
+
+     
+# Logic for change or forgot Pin
+class RequestPinChangeAPIView(APIView):
+    def post(self, request):
+        user_category = request.data.get('user_category')
+        new_pin = request.data.get('pin')
+        method = request.data.get('method')
+        mobile = request.data.get('mobile')
+
+        if not new_pin or not method or not mobile or not user_category:
+            return Response({'error': 'Mobile, user_category, new PIN, and method are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if user_category == 'customer':
+                user = Customer.objects.get(mobile=mobile)
+            elif user_category == 'merchant':
+                user = Merchant.objects.get(mobile=mobile)
+            else:
+                return Response({'error': 'Invalid user category.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Save PIN in temporary field only
+            user.temp_pin = new_pin
+
+            if method == 'otp':
+                otp = str(random.randint(100000, 999999))
+                user.otp = otp
+                user.save()
+
+                # Send OTP via SMS
+                client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                client.messages.create(
+                    body=f"Your BOPO OTP to update PIN is: {otp}",
+                    from_=settings.TWILIO_PHONE_NUMBER,
+                    to=f'+91{user.mobile}'
+                )
+
+                return Response({'message': 'OTP sent to registered mobile.'}, status=status.HTTP_200_OK)
+
+            elif method == 'security':
+                user.save()
+                return Response({'message': 'Answer the security question to change PIN.'}, status=status.HTTP_200_OK)
+
+            else:
+                return Response({'error': 'Invalid method. Use "otp" or "security_question".'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except (Customer.DoesNotExist, Merchant.DoesNotExist):
+            return Response({'error': 'User with given mobile not found.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+
+class VerifyPinChangeAPIView(APIView):
+    def post(self, request):
+        mobile = request.data.get('mobile')
+        user_category = request.data.get('user_category')
+        otp = request.data.get('otp')
+
+        if not mobile or not otp or not user_category:
+            return Response({'error': 'Mobile, user_category and OTP are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if user_category == 'customer':
+                user = Customer.objects.get(mobile=mobile)
+            elif user_category == 'merchant':
+                user = Merchant.objects.get(mobile=mobile)
+            else:
+                return Response({'error': 'Invalid user category.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if user.otp == otp:
+                user.pin = user.pin  # Finalize the PIN change
+                user.otp = None
+                
+                user.save()
+                return Response({'message': 'PIN updated successfully.'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Invalid OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except (Customer.DoesNotExist, Merchant.DoesNotExist):
+            return Response({'error': 'User not found.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+      
+class VerifySecurityQuestionAPIView(APIView):
+    def post(self, request):
+        mobile = request.data.get('mobile')
+        user_category = request.data.get('user_category')
+        question = request.data.get('security_question')
+        answer = request.data.get('answer')
+
+        if not mobile or not question or not answer or not user_category:
+            return Response({'error': 'Mobile, user_category, question, and answer are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if user_category == 'customer':
+                user = Customer.objects.get(mobile=mobile)
+            elif user_category == 'merchant':
+                user = Merchant.objects.get(mobile=mobile)
+            else:
+                return Response({'error': 'Invalid user category.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            user_question = str(user.security_question).strip().lower()
+            input_question = str(question).strip().lower()
+            user_answer = str(user.answer).strip().lower()
+            input_answer = str(answer).strip().lower()
+
+            if user_question == input_question and user_answer == input_answer:
+                if not user.temp_pin:
+                    return Response({'error': 'No pending PIN change request.'}, status=status.HTTP_400_BAD_REQUEST)
+
+                user.pin = user.temp_pin
+                user.temp_pin = None
+                user.save()
+
+                return Response({'message': 'PIN updated successfully using security question.'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Incorrect security question or answer.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        except (Customer.DoesNotExist, Merchant.DoesNotExist):
+            return Response({'error': 'User not found.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 

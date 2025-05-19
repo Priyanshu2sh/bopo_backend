@@ -16,15 +16,15 @@ body {
 }
 
 /* Header */
-.h1 {
+.send-notification-header h2 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: black;
-    padding: 15px;
-    border-radius: 5px;
-    font-size: 20px;
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
     font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* Notification List */
@@ -139,35 +139,54 @@ body {
     margin-top: 20px;
 }
 
-/* General Button Styles */
-.button-container button {
-    padding: 10px 20px;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s;
+/* Button Container */
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;  /* Adds space between buttons */
+    margin-top: 20px;
+    justify-content: center;
+    width: 100%;
 }
 
 /* Cancel Button */
 .cancel-btn {
-    background-color: #ccc;
-    color: black;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: 0.3s;
+    box-sizing: border-box;
 }
 
 .cancel-btn:hover {
-    background-color: #999;
+    background: #ccc;
+    color: black;
 }
 
-/* Send (Submit) Button */
+/* Send Button */
 .send-btn {
-    background-color: #004080;
+    padding: 10px 20px;
+    font-size: 14px;
     color: white;
+    background: linear-gradient(178deg, #004080 0%, #2c3e50 100%);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease;
+    box-sizing: border-box;
 }
 
 .send-btn:hover {
-    background-color: #002d5b;
+      background: #2c3e50;
 }
+
+
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {

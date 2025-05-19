@@ -4,14 +4,13 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/terminals.css' %}">
 
+<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <!-- Select2 CSS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
 <!-- Select2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 
 <div class="reduce-limit-back-btn">
   <a href="{% url 'individual_list' %}" class="reduce-limit-back-btn-submit">
@@ -56,21 +55,24 @@
           <th style="width: 50%;">Action</th>
         </tr>
       </thead>
-      <tbody id="terminal-body"> 
+      <tbody id="terminal-body">
         {% for terminal in terminals %}
-        <tr>
+          <tr>
             <td>{{ terminal.terminal_id }}</td>
             <td>
-                <label class="switch">
-                    <input type="checkbox" onchange="toggleStatus({{ terminal.id }}, this)" {% if terminal.status == 'Active' %}checked{% endif %}>
-                    <span class="slider round"></span>
-                </label>
+              <input type="text" value="{{ terminal.tid_pin }}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;">
             </td>
-            {% comment %} <td>{{ terminal.status }}</td> {% endcomment %}
             <td>
-                <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="{{ terminal.id }}">✏️ Edit</button>
+              <label class="switch">
+                <input type="checkbox" onchange="toggleStatus('{{ terminal.terminal_id }}', this)" {% if terminal.status == 'Active' %}checked{% endif %}>
+                <span class="slider round"></span>
+              </label>
             </td>
-        </tr>
+            <td>
+              <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="{{ terminal.terminal_id }}">✏️ Edit</button>
+              <button class="btn btn-sm btn-success save-btn" data-terminal-id="{{ terminal.terminal_id }}" style="display: none;">💾 Save</button>
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -78,213 +80,252 @@
 </div>
 
 <script>
-  function toggleStatus(terminalId, checkboxElement) {
-    fetch(`/toggle-terminal-status/${terminalId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            "is_active": checkboxElement.checked
-        }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (!data.success) {
-            alert('Failed to update status.');
-            checkboxElement.checked = !checkboxElement.checked; // revert back
-        } else {
-            showToast('Terminal status updated successfully!', 'success');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        checkboxElement.checked = !checkboxElement.checked; // revert back
+  
+document.addEventListener('DOMContentLoaded', function () {
+    const toggles = document.querySelectorAll('.terminal-status-toggle');
+
+    toggles.forEach(toggle => {
+        toggle.addEventListener('change', function () {
+            const terminalId = this.dataset.terminalId;
+            const isChecked = this.checked;
+
+            fetch(`/toggle-terminal-status/${terminalId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: isChecked })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Status updated successfully');
+                } else {
+                    alert('Failed to update status');
+                }
+            });
+        });
     });
+});
+
+function toggleStatus(terminalId, checkbox) {
+  const isActive = checkbox.checked;
+  const csrfToken = '{{ csrf_token }}';
+
+  fetch(`/toggle-terminal-status/${terminalId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken,
+    },
+    body: JSON.stringify({ is_active: isActive })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showToast(`Status updated successfully to "${data.status}"`);
+    } else {
+      showToast("Failed to update status: " + (data.error || ""));
+    }
+  })
+  .catch(() => {
+    showToast('Error occurred while updating status', 'error');
+  });
+}
+
+// Toast notification function
+function showToast(message, type) {
+  const toast = document.createElement('div');
+  toast.classList.add('toast', type);
+
+  let icon = '';
+  if (type === 'success') {
+    icon = '<i class="fa fa-check-circle" style="margin-right: 8px;"></i>';
+  } else if (type === 'error') {
+    icon = '<i class="fa fa-times-circle" style="margin-right: 8px;"></i>';
+  } else if (type === 'warning') {
+    icon = '<i class="fa fa-exclamation-triangle" style="margin-right: 8px;"></i>';
+  } else {
+    icon = '<i class="fa fa-info-circle" style="margin-right: 8px;"></i>';
   }
 
-  function showToast(message, type) {
-    const toast = document.createElement('div');
-    toast.classList.add('toast');
-    toast.classList.add(type);
-    toast.innerText = message;
-    document.body.appendChild(toast);
+  toast.innerHTML = `${icon}${message}`;
+  document.body.appendChild(toast);
 
-    setTimeout(() => {
-      toast.classList.add('show');
-    }, 100);
+  setTimeout(() => toast.classList.add('show'), 100);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => document.body.removeChild(toast), 300);
+  }, 3000);
+}
 
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        document.body.removeChild(toast);
-      }, 300);
-    }, 3000);
-  }
-// Initialize Select2 on merchant dropdown
+// Initialize Select2 and handle merchant selection change
 $(document).ready(function() {
   $('#merchant_id').select2({
     placeholder: "Select Merchant ID",
     allowClear: true,
-    width: 'resolve'  // adapts to the container width
+    width: 'resolve'
   });
 
-  // Attach the change event listener to the Select2 dropdown
   $('#merchant_id').on('change', function() {
-    var merchantId = $(this).val();  // Get the selected value
-
+    var merchantId = $(this).val();
     if (merchantId) {
       fetch(`/get_terminals/${merchantId}/`)
-        .then(response => response.json())
-        .then(data => {
-          var tableBody = document.getElementById('terminal-body');
-          tableBody.innerHTML = '';
+      .then(response => response.json())
+      .then(data => {
+        var tableBody = document.getElementById('terminal-body');
+        tableBody.innerHTML = '';
 
-          if (data.terminals.length > 0) {
-            data.terminals.forEach(function(terminal) {
-              var row = document.createElement('tr');
-              row.innerHTML = `
-                <td>${terminal.terminal_id}</td>
-                <td><input type="text" value="${terminal.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
-                <td>${terminal.status}</td>
-                <td>
-                  <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${terminal.terminal_id}">✏️ Edit</button>
-                  <button class="btn btn-sm btn-success save-btn" data-terminal-id="${terminal.terminal_id}" style="display: none;">💾 Save</button>
-                </td>
-              `;
-              tableBody.appendChild(row);
-            });
-
-            document.getElementById('empty-state').style.display = 'none';
-            document.getElementById('terminal-table').style.display = 'table';
-          } else {
-            document.getElementById('terminal-table').style.display = 'none';
-            document.getElementById('empty-state').style.display = 'block';
-          }
-        });
+        if (data.terminals.length > 0) {
+          data.terminals.forEach(function(terminal) {
+            var row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${terminal.terminal_id}</td>
+              <td><input type="text" value="${terminal.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
+               <td>
+        <label class="switch">
+          <input type="checkbox" onchange="toggleStatus('${terminal.terminal_id}', this)" ${terminal.status === 'Active' ? 'checked' : ''}>
+          <span class="slider round"></span>
+        </label>
+      </td>
+              <td>
+                <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${terminal.terminal_id}">✏️ Edit</button>
+                <button class="btn btn-sm btn-success save-btn" data-terminal-id="${terminal.terminal_id}" style="display: none;">💾 Save</button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+          $('#empty-state').hide();
+          $('#terminal-table').show();
+        } else {
+          $('#terminal-table').hide();
+          $('#empty-state').show();
+        }
+      });
     } else {
-      document.getElementById('terminal-table').style.display = 'none';
-      document.getElementById('empty-state').style.display = 'block';
+      $('#terminal-table').hide();
+      $('#empty-state').show();
     }
   });
 });
 
-
-  document.getElementById('add-terminal-btn').addEventListener('click', function() {
-    var merchantId = document.getElementById('merchant_id').value;
-
-    if (merchantId) {
-      fetch(`/add_terminal/${merchantId}/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCSRFToken(),
-        },
-        body: JSON.stringify({})
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.error) {
-          alert(data.error);
-        } else {
-          var tableBody = document.getElementById('terminal-body');
-          var row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${data.terminal_id}</td>
-            <td><input type="text" value="${data.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
-            <td>${data.status}</td>
-            <td>
-              <div style="display: flex; gap: 5px; justify-content: center; align-items: center;">
-                <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${data.terminal_id}">✏️ Edit</button>
-                <button class="btn btn-sm btn-success save-btn" data-terminal-id="${data.terminal_id}" style="display: none;">💾 Save</button>
-              </div>
-            </td>
-          `;
-          tableBody.appendChild(row);
-
-          document.getElementById('empty-state').style.display = 'none';
-          document.getElementById('terminal-table').style.display = 'table';
-        }
-      });
-    } else {
-      alert('Please select a merchant first');
-    }
-  });
-
-  // Handle Edit and Save button clicks
-  document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('edit-btn')) {
-      var row = event.target.closest('tr');
-      var pinInput = row.querySelector('.pin-input');
-      var saveBtn = row.querySelector('.save-btn');
-      var editBtn = row.querySelector('.edit-btn');
-
-      pinInput.removeAttribute('readonly');
-      pinInput.style.border = '1px solid #ccc';
-      pinInput.style.background = '#fff';
-      pinInput.focus();
-
-      saveBtn.style.display = 'inline-block';
-      editBtn.style.display = 'none';
-    }
-
-    if (event.target.classList.contains('save-btn')) {
-      var row = event.target.closest('tr');
-      var pinInput = row.querySelector('.pin-input');
-      var saveBtn = row.querySelector('.save-btn');
-      var editBtn = row.querySelector('.edit-btn');
-
-      var terminalId = event.target.getAttribute('data-terminal-id');
-      var merchantId = document.getElementById('merchant_id').value;
-      var newPin = pinInput.value.trim();
-
-      if (!newPin) {
-        alert('PIN cannot be empty');
-        return;
+// Add new terminal button click handler
+document.getElementById('add-terminal-btn').addEventListener('click', function() {
+  var merchantId = document.getElementById('merchant_id').value;
+  if (merchantId) {
+    fetch(`/add_terminal/${merchantId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken(),
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        showToast(data.error, 'error');
+      } else {
+        var row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${data.terminal_id}</td>
+          <td><input type="text" value="${data.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
+          <td>
+            <label class="switch">
+              <input type="checkbox" onchange="toggleStatus('${data.id}', this)" ${data.status === 'Active' ? 'checked' : ''}>
+              <span class="slider round"></span>
+            </label>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${data.terminal_id}">✏️ Edit</button>
+            <button class="btn btn-sm btn-success save-btn" data-terminal-id="${data.terminal_id}" style="display: none;">💾 Save</button>
+          </td>
+        `;
+        document.getElementById('terminal-body').appendChild(row);
+        $('#empty-state').hide();
+        $('#terminal-table').show();
+        showToast('Terminal added successfully!', 'success');
       }
+    });
+  } else {
+    showToast('Please select a merchant first.', 'warning');
+  }
+});
 
-      fetch(`/update_terminal_pin/${merchantId}/${terminalId}/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCSRFToken(),
-        },
-        body: JSON.stringify({ tid_pin: newPin })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert('PIN updated successfully');
+// Handle Edit and Save button clicks with event delegation
+document.addEventListener('click', function(event) {
+  if (event.target.classList.contains('edit-btn')) {
+    var row = event.target.closest('tr');
+    var pinInput = row.querySelector('.pin-input');
+    var saveBtn = row.querySelector('.save-btn');
+    var editBtn = row.querySelector('.edit-btn');
 
-          pinInput.setAttribute('readonly', 'readonly');
-          pinInput.style.border = 'none';
-          pinInput.style.background = 'transparent';
+    pinInput.removeAttribute('readonly');
+    pinInput.style.border = '1px solid #ccc';
+    pinInput.style.background = '#fff';
+    pinInput.focus();
 
-          saveBtn.style.display = 'none';
-          editBtn.style.display = 'inline-block';
-        } else {
-          alert('Error updating PIN');
-        }
-      });
-    }
-  });
-
-  function getCSRFToken() {
-    let cookieValue = null;
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.startsWith('csrftoken=')) {
-        cookieValue = decodeURIComponent(cookie.substring('csrftoken='.length));
-        break;
-      }
-    }
-    return cookieValue;
+    saveBtn.style.display = 'inline-block';
+    editBtn.style.display = 'none';
   }
 
+  if (event.target.classList.contains('save-btn')) {
+    var row = event.target.closest('tr');
+    var pinInput = row.querySelector('.pin-input');
+    var saveBtn = row.querySelector('.save-btn');
+    var editBtn = row.querySelector('.edit-btn');
 
+    var terminalId = event.target.getAttribute('data-terminal-id');
+    var merchantId = document.getElementById('merchant_id').value;
+    var newPin = pinInput.value.trim();
 
+    if (!newPin) {
+      showToast('PIN cannot be empty.', 'warning');
+      return;
+    }
+
+    fetch(`/update_terminal_pin/${merchantId}/${terminalId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken(),
+      },
+      body: JSON.stringify({ tid_pin: newPin })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        pinInput.setAttribute('readonly', 'readonly');
+        pinInput.style.border = 'none';
+        pinInput.style.background = 'transparent';
+        saveBtn.style.display = 'none';
+        editBtn.style.display = 'inline-block';
+        showToast('PIN updated successfully.', 'success');
+      } else {
+        showToast('Error updating PIN.', 'error');
+      }
+    });
+  }
+});
+
+// Utility to get CSRF token from cookies
+function getCSRFToken() {
+  let cookieValue = null;
+  const cookies = document.cookie.split(';');
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i].trim();
+    if (cookie.startsWith('csrftoken=')) {
+      cookieValue = decodeURIComponent(cookie.substring('csrftoken='.length));
+      break;
+    }
+  }
+  return cookieValue;
+}
 </script>
+
+
+
+
 
 {% endblock %}

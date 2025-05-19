@@ -37,7 +37,7 @@ class MerchantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Merchant
         fields = '__all__'
-        extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan_number': {'required':False}, 'legal_name': {'required':False},
+        extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan_number': {'required':False}, 'legal_name': {'required':False}, 'gender':{'required':False}, 'project_name':{'required':False},
                         'pincode': {'required':False}, 'is_profile_updated':{'required' : False}, 'address': {'required':False}, 'state': {'required':False}, 'country': {'required':False}, 'city': {'required':False}, 'corporate_id': {'required':False}, 
                         'shop_name':{'required':False}, 'plan-type':{'required': False}, 'gst_number':{'required':False}, 'project_name':{'required':False}, 'employee_id':{'required':False} }
 

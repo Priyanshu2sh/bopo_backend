@@ -79,6 +79,11 @@ class Merchant(models.Model):
         ('News Paper', 'News Paper'),
         ('Other', 'Other'),
     ]
+    GENDER_CHOICES = [
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ('Other', 'Other'),
+    ]
     
     # PLAN_CHOICES = [
     #     ('prepaid', 'Prepaid'),
@@ -100,8 +105,6 @@ class Merchant(models.Model):
         default='individual'
     )
     
-    
-    
     merchant_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     PLAN_CHOICES = [
         ('prepaid', 'Prepaid'),
@@ -114,8 +117,11 @@ class Merchant(models.Model):
     mobile = models.CharField(max_length=15, unique=True)
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
+    temp_pin = models.IntegerField( null=True, blank=True)
+
     pin = models.IntegerField( null=True, blank=True)
-    age = models.IntegerField(blank=True, null=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES) 
+    age = models.IntegerField(blank=True, null=True)    
     reference = models.CharField(max_length=200, choices=REFERENCE_CHOICES, null=True, blank=True)
     employee_id = models.ForeignKey('bopo_admin.Employee', to_field='employee_id', on_delete=models.CASCADE, null=True, blank=True)
     # plan_type = models.CharField(max_length=255, null=True, blank=True, choices=PLAN_CHOICES,  help_text='Select plan type: Prepaid or Rental')
@@ -196,6 +202,7 @@ class Customer(models.Model):
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)   
     otp = models.IntegerField(null=True, blank=True)
     new_mobile_otp = models.IntegerField(null=True, blank=True)
+    temp_pin = models.IntegerField( null=True, blank=True)
     pin = models.IntegerField(null=True, blank=True)
     security_question = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='customers') 
     answer = models.CharField(max_length=255, null=True, blank=True)
