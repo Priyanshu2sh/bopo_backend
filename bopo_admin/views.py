@@ -4140,3 +4140,8 @@ def get_individual_merchants(request):
         ]
     }
     return JsonResponse(data)
+
+
+def transaction_history(request):
+    history_list = History.objects.select_related('customer', 'merchant').order_by('-created_at')
+    return render(request, 'bopo_admin/Helpdesk/history.html', {'history_list': history_list})

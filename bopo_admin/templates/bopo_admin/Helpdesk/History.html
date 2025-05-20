@@ -1,0 +1,64 @@
+{% extends "bopo_admin/base.html" %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'bopo_admin/css/history.css' %}"> 
+
+<div class="history-list">
+    <div class="history-item">
+        <input type="checkbox" id="toggle-history" class="toggle-checkbox" checked>
+        <label for="toggle-history" class="history-label">
+            <br>
+            <!-- <span class="merchant-icon"><i class="fa fa-history"></i></span> -->
+            <span>Transaction History</span>
+        </label>
+        <br>
+        <div class="history-table">
+            <input type="text" class="search-box" id="search-history" onkeyup="filterTable('history-table', 'search-history')" placeholder="Search transaction history...">
+
+<table id="history-table">
+    <thead>
+        <tr>
+            <th>Sr.No.</th>
+            <th>Customer</th>
+            <th>Merchant</th>
+            <th>Points</th>
+            <th>Type</th>
+            <th>Date & Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for history in history_list %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ history.customer.customer_id }}</td>
+            <td>{{ history.merchant.merchant_id }}</td>
+            <td>{{ history.points }}</td>
+            <td>{{ history.get_transaction_type_display }}</td>
+            <td>{{ history.created_at|date:"Y-m-d" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No transaction history available.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+function filterTable(tableId, searchInputId) {
+    const input = document.getElementById(searchInputId);
+    const filter = input.value.toLowerCase();
+    const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+
+    rows.forEach(row => {
+        const rowText = row.innerText.toLowerCase();
+        row.style.display = rowText.includes(filter) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}
