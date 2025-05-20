@@ -161,7 +161,7 @@
     
         if (confirm("Mark this issue as resolved?")) {
             $.ajax({
-                url: /resolve-help/${helpId}/,
+                url: `/resolve-help/${helpId}/`,
                 type: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 data: {
@@ -189,4 +189,4 @@
 </script>
 
 
-{% endblock %}
+{% endblock %}
