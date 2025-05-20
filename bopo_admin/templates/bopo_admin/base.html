@@ -205,6 +205,17 @@
         <i class="fas fa-headset"></i> Helpdesk
     </a>
 </div>
+
+<!-- Transaction History -->
+ 
+<div id="historySection">
+    <a href="{% url 'transaction_history' %}" class="{% if request.path == '/transaction_history/' %}active{% endif %}">
+        <i class="fas fa-history"></i> Transaction History
+    </a>
+</div>
+
+
+
 {% endif %}
 
 {% comment %} for corporate_admin {% endcomment %}

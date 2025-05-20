@@ -934,8 +934,8 @@ class MerchantToMerchantTransferAPIView(APIView):
         if not sender_payment or not receiver_payment:
             return Response({"error": "Payment details not found for sender or receiver merchant."}, status=status.HTTP_404_NOT_FOUND)
 
-        sender_plan = sender_payment.plan_type.lower()  # 'prepaid' or 'rental'
-        receiver_plan = receiver_payment.plan_type.lower()
+        sender_plan = sender_payment.plan_type # 'prepaid' or 'rental'
+        receiver_plan = receiver_payment.plan_type
 
         # Only allow transfer if BOTH have valid plans from ModelPlan
         if sender_plan != "prepaid" and receiver_plan != "prepaid":
@@ -1337,16 +1337,22 @@ class PaymentDetailsListCreateAPIView(APIView):
         if serializer.is_valid():
             payment = serializer.save()
 
-            # Optional logic if Merchant has a plan_type field
             merchant_instance = serializer.validated_data.get('merchant')
-            plan_type_instance = serializer.validated_data.get('plan_type')
+            plan_type_value = serializer.validated_data.get('plan_type')
 
-            if merchant_instance and plan_type_instance and hasattr(merchant_instance, 'plan_type'):
-                merchant_instance.plan_type = plan_type_instance.plan_type
-                merchant_instance.save()
+            # If plan_type is a foreign key object, extract the string; else use directly
+            if hasattr(plan_type_value, 'plan_type'):
+                plan_type_str = plan_type_value.plan_type
+            else:
+                plan_type_str = plan_type_value
+
+            if merchant_instance and plan_type_str and hasattr(merchant_instance, 'plan_type'):
+                if merchant_instance.plan_type != plan_type_str:
+                    merchant_instance.plan_type = plan_type_str
+                    merchant_instance.save()
 
             return Response(
-                {"message": "Payment send successfully.", "data": serializer.data},
+                {"message": "Payment sent successfully.", "data": serializer.data},
                 status=status.HTTP_201_CREATED
             )
 
@@ -1354,6 +1360,7 @@ class PaymentDetailsListCreateAPIView(APIView):
             {"errors": serializer.errors, "message": "Payment send failed."},
             status=status.HTTP_400_BAD_REQUEST
         )
+
 
 class TerminalCustomerPointsAPIView(APIView):
     """
@@ -2139,13 +2146,18 @@ class HistoryAPIView(APIView):
     API to get history of transactions for a given customer or merchant.
     """
 
-    def get(self, request):
-        # Fetch all history records
-        histories = History.objects.all().order_by('-created_at')
-        if not histories:
+    def get(self, request, id, user_type):
+        # user_type can be 'customer' or 'merchant'
+        if user_type == "customer":
+            histories = History.objects.filter(customer__customer_id=id).order_by('-created_at')
+        elif user_type == "merchant":
+            histories = History.objects.filter(merchant__merchant_id=id).order_by('-created_at')
+        else:
+            return Response({"error": "Invalid user_type parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not histories.exists():
             return Response({"message": "No history records found."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Prepare the response data
         history_data = []
         for history in histories:
             history_data.append({
@@ -2157,8 +2169,7 @@ class HistoryAPIView(APIView):
             })
 
         return Response({"history": history_data}, status=status.HTTP_200_OK)
-    
-    
+ 
 class CorporateGlobalMerchantAPIView(APIView):
     """
     API to get all corporate merchants with global account type and associated project name.

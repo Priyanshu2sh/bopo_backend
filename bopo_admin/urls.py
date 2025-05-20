@@ -205,6 +205,7 @@ urlpatterns = [
     
  
     path('create_notification/', create_notification_view, name='create_notification'),
+    path("transaction_history/", views.transaction_history, name="transaction_history"),
 
 
    

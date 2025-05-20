@@ -848,7 +848,7 @@ class FetchAllUsersAPIView(APIView):
                     "email": merchant.email,
                     "shop_name": merchant.shop_name,
                     "address": merchant.address,
-                    "corporate_id": merchant.corporate.corporate_id if merchant.corporate else None,
+                    "corporate_id":  merchant.corporate_id ,
                     "created_at": merchant.created_at,
                 }
                 for merchant in merchants
@@ -858,7 +858,7 @@ class FetchAllUsersAPIView(APIView):
         return Response({"users": all_users}, status=status.HTTP_200_OK)
     
     
-    
+# -------mobile number change------
 class RequestMobileChangeAPIView(APIView):
     def post(self, request):
         customer_id = request.data.get('customer')
