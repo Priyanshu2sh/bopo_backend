@@ -45,9 +45,9 @@
                         <td>{{ payment.topup_amount }}</td>  <!-- for Top-Up -->
                         <td>{{ payment.created_at|date:"Y-m-d" }}</td>
                         <td>{{ payment.payment_mode }}</td>
-                        {% if payment.plan_type == "rental" %}
+                        {% if payment.plan_type == "1" %}
                             <td>Rental</td>
-                            {% elif payment.plan_type == "prepaid" %}
+                            {% elif payment.plan_type == "2" %}
                             <td>Prepaid</td>
                         {% else %}
                             <td>Unknown</td>
@@ -63,9 +63,9 @@
                         <td>{{ payment.topup_amount }}</td>
                         <td>{{ payment.created_at|date:"Y-m-d" }}</td>
                         <td>{{ payment.payment_mode }}</td>
-                        {% if payment.plan_type == "rental" %}
+                        {% if payment.plan_type == "1" %}
                             <td>Rental</td>
-                        {% elif payment.plan_type == "prepaid" %}
+                        {% elif payment.plan_type == "2" %}
                             <td>Prepaid</td>
                             {% else %}
                             <td>Unknown</td>
