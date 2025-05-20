@@ -145,7 +145,7 @@
 
                                 <td>
                                     <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ merchant.id }}')">✏️ Edit</button>
-                                    {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteMerchant('{{ merchant.id }}')">🗑️ Delete</button> {% endcomment %}
+                                   {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteMerchant('{{ merchant.id }}')">🗑️ Delete</button> {% endcomment %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -213,7 +213,7 @@
                                 <label>First Name</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-user"></i>
-                                    <input type="text" name="first_name" id="edit_first_name" readonly>
+                                    <input type="text" name="first_name" id="edit_first_name" disabled>
                                 </div>
 
                                 <label>Email ID</label>
@@ -225,19 +225,19 @@
                                 <label>Aadhaar Number</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-id-card"></i>
-                                    <input type="text" name="aadhaar_number"  id="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" readonly>
+                                    <input type="text" name="aadhaar_number"  id="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" disabled>
                                 </div>
 
                                 <label>Shop Name</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-store"></i>
-                                    <input type="text" name="shop_name" id="edit_shop_name" readonly>
+                                    <input type="text" name="shop_name" id="edit_shop_name" disabled>
                                 </div>
 
                                 <label>Address</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <input type="text" name="address" id="edit_address" readonly>
+                                    <input type="text" name="address" id="edit_address" disabled>
                                 </div>
 
                                 <label>State</label>
@@ -258,7 +258,7 @@
                                 <label>Last Name</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-user"></i>
-                                    <input type="text" name="last_name" id="edit_last_name" readonly>
+                                    <input type="text" name="last_name" id="edit_last_name" disabled>
                                 </div>
 
                                 <label>Mobile Number</label>
@@ -270,7 +270,7 @@
                                 <label>GST Number</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-file-invoice"></i>
-                                    <input type="text" name="gst" id="edit_gst" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" readonly>
+                                    <input type="text" name="gst" id="edit_gst" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" disabled>
                                 </div>
                                 <div id="gst_error" style="display: none; margin-top: 10px;">
                                     <div style="background-color: #ffe6e6; border: 1px solid #ff4d4d; color: #d8000c; padding: 10px; border-radius: 5px; font-size: 14px; display: flex; align-items: center;">
@@ -282,13 +282,13 @@
                                 <label>Pan Number</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-id-card"></i>
-                                    <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" readonly>
+                                    <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" disabled>
                                 </div>
 
                                 <label>Legal Name</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-building"></i>
-                                    <input type="text" name="legal_name" id="edit_legal_name" readonly>
+                                    <input type="text" name="legal_name" id="edit_legal_name" disabled>
                                 </div>
 
                                 <label>City</label>
@@ -301,7 +301,7 @@
                                 <label>Pincode</label>
                                 <div class="add_individual_merchant-input-container">
                                     <i class="fas fa-home"></i>
-                                    <input type="text" name="pincode" id="edit_pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" readonly>
+                                    <input type="text" name="pincode" id="edit_pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" disabled>
                                 </div>
                             </div>
                           

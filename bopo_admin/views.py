@@ -458,50 +458,25 @@ def get_customer(request, customer_id):
     }
 
     return JsonResponse(data)
+
+@csrf_exempt  
 def update_customer(request, customer_id):
     if request.method == "POST":
         try:
             customer = Customer.objects.get(customer_id=customer_id)
 
-            first_name = request.POST.get('first_name')
-            last_name = request.POST.get('last_name')
             email = request.POST.get('email')
             mobile = request.POST.get('mobile')
-            age = request.POST.get('age')
-            aadhar_number = request.POST.get('aadhar_number')
-            pin = request.POST.get('pin')
-            address = request.POST.get('address')
-            state_name = request.POST.get('state')
-            city_name = request.POST.get('city')
-            pincode = request.POST.get('pincode')
-            gender = request.POST.get('gender')
-            pan_number = request.POST.get('pan_number')
 
-            # Validation for required fields
-            if not gender:
-                return JsonResponse({'success': False, 'error': 'Gender field is required'})
-            
-            if not State.objects.filter(name=state_name).exists():
-                return JsonResponse({'success': False, 'error': 'State not found'})
+            # Basic validation (you can extend this as needed)
+            if not email or not mobile:
+                return JsonResponse({'success': False, 'error': 'Email and Mobile are required'})
 
-            if not City.objects.filter(name=city_name).exists():
-                return JsonResponse({'success': False, 'error': 'City not found'})
+            # Optionally: Validate mobile number format, email format here
 
-            # Update
-            customer.first_name = first_name
-            customer.last_name = last_name
+            # Update only email and mobile
             customer.email = email
             customer.mobile = mobile
-            customer.age = age
-            customer.aadhar_number = aadhar_number
-            customer.pin = pin
-            customer.address = address
-            customer.pincode = pincode
-            customer.gender = gender
-            customer.pan_number = pan_number
-            customer.state = state_name
-            customer.city = city_name
-
             customer.save()
 
             return JsonResponse({
@@ -513,7 +488,6 @@ def update_customer(request, customer_id):
             return JsonResponse({'success': False, 'error': 'Customer not found'})
 
     return JsonResponse({'success': False, 'error': 'Invalid request'})
-
 
 
 # bopo_admin/views.py
@@ -1127,54 +1101,25 @@ def edit_merchants(request, merchant_id):
     return JsonResponse(data)
 
 
-from django.http import JsonResponse
-from accounts.models import Merchant
 
 def update_merchant(request): 
     if request.method == "POST":
         merchant_id = request.POST.get('merchant_id')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
         email = request.POST.get('email')
-        aadhaar = request.POST.get("aadhaar")
-        pin = request.POST.get("pin")
-        address = request.POST.get("address")
-        state_id = request.POST.get("state")
-        city_id = request.POST.get("city")
-        mobile = request.POST.get("mobile")
-        pan = request.POST.get("pan")
-        pincode = request.POST.get("pincode")
-        shop_name = request.POST.get("shop_name")
-        country = request.POST.get("country", "India")
-        select_state = request.POST.get("select_state")
-        
+        mobile = request.POST.get('mobile')
+
         try:
-            # Get the  merchant object by id
             merchant = Merchant.objects.get(id=merchant_id)
-            
-            # Update the  merchant object fields
-            merchant.first_name= first_name
-            merchant.last_name=last_name
+
+            # Update only email and mobile
             merchant.email = email
-            merchant.aadhaar = aadhaar  # Corrected here
-            merchant.pin = pin  # Corrected here
-            merchant.address = address  # Corrected here
-            merchant.state_id = state_id  # Corrected here
-            merchant.city_id = city_id  # Corrected here
             merchant.mobile = mobile
-            merchant.pan = pan
-            merchant.pincode = pincode
-            merchant.shop_name = shop_name
-            merchant.country = country
-            select_state=select_state,
-            
-            # Save the updated merchant object
             merchant.save()
 
             return JsonResponse({
-            "success": True,
-            "message": "Merchant updated successfully!"  # ✅ Important!
-        })
+                "success": True,
+                "message": "Merchant updated successfully!"
+            })
         except Merchant.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Merchant not found'})
     return JsonResponse({'success': False, 'error': 'Invalid request'})

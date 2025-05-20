@@ -210,6 +210,8 @@ $(document).ready(function() {
   });
 });
 
+
+
 // Add new terminal button click handler
 document.getElementById('add-terminal-btn').addEventListener('click', function() {
   var merchantId = document.getElementById('merchant_id').value;
@@ -246,6 +248,7 @@ document.getElementById('add-terminal-btn').addEventListener('click', function()
         $('#empty-state').hide();
         $('#terminal-table').show();
         showToast('Terminal added successfully!', 'success');
+        
       }
     });
   } else {

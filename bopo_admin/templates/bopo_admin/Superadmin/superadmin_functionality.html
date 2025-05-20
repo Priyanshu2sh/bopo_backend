@@ -294,6 +294,12 @@ function saveLogo() {
             if (logoImage && data.url) {
                 logoImage.src = data.url;
             }
+            setTimeout(() => {
+                const formContainer = document.querySelector('.send-notification-form');
+                if (formContainer) formContainer.style.display = 'none'; // ✅ Close modal
+                location.reload(); // ✅ Reload page
+            }, 2500); // Toast visible for 2.5s  
+
         } else {
             showToast('❌ Failed to update logo.', false);
         }

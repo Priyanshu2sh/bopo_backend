@@ -2,32 +2,102 @@
 {% load static %}
 {% block content %}
 
-<link rel="stylesheet" href="{% static 'bopo_admin/css/history.css' %}"> 
+<link rel="stylesheet" href="{% static 'bopo_admin/css/reduce_limit.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<div class="history-list">
-    <div class="history-item">
-        <input type="checkbox" id="toggle-history" class="toggle-checkbox" checked>
-        <label for="toggle-history" class="history-label">
-            <br>
-            <!-- <span class="merchant-icon"><i class="fa fa-history"></i></span> -->
-            <span>Transaction History</span>
-        </label>
-        <br>
-        <div class="history-table">
-            <input type="text" class="search-box" id="search-history" onkeyup="filterTable('history-table', 'search-history')" placeholder="Search transaction history...">
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<table id="history-table">
-    <thead>
-        <tr>
-            <th>Sr.No.</th>
-            <th>Customer</th>
-            <th>Merchant</th>
-            <th>Points</th>
-            <th>Type</th>
-            <th>Date & Time</th>
-        </tr>
-    </thead>
-    <tbody>
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+
+<style>
+    div.dataTables_filter { display: none !important; }
+
+    .top-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .search-box {
+        padding: 6px 10px;
+        width: 250px;
+    }
+
+    #custom-buttons {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .dataTables_paginate {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .dataTables_paginate .paginate_button {
+        background: linear-gradient(135deg, #ff7b54, #ff4e00);
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(52, 49, 48, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    }
+
+    .dataTables_paginate .paginate_button:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+        box-shadow: 0 6px 12px rgba(41, 39, 38, 0.4);
+    }
+
+    .dataTables_paginate .paginate_button.current {
+        background: linear-gradient(135deg, #333, #111);
+        color: #fff;
+        font-weight: bold;
+        border: 2px solid #ff4e00;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+    }
+
+</style>
+
+<div class="customer-container">
+    <div class="customer-header">
+        <h2>Transaction History</h2>
+        <div class="customer-buttons"></div>
+    </div>
+
+    <div class="customer-list">
+        <div class="customer-table">
+            <div class="top-controls">
+                <input type="text" class="search-box" id="search-customer" placeholder="Search ...">
+                <div id="custom-buttons"></div>
+            </div>
+
+            <table id="customer-table" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Sr.No.</th>
+                        <th>Customer</th>
+                        <th>Merchant</th>
+                        <th>Points</th>
+                        <th>Type</th>
+                        <th>Date & Time</th>
+                    </tr>
+
+                </thead>
+                <tbody>
         {% for history in history_list %}
         <tr>
             <td>{{ forloop.counter }}</td>
@@ -41,24 +111,82 @@
         <tr><td colspan="6">No transaction history available.</td></tr>
         {% endfor %}
     </tbody>
-</table>
 
+            </table>
         </div>
     </div>
 </div>
 
+<!-- Toast -->
+<div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+    <i class="fa fa-exclamation-circle"></i>
+    <span class="toast-message">{{ message }}</span>
+</div>
 
+<!-- Scripts -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
 <script>
-function filterTable(tableId, searchInputId) {
-    const input = document.getElementById(searchInputId);
-    const filter = input.value.toLowerCase();
-    const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+    $(document).ready(function () {
+        const table = $('#customer-table').DataTable({
+            dom: 'Bfrtip',
+            pageLength: 6,
+            lengthChange: false,
+            buttons: [
+                {
+                    extend: 'colvis',
+                    text: '<i class="fas fa-table"></i>',
+                    className: 'btn btn-light'
+                }
+            ],
+            stripeClasses: []
+        });
 
-    rows.forEach(row => {
-        const rowText = row.innerText.toLowerCase();
-        row.style.display = rowText.includes(filter) ? '' : 'none';
+        table.buttons().container().appendTo('#custom-buttons');
+
+        $('#search-customer').on('keyup', function () {
+            table.search(this.value).draw();
+        });
+
+      
     });
-}
+
+    
+
+    $(document).on('click', '.status-btn', function () {
+        const helpId = $(this).data('id');
+        const button = $(this);
+    
+        if (confirm("Mark this issue as resolved?")) {
+            $.ajax({
+                url: `/resolve-help/${helpId}/`,
+                type: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        button.removeClass('btn-warning status-btn')
+                              .addClass('btn-secondary')
+                              .text('Resolved')
+                              .prop('disabled', true);
+    
+                        // Optional toast
+                        $('.toast-message').text(response.message);
+                        $('#toast').addClass('toast-show');
+                        setTimeout(() => $('#toast').removeClass('toast-show'), 3000);
+                    }
+                },
+                error: function () {
+                    alert('Error resolving help request.');
+                }
+            });
+        }
+    });
 </script>
+
+
 {% endblock %}
