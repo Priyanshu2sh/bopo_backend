@@ -4,6 +4,93 @@
 <link rel="stylesheet" href="{% static 'bopo_admin/css/payment_details.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+
+ <!-- Select2 CSS & JS -->
+ <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+ <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+ 
+<!-- DataTables & Buttons CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    /* Hide default DataTables search box */
+    div.dataTables_filter {
+        display: none !important;
+    }
+
+    /* Top controls styling */
+    .top-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .search-box {
+        padding: 6px 10px;
+        width: 250px;
+    }
+
+    #custom-buttons {
+        display: flex;
+        justify-content: flex-end;
+    }
+#payment-table tbody tr:hover {
+    background-color: #f8f8f8 !important; /* Light color for whole row */
+    transition: background-color 0.3s ease;
+}
+
+#payment-table tbody tr:hover td:first-child {
+    background-color: #f0f0f0 !important; /* Highlight only '#' column */
+    font-weight: bold;
+    color: #333;
+    transition: background-color 0.3s ease;
+}
+
+    
+    /* Custom Pagination Styling (Like .pagination-controls) */
+    .dataTables_paginate {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .dataTables_paginate .paginate_button {
+        background: linear-gradient(135deg, #ff7b54, #ff4e00);
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(52, 49, 48, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    }
+
+    .dataTables_paginate .paginate_button:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+        box-shadow: 0 6px 12px rgba(41, 39, 38, 0.4);
+    }
+
+    .dataTables_paginate .paginate_button.current {
+        background: linear-gradient(135deg, #333, #111);
+        color: #fff;
+        font-weight: bold;
+        border: 2px solid #ff4e00;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+    }
+ 
+</style>
+
+
 <div class="payment_details-container">
     <div class="payment_details-back-to-list-btn">
         <a href="{% url 'employee_list' %}" class="send_credentials-add_individual_merchant-btn-submit">
@@ -17,7 +104,51 @@
 
     <div class="payment_details-list">
         <div class="payment_details-table">
-            <input type="text" class="search-box" id="search-payment-details" onkeyup="filterTable('payment-table', 'search-payment-details')" placeholder="Search...">
+                <!-- Custom Search & Column Toggle Button -->
+            <div class="top-controls">
+                <input type="text" class="search-box" id="search-customer" placeholder="Search merchants...">
+                <div id="custom-buttons"></div>
+               
+<div class="plan-filter-wrapper" style="position: relative; display: inline-block;  margin-left: -64%;">
+  <button id="filter-toggle-btn" title="Filter Plans" 
+          style="
+            background-color: #f8f8f8 !important;
+            border: 1px solid gray; 
+            border-radius: 6px; 
+            padding: 6px 10px; 
+            cursor: pointer; 
+            font-size: 20px; 
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            ">
+    <i class="fas fa-filter"></i>
+  </button>
+
+  <div id="filter-menu" style="
+    display:none;
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    border-radius: 4px;
+    z-index: 1000;
+    min-width: 140px;
+    ">
+    <ul style="list-style:none; margin:0; padding:8px 0;">
+      <li class="filter-option" data-value="">All Plans</li>
+      <li class="filter-option" data-value="rental">Rental</li>
+      <li class="filter-option" data-value="prepaid">Prepaid</li>
+     </ul>
+  </div>
+</div>
+
+            </div>
             <table id="payment-table">
                 <thead>
                     <tr>
@@ -60,12 +191,12 @@
                         </td>
                         <td>
                             {% if payment.status == 'approved' %}
-                                <button class="btn btn-sm btn-success" disabled>
-                                    <i class="fas fa-check-circle"></i> Approved
+                                <button class="btn btn-sm approved-disabled" disabled>
+                                   Approved
                                 </button>
                             {% elif payment.status == 'rejected' %}
-                                <button class="btn btn-sm btn-danger" disabled>
-                                    <i class="fas fa-times-circle"></i> Rejected
+                                <button class="btn btn-sm rejected-disabled" disabled>
+                                 Rejected
                                 </button>
                             {% else %}
                                 <button 
@@ -95,11 +226,79 @@
 </div>
 
 
-<!-- Modal for Approve Confirmation -->
+<!-- DataTables & Buttons JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+
+<script>
+
+ const table = $('#payment-table').DataTable({
+  dom: 'Bfrtip',
+  pageLength: 6,
+  paging: true,
+  responsive: true,
+  lengthChange: false,
+  buttons: [
+    {
+      extend: 'colvis',
+      text: '<i class="fas fa-table"></i>',
+      className: 'btn btn-light'
+    }
+  ],
+  stripeClasses: [],
+});
+table.buttons().container().appendTo('#custom-buttons');
+$('#search-customer').on('keyup', function () {
+  table.search(this.value).draw();
+});
+
+// Variable to store selected filter value
+let selectedPlan = "";
+
+// Custom filter function
+$.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+  let planType = data[7].toLowerCase();
+  if (selectedPlan === "" || planType === selectedPlan) {
+    return true;
+  }
+  return false;
+});
+
+// Toggle filter menu visibility
+$('#filter-toggle-btn').on('click', function(e) {
+  e.stopPropagation();
+  $('#filter-menu').toggle();
+});
+
+// Hide filter menu if clicking outside
+$(document).on('click', function() {
+  $('#filter-menu').hide();
+});
+
+// Handle filter option click
+$('.filter-option').on('click', function() {
+  selectedPlan = $(this).data('value').toLowerCase();
+  $('#filter-menu').hide();
+
+  // Optional: change button color or add small label showing current filter
+  if(selectedPlan === "") {
+    $('#filter-toggle-btn').css('color', '#007bff').attr('title', 'Filter Plans (All)');
+  } else {
+    $('#filter-toggle-btn').css('color', '#0056b3').attr('title', 'Filter Plans (' + $(this).text() + ')');
+  }
+
+  table.draw();
+});
+
+</script>
+
+<!-- Approve Modal -->
 <div id="approveModal" class="custom-modal">
     <div class="custom-modal-content">
         <span class="close" onclick="closeModal('approveModal')">&times;</span>
-        <h3 id="confirmationMessage">Do you want to approve this payment?</h3>
+        <h3>Do you want to approve this payment?</h3>
         <div class="custom-modal-buttons">
             <button id="approveConfirmBtn" class="custom-btn green-btn">Yes, Approve</button>
             <button class="custom-btn red-btn" onclick="closeModal('approveModal')">Cancel</button>
@@ -107,11 +306,11 @@
     </div>
 </div>
 
-<!-- Modal for Reject Confirmation -->
+<!-- Reject Modal -->
 <div id="rejectModal" class="custom-modal">
     <div class="custom-modal-content">
         <span class="close" onclick="closeModal('rejectModal')">&times;</span>
-        <h3 id="confirmationMessage">Do you want to reject this<br>payment?</h3>
+        <h3>Do you want to reject this<br>payment?</h3>
         <div class="custom-modal-buttons">
             <button id="rejectConfirmBtn" class="custom-btn green-btn">Yes, Reject</button>
             <button class="custom-btn red-btn" onclick="closeModal('rejectModal')">Cancel</button>
@@ -119,11 +318,11 @@
     </div>
 </div>
 
-<!-- Modal for Rental Plan Validity -->
+<!-- Rental Validity Modal -->
 <div id="rentalValidityModal" class="custom-modal">
     <div class="custom-modal-content">
         <span class="close" onclick="closeModal('rentalValidityModal')">&times;</span>
-        <h3 id="confirmationMessage">Enter Rental Plan Validity<br> (in days):</h3>
+        <h3>Enter Rental Plan Validity<br> (in days):</h3>
         <input type="number" id="rentalValidityInput" min="1" placeholder="e.g. 30" class="validity-input" />
         <div class="custom-modal-buttons">
             <button id="rentalApproveConfirmBtn" class="custom-btn green-btn">Approve</button>
@@ -132,142 +331,139 @@
     </div>
 </div>
 
-<!-- Toast container -->
+<!-- Toast -->
 <div id="toast-container" class="toast-container">
     <i id="toast-icon" class=""></i>
     <span id="toast-message"></span>
 </div>
 
 <script>
-    function showApproveModal(paymentId, planType) {
-        if (planType === "rental") {
-            document.getElementById("rentalValidityModal").style.display = "flex";
-            document.getElementById("rentalApproveConfirmBtn").onclick = function () {
-                let validity = document.getElementById("rentalValidityInput").value;
-                if (!validity || parseInt(validity) <= 0) {
-                    alert("Please enter a valid number of days.");
-                    return;
-                }
-                approvePayment(paymentId, "rental", validity);
-            };
-        } else {
-            document.getElementById('approveConfirmBtn').onclick = function () {
-                approvePayment(paymentId, "prepaid");
-            };
-            document.getElementById('approveModal').style.display = "flex";
-        }
-    }
-
-    function showRejectModal(paymentId) {
-        document.getElementById('rejectConfirmBtn').onclick = function() {
-            rejectPayment(paymentId);
+function showApproveModal(paymentId, planType) {
+    if (planType === "rental") {
+        document.getElementById("rentalValidityModal").style.display = "flex";
+        document.getElementById("rentalApproveConfirmBtn").onclick = function () {
+            let validity = document.getElementById("rentalValidityInput").value;
+            if (!validity || parseInt(validity) <= 0) {
+                alert("Please enter a valid number of days.");
+                return;
+            }
+            approvePayment(paymentId, "rental", validity);
         };
-        document.getElementById('rejectModal').style.display = "flex";
-    }
-
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = "none";
-    }
-
-    function approvePayment(paymentId, planType, validity = null) {
-        let bodyData = "payment_id=" + encodeURIComponent(paymentId) +
-                       "&action=approve" +
-                       (planType === "rental" ? "&validity=" + encodeURIComponent(validity) : "");
-
-        fetch("{% url 'payment_details' %}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "X-CSRFToken": getCookie("csrftoken")
-            },
-            body: bodyData
-        })
-        .then(response => response.json())
-        .then(data => {
-    if (data.success) {
-        alert(data.message);
-        // Disable approve button and hide reject button for this payment row
-        const approveBtn = document.getElementById("approve-btn-" + paymentId);
-        const rejectBtn = document.getElementById("reject-btn-" + paymentId);
-
-        approveBtn.disabled = true;
-        approveBtn.style.backgroundColor = "gray";
-        approveBtn.style.borderColor = "gray";
-
-        rejectBtn.style.display = "none";
     } else {
-        alert("Error: " + data.message);
+        document.getElementById('approveConfirmBtn').onclick = function () {
+            approvePayment(paymentId, "prepaid");
+        };
+        document.getElementById('approveModal').style.display = "flex";
     }
-})
+}
 
-        .catch(error => console.error("Error approving payment:", error));
+function showRejectModal(paymentId) {
+    document.getElementById('rejectConfirmBtn').onclick = function() {
+        rejectPayment(paymentId);
+    };
+    document.getElementById('rejectModal').style.display = "flex";
+}
 
-        closeModal('approveModal');
-        closeModal('rentalValidityModal');
-    }
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
+}
 
-    function rejectPayment(paymentId) {
-        fetch("{% url 'payment_details' %}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "X-CSRFToken": getCookie("csrftoken")
-            },
-            body: "payment_id=" + encodeURIComponent(paymentId) + "&action=reject"
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                // Disable approve button and hide reject button for this payment row
-                document.getElementById("approve-btn-" + paymentId).disabled = true;
-                document.getElementById("reject-btn-" + paymentId).style.display = "none";
-            } else {
-                alert("Error: " + data.message);
+function approvePayment(paymentId, planType, validity = null) {
+    let bodyData = "payment_id=" + encodeURIComponent(paymentId) +
+                   "&action=approve" +
+                   (planType === "rental" ? "&validity=" + encodeURIComponent(validity) : "");
+
+    fetch("{% url 'payment_details' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: bodyData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+
+            const approveBtn = document.getElementById("approve-btn-" + paymentId);
+            approveBtn.className = "btn btn-sm approved-disabled";
+            approveBtn.disabled = true;
+            approveBtn.innerHTML = `<i class="fas fa-check-circle"></i> Approved`;
+
+            document.getElementById("reject-btn-" + paymentId).style.display = "none";
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(error => console.error("Error approving payment:", error));
+
+    closeModal('approveModal');
+    closeModal('rentalValidityModal');
+}
+
+function rejectPayment(paymentId) {
+    fetch("{% url 'payment_details' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: "payment_id=" + encodeURIComponent(paymentId) + "&action=reject"
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+
+            const approveBtn = document.getElementById("approve-btn-" + paymentId);
+            approveBtn.className = "btn btn-sm rejected-disabled";
+            approveBtn.disabled = true;
+            approveBtn.innerHTML = `<i class="fas fa-times-circle"></i> Rejected`;
+
+            document.getElementById("reject-btn-" + paymentId).style.display = "none";
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(error => console.error("Error rejecting payment:", error));
+
+    closeModal('rejectModal');
+}
+
+function filterTable(tableId, searchBoxId) {
+    let input = document.getElementById(searchBoxId);
+    let filter = input.value.toLowerCase();
+    let table = document.getElementById(tableId);
+    let rows = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < rows.length; i++) {
+        let cells = rows[i].getElementsByTagName("td");
+        let rowMatch = false;
+
+        for (let j = 0; j < cells.length; j++) {
+            if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                rowMatch = true;
+                break;
             }
-        })
-        .catch(error => console.error("Error rejecting payment:", error));
-
-        closeModal('rejectModal');
+        }
+        rows[i].style.display = rowMatch ? "" : "none";
     }
+}
 
-    function filterTable(tableId, searchBoxId) {
-        let input = document.getElementById(searchBoxId);
-        let filter = input.value.toLowerCase();
-        let table = document.getElementById(tableId);
-        let rows = table.getElementsByTagName("tr");
-
-        for (let i = 1; i < rows.length; i++) {
-            let cells = rows[i].getElementsByTagName("td");
-            let rowMatch = false;
-
-            for (let j = 0; j < cells.length; j++) {
-                if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                    rowMatch = true;
-                    break;
-                }
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        let cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
-            rows[i].style.display = rowMatch ? "" : "none";
         }
     }
-
-    // Helper function to get CSRF token cookie
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            let cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                let cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
+    return cookieValue;
+}
 </script>
-
-
-
 {% endblock %}

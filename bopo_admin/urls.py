@@ -113,6 +113,7 @@ urlpatterns = [
 
     path('update-profile/', views.update_profile, name='update_profile'), 
     path('cash-out/', views.cash_out, name='cash_out'),
+     path('merchant-cash-outs/', views.merchant_cash_outs_view, name='merchant_cash_outs'),
 
     path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
     path('helpdesk/', views.helpdesk, name='helpdesk'),

@@ -3388,8 +3388,29 @@ def reduce_limit(request):
         'merchant_cash_outs': merchant_cash_outs,
         'customer_cash_outs': customer_cash_outs,
     })
+    
+    
+    
+    
+
+from django.db.models import Prefetch
+
+
+def merchant_cash_outs_view(request):
+    merchant_cash_outs = CashOut.objects.select_related(
+        'merchant'
+    ).prefetch_related(
+        Prefetch('superadmin_payments', queryset=SuperAdminPayment.objects.all())
+    )
+
+    return render(request, 'bopo_admin/Merchant/merchant_cash_outs.html', {
+        'merchant_cash_outs': merchant_cash_outs,
+    })
+
+
 
 from django.utils import timezone
+
 def save_cash_out(request):
     if request.method == 'POST':
         try:
