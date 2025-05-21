@@ -208,7 +208,7 @@ urlpatterns = [
     path("transaction_history/", views.transaction_history, name="transaction_history"),
 
 
-   
+    path('api/save-fcm-token/', views.save_fcm_token, name='save_fcm_token'),
 
 
 

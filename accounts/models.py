@@ -155,6 +155,7 @@ class Merchant(models.Model):
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
     
     unread_notification = models.IntegerField(default=0)  # New field added
+    fcm_token = models.CharField(max_length=255, blank=True, null=True)
   
     def save(self, *args, **kwargs):
         if self.security_question:
@@ -219,6 +220,7 @@ class Customer(models.Model):
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='customer')
     
     unread_notification = models.IntegerField(default=0)  # New field added
+    fcm_token = models.CharField(max_length=255, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         # Generate customer ID if not already set

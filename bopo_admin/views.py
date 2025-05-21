@@ -1704,6 +1704,45 @@ def send_sms(to_number, message_body):
 #         }
 #     )
 
+
+# ##########################################################################################
+import os
+from firebase_admin import credentials, initialize_app
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+cred_path = os.path.join(BASE_DIR, 'serviceAccountKey.json')
+
+cred = credentials.Certificate(cred_path)
+initialize_app(cred)
+
+
+from firebase_admin import messaging
+
+def send_fcm_notification(token, title, body, data=None):
+    """
+    Sends a push notification to a device using FCM.
+
+    Args:
+        token (str): The FCM device token.
+        title (str): Notification title.
+        body (str): Notification message/body.
+        data (dict, optional): Additional data to send as key-value pairs.
+    Returns:
+        messaging.SendResponse or raises exception.
+    """
+    message = messaging.Message(
+        notification=messaging.Notification(
+            title=title,
+            body=body,
+        ),
+        token=token,
+        data=data or {}
+    )
+
+    response = messaging.send(message)
+    return response
+
+
 from django.db.models import F
 
 def create_notification(project_id, merchant_id, customer_id, notification_type, title, description, to_all_ind_merch, to_all_customer):
@@ -1715,6 +1754,20 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
     merchant = Merchant.objects.filter(merchant_id=merchant_id).first() if merchant_id else None
     customer = Customer.objects.filter(customer_id=customer_id).first() if customer_id else None
 
+    # Helper to send push notification safely
+    def send_push(token, title, body, data=None):
+        if token:
+            try:
+                send_fcm_notification(token, title, body, data)
+            except messaging.UnregisteredError:
+                print("Token no longer valid. Removing from DB.")
+                # Remove or deactivate token in DB (Customer or Merchant)
+                if Customer.objects.filter(fcm_token=token).exists():
+                    Customer.objects.filter(fcm_token=token).update(fcm_token=None)
+                elif Merchant.objects.filter(fcm_token=token).exists():
+                    Merchant.objects.filter(fcm_token=token).update(fcm_token=None)
+            except Exception as e:
+                print(f"Failed to send FCM notification: {e}")
 
     if to_all_customer:
         customers = Customer.objects.all()
@@ -1732,6 +1785,13 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
                 unread_notification=F('unread_notification') + 1
             )
 
+            notification_data = {
+                'title': title,
+                'description': description,
+                'type': notification_type,
+                'timestamp': str(notification.created_at)
+            }
+
             unread_count = c.unread_notification + 1
             group_name = f"customer_{c.customer_id}"
             channel_layer = get_channel_layer()
@@ -1739,12 +1799,16 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
                 group_name,
                 {
                     "type": "send_notification",
-                    "unread_count": unread_count
+                    "unread_count": unread_count,
+                    "notification": notification_data
                 }
             )
+            
+            # Send push notification via FCM
+            send_push(c.fcm_token, title, description, notification_data)
+
         return
-    
-    # If sending to all individual merchants
+
     if to_all_ind_merch:
         individual_merchants = Merchant.objects.filter(user_type='individual')
 
@@ -1761,6 +1825,13 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
                 unread_notification=F('unread_notification') + 1
             )
 
+            notification_data = {
+                'title': title,
+                'description': description,
+                'type': notification_type,
+                'timestamp': str(notification.created_at)
+            }
+
             unread_count = m.unread_notification + 1
             group_name = f"merchant_{m.merchant_id}"
             channel_layer = get_channel_layer()
@@ -1768,12 +1839,16 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
                 group_name,
                 {
                     "type": "send_notification",
-                    "unread_count": unread_count
+                    "unread_count": unread_count,
+                    "notification": notification_data
                 }
             )
-        return  # Exit the function early since we've already processed this case
 
-    # ✅ If individual merchant is specified
+            # Send push notification via FCM
+            send_push(m.fcm_token, title, description, notification_data)
+
+        return
+
     if merchant:
         notification = Notification.objects.create(
             project_id=project,
@@ -1785,6 +1860,14 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
         Merchant.objects.filter(merchant_id=merchant_id).update(
             unread_notification=F('unread_notification') + 1
         )
+
+        notification_data = {
+            'title': title,
+            'description': description,
+            'type': notification_type,
+            'timestamp': str(notification.created_at)
+        }
+
         unread_count = merchant.unread_notification + 1
         group_name = f"merchant_{merchant_id}"
         channel_layer = get_channel_layer()
@@ -1792,9 +1875,14 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
             group_name,
             {
                 "type": "send_notification",
-                "unread_count": unread_count
+                "unread_count": unread_count,
+                "notification": notification_data
             }
         )
+        
+        # Send push notification via FCM
+        send_push(merchant.fcm_token, title, description, notification_data)
+
     elif project:
         merchants = Merchant.objects.filter(project_name=project)
         notification = Notification.objects.create(
@@ -1804,10 +1892,19 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
             description=description
         )
         notification.merchants.set(merchants)
+
         for m in merchants:
             Merchant.objects.filter(merchant_id=m.merchant_id).update(
                 unread_notification=F('unread_notification') + 1
             )
+
+            notification_data = {
+                'title': title,
+                'description': description,
+                'type': notification_type,
+                'timestamp': str(notification.created_at)
+            }
+
             unread_count = m.unread_notification + 1
             group_name = f"merchant_{m.merchant_id}"
             channel_layer = get_channel_layer()
@@ -1815,9 +1912,14 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
                 group_name,
                 {
                     "type": "send_notification",
-                    "unread_count": unread_count
+                    "unread_count": unread_count,
+                    "notification": notification_data
                 }
             )
+
+            # Send push notification via FCM
+            send_push(m.fcm_token, title, description, notification_data)
+
     elif customer:
         notification = Notification.objects.create(
             project_id=project,
@@ -1829,6 +1931,14 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
         Customer.objects.filter(customer_id=customer_id).update(
             unread_notification=F('unread_notification') + 1
         )
+
+        notification_data = {
+            'title': title,
+            'description': description,
+            'type': notification_type,
+            'timestamp': str(notification.created_at)
+        }
+
         unread_count = customer.unread_notification + 1
         group_name = f"customer_{customer_id}"
         channel_layer = get_channel_layer()
@@ -1836,9 +1946,14 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
             group_name,
             {
                 "type": "send_notification",
-                "unread_count": unread_count
+                "unread_count": unread_count,
+                "notification": notification_data
             }
         )
+
+        # Send push notification via FCM
+        send_push(customer.fcm_token, title, description, notification_data)
+
     else:
         group_name = "general_notifications"
         unread_count = 0
@@ -1851,7 +1966,6 @@ def create_notification(project_id, merchant_id, customer_id, notification_type,
             }
         )
 
-  
     
 def create_notification_view(request):
     if request.method == "POST":
@@ -1888,6 +2002,58 @@ def create_notification_view(request):
 
     return redirect('send_notifications')
 
+
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+@csrf_exempt
+def save_fcm_token(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+
+            user_type = data.get("user_type")   # 'customer' or 'merchant'
+            user_id = data.get("user_id")
+            fcm_token = data.get("fcm_token")
+
+            if not user_type or not user_id or not fcm_token:
+                return JsonResponse({"success": False, "message": "Missing required fields"}, status=400)
+
+            if user_type == "customer":
+                customer = Customer.objects.filter(customer_id=user_id).first()
+                if customer:
+                    customer.fcm_token = fcm_token
+                    customer.save()
+                    return JsonResponse({"success": True, "message": "FCM token saved for customer"})
+                else:
+                    return JsonResponse({"success": False, "message": "Customer not found"}, status=404)
+
+            elif user_type == "merchant":
+                merchant = Merchant.objects.filter(merchant_id=user_id).first()
+                if merchant:
+                    merchant.fcm_token = fcm_token
+                    merchant.save()
+                    return JsonResponse({"success": True, "message": "FCM token saved for merchant"})
+                else:
+                    return JsonResponse({"success": False, "message": "Merchant not found"}, status=404)
+
+            else:
+                return JsonResponse({"success": False, "message": "Invalid user type"}, status=400)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"success": False, "message": "Invalid JSON format"}, status=400)
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)}, status=500)
+
+    return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+
+
+
+# ###############################################333
 
 def send_notifications(request): 
     corporates = Corporate.objects.all()
@@ -2035,24 +2201,10 @@ def send_notifications(request):
 def received_offers(request):
     return render(request, 'bopo_admin/Merchant/received_offers.html')
 
-# def uploads(request):
-#     if request.method == "POST":
-#         file_type = request.POST.get("file_type")
-#         uploaded_file = request.FILES.get(file_type)
 
-#         if file_type and uploaded_file:
-#             UploadedFile.objects.create(file_type=file_type, file=uploaded_file)
 
-#     # Fetch uploaded files filtered by type
-#     privacy_policy_file = UploadedFile.objects.filter(file_type="privacy_policy").first()
-#     terms_conditions_file = UploadedFile.objects.filter(file_type="terms_conditions").first()
-#     user_guide_file = UploadedFile.objects.filter(file_type="user_guide").first()
 
-#     return render(request, 'bopo_admin/Merchant/uploads.html', {
-#         "privacy_policy_file": privacy_policy_file,
-#         "terms_conditions_file": terms_conditions_file,
-#         "user_guide_file": user_guide_file,
-#     })
+
 
 def uploads(request):
     if request.method == "POST":

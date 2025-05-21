@@ -6,56 +6,72 @@ from accounts.models import Merchant, Customer
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # Extract user type and user ID from the connection scope
         self.user_type = self.scope["url_route"]["kwargs"]["user_type"]
         self.user_id = self.scope["url_route"]["kwargs"]["user_id"]
 
-        # Define the WebSocket group name
         self.group_name = f"{self.user_type}_{self.user_id}"
 
-        # Add the WebSocket connection to the group
         await self.channel_layer.group_add(
             self.group_name,
             self.channel_name
         )
 
-        # Accept the WebSocket connection
         await self.accept()
 
-        # Fetch the unread notification count
+        # Fetch both unread count and recent notifications
         unread_count = await self.get_unread_notification_count(self.user_type, self.user_id)
-
-        # Send the unread notification count to the client
+        notifications = await self.get_recent_notifications(self.user_type, self.user_id)
+        
+        # Send initial data
         await self.send(text_data=json.dumps({
-            'unread_count': unread_count
+            'unread_count': unread_count,
+            # 'notifications': notifications
         }))
 
     async def disconnect(self, close_code):
-        # Remove the WebSocket connection from the group
         await self.channel_layer.group_discard(
             self.group_name,
             self.channel_name
         )
 
     async def receive(self, text_data):
-        # Handle messages received from the WebSocket client (if needed)
         pass
 
     async def send_notification(self, event):
-        # Send the updated unread notification count to the client
-        unread_count = event['unread_count']
-        await self.send(text_data=json.dumps({'unread_count': unread_count}))
+        # Send both the new notification and updated unread count
+        await self.send(text_data=json.dumps({
+            'unread_count': event['unread_count'],
+            'new_notification': event.get('notification')
+        }))
 
     @sync_to_async
     def get_unread_notification_count(self, user_type, user_id):
-        # Retrieve the unread count directly from the respective table
         if user_type == "merchant":
             return Merchant.objects.filter(merchant_id=user_id).values_list('unread_notification', flat=True).first() or 0
         elif user_type == "customer":
             return Customer.objects.filter(customer_id=user_id).values_list('unread_notification', flat=True).first() or 0
-        else:
-            return 0
+        return 0
 
+    @sync_to_async
+    def get_recent_notifications(self, user_type, user_id, limit=5):
+        from bopo_admin.models import Notification
+        if user_type == "merchant":
+            notifications = Notification.objects.filter(
+                merchants__merchant_id=user_id
+            ).order_by('-created_at')[:limit]
+        elif user_type == "customer":
+            notifications = Notification.objects.filter(
+                customers__customer_id=user_id
+            ).order_by('-created_at')[:limit]
+        else:
+            return []
+        
+        return [{
+            'title': n.title,
+            'description': n.description,
+            'type': n.notification_type,
+            'timestamp': str(n.created_at),
+        } for n in notifications]
 
 # import json
 # from channels.generic.websocket import AsyncWebsocketConsumer
