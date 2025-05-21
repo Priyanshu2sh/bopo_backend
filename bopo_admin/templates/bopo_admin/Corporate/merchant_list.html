@@ -56,12 +56,15 @@
                             <td>{{ merchant.shop_name }}</td>
                             <td>{{ merchant.city }}</td>
                             <td>
-                                <label class="switch">
-                                    <input type="checkbox" class="status-toggle" {% if merchant.status == "Active" %}checked{% endif %} data-id="{{ merchant.id }}">
-                                    <span class="slider round"></span>
-                                </label>
-                                <span class="status-label {% if merchant.status == 'Active' %}text-success{% else %}text-danger{% endif %}" id="status-label-{{ merchant.id }}"></span>
-                            </td>
+                                    <label class="switch">
+                                        <input type="checkbox"
+                                        {% if merchant.status == "Active" %}checked{% endif %}
+                                        data-id="{{ merchant.merchant_id }}" 
+                                        data-type="merchant"
+                                        class="status-toggle">
+                                        <span class="slider round"></span>
+                                    </label>
+                                    </td>     
                             <td>
                                 <button class="btn btn-sm btn-warning" onclick="openEditMerchantModal({{ merchant.id }})">✏️ Edit</button>
 
@@ -195,6 +198,58 @@
 
 
 <script>
+
+    
+document.querySelectorAll('.status-toggle').forEach(toggle => {
+  toggle.addEventListener('change', function () {
+    const id = this.getAttribute('data-id');       
+    const type = this.getAttribute('data-type');   
+    const isActive = this.checked;
+
+    const url = `/toggle-status/${type}/${id}/`;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify({ is_active: isActive })
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        showToast(`Status updated successfully to "${data.status}"`, 'success');
+      } else {
+        showToast('Failed to update status: ' + (data.error || 'Unknown error'), 'error');
+        this.checked = !isActive;  // revert toggle
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showToast('Something went wrong', 'error');
+      this.checked = !isActive;    // revert toggle
+    });
+  });
+});
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
     function openEditMerchantModal(merchantId) {
         const modal = document.getElementById('editCorporateModal');
         const modalContent = modal.querySelector('.modal-content');

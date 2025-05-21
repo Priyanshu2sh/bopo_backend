@@ -3420,6 +3420,16 @@ def save_cash_out(request):
             payment_method = data.get('payment_method')
 
             cashout = CashOut.objects.get(id=cashout_id)
+   
+            if cashout.status == 'paid':
+                return JsonResponse({'status': 'error', 'message': 'This cash-out is already paid.'})
+
+            # Mark cashout as paid
+            cashout.status = 'paid'
+            cashout.paid_at = timezone.now()
+            cashout.save()
+
+
 
             SuperAdminPayment.objects.create(
                 transaction_id=transaction_id,

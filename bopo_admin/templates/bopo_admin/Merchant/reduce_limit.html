@@ -92,7 +92,6 @@
                             <th>Contact Person</th>
                             <th>Mobile Number</th>
                             <th>Requested Amount (BBP)</th>
-                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -106,15 +105,12 @@
                                 <td>{{cash_out.merchant.mobile}}</td>
                                 <td>{{cash_out.amount}}</td>
                                 <td>
-                                    <label class="switch">
-                                        <input type="checkbox" checked>
-                                        <span class="slider round"></span>
-                                    </label>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-success open-merchant-modal-btn" data-id="{{ cash_out.id }}">💸 Cash Out</button>
-
-                                </td>
+                                    <button class="btn {% if cash_out.status == 'paid' %}btn-secondary{% else %}btn-success{% endif %} open-merchant-modal-btn"
+                                            data-id="{{ cash_out.id }}"
+                                            {% if cash_out.status == 'paid' %}disabled{% endif %}>
+                                        {% if cash_out.status == 'paid' %}✅ Paid{% else %}💸 Points Redeem{% endif %}
+                                    </button>
+                                 </td>
                             </tr>
                             {% endif %}
                         {% endfor %}
@@ -125,6 +121,8 @@
         </div>
     </div>
 </div>
+
+
 
 <!-- MERCHANT MODAL -->
 <div class="modal-container" id="merchantCashOutModal" style="display: none;">
@@ -316,50 +314,66 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 3000);
     }
 
-    function submitCashOut() {
-        const isMerchant = $('#merchantCashOutModal').is(':visible');
-        let id, transactionId, paymentMethod;
     
-        if (isMerchant) {
-            id = $('#merchantCashOutModal').data('cashOutId');
-            transactionId = $('#merchantTransactionId').val();
-            paymentMethod = $('#merchantPaymentMethod').val();
-        } else {
-            id = $('#cashOutModal').data('cashOutId');
-            transactionId = $('#transactionId').val();
-            paymentMethod = $('#paymentMethod').val();
-        }
-    
-        fetch('/save-cash-out/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                cashout_id: id,
-                transaction_id: transactionId,
-                payment_method: paymentMethod
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showToast("Payment saved successfully!");
-            } else {
-                showToast("Error: " + data.message);
-            }
-        })
-        .catch(err => {
-            showToast("Error: " + err.message);
-        });
-    
-        if (isMerchant) {
-            closeMerchantCashOutModal();
-        } else {
-            closeCashOutModal();
-        }
+function submitCashOut() {
+    const isMerchant = $('#merchantCashOutModal').is(':visible');
+    let id, transactionId, paymentMethod;
+
+    if (isMerchant) {
+        id = $('#merchantCashOutModal').data('cashOutId');
+        transactionId = $('#merchantTransactionId').val();
+        paymentMethod = $('#merchantPaymentMethod').val();
+    } else {
+        id = $('#cashOutModal').data('cashOutId');
+        transactionId = $('#transactionId').val();
+        paymentMethod = $('#paymentMethod').val();
     }
+
+    fetch('/save-cash-out/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            cashout_id: id,
+            transaction_id: transactionId,
+            payment_method: paymentMethod
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            setTimeout(() => {
+            $('#toast').removeClass('toast-show');
+
+        }, 3000);
+            showToast("Payment saved successfully!");
+
+            // ✅ Disable the button
+            const button = document.querySelector(`.open-merchant-modal-btn[data-id="${id}"]`);
+            if (button) {
+                button.disabled = true;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-secondary');
+                button.textContent = '✅ Paid';
+            }
+
+            // Close the modal after success
+            if (isMerchant) {
+                closeMerchantCashOutModal();
+            } else {
+                closeCashOutModal();
+            }
+        } else {
+            showToast("Error: " + data.message);
+        }
+    })
+    .catch(err => {
+        showToast("Error: " + err.message);
+    });
+}
+
     
     function getCookie(name) {
         let cookieValue = null;
