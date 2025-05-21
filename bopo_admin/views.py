@@ -3691,14 +3691,15 @@ def resolve_help(request, help_id):
             help_obj = Help.objects.get(id=help_id)
             if help_obj.status != 'resolved':
                 help_obj.status = 'resolved'
+                help_obj.solution = request.POST.get('solution')  # Save solution
                 help_obj.save()
-                return JsonResponse({'success': True, 'message': 'Marked as Resolved'})
+                return JsonResponse({'success': True, 'message': 'Marked as Resolved with Solution'})
             else:
                 return JsonResponse({'success': False, 'message': 'Already resolved'})
         except Help.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Help request not found'}, status=404)
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
-   
+
    
   
    
