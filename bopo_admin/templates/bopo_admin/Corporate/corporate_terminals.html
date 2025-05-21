@@ -249,6 +249,8 @@ document.getElementById('add-terminal-btn').addEventListener('click', function()
         $('#empty-state').hide();
         $('#terminal-table').show();
         showToast('Terminal added successfully!', 'success');
+           // Refresh the terminal list
+        $('#merchant_id').trigger('change');
       }
     });
   } else {

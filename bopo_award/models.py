@@ -171,6 +171,7 @@ class Help(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
     terminal = models.ForeignKey(Terminal, on_delete=models.CASCADE, null=True, blank=True)
     issue_description = models.TextField()
+    remark = models.TextField(null=True, blank=True) 
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=255, null=True, blank=True, choices=STATUS_CHOICES,  default='pending' )
     
@@ -196,6 +197,13 @@ class CashOut(models.Model):
     amount = models.IntegerField()
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+  
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('paid', 'Paid')],
+        default='pending'
+    )
+    paid_at = models.DateTimeField(null=True, blank=True)
     
  
 
