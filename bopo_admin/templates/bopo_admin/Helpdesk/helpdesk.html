@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
 
-<link rel="stylesheet" href="{% static 'bopo_admin/css/reduce_limit.css' %}">
+<link rel="stylesheet" href="{% static 'bopo_admin/css/helpdesk.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -135,6 +135,21 @@
     <span class="toast-message">{{ message }}</span>
 </div>
 
+<!-- Solution Modal -->
+<div class="modal-container" id="solution-modal">
+    <div class="modal-content-box">
+        <span class="modal-close-btn" id="modal-close-btn">&times;</span>
+        <div class="modal-header">Add Solution</div>
+        <form id="solution-form">
+            <input type="hidden" name="help_id" id="modal-help-id">
+            <textarea id="solution-text" name="solution" placeholder="Enter solution..." rows="6" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;"></textarea>
+            <button type="submit" class="send-btn">Submit</button>
+        </form>
+    </div>
+</div>
+
+
+
 <!-- Scripts -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
@@ -164,39 +179,61 @@
 
       
     });
-
-    
-
+ // Open modal
     $(document).on('click', '.status-btn', function () {
         const helpId = $(this).data('id');
-        const button = $(this);
-    
-        if (confirm("Mark this issue as resolved?")) {
-            $.ajax({
-                url: `/resolve-help/${helpId}/`,
-                type: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                data: {
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-                success: function (response) {
-                    if (response.success) {
-                        button.removeClass('btn-warning status-btn')
-                              .addClass('btn-secondary')
-                              .text('Resolved')
-                              .prop('disabled', true);
-    
-                        // Optional toast
-                        $('.toast-message').text(response.message);
-                        $('#toast').addClass('toast-show');
-                        setTimeout(() => $('#toast').removeClass('toast-show'), 3000);
-                    }
-                },
-                error: function () {
-                    alert('Error resolving help request.');
+        $('#modal-help-id').val(helpId);
+        $('#solution-text').val('');
+        $('#solution-modal').fadeIn();
+    });
+
+    // Close modal
+    $('#modal-close-btn').on('click', function () {
+        $('#solution-modal').fadeOut();
+    });
+
+    // AJAX submit
+    $('#solution-form').on('submit', function (e) {
+        e.preventDefault();
+        const helpId = $('#modal-help-id').val();
+        const solution = $('#solution-text').val();
+
+      if (!solution.trim()) {
+    $('.toast-message').text("Please enter a solution.");
+    $('#toast')
+        .addClass('toast-show')
+        .css('background-color', '#dc3545'); // red background for error
+    setTimeout(() => $('#toast').removeClass('toast-show'), 3000);
+    return;
+}
+
+
+        $.ajax({
+            url: `/resolve-help/${helpId}/`,
+            type: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                solution: solution
+            },
+            success: function (response) {
+                if (response.success) {
+                    $(`.status-btn[data-id="${helpId}"]`)
+                        .removeClass('btn-warning status-btn')
+                        .addClass('btn-secondary')
+                        .text('Resolved')
+                        .prop('disabled', true);
+
+                    $('#solution-modal').fadeOut();
+                    $('.toast-message').text(response.message);
+                    $('#toast').addClass('toast-show');
+                    setTimeout(() => $('#toast').removeClass('toast-show'), 3000);
                 }
-            });
-        }
+            },
+            error: function () {
+                alert('Error submitting solution.');
+            }
+        });
     });
 </script>
 
