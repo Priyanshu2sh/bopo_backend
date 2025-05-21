@@ -16,6 +16,21 @@ body {
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+
+/* Approved button - disabled (gray) */
+.approved-disabled:disabled {
+    background-color: #c0c0c0 !important; /* Light gray */
+    color: #ffffff !important;
+    border: 1px solid #a0a0a0 !important;
+}
+
+/* Rejected button - disabled (red tones) */
+.rejected-disabled:disabled {
+    background-color: #ffd6d6 !important; /* Light red */
+    color: #a70000 !important;
+    border: 1px solid #a70000 !important;
+}
+
 /* Header */
 .payment_details-header {
     display: flex;

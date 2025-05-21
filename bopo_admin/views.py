@@ -2480,6 +2480,7 @@ def assign_employee_role(request):
 
 
 
+
 def payment_details(request):
     if request.method == "POST":
         payment_id = request.POST.get("payment_id")
@@ -2490,25 +2491,32 @@ def payment_details(request):
 
         payment = get_object_or_404(PaymentDetails, id=payment_id)
 
-        # Check for duplicate plan assignment
-        existing_payment = PaymentDetails.objects.filter(merchant=payment.merchant).exclude(id=payment.id).first()
-        if existing_payment:
-            return JsonResponse({"success": False, "message": f"Merchant already has a {existing_payment.plan_type} plan."})
-
         if action == "approve":
+
+            # Check if merchant has any other approved plan of DIFFERENT plan_type
+            existing_payment = PaymentDetails.objects.filter(
+                merchant=payment.merchant,
+                status="approved"
+            ).exclude(id=payment.id).first()
+
+            if existing_payment and existing_payment.plan_type != payment.plan_type:
+                return JsonResponse({
+                    "success": False,
+                    "message": f"Merchant already has an approved {existing_payment.plan_type} plan."
+                })
+
             if payment.plan_type == "rental":
                 validity = request.POST.get("validity")
                 if not validity or not validity.isdigit() or int(validity) <= 0:
                     return JsonResponse({"success": False, "message": "Invalid rental validity provided."})
 
-                # Assume RentalPlan model or field exists to store validity or handle logic accordingly
-                payment.validity_days = int(validity)  # If such a field exists
+                payment.validity_days = int(validity)  # Assuming this field exists
                 payment.status = "approved"
                 payment.save()
 
                 return JsonResponse({"success": True, "message": f"Rental plan approved for {validity} days."})
 
-            # Prepaid logic
+            # For prepaid or other plan types
             topup_value = payment.topup_amount
             if topup_value is None:
                 return JsonResponse({"success": False, "message": "Top-up amount is invalid."})
@@ -3347,6 +3355,27 @@ def helpdesk(request):
     help_requests = Help.objects.all()
     return render(request, 'bopo_admin/Helpdesk/helpdesk.html', {'help_requests': help_requests})
 
+# def helpdesk_view(request):
+#     filter_type = request.GET.get('filter', '')
+#     help_requests = Help.objects.all()
+
+#     now = timezone.now()
+
+#     if filter_type == 'daily':
+#         help_requests = help_requests.filter(created_at__date=now.date())
+#     elif filter_type == 'weekly':
+#         start_of_week = now - timedelta(days=now.weekday())  # Monday
+#         help_requests = help_requests.filter(created_at__date__gte=start_of_week.date())
+#     elif filter_type == 'monthly':
+#         help_requests = help_requests.filter(created_at__month=now.month, created_at__year=now.year)
+#     elif filter_type == 'yearly':
+#         help_requests = help_requests.filter(created_at__year=now.year)
+
+#     context = {
+#         'help_requests': help_requests,
+#         'filter_type': filter_type,
+#     }
+#     return render(request, 'bopo_admin/Helpdesk/helpdesk.html', context)
 
 def reduce_limit(request):
     # Fetch cash-out records for merchants
@@ -3691,9 +3720,9 @@ def resolve_help(request, help_id):
             help_obj = Help.objects.get(id=help_id)
             if help_obj.status != 'resolved':
                 help_obj.status = 'resolved'
-                help_obj.solution = request.POST.get('solution')  # Save solution
+                help_obj.remark = request.POST.get('solution')  # Save remark
                 help_obj.save()
-                return JsonResponse({'success': True, 'message': 'Marked as Resolved with Solution'})
+                return JsonResponse({'success': True, 'message': 'Marked as Resolved with Remark'})
             else:
                 return JsonResponse({'success': False, 'message': 'Already resolved'})
         except Help.DoesNotExist:
