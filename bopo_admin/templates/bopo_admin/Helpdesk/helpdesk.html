@@ -130,10 +130,10 @@
 </div>
 
 <!-- Toast -->
-<div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
-    <i class="fa fa-exclamation-circle"></i>
-    <span class="toast-message">{{ message }}</span>
-</div>
+        <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+            <i class="fa fa-check-circle"></i>
+            <span class="toast-message">{{ message }}</span>
+        </div>
 
 <!-- Scripts -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -171,7 +171,7 @@
         const helpId = $(this).data('id');
         const button = $(this);
     
-        if (confirm("Mark this issue as resolved?")) {
+       
             $.ajax({
                 url: `/resolve-help/${helpId}/`,
                 type: 'POST',
@@ -186,10 +186,14 @@
                               .text('Resolved')
                               .prop('disabled', true);
     
-                        // Optional toast
-                        $('.toast-message').text(response.message);
+                        // Show toast message
+                        $('#toast .toast-message').text("Issue is resolved!");
                         $('#toast').addClass('toast-show');
-                        setTimeout(() => $('#toast').removeClass('toast-show'), 3000);
+
+                        setTimeout(() => {
+                            $('#toast').removeClass('toast-show');
+
+                        }, 3000);
                     }
                 },
                 error: function () {
@@ -197,7 +201,7 @@
                 }
             });
         }
-    });
+    );
 </script>
 
 

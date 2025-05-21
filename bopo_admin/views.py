@@ -1,13 +1,14 @@
 from datetime import date, datetime, timezone
 from io import BytesIO
 import json
+
 import os
 import random
 import string
 from sys import prefix
 # from tkinter.font import Font
 from django.db.models import Max
-from django.http import HttpResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.db.models.functions import Cast, Substr
 from django.shortcuts import get_object_or_404, render
 import openpyxl
@@ -167,6 +168,11 @@ def update_terminal_pin(request, merchant_id, terminal_id):
         new_pin = body.get('tid_pin')
 
         try:
+            # Validate that new_pin is a 4-digit number
+            if not new_pin or not str(new_pin).isdigit() or len(str(new_pin)) != 4:
+                return JsonResponse({'success': False, 'error': 'PIN must be a 4-digit number'})
+
+            
             # Fetch the merchant by its ID
             merchant = Merchant.objects.get(merchant_id=merchant_id)
             
@@ -4090,3 +4096,4 @@ def get_individual_merchants(request):
 def transaction_history(request):
     history_list = History.objects.select_related('customer', 'merchant').order_by('-created_at')
     return render(request, 'bopo_admin/Helpdesk/history.html', {'history_list': history_list})
+

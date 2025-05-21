@@ -571,6 +571,10 @@ class LoginAPIView(APIView):
                 terminal = Terminal.objects.filter(terminal_id=identifier).first()
                 if not terminal:
                     return Response({"error": "Invalid Terminal ID."}, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Check for terminal status
+                if str(terminal.status).strip().lower() != "active":
+                    return Response({"error": "Your terminal is inactive. Please contact the merchant."}, status=status.HTTP_400_BAD_REQUEST)
 
                 if not terminal.tid_pin or str(terminal.tid_pin) != str(pin):
                     return Response({"error": "Invalid Terminal PIN."}, status=status.HTTP_400_BAD_REQUEST)
