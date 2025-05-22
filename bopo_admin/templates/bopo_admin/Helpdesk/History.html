@@ -81,8 +81,55 @@
             <div class="customer-list">
                 <div class="customer-table">
                     <div class="top-controls">
-                        <input type="text" class="search-box" id="search-merchant">
+                        <input type="text" class="search-box" id="search-merchant" placeholder="Search Transaction History...">
                         <div id="custom-buttons-merchant"></div>
+
+                    <div class="date-filter-wrapper" style="position: relative; display: inline-block; margin-left: -66%;">
+                    <button id="date-filter-toggle" title="Filter by Date" 
+                            style="
+                                background-color: #f8f8f8;
+                                border: 1px solid gray;
+                                border-radius: 6px;
+                                padding: 6px 10px;
+                                cursor: pointer;
+                                font-size: 20px;
+                                color: black;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                width: 40px;
+                                height: 40px;
+                                margin-top: -9%;
+                                margin-left: -300%;
+                            ">
+                        <i class="fas fa-filter"></i>
+                    </button>
+
+                    <div id="date-filter-menu" style="
+                        display: none;
+                        position: absolute;
+                        top: 45px;
+                        right: 0;
+                        background: white;
+                        border: 1px solid #ddd;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+                        border-radius: 4px;
+                        z-index: 1000;
+                        min-width: 160px;
+                    ">
+                        <ul style="list-style: none; margin: 0; padding: 8px 0;">
+                        <li class="date-filter-option" data-range="all" style="padding: 6px 16px; cursor: pointer;">All</li>
+                        <li class="date-filter-option" data-range="daily" style="padding: 6px 16px; cursor: pointer;">Today</li>
+                        <li class="date-filter-option" data-range="weekly" style="padding: 6px 16px; cursor: pointer;">This Week</li>
+                        <li class="date-filter-option" data-range="monthly" style="padding: 6px 16px; cursor: pointer;">This Month</li>
+                        <li class="date-filter-option" data-range="yearly" style="padding: 6px 16px; cursor: pointer;">This Year</li>
+                        </ul>
+                    </div>
+                    </div>
+
+
+
+
                     </div>
 
                     <table id="merchant-table" class="display" style="width:100%">
@@ -93,7 +140,7 @@
                                 <th>Merchant</th>
                                 <th>Points</th>
                                 <th>Type</th>
-                                <th>Date & Time</th>
+                                <th>Date</th>
                             </tr>
 
                         </thead>
@@ -132,34 +179,87 @@
                     <div class="top-controls">
                         <input type="text" class="search-box" id="search-merchant-history" placeholder="Search Merchant...">
                         <div id="custom-buttons-merchant-history"></div>
+
+<div class="date-filter-wrapper" style="position: relative; display: inline-block;  margin-left: -66%;">
+    <button id="date-filter-toggle-cashout" title="Filter by Date" 
+            style="
+                background-color: #f8f8f8;
+                border: 1px solid gray;
+                border-radius: 6px;
+                padding: 6px 10px;
+                cursor: pointer;
+                font-size: 20px;
+                color: black;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                margin-top: -9%;
+                margin-left: -300%;
+            ">
+        <i class="fas fa-filter"></i>
+    </button>
+
+    <div id="date-filter-menu-cashout" style="
+        display: none;
+        position: absolute;
+        top: 45px;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        border-radius: 4px;
+        z-index: 1000;
+        min-width: 160px;
+    ">
+        <ul style="list-style: none; margin: 0; padding: 8px 0;">
+            <li class="date-filter-option-cashout" data-range="all" style="padding: 6px 16px; cursor: pointer;">All</li>
+            <li class="date-filter-option-cashout" data-range="daily" style="padding: 6px 16px; cursor: pointer;">Today</li>
+            <li class="date-filter-option-cashout" data-range="weekly" style="padding: 6px 16px; cursor: pointer;">This Week</li>
+            <li class="date-filter-option-cashout" data-range="monthly" style="padding: 6px 16px; cursor: pointer;">This Month</li>
+            <li class="date-filter-option-cashout" data-range="yearly" style="padding: 6px 16px; cursor: pointer;">This Year</li>
+        </ul>
+    </div>
+</div>
+
+
                     </div>
 
              <table id="merchant-table-history" class="display" style="width:100%">
     <thead>
         <tr>
-            <th>#</th>
+            <th>Sr.No.</th>
+            <!-- <th>Customer ID</th> -->
             <th>Merchant ID</th>
-            <th>Contact Person</th>
-            <th>Mobile Number</th>
-            <th>Requested Amount (BBP)</th>
+            <th>Status</th>
+            <th>Amount</th>  
             <th>Payment Method</th>
+            <th>Date</th>
         </tr>
     </thead>
  <tbody>
-    {% for cash_out in merchant_cash_outs %}
+    {% for cashout in merchant_cashouts %}
+
+    <!-- {{ cash_out.merchant.last_name }} -->
     <tr>
       <td>{{ forloop.counter }}</td>
-      <td>{{ cash_out.merchant.merchant_id }}</td>
-      <td>{{ cash_out.merchant.first_name }} {{ cash_out.merchant.last_name }}</td>
-      <td>{{ cash_out.merchant.mobile }}</td>
-      <td>{{ cash_out.amount }}</td>
-     <td>
-  {% for payment in cash_out.superadminpayment_set.all %}
-    {{ payment.payment_method }} ({{ payment.transaction_id }})<br>
-  {% empty %}
-    No payments
-  {% endfor %}
-</td>
+      <!-- <td>{{ cashout.customer.customer_id }}</td> -->
+      <td>{{ cashout.merchant.merchant_id }} </td>
+      <td>{{ cashout.status}}</td>
+      <td>{{ cashout.amount }}</td>
+    <td>
+                {% with payments=cashout.superadminpayment_set.all %}
+                    {% if payments %}
+                        {% for payment in payments %}
+                            {{ payment.payment_method }} ({{ payment.transaction_id }})<br>
+                        {% endfor %}
+                    {% else %}
+                        No payments
+                    {% endif %}
+                {% endwith %}
+            </td>
+        <td>{{ cashout.created_at|date:"Y-m-d" }}</td>
     </tr>
     {% endfor %}
   </tbody>
@@ -178,6 +278,105 @@
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
 <script>
+
+
+$(document).ready(function() {
+    // Toggle date filter menu for cashout
+    $('#date-filter-toggle-cashout').on('click', function(e) {
+        e.stopPropagation();
+        $('#date-filter-menu-cashout').toggle();
+    });
+
+    $(document).on('click', function() {
+        $('#date-filter-menu-cashout').hide();
+    });
+
+    $('.date-filter-option-cashout').click(function () {
+        const range = $(this).data('range');
+        const now = new Date();
+
+        $('#merchant-table-history tbody tr').each(function () {
+            const $row = $(this);
+            const dateText = $row.find('td').eq(5).text(); // Date column index
+            if (!dateText) {
+                $row.show();
+                return;
+            }
+            const rowDate = new Date(dateText);
+
+            let show = true;
+
+            if (range === 'daily') {
+                show = rowDate.toDateString() === now.toDateString();
+            } else if (range === 'weekly') {
+                const oneWeekAgo = new Date(now);
+                oneWeekAgo.setDate(now.getDate() - 7);
+                show = rowDate >= oneWeekAgo;
+            } else if (range === 'monthly') {
+                show = rowDate.getMonth() === now.getMonth() &&
+                       rowDate.getFullYear() === now.getFullYear();
+            } else if (range === 'yearly') {
+                show = rowDate.getFullYear() === now.getFullYear();
+            }
+
+            if (range === 'all' || show) {
+                $row.show();
+            } else {
+                $row.hide();
+            }
+        });
+
+        $('#date-filter-menu-cashout').hide();
+    });
+});
+
+
+// Toggle filter menu
+$('#date-filter-toggle').click(function () {
+    $('#date-filter-menu').toggle();
+});
+
+// Filter logic
+$('.date-filter-option').click(function () {
+    const range = $(this).data('range');
+    const table = $('#merchant-table').DataTable(); // Adjust if needed for cash-out table
+
+    // Get today's date
+    const now = new Date();
+
+    // Filter based on selected range
+    table.rows().every(function () {
+        const rowDateStr = this.data()[5]; // Column index of 'Date & Time'
+        const rowDate = new Date(rowDateStr);
+
+        let show = true;
+
+        if (range === 'daily') {
+            show = rowDate.toDateString() === now.toDateString();
+        } else if (range === 'weekly') {
+            const oneWeekAgo = new Date(now);
+            oneWeekAgo.setDate(now.getDate() - 7);
+            show = rowDate >= oneWeekAgo;
+        } else if (range === 'monthly') {
+            show = rowDate.getMonth() === now.getMonth() &&
+                   rowDate.getFullYear() === now.getFullYear();
+        } else if (range === 'yearly') {
+            show = rowDate.getFullYear() === now.getFullYear();
+        }
+
+        if (range === 'all' || show) {
+            $(this.node()).show();
+        } else {
+            $(this.node()).hide();
+        }
+    });
+
+    $('#date-filter-menu').hide(); // Hide menu after selection
+});
+
+
+
+
     $(document).ready(function () {
         const merchantTable = $('#merchant-table').DataTable({
             dom: 'Bfrtip',
@@ -251,4 +450,4 @@
 
 </script>
 
-{% endblock %}
+{% endblock %}

@@ -4152,4 +4152,12 @@ def get_individual_merchants(request):
 
 def transaction_history(request):
     history_list = History.objects.select_related('customer', 'merchant').order_by('-created_at')
-    return render(request, 'bopo_admin/Helpdesk/history.html', {'history_list': history_list})
+    merchant_cashouts = CashOut.objects.select_related('customer', 'merchant').prefetch_related('superadminpayment_set')\
+    .filter(status__iexact='Paid')
+    
+    context = {
+        'history_list': history_list,
+        'merchant_cashouts': merchant_cashouts,
+    }
+    
+    return render(request, 'bopo_admin/Helpdesk/history.html',context)

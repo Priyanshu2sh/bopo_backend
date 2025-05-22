@@ -286,23 +286,28 @@ button {
         font-size: 18px;
     }
 }
-
 /* Toast Container */
 .toast-container {
     position: fixed;
     top: 20px;
-    right: 20px;
+    left: 48%;
     width: 300px;
     padding: 15px;
     background-color: #333;
     color: white;
     border-radius: 8px;
-    display: none;
+    display: none; /* initially hidden */
     z-index: 1000;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: 'Arial', sans-serif;
-    animation: fadeInOut 5s ease-in-out;
-    opacity: 0;  /* Ensure opacity is zero by default */
+    opacity: 0; /* start fully transparent */
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* Show the toast */
+.toast-container.show {
+    display: block;
+    opacity: 1; /* fade in */
 }
 
 /* Toast Icon */
@@ -327,6 +332,7 @@ button {
 .toast-container.error {
     background-color: #f44336;
 }
+
 
 /* Toast Fade In and Out Animation */
 @keyframes fadeInOut {

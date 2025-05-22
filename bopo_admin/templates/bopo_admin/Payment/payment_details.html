@@ -190,28 +190,32 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if payment.status == 'approved' %}
-                                <button class="btn btn-sm approved-disabled" disabled>
-                                   Approved
-                                </button>
-                            {% elif payment.status == 'rejected' %}
-                                <button class="btn btn-sm rejected-disabled" disabled>
-                                 Rejected
-                                </button>
-                            {% else %}
-                                <button 
-                                    id="approve-btn-{{ payment.id }}" 
-                                    class="btn btn-sm btn-success" 
-                                    onclick="showApproveModal('{{ payment.id }}', '{{ payment.plan_type }}')">
-                                    <i class="fas fa-check-circle"></i> Approved
-                                </button>
-                                <button 
-                                    id="reject-btn-{{ payment.id }}" 
-                                    class="btn btn-sm btn-danger" 
-                                    onclick="showRejectModal('{{ payment.id }}')">
-                                    <i class="fas fa-times-circle"></i> Rejected
-                                </button>
-                            {% endif %}
+                           {% if payment.status == 'approved' %}
+    <button class="btn btn-sm approved-disabled" disabled>
+    Approved
+    </button>
+{% elif payment.status == 'rejected' %}
+    <button class="btn btn-sm rejected-disabled" disabled>
+      Rejected
+    </button>
+{% else %}
+ <div class="d-flex gap-2">
+    <button 
+        id="approve-btn-{{ payment.id }}" 
+        class="btn btn-sm btn-success" 
+        onclick="showApproveModal('{{ payment.id }}', '{{ payment.plan_type }}')">
+        <i class="fas fa-check-circle"></i> Approve
+    </button>
+    <button 
+        id="reject-btn-{{ payment.id }}" 
+        class="btn btn-sm btn-danger" 
+        onclick="showRejectModal('{{ payment.id }}')">
+        <i class="fas fa-times-circle"></i> Reject
+    </button>
+</div>
+
+{% endif %}
+
                         </td>
                     </tr>
                     {% empty %}
@@ -368,6 +372,25 @@ function closeModal(modalId) {
     document.getElementById(modalId).style.display = "none";
 }
 
+function showToast(message, iconClass = "fas fa-check-circle", bgColor = "#28a745") {
+    const toast = document.getElementById('toast-container');
+    const toastMessage = document.getElementById('toast-message');
+    const toastIcon = document.getElementById('toast-icon');
+
+    toastMessage.textContent = message;
+    toastIcon.className = iconClass;
+    toast.style.backgroundColor = bgColor;
+
+    toast.classList.add('show');
+
+    // Hide toast after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+
+
 function approvePayment(paymentId, planType, validity = null) {
     let bodyData = "payment_id=" + encodeURIComponent(paymentId) +
                    "&action=approve" +
@@ -384,19 +407,22 @@ function approvePayment(paymentId, planType, validity = null) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            showToast(data.message, "fas fa-check-circle", "#28a745");
 
             const approveBtn = document.getElementById("approve-btn-" + paymentId);
             approveBtn.className = "btn btn-sm approved-disabled";
             approveBtn.disabled = true;
-            approveBtn.innerHTML = `<i class="fas fa-check-circle"></i> Approved`;
+            approveBtn.innerHTML = `Approved`;
 
             document.getElementById("reject-btn-" + paymentId).style.display = "none";
         } else {
-            alert("Error: " + data.message);
+            showToast("Error: " + data.message, "fas fa-exclamation-triangle", "#dc3545");
         }
     })
-    .catch(error => console.error("Error approving payment:", error));
+    .catch(error => {
+        console.error("Error approving payment:", error);
+        showToast("Error approving payment", "fas fa-exclamation-triangle", "#dc3545");
+    });
 
     closeModal('approveModal');
     closeModal('rentalValidityModal');
@@ -414,19 +440,22 @@ function rejectPayment(paymentId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            showToast(data.message, "fas fa-times-circle", "#dc3545");
 
             const approveBtn = document.getElementById("approve-btn-" + paymentId);
             approveBtn.className = "btn btn-sm rejected-disabled";
             approveBtn.disabled = true;
-            approveBtn.innerHTML = `<i class="fas fa-times-circle"></i> Rejected`;
+            approveBtn.innerHTML = `Rejected`;
 
             document.getElementById("reject-btn-" + paymentId).style.display = "none";
         } else {
-            alert("Error: " + data.message);
+            showToast("Error: " + data.message, "fas fa-exclamation-triangle", "#dc3545");
         }
     })
-    .catch(error => console.error("Error rejecting payment:", error));
+    .catch(error => {
+        console.error("Error rejecting payment:", error);
+        showToast("Error rejecting payment", "fas fa-exclamation-triangle", "#dc3545");
+    });
 
     closeModal('rejectModal');
 }
