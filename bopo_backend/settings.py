@@ -153,7 +153,7 @@ LOGIN_URL = '/login/'
 
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = "ACd8f432a19c3bc947d945a68b3237cc2f"
-TWILIO_AUTH_TOKEN = "32acb6fd29307add6794ac3cdacab007"
+TWILIO_AUTH_TOKEN = "731ba3acbcc6e6ae950f635b216a2f5b"
 TWILIO_PHONE_NUMBER = "+15086842698"
 
 # Internationalization

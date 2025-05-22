@@ -226,7 +226,8 @@
 <!-- Edit Merchant Modal -->
 <div id="editCorporateModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
+        <span class="close" onclick="closeEditModal()">&times;</span>
+
         <h2 id="modalTitle">Edit Merchant</h2>
         <form id="editCorporateForm" method="POST">
             {% csrf_token %}
@@ -490,6 +491,7 @@ function closeEditModal() {
     const modal = document.getElementById('editCorporateModal');
     if (modal) modal.style.display = 'none';
 }
+
 
 window.onclick = function (event) {
     let modal = document.getElementById("editCorporateModal");
