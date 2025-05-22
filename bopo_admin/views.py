@@ -2073,6 +2073,7 @@ def uploads(request):
                 file_type=file_type,
                 defaults={'file': uploaded_file}
             )
+            messages.success(request, f"{file_type.replace('_', ' ').title()} uploaded successfully!")
 
     # Fetch existing files
     context = {
@@ -2080,10 +2081,8 @@ def uploads(request):
         "terms_conditions_file": UploadedFile.objects.filter(file_type="terms_conditions").first(),
         "user_guide_file": UploadedFile.objects.filter(file_type="user_guide").first(),
     }
-    messages.success(request, f"{file_type.replace('_', ' ').title()} uploaded successfully!")
 
     return render(request, 'bopo_admin/Merchant/uploads.html', context)
-
 
 
 def  modify_customer_details(request):
