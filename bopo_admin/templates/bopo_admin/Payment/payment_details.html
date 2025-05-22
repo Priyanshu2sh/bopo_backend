@@ -203,13 +203,13 @@
                                     id="approve-btn-{{ payment.id }}" 
                                     class="btn btn-sm btn-success" 
                                     onclick="showApproveModal('{{ payment.id }}', '{{ payment.plan_type }}')">
-                                    <i class="fas fa-check-circle"></i> Approved
+                                    <i class="fas fa-check-circle"></i> Approve
                                 </button>
                                 <button 
                                     id="reject-btn-{{ payment.id }}" 
                                     class="btn btn-sm btn-danger" 
                                     onclick="showRejectModal('{{ payment.id }}')">
-                                    <i class="fas fa-times-circle"></i> Rejected
+                                    <i class="fas fa-times-circle"></i> Reject
                                 </button>
                             {% endif %}
                         </td>
@@ -332,10 +332,10 @@ $('.filter-option').on('click', function() {
 </div>
 
 <!-- Toast -->
-<div id="toast-container" class="toast-container">
-    <i id="toast-icon" class=""></i>
-    <span id="toast-message"></span>
-</div>
+        <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+            <i class="fa fa-click-circle"></i>
+            <span class="toast-message">{{ message }}</span>
+        </div>
 
 <script>
 function showApproveModal(paymentId, planType) {
@@ -384,7 +384,8 @@ function approvePayment(paymentId, planType, validity = null) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            // alert(data.message);
+            showToast(data.message);
 
             const approveBtn = document.getElementById("approve-btn-" + paymentId);
             approveBtn.className = "btn btn-sm approved-disabled";
@@ -393,7 +394,8 @@ function approvePayment(paymentId, planType, validity = null) {
 
             document.getElementById("reject-btn-" + paymentId).style.display = "none";
         } else {
-            alert("Error: " + data.message);
+            // alert("Error: " + data.message);
+            showToast("Error: " + data.message);
         }
     })
     .catch(error => console.error("Error approving payment:", error));
@@ -414,7 +416,8 @@ function rejectPayment(paymentId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            // alert(data.message);
+            showToast(data.message);
 
             const approveBtn = document.getElementById("approve-btn-" + paymentId);
             approveBtn.className = "btn btn-sm rejected-disabled";
@@ -423,7 +426,8 @@ function rejectPayment(paymentId) {
 
             document.getElementById("reject-btn-" + paymentId).style.display = "none";
         } else {
-            alert("Error: " + data.message);
+            // alert("Error: " + data.message);
+            showToast("Error: " + data.message);
         }
     })
     .catch(error => console.error("Error rejecting payment:", error));

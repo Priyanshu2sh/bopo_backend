@@ -2078,6 +2078,7 @@ def uploads(request):
         "terms_conditions_file": UploadedFile.objects.filter(file_type="terms_conditions").first(),
         "user_guide_file": UploadedFile.objects.filter(file_type="user_guide").first(),
     }
+    messages.success(request, f"{file_type.replace('_', ' ').title()} uploaded successfully!")
 
     return render(request, 'bopo_admin/Merchant/uploads.html', context)
 
@@ -2959,7 +2960,7 @@ def export_project_wise_balance(request):
     headers = [
         "Sr No.", "Corporate ID", "Project Name", "First Name", "Last Name",
         "Email", "Mobile", "Aadhaar Number", "GST Number", "PAN", "Shop Name",
-        "Address", "City", "State", "Country", "Pincode", "Created At", "Total Balance"
+        "Address", "City", "State", "Country", "Pincode", "Total Balance"
     ]
 
     for col_num, header in enumerate(headers, 1):
@@ -2993,8 +2994,8 @@ def export_project_wise_balance(request):
         sheet.cell(row=row_num, column=14, value=corporate.state or "")
         sheet.cell(row=row_num, column=15, value=corporate.country or "")
         sheet.cell(row=row_num, column=16, value=corporate.pincode or "")
-        sheet.cell(row=row_num, column=17, value=corporate.created_at.strftime("%Y-%m-%d %H:%M:%S") if corporate.created_at else "")
-        sheet.cell(row=row_num, column=18, value=total_points)
+        # sheet.cell(row=row_num, column=17, value=corporate.created_at.strftime("%Y-%m-%d %H:%M:%S") if corporate.created_at else "")
+        sheet.cell(row=row_num, column=17, value=total_points)
 
     buffer = BytesIO()
     workbook.save(buffer)
@@ -3017,7 +3018,7 @@ def export_merchant_wise_balance(request):
     # Add headers to the sheet (including Sr No.)
     headers = [
         "Sr No.", "Merchant ID", "Merchant Name", "Email", "Mobile", 
-        "Available Balance", "Status", "Created At"
+        "Available Balance", "Status"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
@@ -3042,7 +3043,7 @@ def export_merchant_wise_balance(request):
         sheet.cell(row=row_num, column=5, value=merchant.mobile or "")
         sheet.cell(row=row_num, column=6, value=available_points)
         sheet.cell(row=row_num, column=7, value=merchant.status or "")
-        sheet.cell(row=row_num, column=8, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
+        # sheet.cell(row=row_num, column=8, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
 
     # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
@@ -3116,7 +3117,7 @@ def export_customer_wise_balance(request):
     # Add headers (including Sr No.)
     headers = [
         "Sr No.", "Customer ID", "Customer Name", "Email", "Mobile",
-        "Available Balance", "Created At"
+        "Available Balance"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
@@ -3131,7 +3132,7 @@ def export_customer_wise_balance(request):
             'customer__last_name',
             'customer__email',
             'customer__mobile',
-            'customer__created_at'
+            # 'customer__created_at'
         )
         .annotate(total_points=Sum('points'))
     )
@@ -3144,7 +3145,7 @@ def export_customer_wise_balance(request):
         sheet.cell(row=row_num, column=4, value=cp['customer__email'] or "")
         sheet.cell(row=row_num, column=5, value=cp['customer__mobile'] or "")
         sheet.cell(row=row_num, column=6, value=cp['total_points'] or 0)
-        sheet.cell(row=row_num, column=7, value=cp['customer__created_at'].strftime("%Y-%m-%d %H:%M:%S") if cp['customer__created_at'] else "")
+        # sheet.cell(row=row_num, column=7, value=cp['customer__created_at'].strftime("%Y-%m-%d %H:%M:%S") if cp['customer__created_at'] else "")
 
     buffer = BytesIO()
     workbook.save(buffer)
@@ -3166,7 +3167,7 @@ def export_customer_transaction(request):
 
     # Add headers (including Sr No.)
     headers = [
-        "Sr No.", "Customer ID", "Customer Name", "Email", "Mobile", 
+        "Sr No.", "Customer ID", "Customer Name", "Merchant ID", "Email", "Mobile", 
         "Transaction Type", "Points", "Transaction Date & Time"
     ]
     for col_num, header in enumerate(headers, 1):
@@ -3179,15 +3180,17 @@ def export_customer_transaction(request):
     for index, transaction in enumerate(transactions, start=1):
         row_num = index + 1
         customer = transaction.customer
+        merchant = transaction.merchant
         sheet.cell(row=row_num, column=1, value=index)  # Sr No.
         sheet.cell(row=row_num, column=2, value=customer.customer_id if customer else "")
         sheet.cell(row=row_num, column=3, value=f"{customer.first_name} {customer.last_name}" if customer else "")
-        sheet.cell(row=row_num, column=4, value=customer.email if customer else "")
-        sheet.cell(row=row_num, column=5, value=customer.mobile if customer else "")
-        sheet.cell(row=row_num, column=6, value=transaction.transaction_type or "")
-        sheet.cell(row=row_num, column=7, value=transaction.points or 0)
+        sheet.cell(row=row_num, column=4, value=merchant.merchant_id if merchant else "")
+        sheet.cell(row=row_num, column=5, value=customer.email if customer else "")
+        sheet.cell(row=row_num, column=6, value=customer.mobile if customer else "")
+        sheet.cell(row=row_num, column=7, value=transaction.transaction_type or "")
+        sheet.cell(row=row_num, column=8, value=transaction.points or 0)
         sheet.cell(
-            row=row_num, column=8,
+            row=row_num, column=9,
             value=transaction.created_at.strftime("%Y-%m-%d %H:%M:%S") if transaction.created_at else ""
         )
 
@@ -3218,7 +3221,7 @@ def export_payment_dues(request):
     # Headers (added Sr No.)
     headers = [
         "Sr No.", "Merchant ID", "Merchant Name", "Mobile", "Email", 
-        "Plan Type", "Payment Mode", "Paid Amount", "Validity (days)", "Expiry Date"
+        "Plan Type", "Validity (days)", "Expiry Date"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
@@ -3231,17 +3234,16 @@ def export_payment_dues(request):
         merchant = due.merchant
         sheet.cell(row=row_num, column=1, value=index)  # Sr No.
         sheet.cell(row=row_num, column=2, value=merchant.merchant_id or "")
-        sheet.cell(
-            row=row_num, column=3,
+        sheet.cell(row=row_num, column=3,
             value=f"{merchant.first_name} {merchant.last_name}" if hasattr(merchant, 'first_name') and hasattr(merchant, 'last_name') else ""
         )
         sheet.cell(row=row_num, column=4, value=merchant.mobile if hasattr(merchant, 'mobile') else "")
         sheet.cell(row=row_num, column=5, value=merchant.email if hasattr(merchant, 'email') else "")
         sheet.cell(row=row_num, column=6, value=due.plan_type)
-        sheet.cell(row=row_num, column=7, value=due.payment_mode)
-        sheet.cell(row=row_num, column=8, value=due.paid_amount)
-        sheet.cell(row=row_num, column=9, value=due.validity_days)
-        sheet.cell(row=row_num, column=10, value=due.expiry_date.strftime("%Y-%m-%d") if due.expiry_date else "")
+        # sheet.cell(row=row_num, column=7, value=due.payment_mode)
+        # sheet.cell(row=row_num, column=8, value=due.paid_amount)
+        sheet.cell(row=row_num, column=7, value=due.validity_days)
+        sheet.cell(row=row_num, column=8, value=due.expiry_date.strftime("%Y-%m-%d") if due.expiry_date else "")
 
     # Return Excel as response
     buffer = BytesIO()
@@ -4156,5 +4158,13 @@ def get_individual_merchants(request):
 
 def transaction_history(request):
     history_list = History.objects.select_related('customer', 'merchant').order_by('-created_at')
-    return render(request, 'bopo_admin/Helpdesk/history.html', {'history_list': history_list})
+    merchant_cashouts = CashOut.objects.select_related('customer', 'merchant').prefetch_related('superadminpayment_set')\
+    .filter(status__iexact='Paid')
+    
+    context = {
+        'history_list': history_list,
+        'merchant_cashouts': merchant_cashouts,
+    }
+    
+    return render(request, 'bopo_admin/Helpdesk/history.html',context)
 

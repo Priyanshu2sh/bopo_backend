@@ -1,5 +1,6 @@
 {% extends "bopo_admin/base.html" %}
 {% load static %} 
+{% load custom_filters %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/uploads.css' %}">
@@ -10,50 +11,108 @@
     <!-- Privacy Policy Upload -->
     <div class="upload-card">
         <label class="upload-label">Privacy Policy</label>
-        <form method="post" enctype="multipart/form-data" class="upload-form">
+        <form method="post" enctype="multipart/form-data" class="upload-form" onsubmit="setToastFlag()">
+
             {% csrf_token %}
             <input type="hidden" name="file_type" value="privacy_policy">
             <input type="file" name="privacy_policy" class="upload-input" required>
+            <div class="upload-actions">
             <button type="submit" class="upload-btn">Upload</button>
             {% if privacy_policy_file %}
-                <a href="{{ privacy_policy_file.file.url }}" target="_blank" class="upload-view-link">View</a>
+                <!-- <a href="{{ privacy_policy_file.file.url }}" target="_blank" class="upload-view-link">View</a> -->
+                <a href="{{ privacy_policy_file.file.url }}" target="_blank" class="upload-info-text">
+                    {{ privacy_policy_file.file.name|basename }}
+                </a>
             {% else %}
                 <span class="upload-info-text">No file uploaded yet.</span>
             {% endif %}
+            </div>
         </form>
     </div>
 
     <!-- Terms & Conditions Upload -->
     <div class="upload-card">
         <label class="upload-label">Terms And Conditions</label>
-        <form method="post" enctype="multipart/form-data" class="upload-form">
+        <form method="post" enctype="multipart/form-data" class="upload-form" onsubmit="setToastFlag()">
+
             {% csrf_token %}
             <input type="hidden" name="file_type" value="terms_conditions">
             <input type="file" name="terms_conditions" class="upload-input" required>
+            <div class="upload-actions">
             <button type="submit" class="upload-btn">Upload</button>
             {% if terms_conditions_file %}
-                <a href="{{ terms_conditions_file.file.url }}" target="_blank" class="upload-view-link">View</a>
+                <!-- <a href="{{ terms_conditions_file.file.url }}" target="_blank" class="upload-view-link">View</a> -->
+                <a href="{{ terms_conditions_file.file.url }}" target="_blank" class="upload-info-text">
+                    {{ terms_conditions_file.file.name|basename }}
+                </a>
             {% else %}
                 <span class="upload-info-text">No file uploaded yet.</span>
             {% endif %}
+            </div>
         </form>
     </div>
 
     <!-- User Guide Upload -->
     <div class="upload-card">
         <label class="upload-label">User Guide</label>
-        <form method="post" enctype="multipart/form-data" class="upload-form">
+        <form method="post" enctype="multipart/form-data" class="upload-form" onsubmit="setToastFlag()">
+
             {% csrf_token %}
             <input type="hidden" name="file_type" value="user_guide">
             <input type="file" name="user_guide" class="upload-input" required>
+            <div class="upload-actions">
             <button type="submit" class="upload-btn">Upload</button>
             {% if user_guide_file %}
-                <a href="{{ user_guide_file.file.url }}" target="_blank" class="upload-view-link">View</a>
+                <!-- <a href="{{ user_guide_file.file.url }}" target="_blank" class="upload-view-link">View</a> -->
+                 <a href="{{ user_guide_file.file.url }}" target="_blank" class="upload-info-text">
+                    {{ user_guide_file.file.name|basename }}
+                </a>
             {% else %}
                 <span class="upload-info-text">No file uploaded yet.</span>
             {% endif %}
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div id="toast" class="toast-container">
+                        <i class="fa fa-check-circle"></i>
+                        <span class="toast-message">{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+
+
         </form>
+        
+
     </div>
 
 </div>
+
+<script>
+    function setToastFlag() {
+        sessionStorage.setItem('showToast', 'true');
+    }
+
+    window.onload = function () {
+        const showToast = sessionStorage.getItem('showToast');
+        if (showToast === 'true') {
+            const toast = document.getElementById("toast");
+            if (toast) {
+                toast.classList.add("toast-show");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show");
+                    sessionStorage.removeItem('showToast');
+                }, 3000);
+            }
+        } else {
+            // Remove toast if not recently submitted
+            const toast = document.getElementById("toast");
+            if (toast) toast.remove();
+        }
+    }
+</script>
+
+
 {% endblock %}

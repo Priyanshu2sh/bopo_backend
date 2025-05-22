@@ -137,29 +137,35 @@
              <table id="merchant-table-history" class="display" style="width:100%">
     <thead>
         <tr>
-            <th>#</th>
+            <th>Sr.No.</th>
+            <!-- <th>Customer ID</th> -->
             <th>Merchant ID</th>
-            <th>Contact Person</th>
-            <th>Mobile Number</th>
-            <th>Requested Amount (BBP)</th>
+            <th>Status</th>
+            <th>Amount</th>  
             <th>Payment Method</th>
         </tr>
     </thead>
  <tbody>
-    {% for cash_out in merchant_cash_outs %}
+    {% for cashout in merchant_cashouts %}
+
+    <!-- {{ cash_out.merchant.last_name }} -->
     <tr>
       <td>{{ forloop.counter }}</td>
-      <td>{{ cash_out.merchant.merchant_id }}</td>
-      <td>{{ cash_out.merchant.first_name }} {{ cash_out.merchant.last_name }}</td>
-      <td>{{ cash_out.merchant.mobile }}</td>
-      <td>{{ cash_out.amount }}</td>
-     <td>
-  {% for payment in cash_out.superadminpayment_set.all %}
-    {{ payment.payment_method }} ({{ payment.transaction_id }})<br>
-  {% empty %}
-    No payments
-  {% endfor %}
-</td>
+      <!-- <td>{{ cashout.customer.customer_id }}</td> -->
+      <td>{{ cashout.merchant.merchant_id }} </td>
+      <td>{{ cashout.status}}</td>
+      <td>{{ cashout.amount }}</td>
+    <td>
+                {% with payments=cashout.superadminpayment_set.all %}
+                    {% if payments %}
+                        {% for payment in payments %}
+                            {{ payment.payment_method }} ({{ payment.transaction_id }})<br>
+                        {% endfor %}
+                    {% else %}
+                        No payments
+                    {% endif %}
+                {% endwith %}
+            </td>
     </tr>
     {% endfor %}
   </tbody>

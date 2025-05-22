@@ -231,9 +231,13 @@
                         .prop('disabled', true);
 
                     $('#solution-modal').fadeOut();
-                    $('.toast-message').text(response.message);
-                    $('#toast').addClass('toast-show');
-                    setTimeout(() => $('#toast').removeClass('toast-show'), 3000);
+                    if (data.status === 'success') {
+                        setTimeout(() => {
+                        $('#toast').removeClass('toast-show');
+
+                    }, 3000);
+                }
+            showToast("Issue resolved Successfully!");
                     location.reload();
 
                 }
@@ -241,8 +245,11 @@
             error: function () {
                 alert('Error submitting solution.');
             }
+                    
         });
+    
     });
+
 </script>
 
 
