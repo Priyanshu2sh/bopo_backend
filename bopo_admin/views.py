@@ -388,6 +388,8 @@ def home(request):
             "terminal_progress": project_terminal_progress,
             "daily_terminal_growth": daily_project_terminal_growth,
             
+            "active_terminals": active_project_terminals,
+            
             "total_users": total_users,
             "daily_user_growth": daily_user_growth,
 

@@ -547,21 +547,20 @@ button {
 .select2-selection__arrow {
     height: 100%;
 }
-
 /* Modal Background */
 .custom-modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
+    display: none;  /* Hidden by default */
+    position: fixed;  /* Stay in place */
+    z-index: 1;  /* Sit on top */
     left: 0;
     top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    width: 100%;  /* Full width */
+    height: 100%;  /* Full height */
+    background-color: rgba(0, 0, 0, 0.5);  /* Black with opacity */
     justify-content: center;
     align-items: center;
-}
-
+  }
+  
   /* Modal Content */
   .custom-modal-content {
     background-color: white;
@@ -570,7 +569,7 @@ button {
     text-align: center;
     max-width: 400px;
     width: 80%;
-    margin: 20% 40%;
+    position: relative; 
 
   }
 
@@ -602,13 +601,35 @@ button {
     background-color: #80af83;
   }
   
-  #cancelDelete {
+  #cancelDelete,#cancelAction {
     background-color: #f44336; /* Red */
   }
   
-  #cancelDelete:hover {
+  #cancelDelete:hover,  #cancelAction:hover {
     background-color: #e53935;
   }
+
+#confirmAction {
+     background-color: #4CAF50;
+  }
+#confirmAction:hover {
+        background-color: #80af83;
+  
+  }
+  .custom-close {
+  position: absolute;
+  top: -1%;
+  right: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #000;
+}
+
+.custom-close:hover {
+  color: red;
+}
+
   /* Toast container */
 #toast-container {
   position: fixed;
