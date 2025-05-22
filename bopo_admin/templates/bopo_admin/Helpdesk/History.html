@@ -252,7 +252,7 @@
                 {% with payments=cashout.superadminpayment_set.all %}
                     {% if payments %}
                         {% for payment in payments %}
-                            {{ payment.payment_method }} ({{ payment.transaction_id }})<br>
+                            {{ payment.payment_method }}<br>
                         {% endfor %}
                     {% else %}
                         No payments

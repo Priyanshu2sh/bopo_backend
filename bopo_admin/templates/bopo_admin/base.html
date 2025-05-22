@@ -27,7 +27,7 @@
          <h4 style="margin-bottom: 50px;">
              {% if logo %}
                  <img id="logoImage" src="{{ logo.logo.url }}" alt="Logo"
-                      style="height: 50px; width: 200px; cursor: pointer;" title="Click to change logo">
+                      style="height: 50px; width: 200px; cursor: pointer;" title="Click to change logo"  onclick="window.location.href='{% url 'home' %}'">
              {% else %}
                  <span>No logo uploaded</span>
              {% endif %}
@@ -36,7 +36,7 @@
      {% elif request.user.role == 'corporate_admin' %}
            <h4 style="margin-bottom: 50px;">
             {% if corporate and corporate.logo %}
-            <img src="{{ corporate.logo.logo.url }}" alt="Corporate Logo" style="height: 50px; width: 200px;">
+            <img src="{{ corporate.logo.logo.url }}" alt="Corporate Logo" style="height: 50px; width: 200px; cursor: pointer;" onclick="window.location.href='{% url 'home' %}'">
             {% else %}
             <p>No logo uploaded for this corporate admin.</p>
             {% endif %}
