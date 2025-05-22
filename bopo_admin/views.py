@@ -183,6 +183,7 @@ def update_terminal_pin(request, merchant_id, terminal_id):
     
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
+
 import json
 from django.http import JsonResponse
 from datetime import datetime
@@ -213,19 +214,25 @@ def toggle_terminal_status(request, terminal_id):
     return JsonResponse({"success": False, "error": "Invalid request"})
 
 
-
+from datetime import datetime, time, timedelta
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.utils.timezone import now
-from datetime import timedelta
-
-
 
 @login_required
 def home(request):
     user = request.user
-    today = now().date()
-    yesterday = today - timedelta(days=1)
+
+    # Get today's and yesterday's date (timezone aware)
+    today_date = timezone.localdate()  # Asia/Kolkata date, thanks to your TIME_ZONE setting
+    yesterday_date = today_date - timedelta(days=1)
+
+    # Build timezone-aware datetime ranges for filtering
+    start_today = timezone.make_aware(datetime.combine(today_date, time.min), timezone.get_current_timezone())
+    end_today = timezone.make_aware(datetime.combine(today_date, time.max), timezone.get_current_timezone())
+
+    start_yesterday = timezone.make_aware(datetime.combine(yesterday_date, time.min), timezone.get_current_timezone())
+    end_yesterday = timezone.make_aware(datetime.combine(yesterday_date, time.max), timezone.get_current_timezone())
 
     # Total counts
     total_projects = Corporate.objects.count()
@@ -240,25 +247,29 @@ def home(request):
     active_customers = Customer.objects.filter(status="Active").count() 
     total_users = total_customers + total_merchants + total_projects
 
-    # Daily counts
-    daily_projects = Corporate.objects.filter(created_at__date=today).count()
-    daily_merchants = Merchant.objects.filter(created_at__date=today).count()
-    daily_customers = Customer.objects.filter(created_at__date=today).count()
+    # Daily counts using range filter
+    daily_projects = Corporate.objects.filter(created_at__range=(start_today, end_today)).count()
+    daily_merchants = Merchant.objects.filter(created_at__range=(start_today, end_today)).count()
+    daily_customers = Customer.objects.filter(created_at__range=(start_today, end_today)).count()
 
-    # Yesterday counts
-    yesterday_projects = Corporate.objects.filter(created_at__date=yesterday).count()
-    yesterday_merchants = Merchant.objects.filter(created_at__date=yesterday).count()
-    yesterday_customers = Customer.objects.filter(created_at__date=yesterday).count()
+    # Yesterday counts using range filter
+    yesterday_projects = Corporate.objects.filter(created_at__range=(start_yesterday, end_yesterday)).count()
+    yesterday_merchants = Merchant.objects.filter(created_at__range=(start_yesterday, end_yesterday)).count()
+    yesterday_customers = Customer.objects.filter(created_at__range=(start_yesterday, end_yesterday)).count()
 
-    # Growth compared to yesterday
-    daily_project_growth = ((daily_projects - yesterday_projects) / yesterday_projects * 100) if yesterday_projects > 0 else 0
-    daily_merchant_growth = ((daily_merchants - yesterday_merchants) / yesterday_merchants * 100) if yesterday_merchants > 0 else 0
-    daily_customer_growth = ((daily_customers - yesterday_customers) / yesterday_customers * 100) if yesterday_customers > 0 else 0
-    
-        # Growth compared to yesterday with capped 100% when no previous data
-    # daily_project_growth = 100 if yesterday_projects == 0 and daily_projects > 0 else 0 if yesterday_projects == 0 else ((daily_projects - yesterday_projects) / yesterday_projects * 100)
-    # daily_merchant_growth = 100 if yesterday_merchants == 0 and daily_merchants > 0 else 0 if yesterday_merchants == 0 else ((daily_merchants - yesterday_merchants) / yesterday_merchants * 100)
-    # daily_customer_growth = 100 if yesterday_customers == 0 and daily_customers > 0 else 0 if yesterday_customers == 0 else ((daily_customers - yesterday_customers) / yesterday_customers * 100)
+    daily_project_growth = (
+    ((daily_projects - yesterday_projects) / yesterday_projects * 100)
+    if yesterday_projects > 0 else 0
+    )
+    daily_merchant_growth = (
+        ((daily_merchants - yesterday_merchants) / yesterday_merchants * 100)
+        if yesterday_merchants > 0 else 0
+    )
+    daily_customer_growth = (
+        ((daily_customers - yesterday_customers) / yesterday_customers * 100)
+        if yesterday_customers > 0 else 0
+    )
+
 
     # Daily Total Users Growth
     daily_total_users = daily_projects + daily_merchants + daily_customers
@@ -268,8 +279,25 @@ def home(request):
         ((daily_total_users - yesterday_total_users) / yesterday_total_users * 100)
         if yesterday_total_users > 0 else 0
     )
+        
+    print("Today projects:", daily_projects)
+    print("Yesterday projects:", yesterday_projects)
+    print("Growth:", daily_project_growth)
+    
+    print("Today merchant:", daily_merchants)
+    print("Yesterday merchant:", yesterday_merchants)
+    print("Growth:", daily_merchant_growth)
+    
+    
+    print("Today customer:", daily_customers)
+    print("Yesterday customer:", yesterday_customers)
+    print("Growth:", daily_customer_growth)
 
 
+    print("Today users:", daily_total_users)
+    print("Yesterday users:", yesterday_total_users)
+    print("Growth:", daily_user_growth)
+    
     # Chart data for bar graph
     chart_data = {
         "projects": [total_projects, completed_projects],
@@ -305,66 +333,75 @@ def home(request):
         "chart_data": chart_data,
     }
 
-    # Get the corporate admin
+    # Corporate admin dashboard data
     if user.role == 'corporate_admin':
         corporate = user.corporate
 
-        # ----- Merchants under corporate -----
+        # Merchants under corporate
         project_merchants = Merchant.objects.filter(project_name=corporate)
 
         total_project_merchants = project_merchants.count()
         active_project_merchants = project_merchants.filter(status="Active").count()
 
-        # Calculate merchant progress (percentage of active merchants)
         project_merchant_progress = (
             (active_project_merchants / total_project_merchants * 100)
             if total_project_merchants > 0 else 0
         )
 
-        # Calculate daily growth of merchants
-        daily_project_merchants = project_merchants.filter(created_at__date=today).count()
-        yesterday_project_merchants = project_merchants.filter(created_at__date=yesterday).count()
+        daily_project_merchants = project_merchants.filter(created_at__range=(start_today, end_today)).count()
+        yesterday_project_merchants = project_merchants.filter(created_at__range=(start_yesterday, end_yesterday)).count()
         daily_project_merchant_growth = (
             ((daily_project_merchants - yesterday_project_merchants) / yesterday_project_merchants * 100)
             if yesterday_project_merchants > 0 else 0
         )
 
-        # ----- Terminals under corporate -----
+        # Terminals under corporate
         project_terminals = Terminal.objects.filter(merchant_id__project_name=corporate)
 
         total_project_terminals = project_terminals.count()
         active_project_terminals = project_terminals.filter(status="Active").count()
 
-        # Calculate terminal progress (percentage of active terminals)
         project_terminal_progress = (
             (active_project_terminals / total_project_terminals * 100)
             if total_project_terminals > 0 else 0
         )
 
-        # Calculate daily growth of terminals
-        daily_project_terminals = project_terminals.filter(created_at__date=today).count()
-        yesterday_project_terminals = project_terminals.filter(created_at__date=yesterday).count()
+        daily_project_terminals = project_terminals.filter(created_at__range=(start_today, end_today)).count()
+        yesterday_project_terminals = project_terminals.filter(created_at__range=(start_yesterday, end_yesterday)).count()
         daily_project_terminal_growth = (
             ((daily_project_terminals - yesterday_project_terminals) / yesterday_project_terminals * 100)
             if yesterday_project_terminals > 0 else 0
         )
 
-
-        
-       # Total Users = Total Merchants + Terminals
+        # Total users = merchants + terminals
         total_users = total_project_merchants + total_project_terminals
-
-        # Daily growth of total users (merchant + terminal)
         daily_total_users = daily_project_merchants + daily_project_terminals
         yesterday_total_users = yesterday_project_merchants + yesterday_project_terminals
-
+        
+        daily_project_merchant_growth = (
+            ((daily_project_merchants - yesterday_project_merchants) / yesterday_project_merchants * 100)
+            if yesterday_project_merchants > 0 else 0
+        )
+        daily_project_terminal_growth = (
+            ((daily_project_terminals - yesterday_project_terminals) / yesterday_project_terminals * 100)
+            if yesterday_project_terminals > 0 else 0
+        )
+        
         daily_user_growth = (
-            ((daily_total_users - yesterday_total_users) / yesterday_total_users * 100)
-            if yesterday_total_users > 0 else 0
+        ((daily_total_users - yesterday_total_users) / yesterday_total_users * 100)
+        if yesterday_total_users > 0 else 0
         )
 
 
-        # ----- Chart Data for Corporate Admin -----
+        print("Today terminals:", daily_project_terminals)
+        print("Yesterday terminals:", yesterday_project_terminals)
+        print("Growth:", daily_project_terminal_growth)
+        
+       
+        print("Today users:", daily_total_users)
+        print("Today users:", yesterday_total_users)
+        
+
         chart_data = {
             "merchants": [total_project_merchants, active_project_merchants],
             "terminals": [total_project_terminals, active_project_terminals],
@@ -372,7 +409,6 @@ def home(request):
 
         chart_labels = ["Merchants", "Terminals"]
 
-        # Passing the context data to the template
         context.update({
             "total_merchants": total_project_merchants,
             "merchant_progress": project_merchant_progress,
