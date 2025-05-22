@@ -3,14 +3,6 @@
 {% block content %}
 
 <link rel="stylesheet" href="{% static 'bopo_admin/css/reduce_limit.css' %}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Select2 -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<!-- DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
 
@@ -29,7 +21,8 @@
         width: 250px;
     }
 
-    #custom-buttons {
+    #custom-buttons-merchant,
+    #custom-buttons-merchant-history {
         display: flex;
         justify-content: flex-end;
     }
@@ -69,68 +62,326 @@
         border: 2px solid #ff4e00;
         box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
     }
-
 </style>
 
-<div class="customer-container">
-    <div class="customer-header">
-        <h2>Transaction History</h2>
-        <div class="customer-buttons"></div>
+<div class="send-notification-container">
+    <div class="send-notification-header">
+        <h2>History</h2>
     </div>
 
-    <div class="customer-list">
-        <div class="customer-table">
-            <div class="top-controls">
-                <input type="text" class="search-box" id="search-customer" placeholder="Search ...">
-                <div id="custom-buttons"></div>
+    <!-- Transaction History -->
+    <div class="send-notification-item">
+        <input type="checkbox" id="toggle-transaction-history" class="toggle-checkbox">
+        <label for="toggle-transaction-history" class="send-notification-label">
+            <span class="send-notification-icon">🏢</span>
+            <span>Transaction History</span>
+        </label>
+
+        <div class="send-notification-form">
+            <div class="customer-list">
+                <div class="customer-table">
+                    <div class="top-controls">
+                        <input type="text" class="search-box" id="search-merchant" placeholder="Search Transaction History...">
+                        <div id="custom-buttons-merchant"></div>
+
+                    <div class="date-filter-wrapper" style="position: relative; display: inline-block; margin-left: -66%;">
+                    <button id="date-filter-toggle" title="Filter by Date" 
+                            style="
+                                background-color: #f8f8f8;
+                                border: 1px solid gray;
+                                border-radius: 6px;
+                                padding: 6px 10px;
+                                cursor: pointer;
+                                font-size: 20px;
+                                color: black;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                width: 40px;
+                                height: 40px;
+                                margin-top: -9%;
+                                margin-left: -300%;
+                            ">
+                        <i class="fas fa-filter"></i>
+                    </button>
+
+                    <div id="date-filter-menu" style="
+                        display: none;
+                        position: absolute;
+                        top: 45px;
+                        right: 0;
+                        background: white;
+                        border: 1px solid #ddd;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+                        border-radius: 4px;
+                        z-index: 1000;
+                        min-width: 160px;
+                    ">
+                        <ul style="list-style: none; margin: 0; padding: 8px 0;">
+                        <li class="date-filter-option" data-range="all" style="padding: 6px 16px; cursor: pointer;">All</li>
+                        <li class="date-filter-option" data-range="daily" style="padding: 6px 16px; cursor: pointer;">Today</li>
+                        <li class="date-filter-option" data-range="weekly" style="padding: 6px 16px; cursor: pointer;">This Week</li>
+                        <li class="date-filter-option" data-range="monthly" style="padding: 6px 16px; cursor: pointer;">This Month</li>
+                        <li class="date-filter-option" data-range="yearly" style="padding: 6px 16px; cursor: pointer;">This Year</li>
+                        </ul>
+                    </div>
+                    </div>
+
+
+
+
+                    </div>
+
+                    <table id="merchant-table" class="display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Sr.No.</th>
+                                <th>Customer</th>
+                                <th>Merchant</th>
+                                <th>Points</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                            </tr>
+
+                        </thead>
+                     <tbody>
+                        {% for history in history_list %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ history.customer.customer_id }}</td>
+                            <td>{{ history.merchant.merchant_id }}</td>
+                            <td>{{ history.points }}</td>
+                            <td>{{ history.get_transaction_type_display }}</td>
+                            <td>{{ history.created_at|date:"Y-m-d" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6">No transaction history available.</td></tr>
+                        {% endfor %}
+                    </tbody>
+
+                    </table>
+                </div>
             </div>
+        </div>
+    </div>
 
-            <table id="customer-table" class="display" style="width:100%">
-                <thead>
-                    <tr>
-                        <th>Sr.No.</th>
-                        <th>Customer</th>
-                        <th>Merchant</th>
-                        <th>Points</th>
-                        <th>Type</th>
-                        <th>Date & Time</th>
-                    </tr>
+    <!-- Cash Out History -->
+    <div class="send-notification-item">
+        <input type="checkbox" id="toggle-cashout-history" class="toggle-checkbox">
+        <label for="toggle-cashout-history" class="send-notification-label">
+            <span class="send-notification-icon">🏦</span>
+            <span>Cash Out History</span>
+        </label>
 
-                </thead>
-                <tbody>
-        {% for history in history_list %}
+        <div class="send-notification-form">
+            <div class="customer-list">
+                <div class="customer-table">
+                    <div class="top-controls">
+                        <input type="text" class="search-box" id="search-merchant-history" placeholder="Search Merchant...">
+                        <div id="custom-buttons-merchant-history"></div>
+
+<div class="date-filter-wrapper" style="position: relative; display: inline-block;  margin-left: -66%;">
+    <button id="date-filter-toggle-cashout" title="Filter by Date" 
+            style="
+                background-color: #f8f8f8;
+                border: 1px solid gray;
+                border-radius: 6px;
+                padding: 6px 10px;
+                cursor: pointer;
+                font-size: 20px;
+                color: black;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                margin-top: -9%;
+                margin-left: -300%;
+            ">
+        <i class="fas fa-filter"></i>
+    </button>
+
+    <div id="date-filter-menu-cashout" style="
+        display: none;
+        position: absolute;
+        top: 45px;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        border-radius: 4px;
+        z-index: 1000;
+        min-width: 160px;
+    ">
+        <ul style="list-style: none; margin: 0; padding: 8px 0;">
+            <li class="date-filter-option-cashout" data-range="all" style="padding: 6px 16px; cursor: pointer;">All</li>
+            <li class="date-filter-option-cashout" data-range="daily" style="padding: 6px 16px; cursor: pointer;">Today</li>
+            <li class="date-filter-option-cashout" data-range="weekly" style="padding: 6px 16px; cursor: pointer;">This Week</li>
+            <li class="date-filter-option-cashout" data-range="monthly" style="padding: 6px 16px; cursor: pointer;">This Month</li>
+            <li class="date-filter-option-cashout" data-range="yearly" style="padding: 6px 16px; cursor: pointer;">This Year</li>
+        </ul>
+    </div>
+</div>
+
+
+                    </div>
+
+             <table id="merchant-table-history" class="display" style="width:100%">
+    <thead>
         <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{{ history.customer.customer_id }}</td>
-            <td>{{ history.merchant.merchant_id }}</td>
-            <td>{{ history.points }}</td>
-            <td>{{ history.get_transaction_type_display }}</td>
-            <td>{{ history.created_at|date:"Y-m-d" }}</td>
+            <th>Sr.No.</th>
+            <!-- <th>Customer ID</th> -->
+           
+            <th>Merchant ID</th>
+            <th>Status</th>
+            <th>Amount</th>  
+            <th>Payment Method</th>
+            <th>Date</th>
         </tr>
-        {% empty %}
-        <tr><td colspan="6">No transaction history available.</td></tr>
-        {% endfor %}
-    </tbody>
+    </thead>
+ <tbody>
+   
 
-            </table>
+    <!-- {{ cash_out.merchant.last_name }} -->
+    {% for cashout in merchant_cashouts %}
+
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <!-- <td>{{ cashout.customer.customer_id }}</td> -->
+      <td>{{ cashout.merchant.merchant_id }} </td>
+      <td>{{ cashout.status}}</td>
+      <td>{{ cashout.amount }}</td>
+    <td>
+                {% with payments=cashout.superadminpayment_set.all %}
+                    {% if payments %}
+                        {% for payment in payments %}
+                            {{ payment.payment_method }}<br>
+                        {% endfor %}
+                    {% else %}
+                        No payments
+                    {% endif %}
+                {% endwith %}
+            </td>
+        <td>{{ cashout.created_at|date:"Y-m-d" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Toast -->
-<div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
-    <i class="fa fa-exclamation-circle"></i>
-    <span class="toast-message">{{ message }}</span>
-</div>
-
-<!-- Scripts -->
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
 <script>
+
+
+$(document).ready(function() {
+    // Toggle date filter menu for cashout
+    $('#date-filter-toggle-cashout').on('click', function(e) {
+        e.stopPropagation();
+        $('#date-filter-menu-cashout').toggle();
+    });
+
+    $(document).on('click', function() {
+        $('#date-filter-menu-cashout').hide();
+    });
+
+    $('.date-filter-option-cashout').click(function () {
+        const range = $(this).data('range');
+        const now = new Date();
+
+        $('#merchant-table-history tbody tr').each(function () {
+            const $row = $(this);
+            const dateText = $row.find('td').eq(5).text(); // Date column index
+            if (!dateText) {
+                $row.show();
+                return;
+            }
+            const rowDate = new Date(dateText);
+
+            let show = true;
+
+            if (range === 'daily') {
+                show = rowDate.toDateString() === now.toDateString();
+            } else if (range === 'weekly') {
+                const oneWeekAgo = new Date(now);
+                oneWeekAgo.setDate(now.getDate() - 7);
+                show = rowDate >= oneWeekAgo;
+            } else if (range === 'monthly') {
+                show = rowDate.getMonth() === now.getMonth() &&
+                       rowDate.getFullYear() === now.getFullYear();
+            } else if (range === 'yearly') {
+                show = rowDate.getFullYear() === now.getFullYear();
+            }
+
+            if (range === 'all' || show) {
+                $row.show();
+            } else {
+                $row.hide();
+            }
+        });
+
+        $('#date-filter-menu-cashout').hide();
+    });
+});
+
+
+// Toggle filter menu
+$('#date-filter-toggle').click(function () {
+    $('#date-filter-menu').toggle();
+});
+
+// Filter logic
+$('.date-filter-option').click(function () {
+    const range = $(this).data('range');
+    const table = $('#merchant-table').DataTable(); // Adjust if needed for cash-out table
+
+    // Get today's date
+    const now = new Date();
+
+    // Filter based on selected range
+    table.rows().every(function () {
+        const rowDateStr = this.data()[5]; // Column index of 'Date & Time'
+        const rowDate = new Date(rowDateStr);
+
+        let show = true;
+
+        if (range === 'daily') {
+            show = rowDate.toDateString() === now.toDateString();
+        } else if (range === 'weekly') {
+            const oneWeekAgo = new Date(now);
+            oneWeekAgo.setDate(now.getDate() - 7);
+            show = rowDate >= oneWeekAgo;
+        } else if (range === 'monthly') {
+            show = rowDate.getMonth() === now.getMonth() &&
+                   rowDate.getFullYear() === now.getFullYear();
+        } else if (range === 'yearly') {
+            show = rowDate.getFullYear() === now.getFullYear();
+        }
+
+        if (range === 'all' || show) {
+            $(this.node()).show();
+        } else {
+            $(this.node()).hide();
+        }
+    });
+
+    $('#date-filter-menu').hide(); // Hide menu after selection
+});
+
+
+
+
     $(document).ready(function () {
-        const table = $('#customer-table').DataTable({
+        const merchantTable = $('#merchant-table').DataTable({
             dom: 'Bfrtip',
             pageLength: 6,
             lengthChange: false,
@@ -144,49 +395,62 @@
             stripeClasses: []
         });
 
-        table.buttons().container().appendTo('#custom-buttons');
+        merchantTable.buttons().container().appendTo('#custom-buttons-merchant');
 
-        $('#search-customer').on('keyup', function () {
-            table.search(this.value).draw();
+        $('#search-merchant').on('keyup', function () {
+            merchantTable.search(this.value).draw();
         });
 
-      
+        const merchantHistoryTable = $('#merchant-table-history').DataTable({
+            dom: 'Bfrtip',
+            pageLength: 6,
+            lengthChange: false,
+            buttons: [
+                {
+                    extend: 'colvis',
+                    text: '<i class="fas fa-table"></i>',
+                    className: 'btn btn-light'
+                }
+            ],
+            stripeClasses: []
+        });
+
+        merchantHistoryTable.buttons().container().appendTo('#custom-buttons-merchant-history');
+
+        $('#search-merchant-history').on('keyup', function () {
+            merchantHistoryTable.search(this.value).draw();
+        });
+
+        $('.open-merchant-modal-btn').click(function () {
+            const id = $(this).data('id');
+            openMerchantCashOutModal(id);
+        });
     });
 
-    
+    // Show only one section at a time
+   document.addEventListener("DOMContentLoaded", function () {
+    const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
 
-    $(document).on('click', '.status-btn', function () {
-        const helpId = $(this).data('id');
-        const button = $(this);
-    
-        if (confirm("Mark this issue as resolved?")) {
-            $.ajax({
-                url: `/resolve-help/${helpId}/`,
-                type: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                data: {
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-                success: function (response) {
-                    if (response.success) {
-                        button.removeClass('btn-warning status-btn')
-                              .addClass('btn-secondary')
-                              .text('Resolved')
-                              .prop('disabled', true);
-    
-                        // Optional toast
-                        $('.toast-message').text(response.message);
-                        $('#toast').addClass('toast-show');
-                        setTimeout(() => $('#toast').removeClass('toast-show'), 3000);
-                    }
-                },
-                error: function () {
-                    alert('Error resolving help request.');
+    toggleCheckboxes.forEach((checkbox) => {
+        const form = checkbox.closest(".send-notification-item").querySelector(".send-notification-form");
+        form.style.display = checkbox.checked ? "block" : "none";
+
+        checkbox.addEventListener("change", function () {
+            toggleCheckboxes.forEach((otherCheckbox) => {
+                const otherForm = otherCheckbox.closest(".send-notification-item").querySelector(".send-notification-form");
+
+                if (otherCheckbox !== checkbox) {
+                    otherForm.style.display = "none";
+                    otherCheckbox.checked = false;
                 }
             });
-        }
+
+            // Toggle the clicked one
+            form.style.display = checkbox.checked ? "block" : "none";
+        });
     });
+});
+
 </script>
 
-
-{% endblock %}
+{% endblock %}

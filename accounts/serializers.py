@@ -8,8 +8,9 @@ from django.core.files.base import ContentFile
 class TerminalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Terminal
-        fields = ['id', 'terminal_id', 'merchant_id', 'created_at']
-        read_only_fields = ['terminal_id', 'created_at']
+        fields = '__all__'
+        # fields = ['id', 'terminal_id', 'merchant_id', 'status', 'created_at']
+        # read_only_fields = ['terminal_id', 'created_at']
 
 class CorporateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)

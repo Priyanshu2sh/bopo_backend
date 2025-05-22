@@ -1,13 +1,14 @@
 from datetime import date, datetime, timezone
 from io import BytesIO
 import json
+
 import os
 import random
 import string
 from sys import prefix
 # from tkinter.font import Font
 from django.db.models import Max
-from django.http import HttpResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.db.models.functions import Cast, Substr
 from django.shortcuts import get_object_or_404, render
 import openpyxl
@@ -167,6 +168,11 @@ def update_terminal_pin(request, merchant_id, terminal_id):
         new_pin = body.get('tid_pin')
 
         try:
+            # Validate that new_pin is a 4-digit number
+            if not new_pin or not str(new_pin).isdigit() or len(str(new_pin)) != 4:
+                return JsonResponse({'success': False, 'error': 'PIN must be a 4-digit number'})
+
+            
             # Fetch the merchant by its ID
             merchant = Merchant.objects.get(merchant_id=merchant_id)
             
@@ -381,6 +387,8 @@ def home(request):
             "total_terminals": total_project_terminals,
             "terminal_progress": project_terminal_progress,
             "daily_terminal_growth": daily_project_terminal_growth,
+            
+            "active_terminals": active_project_terminals,
             
             "total_users": total_users,
             "daily_user_growth": daily_user_growth,
@@ -2217,6 +2225,7 @@ def uploads(request):
                 file_type=file_type,
                 defaults={'file': uploaded_file}
             )
+            messages.success(request, f"{file_type.replace('_', ' ').title()} uploaded successfully!")
 
     # Fetch existing files
     context = {
@@ -2226,7 +2235,6 @@ def uploads(request):
     }
 
     return render(request, 'bopo_admin/Merchant/uploads.html', context)
-
 
 
 def  modify_customer_details(request):
@@ -2632,6 +2640,7 @@ def assign_employee_role(request):
 
 
 
+
 def payment_details(request):
     if request.method == "POST":
         payment_id = request.POST.get("payment_id")
@@ -2642,25 +2651,32 @@ def payment_details(request):
 
         payment = get_object_or_404(PaymentDetails, id=payment_id)
 
-        # Check for duplicate plan assignment
-        existing_payment = PaymentDetails.objects.filter(merchant=payment.merchant).exclude(id=payment.id).first()
-        if existing_payment:
-            return JsonResponse({"success": False, "message": f"Merchant already has a {existing_payment.plan_type} plan."})
-
         if action == "approve":
+
+            # Check if merchant has any other approved plan of DIFFERENT plan_type
+            existing_payment = PaymentDetails.objects.filter(
+                merchant=payment.merchant,
+                status="approved"
+            ).exclude(id=payment.id).first()
+
+            if existing_payment and existing_payment.plan_type != payment.plan_type:
+                return JsonResponse({
+                    "success": False,
+                    "message": f"Merchant already has an approved {existing_payment.plan_type} plan."
+                })
+
             if payment.plan_type == "rental":
                 validity = request.POST.get("validity")
                 if not validity or not validity.isdigit() or int(validity) <= 0:
                     return JsonResponse({"success": False, "message": "Invalid rental validity provided."})
 
-                # Assume RentalPlan model or field exists to store validity or handle logic accordingly
-                payment.validity_days = int(validity)  # If such a field exists
+                payment.validity_days = int(validity)  # Assuming this field exists
                 payment.status = "approved"
                 payment.save()
 
                 return JsonResponse({"success": True, "message": f"Rental plan approved for {validity} days."})
 
-            # Prepaid logic
+            # For prepaid or other plan types
             topup_value = payment.topup_amount
             if topup_value is None:
                 return JsonResponse({"success": False, "message": "Top-up amount is invalid."})
@@ -3097,7 +3113,7 @@ def export_project_wise_balance(request):
     headers = [
         "Sr No.", "Corporate ID", "Project Name", "First Name", "Last Name",
         "Email", "Mobile", "Aadhaar Number", "GST Number", "PAN", "Shop Name",
-        "Address", "City", "State", "Country", "Pincode", "Created At", "Total Balance"
+        "Address", "City", "State", "Country", "Pincode", "Total Balance"
     ]
 
     for col_num, header in enumerate(headers, 1):
@@ -3131,8 +3147,8 @@ def export_project_wise_balance(request):
         sheet.cell(row=row_num, column=14, value=corporate.state or "")
         sheet.cell(row=row_num, column=15, value=corporate.country or "")
         sheet.cell(row=row_num, column=16, value=corporate.pincode or "")
-        sheet.cell(row=row_num, column=17, value=corporate.created_at.strftime("%Y-%m-%d %H:%M:%S") if corporate.created_at else "")
-        sheet.cell(row=row_num, column=18, value=total_points)
+        # sheet.cell(row=row_num, column=17, value=corporate.created_at.strftime("%Y-%m-%d %H:%M:%S") if corporate.created_at else "")
+        sheet.cell(row=row_num, column=17, value=total_points)
 
     buffer = BytesIO()
     workbook.save(buffer)
@@ -3155,7 +3171,7 @@ def export_merchant_wise_balance(request):
     # Add headers to the sheet (including Sr No.)
     headers = [
         "Sr No.", "Merchant ID", "Merchant Name", "Email", "Mobile", 
-        "Available Balance", "Status", "Created At"
+        "Available Balance", "Status"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
@@ -3180,7 +3196,7 @@ def export_merchant_wise_balance(request):
         sheet.cell(row=row_num, column=5, value=merchant.mobile or "")
         sheet.cell(row=row_num, column=6, value=available_points)
         sheet.cell(row=row_num, column=7, value=merchant.status or "")
-        sheet.cell(row=row_num, column=8, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
+        # sheet.cell(row=row_num, column=8, value=merchant.created_at.strftime("%Y-%m-%d %H:%M:%S") if merchant.created_at else "")
 
     # Save the workbook to a BytesIO buffer
     buffer = BytesIO()
@@ -3254,7 +3270,7 @@ def export_customer_wise_balance(request):
     # Add headers (including Sr No.)
     headers = [
         "Sr No.", "Customer ID", "Customer Name", "Email", "Mobile",
-        "Available Balance", "Created At"
+        "Available Balance"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
@@ -3269,7 +3285,7 @@ def export_customer_wise_balance(request):
             'customer__last_name',
             'customer__email',
             'customer__mobile',
-            'customer__created_at'
+            # 'customer__created_at'
         )
         .annotate(total_points=Sum('points'))
     )
@@ -3282,7 +3298,7 @@ def export_customer_wise_balance(request):
         sheet.cell(row=row_num, column=4, value=cp['customer__email'] or "")
         sheet.cell(row=row_num, column=5, value=cp['customer__mobile'] or "")
         sheet.cell(row=row_num, column=6, value=cp['total_points'] or 0)
-        sheet.cell(row=row_num, column=7, value=cp['customer__created_at'].strftime("%Y-%m-%d %H:%M:%S") if cp['customer__created_at'] else "")
+        # sheet.cell(row=row_num, column=7, value=cp['customer__created_at'].strftime("%Y-%m-%d %H:%M:%S") if cp['customer__created_at'] else "")
 
     buffer = BytesIO()
     workbook.save(buffer)
@@ -3304,7 +3320,7 @@ def export_customer_transaction(request):
 
     # Add headers (including Sr No.)
     headers = [
-        "Sr No.", "Customer ID", "Customer Name", "Email", "Mobile", 
+        "Sr No.", "Customer ID", "Customer Name", "Merchant ID", "Email", "Mobile", 
         "Transaction Type", "Points", "Transaction Date & Time"
     ]
     for col_num, header in enumerate(headers, 1):
@@ -3317,15 +3333,17 @@ def export_customer_transaction(request):
     for index, transaction in enumerate(transactions, start=1):
         row_num = index + 1
         customer = transaction.customer
+        merchant = transaction.merchant
         sheet.cell(row=row_num, column=1, value=index)  # Sr No.
         sheet.cell(row=row_num, column=2, value=customer.customer_id if customer else "")
         sheet.cell(row=row_num, column=3, value=f"{customer.first_name} {customer.last_name}" if customer else "")
-        sheet.cell(row=row_num, column=4, value=customer.email if customer else "")
-        sheet.cell(row=row_num, column=5, value=customer.mobile if customer else "")
-        sheet.cell(row=row_num, column=6, value=transaction.transaction_type or "")
-        sheet.cell(row=row_num, column=7, value=transaction.points or 0)
+        sheet.cell(row=row_num, column=4, value=merchant.merchant_id if merchant else "")
+        sheet.cell(row=row_num, column=5, value=customer.email if customer else "")
+        sheet.cell(row=row_num, column=6, value=customer.mobile if customer else "")
+        sheet.cell(row=row_num, column=7, value=transaction.transaction_type or "")
+        sheet.cell(row=row_num, column=8, value=transaction.points or 0)
         sheet.cell(
-            row=row_num, column=8,
+            row=row_num, column=9,
             value=transaction.created_at.strftime("%Y-%m-%d %H:%M:%S") if transaction.created_at else ""
         )
 
@@ -3356,7 +3374,7 @@ def export_payment_dues(request):
     # Headers (added Sr No.)
     headers = [
         "Sr No.", "Merchant ID", "Merchant Name", "Mobile", "Email", 
-        "Plan Type", "Payment Mode", "Paid Amount", "Validity (days)", "Expiry Date"
+        "Plan Type", "Validity (days)", "Expiry Date"
     ]
     for col_num, header in enumerate(headers, 1):
         cell = sheet.cell(row=1, column=col_num)
@@ -3369,17 +3387,16 @@ def export_payment_dues(request):
         merchant = due.merchant
         sheet.cell(row=row_num, column=1, value=index)  # Sr No.
         sheet.cell(row=row_num, column=2, value=merchant.merchant_id or "")
-        sheet.cell(
-            row=row_num, column=3,
+        sheet.cell(row=row_num, column=3,
             value=f"{merchant.first_name} {merchant.last_name}" if hasattr(merchant, 'first_name') and hasattr(merchant, 'last_name') else ""
         )
         sheet.cell(row=row_num, column=4, value=merchant.mobile if hasattr(merchant, 'mobile') else "")
         sheet.cell(row=row_num, column=5, value=merchant.email if hasattr(merchant, 'email') else "")
         sheet.cell(row=row_num, column=6, value=due.plan_type)
-        sheet.cell(row=row_num, column=7, value=due.payment_mode)
-        sheet.cell(row=row_num, column=8, value=due.paid_amount)
-        sheet.cell(row=row_num, column=9, value=due.validity_days)
-        sheet.cell(row=row_num, column=10, value=due.expiry_date.strftime("%Y-%m-%d") if due.expiry_date else "")
+        # sheet.cell(row=row_num, column=7, value=due.payment_mode)
+        # sheet.cell(row=row_num, column=8, value=due.paid_amount)
+        sheet.cell(row=row_num, column=7, value=due.validity_days)
+        sheet.cell(row=row_num, column=8, value=due.expiry_date.strftime("%Y-%m-%d") if due.expiry_date else "")
 
     # Return Excel as response
     buffer = BytesIO()
@@ -3499,6 +3516,27 @@ def helpdesk(request):
     help_requests = Help.objects.all()
     return render(request, 'bopo_admin/Helpdesk/helpdesk.html', {'help_requests': help_requests})
 
+# def helpdesk_view(request):
+#     filter_type = request.GET.get('filter', '')
+#     help_requests = Help.objects.all()
+
+#     now = timezone.now()
+
+#     if filter_type == 'daily':
+#         help_requests = help_requests.filter(created_at__date=now.date())
+#     elif filter_type == 'weekly':
+#         start_of_week = now - timedelta(days=now.weekday())  # Monday
+#         help_requests = help_requests.filter(created_at__date__gte=start_of_week.date())
+#     elif filter_type == 'monthly':
+#         help_requests = help_requests.filter(created_at__month=now.month, created_at__year=now.year)
+#     elif filter_type == 'yearly':
+#         help_requests = help_requests.filter(created_at__year=now.year)
+
+#     context = {
+#         'help_requests': help_requests,
+#         'filter_type': filter_type,
+#     }
+#     return render(request, 'bopo_admin/Helpdesk/helpdesk.html', context)
 
 def reduce_limit(request):
     # Fetch cash-out records for merchants
@@ -3511,8 +3549,29 @@ def reduce_limit(request):
         'merchant_cash_outs': merchant_cash_outs,
         'customer_cash_outs': customer_cash_outs,
     })
+    
+    
+    
+    
+
+from django.db.models import Prefetch
+
+
+def merchant_cash_outs_view(request):
+    merchant_cash_outs = CashOut.objects.select_related(
+        'merchant'
+    ).prefetch_related(
+        Prefetch('superadmin_payments', queryset=SuperAdminPayment.objects.all())
+    )
+
+    return render(request, 'bopo_admin/Merchant/merchant_cash_outs.html', {
+        'merchant_cash_outs': merchant_cash_outs,
+    })
+
+
 
 from django.utils import timezone
+
 def save_cash_out(request):
     if request.method == 'POST':
         try:
@@ -3522,6 +3581,16 @@ def save_cash_out(request):
             payment_method = data.get('payment_method')
 
             cashout = CashOut.objects.get(id=cashout_id)
+   
+            if cashout.status == 'paid':
+                return JsonResponse({'status': 'error', 'message': 'This cash-out is already paid.'})
+
+            # Mark cashout as paid
+            cashout.status = 'paid'
+            cashout.paid_at = timezone.now()
+            cashout.save()
+
+
 
             SuperAdminPayment.objects.create(
                 transaction_id=transaction_id,
@@ -3843,14 +3912,15 @@ def resolve_help(request, help_id):
             help_obj = Help.objects.get(id=help_id)
             if help_obj.status != 'resolved':
                 help_obj.status = 'resolved'
+                help_obj.remark = request.POST.get('solution')  # Save remark
                 help_obj.save()
-                return JsonResponse({'success': True, 'message': 'Marked as Resolved'})
+                return JsonResponse({'success': True, 'message': 'Marked as Resolved with Remark'})
             else:
                 return JsonResponse({'success': False, 'message': 'Already resolved'})
         except Help.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Help request not found'}, status=404)
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
-   
+
    
   
    
@@ -4241,4 +4311,13 @@ def get_individual_merchants(request):
 
 def transaction_history(request):
     history_list = History.objects.select_related('customer', 'merchant').order_by('-created_at')
-    return render(request, 'bopo_admin/Helpdesk/history.html', {'history_list': history_list})
+    merchant_cashouts = CashOut.objects.select_related('customer', 'merchant').prefetch_related('superadminpayment_set')\
+    .filter(status__iexact='Paid')
+    
+    context = {
+        'history_list': history_list,
+        'merchant_cashouts': merchant_cashouts,
+    }
+    
+    return render(request, 'bopo_admin/Helpdesk/history.html',context)
+

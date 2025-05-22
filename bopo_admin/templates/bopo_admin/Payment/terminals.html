@@ -229,32 +229,16 @@ document.getElementById('add-terminal-btn').addEventListener('click', function()
       if (data.error) {
         showToast(data.error, 'error');
       } else {
-        var row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${data.terminal_id}</td>
-          <td><input type="text" value="${data.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
-          <td>
-            <label class="switch">
-              <input type="checkbox" onchange="toggleStatus('${data.id}', this)" ${data.status === 'Active' ? 'checked' : ''}>
-              <span class="slider round"></span>
-            </label>
-          </td>
-          <td>
-            <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${data.terminal_id}">✏️ Edit</button>
-            <button class="btn btn-sm btn-success save-btn" data-terminal-id="${data.terminal_id}" style="display: none;">💾 Save</button>
-          </td>
-        `;
-        document.getElementById('terminal-body').appendChild(row);
-        $('#empty-state').hide();
-        $('#terminal-table').show();
         showToast('Terminal added successfully!', 'success');
-        
+        // Refresh the terminal list
+        $('#merchant_id').trigger('change');
       }
     });
   } else {
     showToast('Please select a merchant first.', 'warning');
   }
 });
+
 
 // Handle Edit and Save button clicks with event delegation
 document.addEventListener('click', function(event) {

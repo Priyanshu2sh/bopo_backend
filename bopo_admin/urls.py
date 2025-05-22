@@ -113,9 +113,11 @@ urlpatterns = [
 
     path('update-profile/', views.update_profile, name='update_profile'), 
     path('cash-out/', views.cash_out, name='cash_out'),
+     path('merchant-cash-outs/', views.merchant_cash_outs_view, name='merchant_cash_outs'),
 
     path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
     path('helpdesk/', views.helpdesk, name='helpdesk'),
+    #  path('helpdesk/', views.helpdesk_view, name='helpdesk'),
     
     # path('api/security-questions/', views.get_security_questions, name='get_security_questions'),
     path('api/security-questions/', security_questions_view, name='security_questions'),
@@ -206,6 +208,8 @@ urlpatterns = [
  
     path('create_notification/', create_notification_view, name='create_notification'),
     path("transaction_history/", views.transaction_history, name="transaction_history"),
+    
+    
 
 
     path('api/save-fcm-token/', views.save_fcm_token, name='save_fcm_token'),

@@ -94,3 +94,69 @@
     font-style: italic;
     font-size: 14px;
 }
+
+
+
+.upload-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.upload-info-link {
+    color: #004080;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 14px;
+    word-break: break-word;
+    transition: color 0.3s ease;
+}
+
+.upload-info-link:hover {
+    color: #4a75e6;
+    text-decoration: underline;
+}
+
+/* Toast Notification Styling */
+.toast-container {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #28a745; /* Green Color */
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    padding: 16px;
+    position: fixed;
+    top: 20px; /* Move to top */
+    left: 50%; /* Align to right */
+    font-size: 17px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(-50%); /* Initial hidden position */
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+/* Show Toast */
+.toast-show {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Fade Out Animation */
+.toast-hide {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+/* Toast Icon */
+.toast-container i {
+    font-size: 20px;
+    color: white;
+}
+

@@ -2,9 +2,94 @@
 {% load static %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/payment_details.css' %}">
-
-<!-- Font Awesome CDN (add this if not already included in your base.html) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
+ <!-- Select2 CSS & JS -->
+ <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+ <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+ 
+<!-- DataTables & Buttons CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    /* Hide default DataTables search box */
+    div.dataTables_filter {
+        display: none !important;
+    }
+
+    /* Top controls styling */
+    .top-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .search-box {
+        padding: 6px 10px;
+        width: 250px;
+    }
+
+    #custom-buttons {
+        display: flex;
+        justify-content: flex-end;
+    }
+#payment-table tbody tr:hover {
+    background-color: #f8f8f8 !important; /* Light color for whole row */
+    transition: background-color 0.3s ease;
+}
+
+#payment-table tbody tr:hover td:first-child {
+    background-color: #f0f0f0 !important; /* Highlight only '#' column */
+    font-weight: bold;
+    color: #333;
+    transition: background-color 0.3s ease;
+}
+
+    
+    /* Custom Pagination Styling (Like .pagination-controls) */
+    .dataTables_paginate {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .dataTables_paginate .paginate_button {
+        background: linear-gradient(135deg, #ff7b54, #ff4e00);
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(52, 49, 48, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    }
+
+    .dataTables_paginate .paginate_button:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+        box-shadow: 0 6px 12px rgba(41, 39, 38, 0.4);
+    }
+
+    .dataTables_paginate .paginate_button.current {
+        background: linear-gradient(135deg, #333, #111);
+        color: #fff;
+        font-weight: bold;
+        border: 2px solid #ff4e00;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+    }
+ 
+</style>
+
 
 <div class="payment_details-container">
     <div class="payment_details-back-to-list-btn">
@@ -19,7 +104,51 @@
 
     <div class="payment_details-list">
         <div class="payment_details-table">
-            <input type="text" class="search-box" id="search-payment-details" onkeyup="filterTable('payment-table', 'search-payment-details')" placeholder="Search...">
+                <!-- Custom Search & Column Toggle Button -->
+            <div class="top-controls">
+                <input type="text" class="search-box" id="search-customer" placeholder="Search merchants...">
+                <div id="custom-buttons"></div>
+               
+<div class="plan-filter-wrapper" style="position: relative; display: inline-block;  margin-left: -64%;">
+  <button id="filter-toggle-btn" title="Filter Plans" 
+          style="
+            background-color: #f8f8f8 !important;
+            border: 1px solid gray; 
+            border-radius: 6px; 
+            padding: 6px 10px; 
+            cursor: pointer; 
+            font-size: 20px; 
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            ">
+    <i class="fas fa-filter"></i>
+  </button>
+
+  <div id="filter-menu" style="
+    display:none;
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    border-radius: 4px;
+    z-index: 1000;
+    min-width: 140px;
+    ">
+    <ul style="list-style:none; margin:0; padding:8px 0;">
+      <li class="filter-option" data-value="">All Plans</li>
+      <li class="filter-option" data-value="rental">Rental</li>
+      <li class="filter-option" data-value="prepaid">Prepaid</li>
+     </ul>
+  </div>
+</div>
+
+            </div>
             <table id="payment-table">
                 <thead>
                     <tr>
@@ -36,52 +165,57 @@
                 </thead>
                 <tbody>
                     {% for payment in topups %}
-                    <tr>
+                    <tr id="payment-row-{{ payment.id }}">
                         <td>{{ forloop.counter }}</td>
+
                         {% if payment.merchant %}
-                        <td>{{ payment.merchant.first_name }} {{ payment.merchant.last_name }}</td>
-                        <td>{{ payment.merchant.mobile }}</td>
-                        <td>{{ payment.paid_amount }}</td>
-                        <td>{{ payment.topup_amount }}</td>  <!-- for Top-Up -->
-                        <td>{{ payment.created_at|date:"Y-m-d" }}</td>
-                        <td>{{ payment.payment_mode }}</td>
-                        {% if payment.plan_type == "1" %}
-                            <td>Rental</td>
-                            {% elif payment.plan_type == "2" %}
-                            <td>Prepaid</td>
-                        {% else %}
-                            <td>Unknown</td>
-                        {% endif %}
-                        
-                       
-
-
+                            <td>{{ payment.merchant.first_name }} {{ payment.merchant.last_name }}</td>
+                            <td>{{ payment.merchant.mobile }}</td>
                         {% elif payment.customer %}
-                        <td>{{ payment.customer.first_name }} {{ payment.customer.last_name }}</td>
-                        <td>{{ payment.customer.mobile }}</td>
+                            <td>{{ payment.customer.first_name }} {{ payment.customer.last_name }}</td>
+                            <td>{{ payment.customer.mobile }}</td>
+                        {% else %}
+                            <td colspan="2">Unknown</td>
+                        {% endif %}
+
                         <td>{{ payment.paid_amount }}</td>
                         <td>{{ payment.topup_amount }}</td>
                         <td>{{ payment.created_at|date:"Y-m-d" }}</td>
                         <td>{{ payment.payment_mode }}</td>
-                        {% if payment.plan_type == "1" %}
-                            <td>Rental</td>
-                        {% elif payment.plan_type == "2" %}
-                            <td>Prepaid</td>
-                            {% else %}
-                            <td>Unknown</td>
-                        {% endif %}
-
-                        {% else %}
-                            <td colspan="8">No data available</td>
-                        {% endif %}
                         <td>
-                            <button class="btn btn-sm btn-success" onclick="showApproveModal('{{ payment.id }}', '{{ payment.plan_type }}')">
-                                <i class="fas fa-check-circle"></i> Approve
-                            </button>
-                            
-                            <button class="btn btn-sm btn-danger" onclick="showRejectModal('{{ payment.id }}')">
-                                <i class="fas fa-times-circle"></i> Reject
-                            </button>
+                            {% if payment.merchant and payment.merchant.plan_type %}
+                                {{ payment.merchant.plan_type|capfirst }}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </td>
+                        <td>
+                           {% if payment.status == 'approved' %}
+    <button class="btn btn-sm approved-disabled" disabled>
+    Approved
+    </button>
+{% elif payment.status == 'rejected' %}
+    <button class="btn btn-sm rejected-disabled" disabled>
+      Rejected
+    </button>
+{% else %}
+ <div class="d-flex gap-2">
+    <button 
+        id="approve-btn-{{ payment.id }}" 
+        class="btn btn-sm btn-success" 
+        onclick="showApproveModal('{{ payment.id }}', '{{ payment.plan_type }}')">
+        <i class="fas fa-check-circle"></i> Approve
+    </button>
+    <button 
+        id="reject-btn-{{ payment.id }}" 
+        class="btn btn-sm btn-danger" 
+        onclick="showRejectModal('{{ payment.id }}')">
+        <i class="fas fa-times-circle"></i> Reject
+    </button>
+</div>
+
+{% endif %}
+
                         </td>
                     </tr>
                     {% empty %}
@@ -95,11 +229,80 @@
     </div>
 </div>
 
-<!-- Modal for Approve Confirmation -->
+
+<!-- DataTables & Buttons JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+
+<script>
+
+ const table = $('#payment-table').DataTable({
+  dom: 'Bfrtip',
+  pageLength: 6,
+  paging: true,
+  responsive: true,
+  lengthChange: false,
+  buttons: [
+    {
+      extend: 'colvis',
+      text: '<i class="fas fa-table"></i>',
+      className: 'btn btn-light'
+    }
+  ],
+  stripeClasses: [],
+});
+table.buttons().container().appendTo('#custom-buttons');
+$('#search-customer').on('keyup', function () {
+  table.search(this.value).draw();
+});
+
+// Variable to store selected filter value
+let selectedPlan = "";
+
+// Custom filter function
+$.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+  let planType = data[7].toLowerCase();
+  if (selectedPlan === "" || planType === selectedPlan) {
+    return true;
+  }
+  return false;
+});
+
+// Toggle filter menu visibility
+$('#filter-toggle-btn').on('click', function(e) {
+  e.stopPropagation();
+  $('#filter-menu').toggle();
+});
+
+// Hide filter menu if clicking outside
+$(document).on('click', function() {
+  $('#filter-menu').hide();
+});
+
+// Handle filter option click
+$('.filter-option').on('click', function() {
+  selectedPlan = $(this).data('value').toLowerCase();
+  $('#filter-menu').hide();
+
+  // Optional: change button color or add small label showing current filter
+  if(selectedPlan === "") {
+    $('#filter-toggle-btn').css('color', '#007bff').attr('title', 'Filter Plans (All)');
+  } else {
+    $('#filter-toggle-btn').css('color', '#0056b3').attr('title', 'Filter Plans (' + $(this).text() + ')');
+  }
+
+  table.draw();
+});
+
+</script>
+
+<!-- Approve Modal -->
 <div id="approveModal" class="custom-modal">
     <div class="custom-modal-content">
         <span class="close" onclick="closeModal('approveModal')">&times;</span>
-        <h3 id="confirmationMessage">Do you want to approve this payment?</h3>
+        <h3>Do you want to approve this payment?</h3>
         <div class="custom-modal-buttons">
             <button id="approveConfirmBtn" class="custom-btn green-btn">Yes, Approve</button>
             <button class="custom-btn red-btn" onclick="closeModal('approveModal')">Cancel</button>
@@ -107,25 +310,23 @@
     </div>
 </div>
 
-
-<!-- Modal for Reject Confirmation -->
+<!-- Reject Modal -->
 <div id="rejectModal" class="custom-modal">
     <div class="custom-modal-content">
         <span class="close" onclick="closeModal('rejectModal')">&times;</span>
-        <h3 id="confirmationMessage">Do you want to reject this<br>payment?</h3>
+        <h3>Do you want to reject this<br>payment?</h3>
         <div class="custom-modal-buttons">
             <button id="rejectConfirmBtn" class="custom-btn green-btn">Yes, Reject</button>
-            <!-- Apply the new class here -->
             <button class="custom-btn red-btn" onclick="closeModal('rejectModal')">Cancel</button>
         </div>
     </div>
 </div>
 
-<!-- Modal for Rental Plan Validity -->
+<!-- Rental Validity Modal -->
 <div id="rentalValidityModal" class="custom-modal">
     <div class="custom-modal-content">
         <span class="close" onclick="closeModal('rentalValidityModal')">&times;</span>
-        <h3 id="confirmationMessage">Enter Rental Plan Validity<br> (in days):</h3>
+        <h3>Enter Rental Plan Validity<br> (in days):</h3>
         <input type="number" id="rentalValidityInput" min="1" placeholder="e.g. 30" class="validity-input" />
         <div class="custom-modal-buttons">
             <button id="rentalApproveConfirmBtn" class="custom-btn green-btn">Approve</button>
@@ -134,94 +335,61 @@
     </div>
 </div>
 
-
-<!-- Toast container -->
-<div id="toast-container" class="toast-container">
-    <i id="toast-icon" class=""></i>
-    <span id="toast-message"></span>
-</div>
-
+<!-- Toast -->
+        <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+            <i class="fa fa-click-circle"></i>
+            <span class="toast-message">{{ message }}</span>
+        </div>
 
 <script>
-    function showApproveModal(paymentId, planType) {
-        console.log("Plan Type:", planType);  // <-- Add this
-    
-        if (planType === "rental") {
-            document.getElementById("rentalValidityModal").style.display = "flex";
-            document.getElementById("rentalApproveConfirmBtn").onclick = function () {
-                let validity = document.getElementById("rentalValidityInput").value;
-                if (!validity || parseInt(validity) <= 0) {
-                    alert("Please enter a valid number of days.");
-                    return;
-                }
-                approvePayment(paymentId, "rental", validity);
-            };
-        } else {
-            document.getElementById('approveConfirmBtn').onclick = function () {
-                approvePayment(paymentId, "prepaid");
-            };
-            document.getElementById('approveModal').style.display = "flex";
-        }
-    }
-    
-    // Function to open the reject modal
-    function showRejectModal(paymentId) {
-        // Set the payment ID to a hidden variable or pass it to your backend
-        document.getElementById('rejectConfirmBtn').onclick = function() {
-            rejectPayment(paymentId);
-        };
-        
-        document.getElementById('rejectModal').style.display = "flex";
-    }
-
-    // Function to close the modal
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = "none";
-    }
-
-    // Function to approve the payment (you can modify this to call an API or handle approval logic)
-    function approvePayment(paymentId) {
-        // Here, you can send the paymentId to the server to mark the payment as approved
-        console.log("Payment Approved: " + paymentId);
-
-        // After approval, close the modal
-        closeModal('approveModal');
-    }
-
-    // Function to reject the payment (you can modify this to call an API or handle rejection logic)
-    function rejectPayment(paymentId) {
-        // Here, you can send the paymentId to the server to mark the payment as rejected
-        console.log("Payment Rejected: " + paymentId);
-
-        // After rejection, close the modal
-        closeModal('rejectModal');
-    }
-
-    // Function to filter the table based on search input
-    function filterTable(tableId, searchBoxId) {
-        let input = document.getElementById(searchBoxId);
-        let filter = input.value.toLowerCase();
-        let table = document.getElementById(tableId);
-        let rows = table.getElementsByTagName("tr");
-
-        for (let i = 1; i < rows.length; i++) {
-            let cells = rows[i].getElementsByTagName("td");
-            let rowMatch = false;
-
-            for (let j = 0; j < cells.length; j++) {
-                let cellText = cells[j].innerText.toLowerCase();
-                if (cellText.includes(filter)) {
-                    rowMatch = true;
-                    break;
-                }
+function showApproveModal(paymentId, planType) {
+    if (planType === "rental") {
+        document.getElementById("rentalValidityModal").style.display = "flex";
+        document.getElementById("rentalApproveConfirmBtn").onclick = function () {
+            let validity = document.getElementById("rentalValidityInput").value;
+            if (!validity || parseInt(validity) <= 0) {
+                alert("Please enter a valid number of days.");
+                return;
             }
-
-            rows[i].style.display = rowMatch ? "" : "none";
-        }
+            approvePayment(paymentId, "rental", validity);
+        };
+    } else {
+        document.getElementById('approveConfirmBtn').onclick = function () {
+            approvePayment(paymentId, "prepaid");
+        };
+        document.getElementById('approveModal').style.display = "flex";
     }
+}
+
+function showRejectModal(paymentId) {
+    document.getElementById('rejectConfirmBtn').onclick = function() {
+        rejectPayment(paymentId);
+    };
+    document.getElementById('rejectModal').style.display = "flex";
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
+}
+
+function showToast(message, iconClass = "fas fa-check-circle", bgColor = "#28a745") {
+    const toast = document.getElementById('toast-container');
+    const toastMessage = document.getElementById('toast-message');
+    const toastIcon = document.getElementById('toast-icon');
+
+    toastMessage.textContent = message;
+    toastIcon.className = iconClass;
+    toast.style.backgroundColor = bgColor;
+
+    toast.classList.add('show');
+
+    // Hide toast after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
 
 
-// Function to approve the payment
 
 function approvePayment(paymentId, planType, validity = null) {
     let bodyData = "payment_id=" + encodeURIComponent(paymentId) +
@@ -239,18 +407,27 @@ function approvePayment(paymentId, planType, validity = null) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
-            window.location.reload();
+            showToast(data.message, "fas fa-check-circle", "#28a745");
+
+            const approveBtn = document.getElementById("approve-btn-" + paymentId);
+            approveBtn.className = "btn btn-sm approved-disabled";
+            approveBtn.disabled = true;
+            approveBtn.innerHTML = `Approved`;
+
+            document.getElementById("reject-btn-" + paymentId).style.display = "none";
         } else {
-            alert("Error: " + data.message);
+            showToast("Error: " + data.message, "fas fa-exclamation-triangle", "#dc3545");
         }
     })
-    .catch(error => console.error("Error approving payment:", error));
+    .catch(error => {
+        console.error("Error approving payment:", error);
+        showToast("Error approving payment", "fas fa-exclamation-triangle", "#dc3545");
+    });
 
     closeModal('approveModal');
     closeModal('rentalValidityModal');
 }
-// Function to reject the payment
+
 function rejectPayment(paymentId) {
     fetch("{% url 'payment_details' %}", {
         method: "POST",
@@ -258,31 +435,58 @@ function rejectPayment(paymentId) {
             "Content-Type": "application/x-www-form-urlencoded",
             "X-CSRFToken": getCookie("csrftoken")
         },
-        body: "payment_id=" + encodeURIComponent(paymentId) + "&action=reject"  // Pass action as 'reject'
+        body: "payment_id=" + encodeURIComponent(paymentId) + "&action=reject"
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
-            window.location.reload(); // Reload to reflect changes
+            showToast(data.message, "fas fa-times-circle", "#dc3545");
+
+            const approveBtn = document.getElementById("approve-btn-" + paymentId);
+            approveBtn.className = "btn btn-sm rejected-disabled";
+            approveBtn.disabled = true;
+            approveBtn.innerHTML = `Rejected`;
+
+            document.getElementById("reject-btn-" + paymentId).style.display = "none";
         } else {
-            alert("Error: " + data.message);
+            showToast("Error: " + data.message, "fas fa-exclamation-triangle", "#dc3545");
         }
     })
-    .catch(error => console.error("Error rejecting payment:", error));
+    .catch(error => {
+        console.error("Error rejecting payment:", error);
+        showToast("Error rejecting payment", "fas fa-exclamation-triangle", "#dc3545");
+    });
 
     closeModal('rejectModal');
 }
 
+function filterTable(tableId, searchBoxId) {
+    let input = document.getElementById(searchBoxId);
+    let filter = input.value.toLowerCase();
+    let table = document.getElementById(tableId);
+    let rows = table.getElementsByTagName("tr");
 
-// CSRF Token helper function
+    for (let i = 1; i < rows.length; i++) {
+        let cells = rows[i].getElementsByTagName("td");
+        let rowMatch = false;
+
+        for (let j = 0; j < cells.length; j++) {
+            if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                rowMatch = true;
+                break;
+            }
+        }
+        rows[i].style.display = rowMatch ? "" : "none";
+    }
+}
+
 function getCookie(name) {
     let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(";");
+    if (document.cookie && document.cookie !== '') {
+        let cookies = document.cookie.split(';');
         for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            let cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                 break;
             }
@@ -290,9 +494,5 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-
 </script>
-
-
-
 {% endblock %}
