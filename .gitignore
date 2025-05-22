@@ -50,4 +50,4 @@ Thumbs.db
 # Ignore SSH and history files
 .bash_history
 .bashrc
-.zsh_history
+.zsh_historyserviceAccountKey.json
