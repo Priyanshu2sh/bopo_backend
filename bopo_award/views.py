@@ -2102,19 +2102,38 @@ def auto_deduct_inactive_global_points():
             
 class NotificationListAPIView(APIView):
     def get(self, request):
-        customer_id = request.GET.get("customers")
-        merchant_id = request.GET.get("merchants")
+        customer_id_param = request.GET.get("customer_id")
+        merchant_id_param = request.GET.get("merchant_id")
         project_id = request.GET.get("project_id")
 
         notifications = Notification.objects.all()
 
-        if customer_id:
-            notifications = notifications.filter(customers=customer_id)
-        elif merchant_id:
-            notifications = notifications.filter(merchants=merchant_id)
+        if customer_id_param:
+            try:
+                # Use correct field: customer_id
+                customer = Customer.objects.get(customer_id=customer_id_param)
+                notifications = notifications.filter(customers=customer)
+
+                customer.unread_notification = 0
+                customer.save()
+            except Customer.DoesNotExist:
+                return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        elif merchant_id_param:
+            try:
+                merchant = Merchant.objects.get(merchant_id=merchant_id_param)
+                notifications = notifications.filter(merchants=merchant)
+
+                merchant.unread_notification = 0
+                merchant.save()
+            except Merchant.DoesNotExist:
+                return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
+
         elif project_id:
             notifications = notifications.filter(project_id=project_id)
 
-        notifications = notifications.order_by('-created_at')  # latest first
+        notifications = notifications.order_by('-created_at')
+        notifications.update(is_read=True)
+
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

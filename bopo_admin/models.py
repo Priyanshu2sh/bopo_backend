@@ -160,6 +160,7 @@ class Notification(models.Model):
     title = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False) 
 
     def __str__(self):
         return f"Notification: {self.title} ({self.project_id})"
