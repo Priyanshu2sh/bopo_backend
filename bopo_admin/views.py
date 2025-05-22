@@ -236,8 +236,10 @@ def home(request):
 
     # Total counts
     total_projects = Corporate.objects.count()
-    completed_projects = Corporate.objects.filter(status="Completed").count()
-    project_progress = (completed_projects / total_projects * 100) if total_projects > 0 else 0
+    # completed_projects = Corporate.objects.filter(status="Completed").count()
+    active_projects = Corporate.objects.filter(status="Active").count()
+
+    project_progress = (active_projects / total_projects * 100) if total_projects > 0 else 0
 
     total_merchants = Merchant.objects.count()
     active_merchants = Merchant.objects.filter(status="Active").count()
@@ -300,7 +302,7 @@ def home(request):
     
     # Chart data for bar graph
     chart_data = {
-        "projects": [total_projects, completed_projects],
+        "projects": [total_projects, active_projects],
         "merchants": [total_merchants, active_merchants],
         "customers": [total_customers, active_customers],
     }
