@@ -4,234 +4,142 @@
 
 <link rel="stylesheet" href="{% static 'bopo_admin/css/send_notification_customer.css' %}">
 
-
-
 <div class="send-notification-container">
-        <div class="send-notification-header">
+    <div class="send-notification-header">
         <h2>Send Notifications</h2>
     </div>
 
-    <div class="send-notification-list">
+    <!-- Messages Display -->
+    {% if messages %}
+        <div class="message-container">
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
-          <!-- To Single Customers -->
+    <div class="send-notification-list">
+        <!-- To Single Customers -->
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
             <label for="toggle-single-customer" class="send-notification-label">
                 <span class="send-notification-icon">👤</span>
                 <span>To Single Customer</span>
             </label>
-        
+
             <div class="send-notification-form">
                 <br>
                 <form method="POST" action="{% url 'create_notification' %}">
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="select-customer">Select Customer:</label>
-                      <select id="select-customer" name="customer_id" class="form-control">
-                        <option value="">-- Select Customer --</option>
-                        {% for customer in customers %}
-                            <option value="{{ customer.customer_id }}">
-                                {{ customer.customer_id }} - {{ customer.first_name }} {{ customer.last_name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-   
+                        <select id="select-customer" name="customer_id" class="form-control">
+                            <option value="">-- Select Customer --</option>
+                            {% for customer in customers %}
+                                <option value="{{ customer.customer_id }}">
+                                    {{ customer.customer_id }} - {{ customer.first_name }} {{ customer.last_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </div>
-                
+
                     <div class="form-group">
                         <label for="notification-type-single">Notification Type:</label>
                         <input type="text" id="notification-type-single" name="notification_type" class="form-control" placeholder="Enter notification type">
                     </div>
-                
+
                     <div class="form-group">
                         <label for="notification-title-single">Title:</label>
                         <input type="text" id="notification-title-single" name="notification_title" class="form-control" placeholder="Enter title">
                     </div>
-                
+
                     <div class="form-group">
                         <label for="notification-description-single">Description:</label>
-                        <textarea id="notification-description-single" name="notification_description" class="form-control" rows="4" placeholder="Enter description"></textarea>
+                        <textarea id="notification-description-single" name="description" class="form-control" rows="4" placeholder="Enter description"></textarea>
                     </div>
-                
+
                     <div class="button-container">
-                        <button class="send-btn" onclick="showAlert()">
+                        <button class="send-btn" type="submit">
                             <i class="fa fa-paper-plane"></i> Send
                         </button>
                         <button class="cancel-btn" type="reset">
                             <i class="fa fa-times-circle"></i> Cancel
                         </button>
                     </div>
-
                 </form>
-                
             </div>
         </div>
-        
-        
+
         <!-- To All Customers -->
         <form method="POST" action="{% url 'create_notification' %}">
             {% csrf_token %}
-        <div class="send-notification-item">
-            
-            <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox" id="send_to_all" name="to_all_customer" value="true">
-            <label for="toggle-all-customers" class="send-notification-label">
-                <span class="send-notification-icon">🏢</span>
-                <span>To All Customers</span>
-            </label>
+            <div class="send-notification-item">
+                <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox" name="to_all_customer" value="true">
+                <label for="toggle-all-customers" class="send-notification-label">
+                    <span class="send-notification-icon">🏢</span>
+                    <span>To All Customers</span>
+                </label>
 
-            <div class="send-notification-form"><br>
-                <div class="form-group">
-                    <label for="notification-type-all">Notification Type:</label>
-                    <input type="text" id="notification-type-all" class="form-control" placeholder="Enter notification type" name="notification_type">
-                </div>
+                <div class="send-notification-form"><br>
+                    <div class="form-group">
+                        <label for="notification-type-all">Notification Type:</label>
+                        <input type="text" id="notification-type-all" class="form-control" placeholder="Enter notification type" name="notification_type">
+                    </div>
 
-                <div class="form-group">
-                    <label for="notification-title-all">Title:</label>
-                    <input type="text" id="notification-title-all" class="form-control" placeholder="Enter title" name="notification_title">
-                </div>
+                    <div class="form-group">
+                        <label for="notification-title-all">Title:</label>
+                        <input type="text" id="notification-title-all" class="form-control" placeholder="Enter title" name="notification_title">
+                    </div>
 
-                <div class="form-group">
-                    <label for="notification-description-all">Description:</label>
-                    <textarea id="notification-description-all" class="form-control" rows="4" placeholder="Enter description" name="description"></textarea>                    </textarea>
-                </div>
-                <div class="button-container">
-                        <button class="send-btn" onclick="showAlert()">
+                    <div class="form-group">
+                        <label for="notification-description-all">Description:</label>
+                        <textarea id="notification-description-all" class="form-control" rows="4" placeholder="Enter description" name="description"></textarea>
+                    </div>
+
+                    <div class="button-container">
+                        <button class="send-btn" type="submit">
                             <i class="fa fa-paper-plane"></i> Send
                         </button>
                         <button class="cancel-btn" type="reset">
                             <i class="fa fa-times-circle"></i> Cancel
                         </button>
                     </div>
-            </div>
-         
-        </div>
-    </form>
-      
-
-        <!-- To Corporate Customers -->
-        {% comment %} <div class="send-notification-item">
-            <input type="checkbox" id="toggle-corporate" class="toggle-checkbox">
-            <label for="toggle-corporate" class="send-notification-label">
-                <span class="send-notification-icon">🏢</span>
-                <span>To Corporate Customers</span>
-            </label>
-
-            <div class="send-notification-form"><br>
-                <div class="form-group">
-                    <label for="select-project">Select Project:</label>
-                    <select id="select-project" class="form-control">
-                        <option value="">-- Select Project --</option>
-                        <option value="project1">Project 1</option>
-                        <option value="project2">Project 2</option>
-                        <option value="project3">Project 3</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="notification-type-corporate">Notification Type:</label>
-                    <input type="text" id="notification-type-corporate" class="form-control" placeholder="Enter notification type">
-                </div>
-
-                <div class="form-group">
-                    <label for="notification-title-corporate">Title:</label>
-                    <input type="text" id="notification-title-corporate" class="form-control" placeholder="Enter title">
-                </div>
-
-                <div class="form-group">
-                    <label for="notification-description-corporate">Description:</label>
-                    <textarea id="notification-description-corporate" class="form-control" rows="4" placeholder="Enter description"></textarea>
-                </div>
-
-                <div class="button-container">
-                    <button class="cancel-btn">Cancel</button>
-                    <button class="send-btn" onclick="showAlert()">Send Notification</button>
                 </div>
             </div>
-        </div> {% endcomment %}
-
-        <!-- Merchant Wise -->
-        {% comment %} <div class="send-notification-item">
-            <input type="checkbox" id="toggle-merchant-wise" class="toggle-checkbox">
-            <label for="toggle-merchant-wise" class="send-notification-label">
-                <span class="send-notification-icon">🛒</span>
-                <span>Merchant Wise</span>
-            </label>
-
-            <div class="send-notification-form"><br>
-                <div class="form-group">
-                    <label for="select-merchant">Select Merchant ID:</label>
-                    <select id="select-merchant" class="form-control">
-                        <option value="">-- Select Merchant --</option>
-                        <option value="merchant1">Merchant 1</option>
-                        <option value="merchant2">Merchant 2</option>
-                        <option value="merchant3">Merchant 3</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="notification-type-merchant">Notification Type:</label>
-                    <input type="text" id="notification-type-merchant" class="form-control" placeholder="Enter notification type">
-                </div>
-
-                <div class="form-group">
-                    <label for="notification-title-merchant">Title:</label>
-                    <input type="text" id="notification-title-merchant" class="form-control" placeholder="Enter title">
-                </div>
-
-                <div class="form-group">
-                    <label for="notification-description-merchant">Description:</label>
-                    <textarea id="notification-description-merchant" class="form-control" rows="4" placeholder="Enter description"></textarea>
-                </div>
-
-                <div class="button-container">
-                    <button class="cancel-btn">Cancel</button>
-                    <button class="send-btn" onclick="showAlert()">Send Notification</button>
-                </div>
-            </div>
-        </div> {% endcomment %}
-
+        </form>
     </div>
 </div>
 
-<!-- JavaScript for Toggle Functionality -->
 
-    <script>
-        function showAlert() {
-            alert("Notification sent!");
-        }
-    
-        document.addEventListener("DOMContentLoaded", function () {
-            const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
-    
-            toggleCheckboxes.forEach((checkbox) => {
-                checkbox.addEventListener("change", function () {
-                    const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
-    
-                    // Close all other forms before opening the selected one
-                    const allForms = document.querySelectorAll(".send-notification-form");
-                    allForms.forEach((otherForm) => {
-                        if (otherForm !== form) {
-                            otherForm.style.display = "none";
-                            // Uncheck the other checkboxes to keep them hidden
-                            otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
-                        }
-                    });
-    
-                    // Toggle the visibility of the selected form
-                    if (form) {
-                        form.style.display = this.checked ? "block" : "none";
+<!-- Toggle JS -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
+
+        toggleCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener("change", function () {
+                const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
+
+                // Close other forms
+                document.querySelectorAll(".send-notification-form").forEach((otherForm) => {
+                    if (otherForm !== form) {
+                        otherForm.style.display = "none";
+                        otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
                     }
                 });
-            });
-    
-            // Initially hide all forms
-            document.querySelectorAll(".send-notification-form").forEach((form) => {
-                form.style.display = "none";
+
+                // Show selected form
+                form.style.display = this.checked ? "block" : "none";
             });
         });
-    </script>
-    
-    
 
+        // Hide all forms initially
+        document.querySelectorAll(".send-notification-form").forEach((form) => {
+            form.style.display = "none";
+        });
+    });
+</script>
 
 {% endblock %}
