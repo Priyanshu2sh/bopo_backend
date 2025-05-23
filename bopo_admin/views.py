@@ -2932,6 +2932,9 @@ def update_profile(request):
 
         elif user.role == 'super_admin':
             user.username = request.POST.get('username')
+            user.email = request.POST.get('email')
+            user.mobile = request.POST.get('mobile')
+            user.city = request.POST.get('city')
             user.save()
             messages.success(request, "Super admin profile updated successfully!")
 

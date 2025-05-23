@@ -6,7 +6,6 @@ from django.contrib.auth.hashers import make_password
 
 # from accounts.models import Corporate, Customer, Merchant
 
-
 # Create your models here.
 class BopoAdminManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -33,6 +32,9 @@ class BopoAdmin(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=25, unique=True)
     password = models.CharField(max_length=200)
     role = models.CharField(max_length=20, choices=USER_ROLES)  # <- Add this field
+    email = models.EmailField(null=True, blank=True)
+    mobile = models.CharField(max_length=15, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
     employee = models.ForeignKey('bopo_admin.Employee', on_delete=models.CASCADE, null=True, blank=True)
     corporate = models.ForeignKey('accounts.Corporate', on_delete=models.CASCADE, null=True, blank=True)
 
@@ -44,11 +46,8 @@ class BopoAdmin(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []
 
-    def __str__(self):
+    def _str_(self):
         return self.username
-
-    
-    
   
     
 class AccountInfo(models.Model):

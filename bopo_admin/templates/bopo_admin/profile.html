@@ -47,8 +47,8 @@
 
             {% elif role == "super_admin" %}
                 <p><strong>Username:</strong> {{ user.username }}</p>
-                {% comment %} <p><strong>Email:</strong> admin12@gmail.com</p>
-                <p><strong>Mobile:</strong> 9423432604</p> {% endcomment %}
+                <p><strong>Email:</strong> {{user.email}}</p>
+                <p><strong>Mobile:</strong> {{user.mobile}}</p> 
             {% endif %}
             <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
         </div>
@@ -70,8 +70,8 @@
 
             {% elif role == "super_admin" %}
                 <div><label>Username:</label> <input type="text" name="username" value="{{ user.username }}"></div>
-                {% comment %} <div><label>Email:</label> <input type="email" name="email" value="admin12@gmail.com"></div>
-                <div><label>Mobile:</label> <input type="text" name="mobile" value="9423432604"></div> {% endcomment %}
+                <div><label>Email:</label> <input type="email" name="email" value="{{user.email}}"></div>
+                <div><label>Mobile:</label> <input type="text" name="mobile" value="{{user.mobile}} "></div> 
             {% endif %}
             <button type="submit" class="btn btn-success"><i class="fa fa-paper-plane"></i> Update</button>
             <button type="button" id="cancel-edit-btn" class="btn btn-secondary"><i class="fa fa-times-circle"></i> Cancel</button>
