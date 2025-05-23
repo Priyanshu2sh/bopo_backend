@@ -3,14 +3,37 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/send_notifications.css' %}">
 
+{% if messages %}
+<div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+    {% for message in messages %}
+    <i class="fa fa-exclamation-circle"></i>
+    <span class="toast-message">{{ message }}</span>
+{% endfor %}
+    
+</div>
+{% endif %}
+
 <div class="send-notification-container">
-    {% if message %}
-    <div class="success-message">{{ message }}</div>
-    {% endif %}
+
+    <!-- Toast Notification -->
+
+
 
     <div class="send-notification-header">
         <h2>Send Notifications</h2>
     </div>
+
+
+    {% if messages %}
+    <div class="message-container">
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+  
 
     
     <div class="send-notification-list">
@@ -243,5 +266,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+
+
+
+  setTimeout(() => {
+    const toast = document.querySelector('.toast');
+    if (toast) toast.remove();
+  }, 4000);
+
+
 </script>
 {% endblock %}
