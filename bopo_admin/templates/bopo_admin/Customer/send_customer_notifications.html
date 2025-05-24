@@ -113,11 +113,23 @@
 </div>
 
 
-{% if messages %}
+{% comment %} {% if messages %}
 <div id="toast" class="toast-container toast-show">
     {% for message in messages %}
         <i class="fa fa-exclamation-circle"></i>
         <span class="toast-message">{{ message }}</span>
+    {% endfor %}
+</div>
+{% endif %} {% endcomment %}
+
+
+{% if messages %}
+<div id="toast" class="toast-container toast-show">
+    {% for message in messages %}
+        <div class="toast-message {{ message.tags }}">
+            <i class="fa fa-exclamation-circle"></i>
+            <span>{{ message }}</span>
+        </div>
     {% endfor %}
 </div>
 {% endif %}

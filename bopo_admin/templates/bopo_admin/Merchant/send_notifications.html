@@ -122,7 +122,7 @@
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-individual" class="toggle-checkbox">
             <label for="toggle-individual" class="send-notification-label">
-                <span class="send-notification-icon">🏬</span> To Single Individual Merchant
+                <span class="send-notification-icon">👤</span> To Single Individual Merchant
             </label>
             <div class="send-notification-form">
                 <input type="hidden" name="form_type" value="single_individual"><br>
@@ -159,7 +159,7 @@
         <div class="send-notification-item">
             <input type="checkbox" id="toggle-all-individual" class="toggle-checkbox" name="to_all_ind_merch" value="true">
             <label for="toggle-all-individual" class="send-notification-label">
-                <span class="send-notification-icon">👤</span> To All Individual Merchants
+                <span class="send-notification-icon">🏬</span> To All Individual Merchants
             </label>
             <div class="send-notification-form">
                 <input type="hidden" name="form_type" value="all_individual"><br>
@@ -186,14 +186,26 @@
 </div>
 <div>
 
-{% if messages %}
+{% comment %} {% if messages %}
 <div id="toast" class="toast-container toast-show">
     {% for message in messages %}
         <i class="fa fa-exclamation-circle"></i>
         <span class="toast-message">{{ message }}</span>
     {% endfor %}
 </div>
+{% endif %} {% endcomment %}
+
+{% if messages %}
+<div id="toast" class="toast-container toast-show">
+    {% for message in messages %}
+        <div class="toast-message {{ message.tags }}">
+            <i class="fa fa-exclamation-circle"></i>
+            <span>{{ message }}</span>
+        </div>
+    {% endfor %}
+</div>
 {% endif %}
+
 
 
 

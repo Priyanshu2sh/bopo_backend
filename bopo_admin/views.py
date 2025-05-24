@@ -2049,6 +2049,7 @@ def create_notification_view(request):
             messages.success(request, "Notification sent successfully to Merchant.")
             return redirect('send_notifications')
 
+    messages.error(request, "Notification sent failed.")
     return redirect('send_notifications')
 
 
