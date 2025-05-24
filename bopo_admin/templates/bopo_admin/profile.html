@@ -24,11 +24,13 @@
     <div id="toast-container">
         {% for message in messages %}
             <div class="toast-message success">
-                {{ message }}
+                <i class="fas fa-check-circle toast-icon"></i>
+                <span>{{ message }}</span>
             </div>
         {% endfor %}
     </div>
 {% endif %}
+
 
 
         <!-- View Mode -->
