@@ -197,8 +197,11 @@ button {
     top: 0;
     width: 120%;
     height: 120%;
+    margin-left: -5%;
     overflow: auto;
     background-color: rgba(0,0,0,0.4);
+    align-items: center;    /* Vertically center */
+    justify-content: center; /* Horizontally center */
 }
 
 .modal-content {
@@ -592,6 +595,7 @@ button {
         top: 0;
         left: 0;
         margin: 0;
+       
     }
 
     .modal-content {
@@ -672,22 +676,16 @@ button {
 }
 
 @media (max-width: 1024px) {
-   
-      .merchant-container {
-        padding: 15px;
-        margin-top: 3%;
-    }
-
-    .merchant-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
+    .merchant-container {
+        margin: 2%;
+        padding: 10px;
     }
 
     .add-merchant-btn {
-        font-size: 14px;
-        padding: 8px 12px;
-      
+        margin-left: 70%;
+        display: block;
+        width: 25%;
+        margin-top: 15%;
     }
 
     .addmerchant-form-container {
@@ -721,12 +719,12 @@ button {
         width: 100%;
         white-space: normal; /* ✅ Allow wrapping */
     }
-    
+/*     
     .modal{
         width: 150%;
         margin-left: -9%;
     
-    }
+    } */
 }
    
 /* ✅ Tablets & Mobiles (≤1023px) — Enable scroll for overflow */
