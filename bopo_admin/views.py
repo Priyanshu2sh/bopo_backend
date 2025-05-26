@@ -2625,7 +2625,6 @@ def add_employee(request):
     return render(request, 'bopo_admin/Employee/add_employee.html')
 
 
-
 from django.contrib import messages
 
 def assign_employee_role(request):
@@ -2635,12 +2634,14 @@ def assign_employee_role(request):
             employee = Employee.objects.get(employee_id=employee_id)
         except Employee.DoesNotExist:
             messages.error(request, "Employee not found.")
-            return redirect('assign_employee_role')  # Redirect back to form
+            return redirect('assign_employee_role')
 
         roles_data = {
             'corporate_merchant': 'Corporate Merchant' in request.POST.getlist('roles'),
             'individual_merchant': 'Individual Merchant' in request.POST.getlist('roles'),
+            'terminals': 'terminals' in request.POST.getlist('roles'),
             'merchant_send_credentials': 'Merchant Send Credentials' in request.POST.getlist('roles'),
+            'reduce_limit': 'reduce_limit' in request.POST.getlist('roles'),
             'merchant_limit': 'Merchant Limit' in request.POST.getlist('roles'),
             'merchant_login_page_info': 'Merchant Login Page-Info' in request.POST.getlist('roles'),
             'merchant_send_notification': 'Merchant Send Notification' in request.POST.getlist('roles'),
@@ -2652,22 +2653,64 @@ def assign_employee_role(request):
             'account_info': 'Account-Info' in request.POST.getlist('roles'),
             'reports': 'Reports' in request.POST.getlist('roles'),
             'deduct_amount': 'Deduct Amount' in request.POST.getlist('roles'),
-            'helpdesk_action': 'HelpDesk Action' in request.POST.getlist('roles')
+            'superadmin_functionality': 'superadmin_functionality' in request.POST.getlist('roles'),
+
+            'helpdesk_action': 'HelpDesk Action' in request.POST.getlist('roles'),
         }
 
-        employee_role, created = EmployeeRole.objects.update_or_create(
+
+        EmployeeRole.objects.update_or_create(
             employee=employee,
             defaults=roles_data
         )
 
         messages.success(request, "Roles successfully assigned.")
-        return redirect('employee_list')  # This should be the same view that uses Toastr
+
+        # Instead of redirecting now, show the form again with the success message
+        employees = Employee.objects.all()
+        return render(request, 'bopo_admin/Employee/employee_role.html', {
+            'employees': employees,
+            'redirect_to_list': True  # Flag for JS redirect
+        })
 
     else:
         employees = Employee.objects.all()
         return render(request, 'bopo_admin/Employee/employee_role.html', {'employees': employees})
+    
+    
+    
+    
 
+def get_employee_roles(request):
+    employee_id = request.GET.get('employee_id')
+    try:
+        employee = Employee.objects.get(employee_id=employee_id)
+        emp_roles = EmployeeRole.objects.get(employee=employee)
 
+        roles = {
+            'corporate_merchant': emp_roles.corporate_merchant,
+            'individual_merchant': emp_roles.individual_merchant,
+            'terminals': emp_roles.terminals,
+            'merchant_send_credentials': emp_roles.merchant_send_credentials,
+            'reduce_limit': emp_roles.reduce_limit,
+            'merchant_limit': emp_roles.merchant_limit,
+            'merchant_login_page_info': emp_roles.merchant_login_page_info,
+            'merchant_send_notification': emp_roles.merchant_send_notification,
+            'merchant_received_offers': emp_roles.merchant_received_offers,
+            'modify_customer_details': emp_roles.modify_customer_details,
+            'customer_send_notification': emp_roles.customer_send_notification,
+            'create_employee': emp_roles.create_employee,
+            'payment_details': emp_roles.payment_details,
+            'account_info': emp_roles.account_info,
+            'reports': emp_roles.reports,
+            'deduct_amount': emp_roles.deduct_amount,
+            'superadmin_functionality': emp_roles.superadmin_functionality,
+            'helpdesk_action': emp_roles.helpdesk_action,
+        }
+
+        return JsonResponse({'roles': roles})
+    except (Employee.DoesNotExist, EmployeeRole.DoesNotExist):
+        return JsonResponse({'roles': {}}, status=404)
 
 # def payment_details(request):
 #     topups = PaymentDetails.objects.all().order_by('-created_at')  # or any custom ordering

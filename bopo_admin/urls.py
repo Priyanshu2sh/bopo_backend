@@ -49,6 +49,9 @@ urlpatterns = [
     path('employee_list/',employee_list, name='employee_list'),
     path('employees/add/', add_employee, name='add_employee'),
     path('employee-role/',assign_employee_role, name='employee_role'),
+    path('get-employee-roles/', views.get_employee_roles, name='get_employee_roles'),
+
+
     
     path('payment_details/', payment_details, name='payment_details'),
     path('account_info/', account_info, name='account_info'),
@@ -209,7 +212,7 @@ urlpatterns = [
     path('create_notification/', create_notification_view, name='create_notification'),
     path("transaction_history/", views.transaction_history, name="transaction_history"),
     
-    
+
 
 
     path('api/save-fcm-token/', views.save_fcm_token, name='save_fcm_token'),

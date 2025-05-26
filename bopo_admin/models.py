@@ -207,7 +207,9 @@ class EmployeeRole(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     corporate_merchant = models.BooleanField(default=False)
     individual_merchant = models.BooleanField(default=False)
+    terminals = models.BooleanField(default=False)
     merchant_send_credentials = models.BooleanField(default=False)
+    reduce_limit = models.BooleanField(default=False)
     merchant_limit = models.BooleanField(default=False)
     merchant_login_page_info = models.BooleanField(default=False)
     merchant_send_notification = models.BooleanField(default=False)
@@ -219,6 +221,7 @@ class EmployeeRole(models.Model):
     account_info = models.BooleanField(default=False)
     reports = models.BooleanField(default=False)
     deduct_amount = models.BooleanField(default=False)
+    superadmin_functionality = models.BooleanField(default=False)
     helpdesk_action = models.BooleanField(default=False)
 
     def __str__(self):
