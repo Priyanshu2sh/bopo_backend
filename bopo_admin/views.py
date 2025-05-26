@@ -505,7 +505,38 @@ def get_customer(request, customer_id):
 
     return JsonResponse(data)
 
-@csrf_exempt  
+# @csrf_exempt  
+# def update_customer(request, customer_id):
+#     if request.method == "POST":
+#         try:
+#             customer = Customer.objects.get(customer_id=customer_id)
+
+#             email = request.POST.get('email')
+#             mobile = request.POST.get('mobile')
+
+#             # Basic validation (you can extend this as needed)
+#             if not email or not mobile:
+#                 return JsonResponse({'success': False, 'error': 'Email and Mobile are required'})
+
+         
+#             # Update only email and mobile
+#             customer.email = email
+#             customer.mobile = mobile
+#             customer.save()
+
+#             return JsonResponse({
+#                 "success": True,
+#                 "message": "Customer updated successfully!"
+#             })
+
+#         except Customer.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Customer not found'})
+
+#     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+
+@csrf_exempt
 def update_customer(request, customer_id):
     if request.method == "POST":
         try:
@@ -514,13 +545,24 @@ def update_customer(request, customer_id):
             email = request.POST.get('email')
             mobile = request.POST.get('mobile')
 
-            # Basic validation (you can extend this as needed)
             if not email or not mobile:
                 return JsonResponse({'success': False, 'error': 'Email and Mobile are required'})
 
-            # Optionally: Validate mobile number format, email format here
+            # Check duplication in Customer (exclude current customer)
+            if Customer.objects.filter(email=email).exclude(customer_id=customer_id).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered"})
 
-            # Update only email and mobile
+            if Customer.objects.filter(mobile=mobile).exclude(customer_id=customer_id).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Check duplication in Corporate (no exclude needed here)
+            if Corporate.objects.filter(email=email).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            if Corporate.objects.filter(mobile=mobile).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # If all checks pass, update
             customer.email = email
             customer.mobile = mobile
             customer.save()
@@ -806,6 +848,8 @@ def add_merchant(request):
     corporates = Corporate.objects.all()
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
 
+
+
 def redirect_with_error(request, message):
     from django.contrib import messages
     messages.error(request, message)
@@ -864,11 +908,48 @@ def get_corporate(request, corporate_id):
         return JsonResponse({'error': 'City not found'}, status=404)
 
 
+# from django.http import JsonResponse
+# from accounts.models import Corporate
+
+
+# @csrf_exempt  
+# def update_corporate(request, corporate_id):
+#     if request.method == 'POST':
+#         try:
+#             corporate = Corporate.objects.get(corporate_id=corporate_id)
+
+#             email = request.POST.get('email')
+#             mobile = request.POST.get('mobile')
+            
+           
+#             if email:
+#                 corporate.email = email
+#             if mobile:
+#                 corporate.mobile = mobile
+
+#             corporate.save()
+
+#             return JsonResponse({
+#                 'success': True,
+#                 'message': 'Email and mobile updated successfully!',
+#                 'updatedCorporate': {
+#                     'corporate_id': corporate.corporate_id,
+#                     'email': corporate.email,
+#                     'mobile': corporate.mobile,
+#                 }
+#             })
+
+#         except Corporate.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Corporate not found'}, status=404)
+
+#     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+
+
 from django.http import JsonResponse
-from accounts.models import Corporate
+from accounts.models import Corporate, Merchant, Customer
+from django.views.decorators.csrf import csrf_exempt
 
-
-@csrf_exempt  # only if you're testing with tools like Postman; remove in production
+@csrf_exempt  
 def update_corporate(request, corporate_id):
     if request.method == 'POST':
         try:
@@ -877,6 +958,25 @@ def update_corporate(request, corporate_id):
             email = request.POST.get('email')
             mobile = request.POST.get('mobile')
 
+            # Check duplicate email
+            if email:
+                if Corporate.objects.filter(email=email).exclude(corporate_id=corporate_id).exists():
+                    return JsonResponse({"success": False, "message": "Email is already registered."})
+                if Merchant.objects.filter(email=email).exists():
+                    return JsonResponse({"success": False, "message": "Email is already registered."})
+                if Customer.objects.filter(email=email).exists():
+                    return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            # Check duplicate mobile
+            if mobile:
+                if Corporate.objects.filter(mobile=mobile).exclude(corporate_id=corporate_id).exists():
+                    return JsonResponse({"success": False, "message": "Mobile number is already registered ."})
+                if Merchant.objects.filter(mobile=mobile).exists():
+                    return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+                if Customer.objects.filter(mobile=mobile).exists():
+                    return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Update fields
             if email:
                 corporate.email = email
             if mobile:
@@ -898,6 +998,7 @@ def update_corporate(request, corporate_id):
             return JsonResponse({'success': False, 'error': 'Corporate not found'}, status=404)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+
 
 from django.http import JsonResponse
 from accounts.models import Merchant
@@ -945,8 +1046,43 @@ def get_copmerchant(request, merchant_id):
 
 
 
-from django.http import JsonResponse
-from accounts.models import Merchant, Corporate
+# from django.http import JsonResponse
+# from accounts.models import Merchant, Corporate
+
+
+# def update_copmerchant(request, merchant_id):
+#     if request.method == "POST":
+#         if not merchant_id:
+#             return JsonResponse({'success': False, 'error': 'Missing merchant ID'}, status=400)
+
+#         try:
+#             merchant = Merchant.objects.get(id=merchant_id)
+
+#             email = request.POST.get('email', '').strip()
+#             mobile = request.POST.get('mobile', '').strip()
+
+#             if email:
+#                 merchant.email = email
+#             if mobile:
+#                 merchant.mobile = mobile
+
+#             merchant.save()
+
+#             return JsonResponse({
+#                 "success": True,
+#                 "message": "Email and mobile updated successfully!",
+#                 "updatedMerchant": {
+#                     "id": merchant.id,
+#                     "email": merchant.email,
+#                     "mobile": merchant.mobile,
+#                 }
+#             })
+
+#         except Merchant.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Merchant not found'}, status=404)
+
+#     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+
 
 
 def update_copmerchant(request, merchant_id):
@@ -960,12 +1096,27 @@ def update_copmerchant(request, merchant_id):
             email = request.POST.get('email', '').strip()
             mobile = request.POST.get('mobile', '').strip()
 
-            if email:
-                merchant.email = email
-            if mobile:
-                merchant.mobile = mobile
+            # Check duplicate email in Merchant excluding current merchant
+            if Merchant.objects.filter(email=email).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
 
+            # Check duplicate mobile in Merchant excluding current merchant
+            if Merchant.objects.filter(mobile=mobile).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Check duplicate email in Corporate
+            if Corporate.objects.filter(email=email).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            # Check duplicate mobile in Corporate
+            if Corporate.objects.filter(mobile=mobile).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Update merchant email and mobile
+            merchant.email = email
+            merchant.mobile = mobile
             merchant.save()
+
 
             return JsonResponse({
                 "success": True,
@@ -981,7 +1132,6 @@ def update_copmerchant(request, merchant_id):
             return JsonResponse({'success': False, 'error': 'Merchant not found'}, status=404)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
-
 
 
 # from django.http import JsonResponse
@@ -1148,16 +1298,65 @@ def edit_merchants(request, merchant_id):
 
 
 
+# def update_merchant(request): 
+#     if request.method == "POST":
+#         merchant_id = request.POST.get('merchant_id')
+#         email = request.POST.get('email')
+#         mobile = request.POST.get('mobile')
+
+#         try:
+#             merchant = Merchant.objects.get(id=merchant_id)
+
+#             # Update only email and mobile
+#             merchant.email = email
+#             merchant.mobile = mobile
+#             merchant.save()
+
+#             return JsonResponse({
+#                 "success": True,
+#                 "message": "Merchant updated successfully!"
+#             })
+#         except Merchant.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Merchant not found'})
+#     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+
+from django.http import JsonResponse
+from accounts.models import Merchant, Corporate
+
 def update_merchant(request): 
     if request.method == "POST":
         merchant_id = request.POST.get('merchant_id')
         email = request.POST.get('email')
         mobile = request.POST.get('mobile')
 
+        # Validate input
+        if not merchant_id or not email or not mobile:
+            return JsonResponse({'success': False, 'error': 'Merchant ID, email, and mobile are required.'})
+
+        email = email.strip().lower()  # normalize email
+
         try:
             merchant = Merchant.objects.get(id=merchant_id)
+            
+            # Check duplicate email in Merchant excluding current merchant
+            if Merchant.objects.filter(email=email).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
 
-            # Update only email and mobile
+            # Check duplicate mobile in Merchant excluding current merchant
+            if Merchant.objects.filter(mobile=mobile).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Check duplicate email in Corporate
+            if Corporate.objects.filter(email=email).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            # Check duplicate mobile in Corporate
+            if Corporate.objects.filter(mobile=mobile).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Update merchant email and mobile
             merchant.email = email
             merchant.mobile = mobile
             merchant.save()
@@ -1166,8 +1365,10 @@ def update_merchant(request):
                 "success": True,
                 "message": "Merchant updated successfully!"
             })
+
         except Merchant.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Merchant not found'})
+
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 from django.http import JsonResponse

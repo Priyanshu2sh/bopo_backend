@@ -4,6 +4,8 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/account_info.css' %}">
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
 
 
 <div class="payment_details-back-to-list-btn">
@@ -25,7 +27,7 @@
                     <label>Account Number</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-university"></i></span>
-                        <input type="text" name="accountNumber" class="form-control" id="accountNumber" value="{{ account.accountNumber|default:'' }}" placeholder="Enter Account Number" required>
+                        <input type="text" name="accountNumber" class="form-control" id="accountNumber" value="{{ account.accountNumber|default:'' }}" placeholder="Enter Account Number" maxlength="18" required>
                     </div>
                 </div>
 
@@ -68,7 +70,7 @@
                     <label>IFSC Code</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-barcode"></i></span>
-                        <input type="text" class="form-control" name="ifscCode" id="ifscCode" value="{{ account.ifscCode|default:'' }}" placeholder="Enter IFSC Code" required>
+                        <input type="text" class="form-control" name="ifscCode" id="ifscCode" value="{{ account.ifscCode|default:'' }}" placeholder="Enter IFSC Code" maxlength="11" required>
                     </div>
                 </div>
 
@@ -84,7 +86,7 @@
                     <label>Pin Code</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
-                        <input type="text" class="form-control" name="pincode" id="pinCode" value="{{ account.pincode|default:'' }}" placeholder="Enter Pin Code" required>
+                        <input type="text" class="form-control" name="pincode" id="pinCode" value="{{ account.pincode|default:'' }}" placeholder="Enter Pin Code" maxlength="6" required>
                     </div>
                 </div>
             </div>
@@ -162,11 +164,93 @@
     });
 
 
+const validators = {
+    accountNumber: function(value) {
+        if (value.trim() === "") return "Account Number is required";
+        if (!/^\d+$/.test(value)) return "Account Number must contain only digits";
+        if (value.length < 9 || value.length > 18)
+        return "Account Number must be between 9 and 18 digits long";
+        return "";
+},
+
+    payableTo: function(value) {
+        if (value.trim() === "") return "Payable To is required";
+        if (value.length < 3) return "Payable To must be at least 3 characters";
+        return "";
+    },
+    bankName: function(value) {
+        if (value.trim() === "") return "Bank Name is required";
+        return "";
+    },
+    city: function(value) {
+        if (value.trim() === "") return "City is required";
+        return "";
+    },
+    accountType: function(value) {
+        if (value.trim() === "") return "Account Type is required";
+        return "";
+    },
+   ifscCode: function(value) {
+       if (value === "") {
+        return "Please enter your IFSC code.";
+    }
+
+    if (value.length !== 11) {
+        return "IFSC code must be exactly 11 characters long.";
+    }
+
+    if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(value)) {
+        return "Invalid IFSC format. It should look like: ABCD0XXXXXX";
+    }
+return "";
+},  
+
+    branchName: function(value) {
+        if (value.trim() === "") return "Branch Name is required";
+        return "";
+    },
+    pincode: function(value) {
+        if (value.trim() === "") return "Pin Code is required";
+        if (!/^\d{6}$/.test(value)) return "Pin Code must be 6 digits";
+        return "";
+    }
+};
+
+
+
+      // Live validation
+    Object.keys(validators).forEach(name => {
+        const input = document.getElementsByName(name)[0];
+        if (!input) return;
+
+        input.addEventListener("input", () => {
+            const value = input.value.trim();
+            const errorMessage = validators[name](value);
+            input.setCustomValidity(errorMessage);
+            input.reportValidity();
+        });
+    });
 
 
 
     document.getElementById("accountForm").addEventListener("submit", function (event) {
         event.preventDefault(); // Prevent normal form submission
+
+         const form = this;
+        let isValid = true;
+
+        Object.keys(validators).forEach(name => {
+            const input = document.getElementsByName(name)[0];
+            const value = input.value.trim();
+            const errorMessage = validators[name](value);
+            input.setCustomValidity(errorMessage);
+            if (errorMessage) {
+                input.reportValidity();
+                isValid = false;
+            }
+        });
+
+        if (!isValid) return;
 
         let formData = new FormData(this);
 
@@ -185,7 +269,7 @@
                 window.location.reload(); // Reload the page after 2 seconds
             }, 3000); // Adjust the time delay if needed
         } else {
-            showToast(data.message || 'Error sending credentials'); // Show error toast
+            showToast(data.message || 'Error while saving'); // Show error toast
         }
     })
     .catch(error => {

@@ -441,10 +441,11 @@ button {
 }
 
 .addcustomer-btn-submit {
-    display: inline-block;
+    display: block;              /* make button take full width of its container */
     padding: 10px 20px;
-    margin-top: 3%;
-    width: 20%;
+    margin: 30px auto 0 auto;   /* center horizontally with auto left/right margins */
+    width: 20%;                /* full width on small screens */
+    max-width: 200px;           /* limit max width on larger screens */
     font-size: 16px;
     color: white;
     background-color: #004080;
@@ -452,9 +453,7 @@ button {
     border-radius: 5px;
     cursor: pointer;
     text-align: center;
-    text-decoration: none;
     transition: background 0.3s ease;
-    margin-left: 40%;
 }
 
 .addcustomer-btn-submit:hover {

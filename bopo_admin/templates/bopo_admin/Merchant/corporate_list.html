@@ -632,20 +632,21 @@ $('#editCorporateForm').submit(function (e) {
         body: formData
     })
         .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showToast(`${formType.charAt(0).toUpperCase() + formType.slice(1)} updated successfully`);
-                closeEditModal();
-                setTimeout(() => {
-                    location.reload(); // Refresh to reflect changes
-                }, 1000);
-            } else {
-                showToast(data.error || "Update failed");
-            }
-        })
+       .then(data => {
+    if (data.success) {
+        showToast(`${formType.charAt(0).toUpperCase() + formType.slice(1)} updated successfully`);
+        closeEditModal();
+        setTimeout(() => {
+            location.reload(); // Refresh to reflect changes
+        }, 1000);
+    } else {
+        showToast(data.message || "Update failed");
+    }
+})
+
         .catch(err => {
             console.error(err);
-            showToast("An error occurred during update from frontend");
+            showToast("An error occurred during update");
         });
 });
 
