@@ -57,17 +57,18 @@
                 <input type="checkbox" id="individual_merchant" name="roles" value="Individual Merchant">
                 <label for="individual_merchant">Individual Merchant</label>
 
-               <input type="checkbox" id="terminals" name="roles" value="terminals">
-                <label for="terminals">Terminals</label>
+                 <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
+                <label for="merchant_send_credentials">Merchant Send Credentials</label>
+                
+               {% comment %} <input type="checkbox" id="terminals" name="roles" value="terminals">
+                <label for="terminals">Terminals</label> {% endcomment %}
 
                     <input type="checkbox" id="reduce_limit" name="roles" value="reduce_limit">
                 <label for="reduce_limit">Reduce Merchant Points</label>
 
-                <input type="checkbox" id="superadmin_functionality" name="roles" value="superadmin_functionality">
-<label for="superadmin_functionality">SuperAdmin Functionality</label>
+                
 
-                <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
-                <label for="merchant_send_credentials">Merchant Send Credentials</label>
+               
 
             
 
@@ -110,7 +111,8 @@
                 {% comment %} <input type="checkbox" id="deduct_amount" name="roles" value="Deduct Amount">
                 <label for="deduct_amount">Deduct Amount</label> {% endcomment %}
 
-              
+              <input type="checkbox" id="superadmin_functionality" name="roles" value="superadmin_functionality">
+<label for="superadmin_functionality">SuperAdmin Functionality</label>
 
                 <input type="checkbox" id="helpdesk_action" name="roles" value="HelpDesk Action">
                 <label for="helpdesk_action">HelpDesk Action</label>
@@ -146,10 +148,16 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // Remove toast after 3.5s
-    setTimeout(() => {
-        const toast = document.querySelector('.toast-container');
-        if (toast) toast.remove();
-    }, 3500);
+      const toast = document.querySelector('.toast-container');
+    if (toast) {
+        // Show toast container if hidden (usually visible anyway)
+        toast.style.display = 'block';
+
+        // Remove toast after 3.5s
+        setTimeout(() => {
+            toast.remove();
+        }, 3500);
+    }
 
     const selectAll = document.getElementById('select_all');
     const checkboxes = document.querySelectorAll('input[type="checkbox"][name="roles"]');

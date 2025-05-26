@@ -120,6 +120,7 @@ urlpatterns = [
 
     path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
     path('helpdesk/', views.helpdesk, name='helpdesk'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
     #  path('helpdesk/', views.helpdesk_view, name='helpdesk'),
     
     # path('api/security-questions/', views.get_security_questions, name='get_security_questions'),

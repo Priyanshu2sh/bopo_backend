@@ -2873,7 +2873,8 @@ def login_view(request):
 
             # Set session expiry based on "remember me"
             if remember_me:
-                request.session.set_expiry(1209600)  # 2 weeks
+               request.session.set_expiry(2592000)  # 1 month
+
             else:
                 request.session.set_expiry(0)  # Session expires on browser close
 
@@ -2885,6 +2886,94 @@ def login_view(request):
             return render(request, 'bopo_admin/login.html', {'error_message': error_message})
 
     return render(request, 'bopo_admin/login.html')
+
+
+# def login_view(request):
+#     # Debug: Print request method and query params
+#     print("Request method:", request.method)
+#     print("Query params:", request.GET)
+
+#     # GET request (initial load or after auto logout)
+#     if request.GET.get('inactive'):
+#         error_message = "Your corporate account has been deactivated. Please contact the superadmin."
+#         print("Corporate account inactive")
+#         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#     if request.method == 'POST':
+#         # Get form values
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         user_type = request.POST.get('user_type')
+#         remember_me = request.POST.get('remember_me')
+
+#         # Debug: Print form inputs
+#         print("Username:", username)
+#         print("User Type:", user_type)
+#         print("Remember Me Checked:", remember_me)
+
+#         # Authenticate user
+#         user = authenticate(request, username=username, password=password)
+#         print("Authenticated user:", user)
+
+#         if user:
+#             if user_type == "corporate_admin":
+#                 try:
+#                     corporate = Corporate.objects.get(corporate_id=username)
+#                     print("Corporate found:", corporate)
+#                     if corporate.status == "Inactive":
+#                         logout(request)
+#                         request.session.flush()
+#                         error_message = "Your corporate account is currently not active. Please reach out to the superadmin for assistance."
+#                         print("Corporate inactive, logging out.")
+#                         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+#                 except Corporate.DoesNotExist:
+#                     error_message = "Corporate account not found."
+#                     print("Corporate does not exist.")
+#                     return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#             elif user_type == "employee":
+#                 try:
+#                     role_permissions = EmployeeRole.objects.filter(employee=user.employee)
+#                     print("Employee role permissions found:", role_permissions)
+#                     if not role_permissions.exists():
+#                         error_message = "You do not have permission to access this page."
+#                         print("No role permissions, access denied.")
+#                         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+#                 except Exception as e:
+#                     error_message = "Error checking employee roles."
+#                     print("Error checking employee roles:", str(e))
+#                     return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#             # Login user
+#             login(request, user)
+#             print("User logged in:", user)
+
+#             # Session expiry setup
+#             if remember_me:
+#                 request.session.set_expiry(2)  # 2 seconds for debug
+#                 print("Session expiry set to 2 seconds for testing.")
+#             else:
+#                 request.session.set_expiry(0)
+#                 print("Session will expire on browser close.")
+
+#             request.session['user_type'] = user_type
+#             print("Session user_type set to:", user_type)
+
+#             return redirect('home')
+
+#         else:
+#             error_message = "Invalid credentials"
+#             print("Authentication failed.")
+#             return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#     print("Initial login page load (GET request).")
+#     return render(request, 'bopo_admin/login.html')
+
+
+
+def forgot_password(request):
+    return render(request, 'bopo_admin/forgot_password.html')
+
 
 
 from django.contrib.auth.hashers import make_password
