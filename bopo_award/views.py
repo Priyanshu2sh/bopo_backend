@@ -426,6 +426,7 @@ class AwardPointsAPIView(APIView):
         customer_id = request.data.get('customer_id')
         customer_mobile = request.data.get('customer_mobile')
         merchant_id = request.data.get('merchant_id')
+        pin = request.data.get('pin')
         merchant_mobile = request.data.get('merchant_mobile')
         purchased_amt = float(request.data.get('purchased_amt') or 0)
 
@@ -438,10 +439,16 @@ class AwardPointsAPIView(APIView):
             return Response({'error': 'Award percentage not configured.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         award_percentage = award_config.percentage
+        # Enforce minimum purchase amount of ₹5
+        if purchased_amt < 5:
+            return Response({'error': 'Purchased amount must be at least ₹5 to earn reward points.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Calculate awarded points
         awarded_points = int((award_percentage / 100) * purchased_amt)
 
+        # Ensure at least 1 point is awarded if amount is ≥ ₹5
         if awarded_points <= 0:
-            return Response({'error': 'Awarded points calculated to zero. Check percentage/purchase amount.'}, status=status.HTTP_400_BAD_REQUEST)
+            awarded_points = 1
 
         # ✅ Fetch or create customer
         customer = None
@@ -483,6 +490,11 @@ class AwardPointsAPIView(APIView):
             )
         else:
             return Response({'error': 'Merchant ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+         # ✅ Validate PIN
+        if str(merchant.pin) != str(pin):
+            return Response({'error': 'Please enter the correct PIN.'}, status=status.HTTP_400_BAD_REQUEST)
+
 
         # ✅ Check if merchant has enough points
         merchant_points = MerchantPoints.objects.filter(merchant=merchant).first()
@@ -770,8 +782,6 @@ class MerchantToMerchantTransferAPIView(APIView):
         if points <= 0:
             return Response({"error": "Points must be greater than zero"}, status=status.HTTP_400_BAD_REQUEST)
         
-        
-
         # Validate both merchants
         try:
             sender_merchant = Merchant.objects.get(merchant_id=sender_merchant_id)
@@ -1435,7 +1445,7 @@ class BankDetailByUserAPIView(APIView):
                 return Response({"error": "Bank details not found for this customer"}, status=status.HTTP_404_NOT_FOUND)
             
             # Use customer database ID for updating
-            data['customer'] = customer.id
+            data['customer'] = customer.customer_id
             data['merchant'] = None
 
         else:

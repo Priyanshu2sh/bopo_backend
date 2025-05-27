@@ -2030,16 +2030,16 @@ def create_notification_view(request):
         print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
 
 
-        # create_notification(
-        #     project_id=project_id,
-        #     merchant_id=merchant_id,
-        #     customer_id=customer_id,
-        #     notification_type=notification_type,
-        #     title=title,
-        #     description=description,
-        #     to_all_ind_merch=to_all_ind_merch,
-        #     to_all_customer=to_all_customer
-        # )
+        create_notification(
+            project_id=project_id,
+            merchant_id=merchant_id,
+            customer_id=customer_id,
+            notification_type=notification_type,
+            title=title,
+            description=description,
+            to_all_ind_merch=to_all_ind_merch,
+            to_all_customer=to_all_customer
+        )
 
         
         if customer_id:
