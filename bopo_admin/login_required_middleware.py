@@ -10,6 +10,7 @@ class LoginRequiredMiddleware:
         exempt_urls = [
             reverse('login'),   # '/login/'
             reverse('logout'),  # '/logout/'
+            reverse('forgot_password'),
             '/admin/login/',    # Django admin login URL
         ]
 

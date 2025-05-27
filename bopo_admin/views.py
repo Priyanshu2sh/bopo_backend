@@ -3341,7 +3341,7 @@ def login_view(request):
 
 
 def forgot_password(request):
-    return render(request, 'bopo_admin/forgot_password.html')
+    return render(request, 'bopo_admin/ForgotPass/forgot_password.html')
 
 
 

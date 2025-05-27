@@ -61,14 +61,14 @@
                         >
                         <i class="fa-solid fa-eye-slash" id="togglePassword"></i>
                     </div>
-                   <div class="input-hint">Your strong password</div>
+                   {% comment %} <div class="input-hint">Your strong password</div> {% endcomment %}
                 </div>
 
-                {% comment %} <div class="form-group forgot-password-container">
+           <div class="form-group forgot-password-container">
                 <a href="{% url 'forgot_password' %}" class="forgot-password-link">
                     <i class="fa-solid fa-unlock-keyhole"></i> Forgot Password?
                 </a>
-                </div> {% endcomment %}
+                </div> 
 
             
                 <div class="form-group remember-me">
