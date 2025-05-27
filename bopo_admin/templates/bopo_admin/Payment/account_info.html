@@ -178,18 +178,26 @@ const validators = {
         if (value.length < 3) return "Payable To must be at least 3 characters";
         return "";
     },
-    bankName: function(value) {
-        if (value.trim() === "") return "Bank Name is required";
+    bankName: value => {
+        if (!value) return "Please enter the Bank Name.";
+        if (value.length < 3) return "Bank Name should be at least 3 characters.";
+        if (!/^[a-zA-Z\s]+$/.test(value)) return "Bank Name can only contain letters and spaces.";
         return "";
-    },
+        },
+
     city: function(value) {
         if (value.trim() === "") return "City is required";
         return "";
     },
-    accountType: function(value) {
-        if (value.trim() === "") return "Account Type is required";
-        return "";
+    accountType: value => {
+    if (!value) return "Please select an Account Type.";
+    const allowedTypes = ["Savings", "Current"];
+    if (!allowedTypes.includes(value)) {
+        return `Invalid Account Type. Please choose either ${allowedTypes.join(" or ")}.`;
+    }
+    return "";
     },
+
    ifscCode: function(value) {
        if (value === "") {
         return "Please enter your IFSC code.";
@@ -202,13 +210,18 @@ const validators = {
     if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(value)) {
         return "Invalid IFSC format. It should look like: ABCD0XXXXXX";
     }
-return "";
-},  
+    return "";
+    },  
 
-    branchName: function(value) {
-        if (value.trim() === "") return "Branch Name is required";
-        return "";
+    branchName: value => {
+    if (!value) return "Please enter the Branch Name.";
+    if (value.length < 3) return "Branch Name should be at least 3 characters.";
+    if (!/^[a-zA-Z0-9\s\.\-]+$/.test(value)) {
+        return "Branch Name can only contain letters, numbers, spaces, dots, and hyphens.";
+    }
+    return "";
     },
+
     pincode: function(value) {
         if (value.trim() === "") return "Pin Code is required";
         if (!/^\d{6}$/.test(value)) return "Pin Code must be 6 digits";
@@ -269,11 +282,12 @@ return "";
                 window.location.reload(); // Reload the page after 2 seconds
             }, 3000); // Adjust the time delay if needed
         } else {
-            showToast(data.message || 'Error while saving'); // Show error toast
+            showToast(data.message || 'Failed to save account info. Please try again.');
+
         }
     })
     .catch(error => {
-        showToast('An error occurred');
+        showToast('Failed to save account info');
         console.error("Error:", error);
     });
     });

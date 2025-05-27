@@ -159,20 +159,25 @@
         <form id="editPlanForm">
             <div class="input-group">
                 <label for="edit-validity-input">Plan Validity</label>
-                <input type="text" id="edit-validity-input" class="input-field" placeholder="Enter plan validity">
+                <input type="text" id="edit-validity-input" class="input-field" placeholder="Enter plan validity" required>
             </div>
             <div class="input-group">
                 <label for="edit-type-input">Plan Type</label>
-                <input type="text" id="edit-type-input" class="input-field" placeholder="Enter plan type">
+                <select id="edit-type-input" class="input-field" required>
+                        <option value="">-- Select Plan Type --</option>
+                        <option value="Rental">Rental</option>
+                        <option value="Prepaid">Prepaid</option>
+                </select>
+
             </div>
             <div class="input-group">
                 <label for="edit-description-input">Description</label>
-                <textarea id="edit-description-input" class="textarea-field" placeholder="Enter description..."></textarea>
+                <textarea id="edit-description-input" class="textarea-field" placeholder="Enter description..." required></textarea>
             </div>
           
           <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
         </form>
-    </div>
+ </div>
 </div>
 
 
@@ -591,6 +596,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("new-question").value = '';
         document.getElementById("add-question-row").style.display = "none";
     }
+    
 
  function saveSecurityQuestion() {
     const question = document.getElementById("new-question").value;
@@ -716,10 +722,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
     
-
-    function closeEditModal() {
+  function closeEditModal() {
         document.getElementById('editPlanModal').style.display = 'none';
     }
+
 
     function savePlanChanges() {
         alert("Plan changes saved successfully!");
