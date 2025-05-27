@@ -21,7 +21,7 @@ class LoginRequiredMiddleware:
             re.compile(r'^/static/'),
             re.compile(r'^/media/'),
             re.compile(r'^/.well-known/'),
-        ]
+               ]
 
     def __call__(self, request):
         path = request.path_info

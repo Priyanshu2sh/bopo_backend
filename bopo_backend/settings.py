@@ -125,6 +125,27 @@ TIME_ZONE = 'Asia/Kolkata'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keeps session after browser is closed
 SESSION_COOKIE_AGE = 2592000  # 30 days in seconds (used if remember_me is checked)
 
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
+# EMAIL_HOST_PASSWORD = 'xjfy bjcc vkpm ljmu'  # App password from step above
+# DEFAULT_FROM_EMAIL = 'BOPO Team <006iipt@gmail.com>'
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
+EMAIL_HOST_PASSWORD = 'xjfy bjcc vkpm ljmu'  # App password (not your Gmail password)
+DEFAULT_FROM_EMAIL = 'BOPO Team <006iipt@gmail.com>'
+DEFAULT_DOMAIN = "127.0.0.1:8000"
+
+
+
 # Database configuration from environment variables
 DATABASES = {
     'default': {
@@ -182,3 +203,5 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+

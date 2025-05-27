@@ -3339,10 +3339,87 @@ def login_view(request):
 #     return render(request, 'bopo_admin/login.html')
 
 
+from django.contrib.auth.forms import PasswordResetForm
+from django.core.mail import BadHeaderError
+
+
+# def forgot_password(request):
+    # print("Password reset view called") 
+    # if request.method == "POST":
+    #     email = request.POST.get('email')
+    #     form = PasswordResetForm({'email': email})
+    #     if form.is_valid():
+    #         try:
+    #             form.save(
+    #                 request=request,
+    #                 use_https=request.is_secure(),
+    #                 email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
+    #                 subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
+    #                 from_email='BOPO Team <006iipt@gmail.com>',
+    #             )
+    #             messages.success(request, "A password reset link has been sent to your email address.")
+    #             return redirect('forgot_password')
+    #         except BadHeaderError:
+    #             return HttpResponse('Invalid header found.')
+    #     else:
+    #         messages.error(request, "No user is associated with this email address.")
+    # else:
+    #     form = PasswordResetForm()
+
+    # return render(request, 'bopo_admin/ForgotPass/forgot_password.html', {'form': form})
+    
+from django.contrib.sites.shortcuts import get_current_site
 
 def forgot_password(request):
-    return render(request, 'bopo_admin/ForgotPass/forgot_password.html')
+    print("Password reset view called") 
+    if request.method == "POST":
+        email = request.POST.get('email')
+        print(f"Email received: {email}")
+        form = PasswordResetForm({'email': email})
+        if form.is_valid():
+            print("Form is valid. Sending reset email...")
+            try:
+                current_site = get_current_site(request)   
+                form.save(
+                    request=request,
+                    use_https=request.is_secure(),
+                    email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
+                    subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
+                    from_email='BOPO Team <006iipt@gmail.com>',
+                    html_email_template_name=None,
+                    extra_email_context={
+                        'domain': current_site.domain,
+                        'protocol': 'https' if request.is_secure() else 'http'
+                    }
+                )
 
+                messages.success(request, "A password reset link has been sent to your email address.")
+                return redirect('password_reset_done')  # ✅ Changed here
+            except BadHeaderError:
+                return HttpResponse('Invalid header found.')
+        else:
+            print("Form is invalid.")
+            messages.error(request, "No user is associated with this email address.")
+    else:
+        form = PasswordResetForm()
+
+    return render(request, 'bopo_admin/ForgotPass/forgot_password.html', {'form': form})
+
+from django.contrib.auth.views import PasswordResetView
+from django.conf import settings
+
+class CustomPasswordResetView(PasswordResetView):
+    def form_valid(self, form):
+        domain_override = getattr(settings, 'DEFAULT_DOMAIN', '127.0.0.1:8000')
+        form.save(
+            use_https=self.request.is_secure(),
+            from_email=self.from_email,
+            email_template_name=self.email_template_name,
+            subject_template_name=self.subject_template_name,
+            request=self.request,
+            domain_override=domain_override
+        )
+        return super().form_valid(form)
 
 
 from django.contrib.auth.hashers import make_password
@@ -3758,6 +3835,14 @@ def export_merchant_wise_balance(request):
 
     return response
 
+from django.contrib.auth.views import PasswordResetView
+from django.contrib import messages
+
+
+class CustomPasswordResetView(PasswordResetView):
+    def form_valid(self, form):
+        messages.success(self.request, "A password reset link has been sent to your email address.")
+        return super().form_valid(form)
 
 
 # def export_customer_wise_balance(request):

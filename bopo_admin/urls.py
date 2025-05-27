@@ -3,11 +3,13 @@ from .views import  create_notification_view, add_security_question, assign_empl
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
+
 
 # urlpatterns = [
     # path('/login', views.login, name='login'),        
 # ]
-from .views import home, about, merchant, customer, project_onboarding,merchant_list
+from .views import home, about, merchant, customer, project_onboarding,merchant_list ,CustomPasswordResetView
 
 urlpatterns = [
     # NEW (correct)
@@ -120,7 +122,49 @@ urlpatterns = [
 
     path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
     path('helpdesk/', views.helpdesk, name='helpdesk'),
-    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    
+    # path('forgot-password/', views.forgot_password, name='forgot_password'),
+  path('forgot-password/', CustomPasswordResetView.as_view(
+        template_name='bopo_admin/ForgotPass/forgot_password.html',
+        email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
+        subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
+        success_url='/forgot-password/done/'
+    ), name='forgot_password'),
+
+    path('forgot-password/done/', auth_views.PasswordResetDoneView.as_view(
+        template_name='bopo_admin/ForgotPass/password_reset_done.html'
+    ), name='password_reset_done'),
+
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='bopo_admin/ForgotPass/password_reset_confirm.html'
+    ), name='password_reset_confirm'),
+
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='bopo_admin/ForgotPass/password_reset_complete.html'
+    ), name='password_reset_complete'),
+    
+    
+    # path(
+    #     'forgot-password/',
+    #     CustomPasswordResetView.as_view(
+    #         template_name='bopo_admin/ForgotPass/forgot_password.html',
+    #         email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
+    #         subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
+    #         success_url='/password-reset/done/'
+    #     ),
+    #     name='forgot_password'
+    # ),
+    # path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(
+    #     template_name='bopo_admin/ForgotPass/password_reset_done.html'
+    # ), name='password_reset_done'),
+    # path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+    #     template_name='bopo_admin/ForgotPass/password_reset_confirm.html'
+    # ), name='password_reset_confirm'),
+    # path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
+    #     template_name='bopo_admin/ForgotPass/password_reset_complete.html'
+    # ), name='password_reset_complete'),
+
+    
     #  path('helpdesk/', views.helpdesk_view, name='helpdesk'),
     
     # path('api/security-questions/', views.get_security_questions, name='get_security_questions'),
