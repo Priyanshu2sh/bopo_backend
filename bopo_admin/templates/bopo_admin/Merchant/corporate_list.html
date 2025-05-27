@@ -444,6 +444,8 @@ function showToast(message, type = 'success', duration = 3000) {
     }, 3000);
   }, duration);
 }
+
+
 document.addEventListener('DOMContentLoaded', function () {
   const toggles = document.querySelectorAll('.status-toggle');
   let currentToggle = null;
@@ -451,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   toggles.forEach(toggle => {
     toggle.addEventListener('change', function (e) {
-      e.preventDefault(); // Prevent the toggle action
+      e.preventDefault(); // Prevent the toggle action until confirmed
       currentToggle = this;
       intendedState = this.checked;
 
@@ -485,22 +487,41 @@ document.addEventListener('DOMContentLoaded', function () {
     .then(data => {
       if (data.success) {
         showToast(`Status updated successfully to "${data.status}"`, 'success');
+
+        // ✅ Update affected merchant toggles
+        if (data.affected_merchants && Array.isArray(data.affected_merchants)) {
+          data.affected_merchants.forEach(id => {
+            const toggle = document.querySelector(`.status-toggle[data-id="${id}"]`);
+            if (toggle) {
+              toggle.checked = isActive;
+              toggle.closest('tr')?.classList.add('highlight');
+              setTimeout(() => toggle.closest('tr')?.classList.remove('highlight'), 1000);
+            }
+          });
+
+          // ✅ Delay reload for visual feedback
+          setTimeout(() => {
+            location.reload();
+          }, 1200);
+        }
+
       } else {
-        showToast('Failed to update status: ' + (data.error || 'Unknown error'), 'error');
-        currentToggle.checked = !isActive; // Revert toggle
+        showToast('Failed to update status', 'error');
+        currentToggle.checked = !isActive;
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      showToast('Something went wrong', 'error');
-      currentToggle.checked = !isActive; // Revert toggle
+      showToast('Failed to update status', 'error');
+      currentToggle.checked = !isActive;
     });
+
 
     // Hide modal
     document.getElementById("confirmationModal").style.display = "none";
   });
 
-  // On cancel or close icon
+  // On cancel or close
   function cancelModal() {
     if (currentToggle) {
       currentToggle.checked = !intendedState; // Revert toggle
@@ -510,6 +531,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.getElementById("cancelAction").addEventListener("click", cancelModal);
   document.getElementById("closeModalBtn")?.addEventListener("click", cancelModal);
+  document.getElementById("closeModal")?.addEventListener("click", cancelModal);
 });
 
 // Helper: CSRF token
@@ -527,7 +549,6 @@ function getCookie(name) {
   }
   return cookieValue;
 }
-
 
 document.getElementById("closeModal").addEventListener("click", function() {
   document.getElementById("confirmationModal").style.display = "none";

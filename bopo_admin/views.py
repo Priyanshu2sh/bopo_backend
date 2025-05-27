@@ -651,33 +651,82 @@ def individual_list(request):
 #             return JsonResponse({"success": False, "error": str(e)})
 #     return JsonResponse({"success": False, "error": "Invalid request"})
 
-from django.utils import timezone
 
+#main
+# from django.utils import timezone
+
+# def toggle_status(request, entity_type, entity_id):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             is_active = data.get("is_active")
+
+#             if entity_type == "customer":
+#                 instance = Customer.objects.get(customer_id=entity_id)
+#             elif entity_type == "merchant":
+#                 instance = Merchant.objects.get(merchant_id=entity_id)
+#             elif entity_type == "corporate":
+#                 instance = Corporate.objects.get(corporate_id=entity_id)
+#             else:
+#                 return JsonResponse({"success": False, "error": "Invalid entity type"})
+
+#             instance.status = "Active" if is_active else "Inactive"
+#             instance.verified_at = timezone.now() if is_active else None
+#             instance.save()
+
+#             return JsonResponse({"success": True, "status": instance.status})
+#         except Exception as e:
+#             return JsonResponse({"success": False, "error": str(e)})
+#     return JsonResponse({"success": False, "error": "Invalid request method"})
+
+
+from django.views.decorators.http import require_POST
+
+@require_POST
 def toggle_status(request, entity_type, entity_id):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            is_active = data.get("is_active")
+    try:
+        data = json.loads(request.body)
+        is_active = data.get("is_active")
 
-            if entity_type == "customer":
-                instance = Customer.objects.get(customer_id=entity_id)
-            elif entity_type == "merchant":
-                instance = Merchant.objects.get(merchant_id=entity_id)
-            elif entity_type == "corporate":
-                instance = Corporate.objects.get(corporate_id=entity_id)
+        affected_ids = []
+
+        if entity_type == "customer":
+            instance = Customer.objects.get(customer_id=entity_id)
+
+        elif entity_type == "merchant":
+            instance = Merchant.objects.get(merchant_id=entity_id)
+
+        elif entity_type == "corporate":
+            instance = Corporate.objects.get(corporate_id=entity_id)
+            related_merchants = Merchant.objects.filter(project_name=instance)
+
+            if is_active:
+                related_merchants.update(status="Active", verified_at=timezone.now())
             else:
-                return JsonResponse({"success": False, "error": "Invalid entity type"})
+                related_merchants.update(status="Inactive", verified_at=None)
 
-            instance.status = "Active" if is_active else "Inactive"
-            instance.verified_at = timezone.now() if is_active else None
-            instance.save()
+            # Capture affected merchant IDs
+            affected_ids = list(related_merchants.values_list("merchant_id", flat=True))
+            print("Affected Merchant IDs:", affected_ids)
 
-            return JsonResponse({"success": True, "status": instance.status})
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
-    return JsonResponse({"success": False, "error": "Invalid request method"})
+        else:
+            return JsonResponse({"success": False, "error": "Invalid entity type"})
 
+        instance.status = "Active" if is_active else "Inactive"
+        instance.verified_at = timezone.now() if is_active else None
+        instance.save()
 
+        return JsonResponse({
+            "success": True,
+            "status": instance.status,
+            "affected_merchants": affected_ids
+        })
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+    
+    
+    
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from accounts.models import Merchant, Corporate
