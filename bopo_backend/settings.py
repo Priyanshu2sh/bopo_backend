@@ -70,6 +70,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
+    'bopo_admin.login_required_middleware.LoginRequiredMiddleware',
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -120,6 +121,9 @@ CHANNEL_LAYERS = {
 # Timezone settings
 USE_TZ = True
 TIME_ZONE = 'Asia/Kolkata'
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keeps session after browser is closed
+SESSION_COOKIE_AGE = 2592000  # 30 days in seconds (used if remember_me is checked)
 
 # Database configuration from environment variables
 DATABASES = {

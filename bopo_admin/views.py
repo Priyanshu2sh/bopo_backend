@@ -3225,7 +3225,7 @@ def login_view(request):
                     if corporate.status == "Inactive":
                         logout(request)
                         request.session.flush()
-                        error_message = "Your corporate account is currently not active. Please contact the superadmin."
+                        error_message = "Your corporate account is currently not active. Please contact to the superadmin."
                         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
                 except Corporate.DoesNotExist:
                     error_message = "Corporate account not found."
@@ -4538,54 +4538,45 @@ def get_admin_merchant(request, merchant_id):
 
     return JsonResponse(data)
 
+
 def update_admin_merchant(request):
     if request.method == 'POST':
         merchant_id = request.POST.get('merchant_id')
         try:
             merchant = Merchant.objects.get(id=merchant_id)
-            
-            # Get and debug state ID from frontend
-            state_id = request.POST.get('state')  # Expecting state ID here (e.g., "4010")
-            print(f"State ID from Frontend: {state_id}")  # Debugging line
-            
-            # Fetch the state object by its ID
-            try:
-                state_obj = State.objects.get(id=state_id)  # Now using ID to query
-            except State.DoesNotExist:
-                return JsonResponse({'success': False, 'message': f'State with ID "{state_id}" not found'})
-            
-            # Update the state and city fields
-            merchant.state = state_obj.name  # Store the state name (not the ID)
-            
-            # Handle city
-            city_id = request.POST.get('city')
-            try:
-                city_obj = City.objects.get(id=city_id)
-                merchant.city = city_obj.name  # Store city name (not the model instance)
-            except City.DoesNotExist:
-                return JsonResponse({'success': False, 'message': 'City not found'})
-            
-            # Update other merchant fields
-            merchant.first_name = request.POST.get('first_name')
-            merchant.last_name = request.POST.get('last_name')
-            merchant.email = request.POST.get('email')
-            merchant.mobile = request.POST.get('mobile')
-            merchant.aadhaar_number = request.POST.get('aadhaar_number')
-            merchant.shop_name = request.POST.get('shop_name')
-            merchant.address = request.POST.get('address')
-            merchant.pincode = request.POST.get('pincode')
-            merchant.gst_number = request.POST.get('gst_number')
-            merchant.pan_number = request.POST.get('pan_number')
-            merchant.legal_name = request.POST.get('legal_name')
-            
-            # Save the updated merchant information
+
+            email = request.POST.get('email')
+            mobile = request.POST.get('mobile')
+
+            # Check duplicate email in Merchant (excluding current)
+            if Merchant.objects.filter(email=email).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            # Check duplicate mobile in Merchant (excluding current)
+            if Merchant.objects.filter(mobile=mobile).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Check duplicate email in Corporate
+            if Corporate.objects.filter(email=email).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            # Check duplicate mobile in Corporate
+            if Corporate.objects.filter(mobile=mobile).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Save updated data
+            merchant.email = email
+            merchant.mobile = mobile
             merchant.save()
 
             return JsonResponse({'success': True, 'message': 'Merchant updated successfully'})
+        
         except Merchant.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Merchant not found'})
         except Exception as e:
             return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
         
 def corporate_credentials(request):
