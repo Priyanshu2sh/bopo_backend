@@ -8,7 +8,7 @@ import string
 from sys import prefix
 # from tkinter.font import Font
 from django.db.models import Max
-from django.http import FileResponse, HttpResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.db.models.functions import Cast, Substr
 from django.shortcuts import get_object_or_404, render
 import openpyxl
@@ -28,6 +28,7 @@ from accounts.models import Corporate, Customer, Logo, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
+from bopo_admin.forms import CustomSetPasswordForm
 from bopo_award.models import AwardPoints, CashOut, CustomerPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails, SuperAdminPayment
 
 # from django.contrib.auth import authenticate 
@@ -3409,6 +3410,42 @@ from django.contrib.auth.views import PasswordResetView
 from django.conf import settings
 
 
+# class CustomPasswordResetView(PasswordResetView):
+#     def form_valid(self, form):
+#         form.save(
+#             use_https=self.request.is_secure(),
+#             from_email=self.from_email,
+#             email_template_name=self.email_template_name,
+#             subject_template_name=self.subject_template_name,
+#             request=self.request
+#         )
+#         return super().form_valid(form)
+    
+# from django.contrib.auth.views import PasswordResetConfirmView
+# from django.contrib.auth.hashers import make_password
+
+# class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+#     template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
+#     success_url = '/reset/done/'
+
+#     def dispatch(self, request, *args, **kwargs):
+#         self.user = self.get_user()
+#         return super().dispatch(request, *args, **kwargs)
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         user_type = "other"
+#         if hasattr(self.user, 'corporate') and self.user.corporate:
+#             user_type = "corporate"
+#         elif hasattr(self.user, 'employee') and self.user.employee:
+#             user_type = "employee"
+#         elif self.user.is_superuser:
+#             user_type = "superadmin"
+
+#         context['user_type'] = user_type
+#         return context
+
 class CustomPasswordResetView(PasswordResetView):
     def form_valid(self, form):
         form.save(
@@ -3420,15 +3457,24 @@ class CustomPasswordResetView(PasswordResetView):
         )
         return super().form_valid(form)
     
+# views.py
+
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth import update_session_auth_hash
+from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
+
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
-    success_url = '/reset/done/'
+    success_url = reverse_lazy('password_reset_complete')
+    form_class = CustomSetPasswordForm  # Use your custom form here!
 
     def dispatch(self, request, *args, **kwargs):
-        self.user = self.get_user()
+        self.uidb64 = kwargs.get('uidb64')
+        self.token = kwargs.get('token')
+        self.user = self.get_user(self.uidb64)
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -3449,17 +3495,22 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         user = self.user
         new_password = form.cleaned_data['new_password1']
 
-        # Enforce 4-digit PIN for corporate users
+        # Corporate user: save PIN
         if hasattr(user, 'corporate') and user.corporate:
-            if not new_password.isdigit() or len(new_password) != 4:
-                form.add_error('new_password1', "PIN must be exactly 4 digits.")
-                return self.form_invalid(form)
+            user.set_password(new_password)
+            user.save()
 
-        # Sync password with linked employee (if any)
-        if hasattr(user, 'employee') and user.employee:
-            user.employee.password = make_password(new_password)
-            user.employee.save()
+            # Sync with employee, if exists
+            if hasattr(user, 'employee') and user.employee:
+                user.employee.password = make_password(new_password)
+                user.employee.save()
 
+            # Keep user logged in (optional)
+            update_session_auth_hash(self.request, user)
+
+            return HttpResponseRedirect(self.get_success_url())
+
+        # Other users: follow default password handling
         return super().form_valid(form)
 
 
