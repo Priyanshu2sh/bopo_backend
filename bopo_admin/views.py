@@ -3408,18 +3408,60 @@ def forgot_password(request):
 from django.contrib.auth.views import PasswordResetView
 from django.conf import settings
 
+
 class CustomPasswordResetView(PasswordResetView):
     def form_valid(self, form):
-        domain_override = getattr(settings, 'DEFAULT_DOMAIN', '127.0.0.1:8000')
         form.save(
             use_https=self.request.is_secure(),
             from_email=self.from_email,
             email_template_name=self.email_template_name,
             subject_template_name=self.subject_template_name,
-            request=self.request,
-            domain_override=domain_override
+            request=self.request
         )
         return super().form_valid(form)
+    
+from django.contrib.auth.views import PasswordResetConfirmView
+from django.contrib.auth.hashers import make_password
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
+    success_url = '/reset/done/'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.user = self.get_user()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        user_type = "other"
+        if hasattr(self.user, 'corporate') and self.user.corporate:
+            user_type = "corporate"
+        elif hasattr(self.user, 'employee') and self.user.employee:
+            user_type = "employee"
+        elif self.user.is_superuser:
+            user_type = "superadmin"
+
+        context['user_type'] = user_type
+        return context
+
+    def form_valid(self, form):
+        user = self.user
+        new_password = form.cleaned_data['new_password1']
+
+        # Enforce 4-digit PIN for corporate users
+        if hasattr(user, 'corporate') and user.corporate:
+            if not new_password.isdigit() or len(new_password) != 4:
+                form.add_error('new_password1', "PIN must be exactly 4 digits.")
+                return self.form_invalid(form)
+
+        # Sync password with linked employee (if any)
+        if hasattr(user, 'employee') and user.employee:
+            user.employee.password = make_password(new_password)
+            user.employee.save()
+
+        return super().form_valid(form)
+
 
 
 from django.contrib.auth.hashers import make_password

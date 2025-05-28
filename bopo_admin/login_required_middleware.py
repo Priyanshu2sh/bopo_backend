@@ -11,6 +11,8 @@ class LoginRequiredMiddleware:
             reverse('login'),   # '/login/'
             reverse('logout'),  # '/logout/'
             reverse('forgot_password'),
+            reverse('password_reset_done'),
+            reverse('password_reset_complete'),
             '/admin/login/',    # Django admin login URL
         ]
 
@@ -21,6 +23,7 @@ class LoginRequiredMiddleware:
             re.compile(r'^/static/'),
             re.compile(r'^/media/'),
             re.compile(r'^/.well-known/'),
+            re.compile(r'^/reset/.+/.+/')
                ]
 
     def __call__(self, request):

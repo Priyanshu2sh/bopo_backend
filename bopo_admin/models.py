@@ -22,6 +22,34 @@ class BopoAdminManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(username, password, **extra_fields)
 
+# class BopoAdmin(AbstractBaseUser, PermissionsMixin):
+#     USER_ROLES = (
+#         ('super_admin', 'Super Admin'),
+#         ('corporate_admin', 'Corporate Admin'),
+#         ('employee', 'Employee'),
+#     )
+
+#     username = models.CharField(max_length=25, unique=True)
+#     password = models.CharField(max_length=200)
+#     role = models.CharField(max_length=20, choices=USER_ROLES)  # <- Add this field
+#     email = models.EmailField(null=True, blank=True)
+#     mobile = models.CharField(max_length=15, null=True, blank=True)
+#     city = models.CharField(max_length=100, null=True, blank=True)
+#     employee = models.ForeignKey('bopo_admin.Employee', on_delete=models.CASCADE, null=True, blank=True)
+#     corporate = models.ForeignKey('accounts.Corporate', on_delete=models.CASCADE, null=True, blank=True)
+
+#     is_active = models.BooleanField(default=True)
+#     is_staff = models.BooleanField(default=False)
+
+#     objects = BopoAdminManager()
+
+#     USERNAME_FIELD = 'username'
+#     REQUIRED_FIELDS = []
+
+#     def _str_(self):
+#         return self.username
+
+
 class BopoAdmin(AbstractBaseUser, PermissionsMixin):
     USER_ROLES = (
         ('super_admin', 'Super Admin'),
@@ -48,7 +76,17 @@ class BopoAdmin(AbstractBaseUser, PermissionsMixin):
 
     def _str_(self):
         return self.username
-  
+    
+    def save(self, *args, **kwargs):
+        # Auto-sync email from employee
+        if self.employee and not self.email:
+            self.email = self.employee.email
+
+        # Auto-sync email from corporate
+        if self.corporate and not self.email:
+            self.email = self.corporate.email  
+
+        super().save(*args, **kwargs)
     
 class AccountInfo(models.Model):
     accountNumber = models.CharField(max_length=200, blank=True, null=True)
