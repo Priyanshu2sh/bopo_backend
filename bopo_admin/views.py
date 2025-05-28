@@ -3507,8 +3507,8 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 
             # Keep user logged in (optional)
             update_session_auth_hash(self.request, user)
-
-            return HttpResponseRedirect(self.get_success_url())
+            messages.success(self.request, "✅ Your password has been changed successfully.")
+            return self.render_to_response(self.get_context_data(form=None))
 
         # Other users: follow default password handling
         return super().form_valid(form)

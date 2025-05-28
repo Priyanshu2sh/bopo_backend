@@ -179,3 +179,39 @@
                 font-size: 0.75rem;
             }
         }
+
+.custom-alert {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.custom-alert .icon {
+    margin-right: 0.6rem;
+    font-size: 1.2rem;
+}
+
+/* Error styling (e.g., for field.errors) */
+.custom-alert.error {
+    background: #fff0f0;
+    border-left: 4px solid #e53935;
+    color: #a94442;
+}
+
+.custom-alert.error .icon {
+    color: #e53935;
+}
+
+/* Success styling (e.g., for messages) */
+.custom-alert.success {
+    background: #e6f4ea;
+    border-left: 4px solid #4CAF50;
+    color: #256029;
+}
+
+.custom-alert.success .icon {
+    color: #4CAF50;
+}

@@ -17,7 +17,7 @@
 #         # For others, use default validation
 #         return super().clean_new_password1()
 
-
+#for custom password reset form with user type context
 from django.contrib.auth.forms import SetPasswordForm
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
@@ -39,7 +39,7 @@ class CustomSetPasswordForm(SetPasswordForm):
 
         return cleaned_data
 
-
+# for sending password reset emails with user type context
 from django.contrib.auth.forms import PasswordResetForm
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
