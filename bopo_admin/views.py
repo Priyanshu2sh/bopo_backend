@@ -3466,18 +3466,82 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import update_session_auth_hash
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
+from django.utils.encoding import force_str
+from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN
+
 
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
     success_url = reverse_lazy('password_reset_complete')
-    form_class = CustomSetPasswordForm  # Use your custom form here!
+    form_class = CustomSetPasswordForm  
+    invalid_link_template_name = 'bopo_admin/ForgotPass/password_reset_invalid.html'  # Custom error template
 
+
+    def get_user(self, uidb64):
+        UserModel = get_user_model()
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = UserModel._default_manager.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
+            user = None
+        return user
+
+    INTERNAL_RESET_SESSION_TOKEN = '_password_reset_token'
     def dispatch(self, request, *args, **kwargs):
         self.uidb64 = kwargs.get('uidb64')
         self.token = kwargs.get('token')
         self.user = self.get_user(self.uidb64)
-        return super().dispatch(request, *args, **kwargs)
+
+        print("Checking reset for:", self.uidb64, self.token, self.user)
+        print("Token from URL:", self.token)
+        print("Session token:", request.session.get(INTERNAL_RESET_SESSION_TOKEN))
+
+        if self.user is None:
+            # Invalid user
+            return self.render_invalid_link()
+
+        if self.token == 'set-password':
+            session_token = request.session.get(INTERNAL_RESET_SESSION_TOKEN)
+            if session_token and default_token_generator.check_token(self.user, session_token):
+                # Token valid, proceed to show password reset form
+                return super().dispatch(request, *args, **kwargs)
+            else:
+                # Invalid session token
+                return self.render_invalid_link()
+        else:
+            # Token from URL is a real token: validate and redirect to 'set-password'
+            if default_token_generator.check_token(self.user, self.token):
+                # Store token in session
+                request.session[INTERNAL_RESET_SESSION_TOKEN] = self.token
+                # Redirect to URL with token replaced by 'set-password'
+                redirect_url = request.path.replace(self.token, 'set-password')
+                return redirect(redirect_url)
+            else:
+                # Invalid token
+                return self.render_invalid_link()
+
+    
+    def render_invalid_link(self):
+        user_type = "other"
+        if self.user:
+            if hasattr(self.user, 'corporate') and self.user.corporate:
+                user_type = "corporate"
+            elif hasattr(self.user, 'employee') and self.user.employee:
+                user_type = "employee"
+            elif self.user.is_superuser:
+                user_type = "superadmin"
+
+        context = {
+            'title': 'Password reset link is invalid',
+            'message': 'Your password reset link is invalid or has expired. Please request a new one.',
+            'user_type': user_type,
+        }
+        return render(self.request, self.invalid_link_template_name, context)
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -3546,11 +3610,10 @@ class CustomPasswordResetCompleteView(PasswordResetCompleteView):
 
         return context
 
+def password_reset_invalid(request):
+    return render(request, 'bopo_admin/ForgotPass/password_reset_invalid.html')
 
 
-from django.contrib.auth.hashers import make_password
-from django.shortcuts import render, redirect
-from django.contrib.auth.models import AnonymousUser
 
 
 
