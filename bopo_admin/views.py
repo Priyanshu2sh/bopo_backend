@@ -3457,9 +3457,9 @@ class CustomPasswordResetView(PasswordResetView):
         )
         return super().form_valid(form)
     
-# views.py
 
-from django.contrib.auth.views import PasswordResetConfirmView
+
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import update_session_auth_hash
 from django.urls import reverse_lazy
@@ -3495,23 +3495,46 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         user = self.user
         new_password = form.cleaned_data['new_password1']
 
-        # Corporate user: save PIN
+        # Determine user_type for session
+        user_type = "other"
         if hasattr(user, 'corporate') and user.corporate:
+            user_type = "corporate"
+        elif hasattr(user, 'employee') and user.employee:
+            user_type = "employee"
+        elif user.is_superuser:
+            user_type = "superadmin"
+
+        # Save user_type in session to use on completion page
+        self.request.session['user_type'] = user_type
+
+        # Corporate user: save PIN
+        if user_type == "corporate":
             user.set_password(new_password)
             user.save()
 
-            # Sync with employee, if exists
+            # Sync with employee password if exists
             if hasattr(user, 'employee') and user.employee:
                 user.employee.password = make_password(new_password)
                 user.employee.save()
 
-            # Keep user logged in (optional)
             update_session_auth_hash(self.request, user)
-            messages.success(self.request, "✅ Your password has been changed successfully.")
-            return self.render_to_response(self.get_context_data(form=None))
+            return HttpResponseRedirect(self.get_success_url())
 
-        # Other users: follow default password handling
+        # Other users: default password handling
         return super().form_valid(form)
+
+class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+    template_name = 'bopo_admin/ForgotPass/password_reset_complete.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Get user_type from session and then clear it
+        user_type = self.request.session.get('user_type', 'other')
+        context['user_type'] = user_type
+        self.request.session.pop('user_type', None)
+
+        return context
 
 
 

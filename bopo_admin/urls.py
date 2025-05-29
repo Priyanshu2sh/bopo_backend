@@ -1,7 +1,7 @@
 from django.urls import path, include
 
 from bopo_admin.forms import CustomPasswordResetForm
-from .views import  CustomPasswordResetConfirmView, create_notification_view, add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, delete_security_question,  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_deduct_settings, save_superadmin_payment, security_questions_view,send_notifications,received_offers, toggle_status, update_security_question,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+from .views import  CustomPasswordResetCompleteView, CustomPasswordResetConfirmView, create_notification_view, add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, delete_security_question,  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_deduct_settings, save_superadmin_payment, security_questions_view,send_notifications,received_offers, toggle_status, update_security_question,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -127,7 +127,7 @@ urlpatterns = [
     
     # path('forgot-password/', views.forgot_password, name='forgot_password'),
     
-   path('forgot-password/', auth_views.PasswordResetView.as_view(
+    path('forgot-password/', auth_views.PasswordResetView.as_view(
         template_name='bopo_admin/ForgotPass/forgot_password.html',
         email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
         subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
@@ -139,16 +139,9 @@ urlpatterns = [
         template_name='bopo_admin/ForgotPass/password_reset_done.html'
     ), name='password_reset_done'),
 
-    # path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
-    #     template_name='bopo_admin/ForgotPass/password_reset_confirm.html'
-    # ), name='password_reset_confirm'),
+    path('reset/<uidb64>/<token>/', CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
- path('reset/<uidb64>/<token>/', CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-
-    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
-        template_name='bopo_admin/ForgotPass/password_reset_complete.html'
-    ), name='password_reset_complete'),
-    
+    path('reset/done/', CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
     
     # path(
     #     'forgot-password/',
