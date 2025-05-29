@@ -2869,8 +2869,10 @@ def add_employee(request):
             return JsonResponse({"success": False, "message": f"Error: {str(e)}"})
 
         bopo_admin = BopoAdmin(username=username, role="employee", employee=employee)
-        bopo_admin.set_password(password)  # Hash the password
+        bopo_admin.set_password(password)  # <- HASHES the password before saving
         bopo_admin.save()
+        
+        
         return JsonResponse({"success": True, "message": "Employee added successfully!"})
 
     return render(request, 'bopo_admin/Employee/add_employee.html')
@@ -3507,21 +3509,29 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         # Save user_type in session to use on completion page
         self.request.session['user_type'] = user_type
 
-        # Corporate user: save PIN
-        if user_type == "corporate":
-            user.set_password(new_password)
-            user.save()
+        # Update password in BopoAdmin (main model)
+        user.set_password(new_password)
+        user.save()
 
-            # Sync with employee password if exists
-            if hasattr(user, 'employee') and user.employee:
-                user.employee.password = make_password(new_password)
-                user.employee.save()
+                # Sync plain text password to Employee model (⚠️ Not secure)
+        if hasattr(user, 'employee') and user.employee:
+            user.employee.password = new_password  # ← Plain text password
+            user.employee.save()
 
-            update_session_auth_hash(self.request, user)
-            return HttpResponseRedirect(self.get_success_url())
+        # Update Corporate pin field (converted to int)
+        if hasattr(user, 'corporate') and user.corporate:
+            try:
+                user.corporate.pin = int(new_password)
+                user.corporate.save()
+            except ValueError:
+                # Handle invalid pin (non-numeric password) if necessary
+                pass
 
-        # Other users: default password handling
-        return super().form_valid(form)
+        # Keep user logged in after password change
+        update_session_auth_hash(self.request, user)
+
+        return HttpResponseRedirect(self.get_success_url())
+
 
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'bopo_admin/ForgotPass/password_reset_complete.html'
