@@ -55,6 +55,8 @@ INSTALLED_APPS = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+APPEND_SLASH = True
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -70,7 +72,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
-    # 'bopo_admin.login_required_middleware.LoginRequiredMiddleware',
+    'bopo_admin.login_required_middleware.LoginRequiredMiddleware',
 ]
 
 CORS_ALLOW_HEADERS = [
