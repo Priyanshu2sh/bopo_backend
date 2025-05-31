@@ -108,7 +108,7 @@
             </div>
 
                 <div class="table-wrapper">
-                    <table id="corporate-table-content">
+                    <table id="corporate-table-content" >
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -121,6 +121,7 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
+                    
                         <tbody id="employee-table-body">
                             {% for employee in employees %}
                             <tr>
@@ -142,6 +143,7 @@
                             </tr>
                             {% endfor %}
                         </tbody>
+                                <tbody></tbody>
                     </table>
                     {% comment %} <div id="pagination-controls" class="pagination-controls"></div> {% endcomment %}
                 </div>
@@ -276,29 +278,54 @@
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
 <script>
-    $(document).ready(function () {
-        const table = $('#corporate-table-content').DataTable({
-            dom: 'Bfrtip',
-            pageLength: 6,
-            buttons: [
-                {
-                    extend: 'colvis',
-                    text: '<i class="fas fa-table"></i>',
-                    className: 'btn btn-light'
+   $(document).ready(function () {
+    const table = $('#corporate-table-content').DataTable({
+        dom: 'Bfrtip',
+        pageLength: 6,
+        ajax: {
+            url: "{% url 'employee_list' %}",
+            type: "GET",
+            dataSrc: "data"
+        },
+        columns: [
+             {
+        data: null,
+        render: function (data, type, row, meta) {
+            return meta.row + 1;  // Serial number
+        }
+    },
+            { data: 'employee_id' },
+            { data: 'name' },
+            { data: 'email' },
+            { data: 'mobile' },
+            { data: 'username' },
+            { data: 'password' },
+            {
+                data: 'employee_id',
+                render: function (data) {
+                    return `<button class="btn btn-sm btn-warning" onclick="openEditModal('${data}')">✏️ Edit</button>`;
                 }
-            ],
-            stripeClasses: [] // No row striping
-        });
-
-        // Move buttons to the right
-        table.buttons().container().appendTo('#custom-buttons');
-
-        // Custom search box binding
-        $('#search-customer').on('keyup', function () {
-            table.search(this.value).draw();
-        });
+            }
+        ],
+        buttons: [
+            {
+                extend: 'colvis',
+                text: '<i class="fas fa-table"></i>',
+                className: 'btn btn-light'
+            }
+        ],
+        stripeClasses: []
     });
+
+    table.buttons().container().appendTo('#custom-buttons');
+
+    $('#search-customer').on('keyup', function () {
+        table.search(this.value).draw();
+    });
+});
+
 </script>
+
 
 
 
