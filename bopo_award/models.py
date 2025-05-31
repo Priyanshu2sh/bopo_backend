@@ -131,22 +131,16 @@ class PaymentDetails(models.Model):
                 raise ValidationError(f"This merchant already has a '{existing_plan}' plan. Duplicate plan types are not allowed.")
 
     def save(self, *args, **kwargs):
-        self.clean()  # Run the validation
-    
-     # Property to return the top-up value
-    @property
-    def topup_amount(self):
-        return self.paid_amount
-    
-    def save(self, *args, **kwargs):
-        if self.plan_type == 'rental' and self.validity_days:
+        self.clean()
+        if self.plan_type and self.plan_type.plan_type.lower() == 'rental' and self.validity_days:
             self.expiry_date = date.today() + timedelta(days=self.validity_days)
-        elif self.plan_type == 'prepaid':
-            self.validity_days = 360  # Prepaid plans always have 360 days validity
+        elif self.plan_type and self.plan_type.plan_type.lower() == 'prepaid':
+            self.validity_days = 360
             self.expiry_date = date.today() + timedelta(days=self.validity_days)
         else:
-            self.expiry_date = None  # Clear expiry if not rental or prepaid
+            self.expiry_date = None
         super().save(*args, **kwargs)
+
     
     
 

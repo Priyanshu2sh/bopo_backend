@@ -1547,15 +1547,18 @@ class CustomerPointsForPrepaidMerchantsAPIView(APIView):
     """
     API to list CustomerPoints ONLY for merchants having 'prepaid' plan.
     """
-
     def get(self, request):
-        # Step 1: Get all merchants having 'prepaid' plan
-        prepaid_merchants_qs = PaymentDetails.objects.filter(plan_type__iexact='prepaid').values_list('merchant_id', flat=True).distinct()
-        
-        # Step 2: Get CustomerPoints where merchant IN prepaid_merchants
+        try:
+            prepaid_plan = ModelPlan.objects.get(plan_type__iexact='prepaid')  # Fixed here
+        except ModelPlan.DoesNotExist:
+            return Response({"customer_points": []}, status=status.HTTP_200_OK)
+
+        prepaid_merchants_qs = PaymentDetails.objects.filter(
+            plan_type=prepaid_plan
+        ).values_list('merchant_id', flat=True).distinct()
+
         customer_points_qs = CustomerPoints.objects.filter(merchant_id__in=prepaid_merchants_qs)
 
-        # Step 3: Prepare response
         data = []
         for entry in customer_points_qs:
             data.append({
@@ -1566,7 +1569,6 @@ class CustomerPointsForPrepaidMerchantsAPIView(APIView):
             })
 
         return Response({"customer_points": data}, status=status.HTTP_200_OK)
-    
 
 class CashOutCreateAPIView(APIView):
     def post(self, request):
@@ -2147,3 +2149,6 @@ class NotificationListAPIView(APIView):
 
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+
