@@ -6,7 +6,6 @@ from django.contrib.auth.hashers import make_password
 
 # from accounts.models import Corporate, Customer, Merchant
 
-
 # Create your models here.
 class BopoAdminManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -23,6 +22,34 @@ class BopoAdminManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(username, password, **extra_fields)
 
+# class BopoAdmin(AbstractBaseUser, PermissionsMixin):
+#     USER_ROLES = (
+#         ('super_admin', 'Super Admin'),
+#         ('corporate_admin', 'Corporate Admin'),
+#         ('employee', 'Employee'),
+#     )
+
+#     username = models.CharField(max_length=25, unique=True)
+#     password = models.CharField(max_length=200)
+#     role = models.CharField(max_length=20, choices=USER_ROLES)  # <- Add this field
+#     email = models.EmailField(null=True, blank=True)
+#     mobile = models.CharField(max_length=15, null=True, blank=True)
+#     city = models.CharField(max_length=100, null=True, blank=True)
+#     employee = models.ForeignKey('bopo_admin.Employee', on_delete=models.CASCADE, null=True, blank=True)
+#     corporate = models.ForeignKey('accounts.Corporate', on_delete=models.CASCADE, null=True, blank=True)
+
+#     is_active = models.BooleanField(default=True)
+#     is_staff = models.BooleanField(default=False)
+
+#     objects = BopoAdminManager()
+
+#     USERNAME_FIELD = 'username'
+#     REQUIRED_FIELDS = []
+
+#     def _str_(self):
+#         return self.username
+
+
 class BopoAdmin(AbstractBaseUser, PermissionsMixin):
     USER_ROLES = (
         ('super_admin', 'Super Admin'),
@@ -33,6 +60,9 @@ class BopoAdmin(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=25, unique=True)
     password = models.CharField(max_length=200)
     role = models.CharField(max_length=20, choices=USER_ROLES)  # <- Add this field
+    email = models.EmailField(null=True, blank=True)
+    mobile = models.CharField(max_length=15, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
     employee = models.ForeignKey('bopo_admin.Employee', on_delete=models.CASCADE, null=True, blank=True)
     corporate = models.ForeignKey('accounts.Corporate', on_delete=models.CASCADE, null=True, blank=True)
 
@@ -44,12 +74,19 @@ class BopoAdmin(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []
 
-    def __str__(self):
+    def _str_(self):
         return self.username
+    
+    def save(self, *args, **kwargs):
+        # Auto-sync email from employee
+        if self.employee and not self.email:
+            self.email = self.employee.email
 
-    
-    
-  
+        # Auto-sync email from corporate
+        if self.corporate and not self.email:
+            self.email = self.corporate.email  
+
+        super().save(*args, **kwargs)
     
 class AccountInfo(models.Model):
     accountNumber = models.CharField(max_length=200, blank=True, null=True)
@@ -208,7 +245,9 @@ class EmployeeRole(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     corporate_merchant = models.BooleanField(default=False)
     individual_merchant = models.BooleanField(default=False)
+    terminals = models.BooleanField(default=False)
     merchant_send_credentials = models.BooleanField(default=False)
+    reduce_limit = models.BooleanField(default=False)
     merchant_limit = models.BooleanField(default=False)
     merchant_login_page_info = models.BooleanField(default=False)
     merchant_send_notification = models.BooleanField(default=False)
@@ -220,6 +259,7 @@ class EmployeeRole(models.Model):
     account_info = models.BooleanField(default=False)
     reports = models.BooleanField(default=False)
     deduct_amount = models.BooleanField(default=False)
+    superadmin_functionality = models.BooleanField(default=False)
     helpdesk_action = models.BooleanField(default=False)
 
     def __str__(self):

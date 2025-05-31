@@ -223,6 +223,30 @@ body {
 }
 
 
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-selection--single {
+    height: 38px !important;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-selection__rendered {
+    font-size: 14px;
+    color: #555;
+    line-height: 26px;
+}
+
+.select2-selection__arrow {
+    height: 100%;
+}
+
+
 /* 🟢 Responsive Design */
 @media (max-width: 768px) {
     .addmerchant-container {
@@ -259,28 +283,4 @@ body {
         margin-top: 5%; /* Move heading down */
        margin-left: -60%;
     }
-}
-
-
-.select2-container {
-    width: 100% !important;
-}
-
-.select2-selection--single {
-    height: 38px !important;
-    padding: 4px 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-}
-
-.select2-selection__rendered {
-    font-size: 14px;
-    color: #555;
-    line-height: 26px;
-}
-
-.select2-selection__arrow {
-    height: 100%;
 }

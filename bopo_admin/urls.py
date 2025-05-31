@@ -1,13 +1,17 @@
 from django.urls import path, include
-from .views import  create_notification_view, add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, delete_security_question,  home, about, merchant,customer, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_deduct_settings, save_superadmin_payment, security_questions_view,send_notifications,received_offers, toggle_status, update_security_question,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+
+from bopo_admin.forms import CustomPasswordResetForm
+from .views import  CustomPasswordResetCompleteView, CustomPasswordResetConfirmView, create_notification_view, add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, delete_security_question,  home, about, merchant,customer, password_reset_invalid, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_deduct_settings, save_superadmin_payment, security_questions_view,send_notifications,received_offers, toggle_status, update_security_question,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
+
 
 # urlpatterns = [
     # path('/login', views.login, name='login'),        
 # ]
-from .views import home, about, merchant, customer, project_onboarding,merchant_list
+from .views import home, about, merchant, customer, project_onboarding,merchant_list ,CustomPasswordResetView
 
 urlpatterns = [
     # NEW (correct)
@@ -49,6 +53,9 @@ urlpatterns = [
     path('employee_list/',employee_list, name='employee_list'),
     path('employees/add/', add_employee, name='add_employee'),
     path('employee-role/',assign_employee_role, name='employee_role'),
+    path('get-employee-roles/', views.get_employee_roles, name='get_employee_roles'),
+
+
     
     path('payment_details/', payment_details, name='payment_details'),
     path('account_info/', account_info, name='account_info'),
@@ -117,6 +124,26 @@ urlpatterns = [
 
     path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
     path('helpdesk/', views.helpdesk, name='helpdesk'),
+    
+    # path('forgot-password/', views.forgot_password, name='forgot_password'),
+    
+    path('forgot-password/', auth_views.PasswordResetView.as_view(
+        template_name='bopo_admin/ForgotPass/forgot_password.html',
+        email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
+        subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
+        success_url='/bopo_admin/forgot-password/done/',
+        form_class=CustomPasswordResetForm,
+    ), name='forgot_password'),
+
+    path('forgot-password/done/', auth_views.PasswordResetDoneView.as_view(
+        template_name='bopo_admin/ForgotPass/password_reset_done.html'
+    ), name='password_reset_done'),
+
+    path('reset/<uidb64>/<token>/', CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+
+    path('reset/done/', CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('reset/invalid/', password_reset_invalid, name='password_reset_invalid'),
+    
     #  path('helpdesk/', views.helpdesk_view, name='helpdesk'),
     
     # path('api/security-questions/', views.get_security_questions, name='get_security_questions'),
@@ -209,7 +236,7 @@ urlpatterns = [
     path('create_notification/', create_notification_view, name='create_notification'),
     path("transaction_history/", views.transaction_history, name="transaction_history"),
     
-    
+
 
 
     path('api/save-fcm-token/', views.save_fcm_token, name='save_fcm_token'),
