@@ -134,7 +134,7 @@
                                 <td>{{ employee.password }}</td>
                                 <td>
                                     <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ employee.employee_id }}')">✏️ Edit</button>
-                                    {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteEmployee('{{ employee.employee_id }}')">🗑️Delete</button> {% endcomment %}
+                                   <button class="btn btn-sm btn-danger" onclick="deleteEmployee('{{ employee.employee_id }}')">🗑️Delete</button> 
                                 </td>
                             </tr>
                             {% empty %}
