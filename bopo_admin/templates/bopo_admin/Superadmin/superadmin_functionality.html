@@ -2,6 +2,7 @@
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/superadmin_func.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
 <div class="send-notification-container">
     <div class="back-to-list-btn">
@@ -136,7 +137,7 @@
                     {% for plan in plans %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        <td><span class="plan-validity-text">{{ plan.plan_validity }}</span></td>
+                        <td><span class="plan-validity-text">{{ plan.plan_validity }}</span><span> Months</span></td>
                         <td><span class="plan-type-text">{{ plan.plan_type }}</span></td>
                         <td><span class="plan-description-text">{{ plan.description }}</span></td>
                         <td><button class="btn-action" onclick="openEditPlanModal(this)">Change</button></td>
@@ -154,25 +155,30 @@
 <!-- Edit Plan Modal -->
 <div id="editPlanModal" class="modal-container">
     <div class="modal-content-box">
-        <span class="modal-close-btn" onclick="closeEditModal()">&times;</span>
+            <span class="modal-close-btn" onclick="closeEditModal()">&times;</span>
         <h2 class="modal-header">Edit Plan</h2>
         <form id="editPlanForm">
             <div class="input-group">
                 <label for="edit-validity-input">Plan Validity</label>
-                <input type="text" id="edit-validity-input" class="input-field" placeholder="Enter plan validity">
+                <input type="text" id="edit-validity-input" class="input-field" placeholder="Enter plan validity in months" required>
             </div>
             <div class="input-group">
                 <label for="edit-type-input">Plan Type</label>
-                <input type="text" id="edit-type-input" class="input-field" placeholder="Enter plan type">
+                <select id="edit-type-input" class="input-field" required>
+                        <option value="">-- Select Plan Type --</option>
+                        <option value="Rental">Rental</option>
+                        <option value="Prepaid">Prepaid</option>
+                </select>
+
             </div>
             <div class="input-group">
                 <label for="edit-description-input">Description</label>
-                <textarea id="edit-description-input" class="textarea-field" placeholder="Enter description..."></textarea>
+                <textarea id="edit-description-input" class="textarea-field" placeholder="Enter description..." required></textarea>
             </div>
           
           <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
         </form>
-    </div>
+ </div>
 </div>
 
 
@@ -591,6 +597,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("new-question").value = '';
         document.getElementById("add-question-row").style.display = "none";
     }
+    
 
  function saveSecurityQuestion() {
     const question = document.getElementById("new-question").value;
@@ -716,54 +723,113 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
     
-
-    function closeEditModal() {
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('.modal-close-btn').addEventListener('click', () => {
         document.getElementById('editPlanModal').style.display = 'none';
-    }
+    });
+});
+
 
     function savePlanChanges() {
         alert("Plan changes saved successfully!");
         closeEditModal();
     }
 
- 
-function savePlanChanges() {
-    const validity = document.getElementById("edit-validity-input").value.trim();
-    const type = document.getElementById("edit-type-input").value.trim();
-    const description = document.getElementById("edit-description-input").value.trim();
+ const validators = {
+  validity: function(value) {
+    if (!value || value.trim() === "") return "Plan validity is required";
+    if (!/^\d+$/.test(value.trim())) return "Plan validity must be a positive number (e.g., 12)";
+    return "";
+  },
 
-    fetch("/update-model-plan/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCSRFToken(),
-        },
-        body: JSON.stringify({
-            plan_validity: validity,
-            plan_type: type,
-            description: description,
-        }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Server response:", data); // Check for message
-        if (data.success) {
-            showToast(`${type} Plan updated successfully!`, true);  // Pass plan type to the toast message
-            closeEditModal();
+  type: function(value) {
+    if (!value || value === "") return "Plan type is required";
+    if (!["Rental", "Prepaid"].includes(value)) return "Invalid plan type selected";
+    return "";
+  },
 
-            // Reload after toast disappears
-            setTimeout(() => {
-                location.reload();
-            }, 1500); // Wait for toast to disappear
-        } else {
-            showToast(data.message || "Failed to update plan", false);
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        showToast("An error occurred", false);
-    });
+  description: function(value) {
+    if (!value || value.trim() === "") return "Description is required";
+    if (value.trim().length < 10) return "Description must be at least 10 characters";
+    return "";
+  }
+};
+
+// Map validator keys to actual input element IDs
+const fieldIdMap = {
+  validity: "edit-validity-input",
+  type: "edit-type-input",
+  description: "edit-description-input"
+};
+
+// Add live validation on inputs
+Object.keys(validators).forEach(key => {
+  const input = document.getElementById(fieldIdMap[key]);
+  if (!input) return;
+
+  input.addEventListener("input", () => {
+    const errorMessage = validators[key](input.value.trim());
+    input.setCustomValidity(errorMessage);
+    input.reportValidity();
+  });
+});
+
+function validateEditPlanForm() {
+  let isValid = true;
+  Object.keys(validators).forEach(key => {
+    const input = document.getElementById(fieldIdMap[key]);
+    if (!input) return;
+
+    const errorMessage = validators[key](input.value.trim());
+    input.setCustomValidity(errorMessage);
+    if (errorMessage) {
+      input.reportValidity();
+      isValid = false;
+    }
+  });
+  return isValid;
 }
+
+function savePlanChanges() {
+  if (!validateEditPlanForm()) return;
+
+  const validity = document.getElementById("edit-validity-input").value.trim();
+  const type = document.getElementById("edit-type-input").value.trim();
+  const description = document.getElementById("edit-description-input").value.trim();
+
+  fetch("/update-model-plan/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCSRFToken(),
+    },
+    body: JSON.stringify({
+      plan_validity: validity,
+      plan_type: type,
+      description: description,
+    }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showToast(`${type} Plan updated successfully!`, true);
+      closeEditModal();
+      setTimeout(() => {
+        location.reload();
+      }, 1500);
+    } else {
+      showToast(data.message || "Failed to update plan", false);
+    }
+  })
+  .catch(error => {
+    console.error("Error:", error);
+    showToast("An error occurred", false);
+  });
+}
+
+
+
 
 function showToast(message, isSuccess = true) {
     const toast = document.createElement('div');

@@ -55,6 +55,8 @@ INSTALLED_APPS = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+APPEND_SLASH = True
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -70,6 +72,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
+    'bopo_admin.login_required_middleware.LoginRequiredMiddleware',
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -111,8 +114,8 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            # "hosts": [("redis", 6379)],
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [("redis", 6379)],
+            # "hosts": [("127.0.0.1", 6379)],
         },
     },
 }
@@ -120,6 +123,44 @@ CHANNEL_LAYERS = {
 # Timezone settings
 USE_TZ = True
 TIME_ZONE = 'Asia/Kolkata'
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keeps session after browser is closed
+SESSION_COOKIE_AGE = 2592000  # 30 days in seconds (used if remember_me is checked)
+
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
+# EMAIL_HOST_PASSWORD = 'xjfy bjcc vkpm ljmu'  # App password from step above
+# DEFAULT_FROM_EMAIL = 'BOPO Team <006iipt@gmail.com>'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
+EMAIL_HOST_PASSWORD = 'xjfybjccvkpmljmu'  # App password (not your Gmail password)
+DEFAULT_FROM_EMAIL = 'BOPO Team <006iipt@gmail.com>'
+# DEFAULT_DOMAIN = "127.0.0.1:8000"
+
+
+# settings.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
 
 # Database configuration from environment variables
 DATABASES = {
@@ -135,18 +176,18 @@ DATABASES = {
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    # },
 ]
 
 AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
@@ -178,3 +219,5 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+

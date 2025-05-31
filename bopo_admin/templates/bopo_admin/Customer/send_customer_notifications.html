@@ -10,7 +10,7 @@
     </div>
 
     <!-- Messages Display -->
-    {% if messages %}
+    {% comment %} {% if messages %}
         <div class="message-container">
             {% for message in messages %}
                 <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
@@ -18,7 +18,7 @@
                 </div>
             {% endfor %}
         </div>
-    {% endif %}
+    {% endif %} {% endcomment %}
 
     <div class="send-notification-list">
         <!-- To Single Customers -->
@@ -113,8 +113,39 @@
 </div>
 
 
+{% comment %} {% if messages %}
+<div id="toast" class="toast-container toast-show">
+    {% for message in messages %}
+        <i class="fa fa-exclamation-circle"></i>
+        <span class="toast-message">{{ message }}</span>
+    {% endfor %}
+</div>
+{% endif %} {% endcomment %}
+
+
+{% if messages %}
+<div id="toast" class="toast-container toast-show">
+    {% for message in messages %}
+        <div class="toast-message {{ message.tags }}">
+            <i class="fa fa-exclamation-circle"></i>
+            <span>{{ message }}</span>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+
 <!-- Toggle JS -->
 <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const toast = document.querySelector('.toast-container');
+        if (toast) toast.remove();
+    }, 4000);
+});
+
+
     document.addEventListener("DOMContentLoaded", function () {
         const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
 

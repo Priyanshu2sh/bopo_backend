@@ -168,75 +168,6 @@ button {
     color: white;
 }
 
-/* Responsive adjustments */
-@media screen and (max-width: 768px) {
-    .customer-container {
-        padding: 10px;
-        max-width: 100%;
-        margin-top: 10px;
-    }
-
-    /* Adjust header */
-    .customer-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-
-    .customer-buttons {
-        display: flex;
-        flex-direction: row;
-        width: 90%;
-    }
-
-    .add-customer-btn, .send-customer-btn {
-        width: 100%;
-        font-size: 14px;
-        padding: 8px;
-    }
-
-    /* Make table responsive */
-    .customer-table {
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    table {
-        width: 100%;
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-    .search-box {
-        width: 70%;
-    }
-
-    
-
-    .form-container {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .form-group {
-        width: 100%;
-    }
-
-    .input-container {
-        display: flex;
-        align-items: center;
-    }
-  
-
-    /* Adjust Close Button */
-    .close {
-        top: 5px;
-        right: 10px;
-        font-size: 20px;
-    }
- 
-
-}
 .select2-container {
     width: 100% !important;
 }
@@ -440,11 +371,12 @@ button {
     display: block;
 }
 
-.addcustomer-btn-submit {
-    display: inline-block;
+/* .addcustomer-btn-submit {
+    display: block;            
     padding: 10px 20px;
-    margin-top: 3%;
-    width: 20%;
+    margin: 30px auto 0 auto;   
+    width: 20%;                
+    max-width: 200px;           
     font-size: 16px;
     color: white;
     background-color: #004080;
@@ -452,14 +384,55 @@ button {
     border-radius: 5px;
     cursor: pointer;
     text-align: center;
-    text-decoration: none;
     transition: background 0.3s ease;
-    margin-left: 40%;
 }
 
 .addcustomer-btn-submit:hover {
     background-color: #002b55;
+} */
+
+
+.addcustomer-btn-submit {
+    display: block;
+    padding: 0.6em 1.5em;
+    margin: 20px auto 20px auto;   /* smaller top margin */
+    width: auto;
+    min-width: 140px;
+    max-width: 250px;
+    font-size: 1rem;
+    color: white;
+    background-color: #004080;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    white-space: nowrap;
+    transition: background 0.3s ease;
+    margin-top: 10%;
+   
 }
+
+/* Medium screens */
+@media (max-width: 1024px) {
+    .addcustomer-btn-submit {
+        max-width: 220px;
+        font-size: 0.95rem;
+        padding: 0.55em 1.3em;
+        margin-top: 30px;      /* keep margin consistent */
+    }
+}
+
+/* Small screens */
+@media (max-width: 480px) {
+    .addcustomer-btn-submit {
+        max-width: 180px;
+        min-width: 120px;
+        font-size: 0.9rem;
+        padding: 0.5em 1.2em;
+        margin-top: 20px;
+    }
+}
+
 
 .addcustomer-buttons {
     display: flex;
@@ -630,4 +603,73 @@ custom-dropdown {
     transform: translateX(0);
     opacity: 0.95;
   }
+}
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .customer-container {
+        padding: 10px;
+        max-width: 100%;
+        margin-top: 10px;
+    }
+
+    /* Adjust header */
+    .customer-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .customer-buttons {
+        display: flex;
+        flex-direction: row;
+        width: 90%;
+    }
+
+    .add-customer-btn, .send-customer-btn {
+        width: 100%;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    /* Make table responsive */
+    .customer-table {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .search-box {
+        width: 70%;
+    }
+
+    
+
+    .form-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group {
+        width: 100%;
+    }
+
+    .input-container {
+        display: flex;
+        align-items: center;
+    }
+  
+
+    /* Adjust Close Button */
+    .close {
+        top: 5px;
+        right: 10px;
+        font-size: 20px;
+    }
+ 
+
 }

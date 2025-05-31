@@ -7,6 +7,7 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
 <div class="merchant-container">
     <div class="merchant-header">
@@ -103,7 +104,7 @@
                     <label>First Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="first_name" id='edit_first_name' required>
+                        <input type="text" name="first_name" id='edit_first_name' disabled>
                     </div>
                     <label>Email ID</label>
                     <div class="addmerchant-input-container">
@@ -113,22 +114,25 @@
                     <label>Aadhaar Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar_number" id ="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" required>
+                        <input type="text" name="aadhaar_number" id ="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" disabled>
                     </div>
                     <label>Shop Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-store"></i>
-                        <input type="text" name="shop_name" id="edit_shop_name" required>
+                        <input type="text" name="shop_name" id="edit_shop_name" disabled>
                     </div>
                     <label>Address</label>
+
                     <div class="addmerchant-input-container">
                         <i class="fas fa-map-marker-alt"></i>
-                        <input type="text" name="address" id="edit_address" required>
+                        <input type="text" name="address" id="edit_address" disabled>
                     </div>
-                    <label>Select State</label>
-                        <select id="edit_state" name="state" class="select2"  onchange="fetchCities()">
-                             <option value="">Select State</option>
-                        </select>
+
+                     <label>State</label>
+                        <div class="addmerchant-input-container">
+                                <i class="fas fa-map"></i>
+                                <input type="text" name="state" id="edit_state" disabled>
+                        </div>
                                 
                     <label>Country</label>
                     <div class="addmerchant-input-container">
@@ -141,7 +145,7 @@
                     <label>Last Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="last_name" id ="edit_last_name" required>
+                        <input type="text" name="last_name" id ="edit_last_name" disabled>
                     </div>
                     <label>Mobile Number</label>
                     <div class="addmerchant-input-container">
@@ -151,7 +155,7 @@
                     <label>GST Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-file-invoice"></i>
-                        <input type="text" name="gst_number" id="edit_gst_number" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" required>
+                        <input type="text" name="gst_number" id="edit_gst_number" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" disabled>
                     </div>
                     <div id="gst_error" style="display: none; margin-top: 10px;">
                         <div style="background-color: #ffe6e6; border: 1px solid #ff4d4d; color: #d8000c; padding: 10px; border-radius: 5px; font-size: 14px; display: flex; align-items: center;">
@@ -163,23 +167,24 @@
                     <label>Pan Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" required>
+                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" disabled>
                     </div>
                     <label>Legal Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-building"></i>
-                        <input type="text" name="legal_name" id="edit_legal_name" required>
+                        <input type="text" name="legal_name" id="edit_legal_name" disabled>
                     </div>
 
-                    <label>Select City</label>
-                        <select id="edit_city" name="city" class="select2">
-                             <option value="">Select City</option>
-                        </select>
+                       <label>City</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-city"></i>
+                        <input type="text" name="city" id="edit_city" disabled>
+                    </div>
 
                     <label>Pincode</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-home"></i>
-                        <input type="text" name="pincode" id="edit_pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" required>
+                        <input type="text" name="pincode" id="edit_pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" disabled>
                     </div>
                 </div>
             </div>
@@ -194,7 +199,6 @@
     <i class="fa fa-exclamation-circle"></i>
     <span class="toast-message">{{ message }}</span>
 </div>
-
 
 
 <script>
@@ -279,59 +283,20 @@ function getCookie(name) {
                 document.getElementById('edit_gst_number').value = data.gst_number;
                 document.getElementById('edit_pan').value = data.pan_number;
                 document.getElementById('edit_legal_name').value = data.legal_name;
+                document.getElementById('edit_state').value = data.state; // Set state value
+                document.getElementById('edit_city').value = data.city; // Set city value
     
-                // Populate states dropdown
-                const stateSelect = document.getElementById("edit_state");
-                stateSelect.innerHTML = `<option value="">Select State</option>`;
-    
-                // Check if states data exists and is an array
-                if (Array.isArray(data.states) && data.states.length > 0) {
-                    data.states.forEach(state => {
-                        const option = document.createElement("option");
-                        option.value = state.id;
-                        option.textContent = state.name;
-    
-                        // Compare state names for selection
-                        if (state.name === data.state) option.selected = true;
-    
-                        stateSelect.appendChild(option);
-                    });
-                } else if (data.state) {
-                    const option = document.createElement("option");
-                    option.value = data.state;
-                    option.textContent = data.state;
-                    option.selected = true; // Mark the state as selected
-                    stateSelect.appendChild(option);
-                } else {
-                    console.error("States data is not available or not an array.");
-                    stateSelect.innerHTML = "<option>No states available</option>";
-                }
-    
-                // Populate cities dropdown
-                const citySelect = document.getElementById("edit_city");
-                citySelect.innerHTML = `<option value="">Select City</option>`;
-    
-                // Check if cities data exists and is an array
-                if (Array.isArray(data.cities) && data.cities.length > 0) {
-                    data.cities.forEach(city => {
-                        console.log("City from list:", city.name); // Log city name
-                        const option = document.createElement("option");
-                        option.value = city.id; // Assuming city.id is the unique identifier
-                        option.textContent = city.name;
-    
-                        // Compare city names for selection (if city is a name instead of an ID)
-                        if (city.name === data.city) option.selected = true;
-    
-                        citySelect.appendChild(option);
-                    });
-                } else {
-                    console.error("Cities data is not available or not an array.");
-                    citySelect.innerHTML = "<option>No cities available</option>";
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-            });
+              console.log("Pincode value set to:", document.getElementById('edit_pincode').value);
+
+            // Make sure modal is visible (redundant but safe)
+            modal.style.display = 'block';
+        })
+        .catch(error => {
+            console.error("Failed to fetch merchant data:", error);
+            alert("Error fetching merchant data. Please try again.");
+            // Optionally hide the modal if fetch fails
+            modal.style.display = 'none';
+        });
     }
     
     
@@ -358,6 +323,51 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+
+
+     const validators = {
+                edit_email: function (value) {
+                    if (value === "") return "Email is required";
+                    if (value.includes(" ")) return "Email must not contain spaces";
+                    if (!value.includes("@")) return "Email must contain '@'";
+                    
+                    const parts = value.split("@");
+                    if (parts.length !== 2) return "Email must contain only one '@' symbol";
+                    
+                    const [local, domain] = parts;
+            
+                    if (local.trim() === "") return "Email must have a name before '@'";
+                    if (domain.trim() === "") return "Email must have a domain after '@'";
+                    if (!domain.includes(".")) return "Email domain must contain a '.' (e.g., gmail.com)";
+                    
+                    const domainParts = domain.split(".");
+                    if (domainParts.some(part => part.trim() === "")) return "Email domain must not have empty sections (e.g., 'example..com' is invalid)";
+                    if (domainParts[domainParts.length - 1].length < 2) return "Email domain extension must be at least 2 characters (e.g., '.com', '.in')";
+            
+                    return ""; // All good
+                },
+                
+                edit_mobile: function (value) {
+                    if (value === "") return "Mobile number is required";
+                    if (!/^\d+$/.test(value)) return "Mobile number must contain only digits";
+                    if (value.length !== 10) return "Mobile number must be 10 digits";
+                    return "";
+                }
+            }
+
+              Object.keys(validators).forEach(id => {
+                const input = document.getElementById(id);
+                if (!input) return;
+    
+                input.addEventListener("input", () => {
+                    const value = input.value.trim();
+                    const errorMessage = validators[id](value);
+                    input.setCustomValidity(errorMessage);
+                    input.reportValidity();
+                });
+            });
+
+
 document.getElementById("editCorporateForm").addEventListener("submit", function(e) {
     e.preventDefault();
 
@@ -379,7 +389,7 @@ document.getElementById("editCorporateForm").addEventListener("submit", function
     .then(data => {
         console.log("Server response:", data); // Make sure message is present
         if (data.success) {
-            showToast(data.message || "Merchant updated successfully");
+              showToast(data.message || "Merchant updated successfully!");
             closeModal();
 
             // Reload only after toast disappears

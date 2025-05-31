@@ -8,7 +8,7 @@ import string
 from sys import prefix
 # from tkinter.font import Font
 from django.db.models import Max
-from django.http import FileResponse, HttpResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.db.models.functions import Cast, Substr
 from django.shortcuts import get_object_or_404, render
 import openpyxl
@@ -28,6 +28,7 @@ from accounts.models import Corporate, Customer, Logo, Terminal
 from accounts.views import generate_terminal_id
 from accounts.models import Corporate, Customer, Merchant, Terminal
 from accounts.views import generate_terminal_id
+from bopo_admin.forms import CustomSetPasswordForm
 from bopo_award.models import AwardPoints, CashOut, CustomerPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails, SuperAdminPayment
 
 # from django.contrib.auth import authenticate 
@@ -505,7 +506,38 @@ def get_customer(request, customer_id):
 
     return JsonResponse(data)
 
-@csrf_exempt  
+# @csrf_exempt  
+# def update_customer(request, customer_id):
+#     if request.method == "POST":
+#         try:
+#             customer = Customer.objects.get(customer_id=customer_id)
+
+#             email = request.POST.get('email')
+#             mobile = request.POST.get('mobile')
+
+#             # Basic validation (you can extend this as needed)
+#             if not email or not mobile:
+#                 return JsonResponse({'success': False, 'error': 'Email and Mobile are required'})
+
+         
+#             # Update only email and mobile
+#             customer.email = email
+#             customer.mobile = mobile
+#             customer.save()
+
+#             return JsonResponse({
+#                 "success": True,
+#                 "message": "Customer updated successfully!"
+#             })
+
+#         except Customer.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Customer not found'})
+
+#     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+
+@csrf_exempt
 def update_customer(request, customer_id):
     if request.method == "POST":
         try:
@@ -514,13 +546,24 @@ def update_customer(request, customer_id):
             email = request.POST.get('email')
             mobile = request.POST.get('mobile')
 
-            # Basic validation (you can extend this as needed)
             if not email or not mobile:
                 return JsonResponse({'success': False, 'error': 'Email and Mobile are required'})
 
-            # Optionally: Validate mobile number format, email format here
+            # Check duplication in Customer (exclude current customer)
+            if Customer.objects.filter(email=email).exclude(customer_id=customer_id).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered"})
 
-            # Update only email and mobile
+            if Customer.objects.filter(mobile=mobile).exclude(customer_id=customer_id).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Check duplication in Corporate (no exclude needed here)
+            if Corporate.objects.filter(email=email).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            if Corporate.objects.filter(mobile=mobile).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # If all checks pass, update
             customer.email = email
             customer.mobile = mobile
             customer.save()
@@ -609,33 +652,82 @@ def individual_list(request):
 #             return JsonResponse({"success": False, "error": str(e)})
 #     return JsonResponse({"success": False, "error": "Invalid request"})
 
-from django.utils import timezone
 
+#main
+# from django.utils import timezone
+
+# def toggle_status(request, entity_type, entity_id):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             is_active = data.get("is_active")
+
+#             if entity_type == "customer":
+#                 instance = Customer.objects.get(customer_id=entity_id)
+#             elif entity_type == "merchant":
+#                 instance = Merchant.objects.get(merchant_id=entity_id)
+#             elif entity_type == "corporate":
+#                 instance = Corporate.objects.get(corporate_id=entity_id)
+#             else:
+#                 return JsonResponse({"success": False, "error": "Invalid entity type"})
+
+#             instance.status = "Active" if is_active else "Inactive"
+#             instance.verified_at = timezone.now() if is_active else None
+#             instance.save()
+
+#             return JsonResponse({"success": True, "status": instance.status})
+#         except Exception as e:
+#             return JsonResponse({"success": False, "error": str(e)})
+#     return JsonResponse({"success": False, "error": "Invalid request method"})
+
+
+from django.views.decorators.http import require_POST
+
+@require_POST
 def toggle_status(request, entity_type, entity_id):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            is_active = data.get("is_active")
+    try:
+        data = json.loads(request.body)
+        is_active = data.get("is_active")
 
-            if entity_type == "customer":
-                instance = Customer.objects.get(customer_id=entity_id)
-            elif entity_type == "merchant":
-                instance = Merchant.objects.get(merchant_id=entity_id)
-            elif entity_type == "corporate":
-                instance = Corporate.objects.get(corporate_id=entity_id)
+        affected_ids = []
+
+        if entity_type == "customer":
+            instance = Customer.objects.get(customer_id=entity_id)
+
+        elif entity_type == "merchant":
+            instance = Merchant.objects.get(merchant_id=entity_id)
+
+        elif entity_type == "corporate":
+            instance = Corporate.objects.get(corporate_id=entity_id)
+            related_merchants = Merchant.objects.filter(project_name=instance)
+
+            if is_active:
+                related_merchants.update(status="Active", verified_at=timezone.now())
             else:
-                return JsonResponse({"success": False, "error": "Invalid entity type"})
+                related_merchants.update(status="Inactive", verified_at=None)
 
-            instance.status = "Active" if is_active else "Inactive"
-            instance.verified_at = timezone.now() if is_active else None
-            instance.save()
+            # Capture affected merchant IDs
+            affected_ids = list(related_merchants.values_list("merchant_id", flat=True))
+            print("Affected Merchant IDs:", affected_ids)
 
-            return JsonResponse({"success": True, "status": instance.status})
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
-    return JsonResponse({"success": False, "error": "Invalid request method"})
+        else:
+            return JsonResponse({"success": False, "error": "Invalid entity type"})
 
+        instance.status = "Active" if is_active else "Inactive"
+        instance.verified_at = timezone.now() if is_active else None
+        instance.save()
 
+        return JsonResponse({
+            "success": True,
+            "status": instance.status,
+            "affected_merchants": affected_ids
+        })
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+    
+    
+    
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from accounts.models import Merchant, Corporate
@@ -806,6 +898,8 @@ def add_merchant(request):
     corporates = Corporate.objects.all()
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
 
+
+
 def redirect_with_error(request, message):
     from django.contrib import messages
     messages.error(request, message)
@@ -864,11 +958,48 @@ def get_corporate(request, corporate_id):
         return JsonResponse({'error': 'City not found'}, status=404)
 
 
+# from django.http import JsonResponse
+# from accounts.models import Corporate
+
+
+# @csrf_exempt  
+# def update_corporate(request, corporate_id):
+#     if request.method == 'POST':
+#         try:
+#             corporate = Corporate.objects.get(corporate_id=corporate_id)
+
+#             email = request.POST.get('email')
+#             mobile = request.POST.get('mobile')
+            
+           
+#             if email:
+#                 corporate.email = email
+#             if mobile:
+#                 corporate.mobile = mobile
+
+#             corporate.save()
+
+#             return JsonResponse({
+#                 'success': True,
+#                 'message': 'Email and mobile updated successfully!',
+#                 'updatedCorporate': {
+#                     'corporate_id': corporate.corporate_id,
+#                     'email': corporate.email,
+#                     'mobile': corporate.mobile,
+#                 }
+#             })
+
+#         except Corporate.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Corporate not found'}, status=404)
+
+#     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+
+
 from django.http import JsonResponse
-from accounts.models import Corporate
+from accounts.models import Corporate, Merchant, Customer
+from django.views.decorators.csrf import csrf_exempt
 
-
-@csrf_exempt  # only if you're testing with tools like Postman; remove in production
+@csrf_exempt  
 def update_corporate(request, corporate_id):
     if request.method == 'POST':
         try:
@@ -877,6 +1008,25 @@ def update_corporate(request, corporate_id):
             email = request.POST.get('email')
             mobile = request.POST.get('mobile')
 
+            # Check duplicate email
+            if email:
+                if Corporate.objects.filter(email=email).exclude(corporate_id=corporate_id).exists():
+                    return JsonResponse({"success": False, "message": "Email is already registered."})
+                if Merchant.objects.filter(email=email).exists():
+                    return JsonResponse({"success": False, "message": "Email is already registered."})
+                if Customer.objects.filter(email=email).exists():
+                    return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            # Check duplicate mobile
+            if mobile:
+                if Corporate.objects.filter(mobile=mobile).exclude(corporate_id=corporate_id).exists():
+                    return JsonResponse({"success": False, "message": "Mobile number is already registered ."})
+                if Merchant.objects.filter(mobile=mobile).exists():
+                    return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+                if Customer.objects.filter(mobile=mobile).exists():
+                    return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Update fields
             if email:
                 corporate.email = email
             if mobile:
@@ -898,6 +1048,7 @@ def update_corporate(request, corporate_id):
             return JsonResponse({'success': False, 'error': 'Corporate not found'}, status=404)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+
 
 from django.http import JsonResponse
 from accounts.models import Merchant
@@ -945,8 +1096,43 @@ def get_copmerchant(request, merchant_id):
 
 
 
-from django.http import JsonResponse
-from accounts.models import Merchant, Corporate
+# from django.http import JsonResponse
+# from accounts.models import Merchant, Corporate
+
+
+# def update_copmerchant(request, merchant_id):
+#     if request.method == "POST":
+#         if not merchant_id:
+#             return JsonResponse({'success': False, 'error': 'Missing merchant ID'}, status=400)
+
+#         try:
+#             merchant = Merchant.objects.get(id=merchant_id)
+
+#             email = request.POST.get('email', '').strip()
+#             mobile = request.POST.get('mobile', '').strip()
+
+#             if email:
+#                 merchant.email = email
+#             if mobile:
+#                 merchant.mobile = mobile
+
+#             merchant.save()
+
+#             return JsonResponse({
+#                 "success": True,
+#                 "message": "Email and mobile updated successfully!",
+#                 "updatedMerchant": {
+#                     "id": merchant.id,
+#                     "email": merchant.email,
+#                     "mobile": merchant.mobile,
+#                 }
+#             })
+
+#         except Merchant.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Merchant not found'}, status=404)
+
+#     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+
 
 
 def update_copmerchant(request, merchant_id):
@@ -960,12 +1146,27 @@ def update_copmerchant(request, merchant_id):
             email = request.POST.get('email', '').strip()
             mobile = request.POST.get('mobile', '').strip()
 
-            if email:
-                merchant.email = email
-            if mobile:
-                merchant.mobile = mobile
+            # Check duplicate email in Merchant excluding current merchant
+            if Merchant.objects.filter(email=email).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
 
+            # Check duplicate mobile in Merchant excluding current merchant
+            if Merchant.objects.filter(mobile=mobile).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Check duplicate email in Corporate
+            if Corporate.objects.filter(email=email).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            # Check duplicate mobile in Corporate
+            if Corporate.objects.filter(mobile=mobile).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Update merchant email and mobile
+            merchant.email = email
+            merchant.mobile = mobile
             merchant.save()
+
 
             return JsonResponse({
                 "success": True,
@@ -981,7 +1182,6 @@ def update_copmerchant(request, merchant_id):
             return JsonResponse({'success': False, 'error': 'Merchant not found'}, status=404)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
-
 
 
 # from django.http import JsonResponse
@@ -1148,16 +1348,65 @@ def edit_merchants(request, merchant_id):
 
 
 
+# def update_merchant(request): 
+#     if request.method == "POST":
+#         merchant_id = request.POST.get('merchant_id')
+#         email = request.POST.get('email')
+#         mobile = request.POST.get('mobile')
+
+#         try:
+#             merchant = Merchant.objects.get(id=merchant_id)
+
+#             # Update only email and mobile
+#             merchant.email = email
+#             merchant.mobile = mobile
+#             merchant.save()
+
+#             return JsonResponse({
+#                 "success": True,
+#                 "message": "Merchant updated successfully!"
+#             })
+#         except Merchant.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Merchant not found'})
+#     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+
+from django.http import JsonResponse
+from accounts.models import Merchant, Corporate
+
 def update_merchant(request): 
     if request.method == "POST":
         merchant_id = request.POST.get('merchant_id')
         email = request.POST.get('email')
         mobile = request.POST.get('mobile')
 
+        # Validate input
+        if not merchant_id or not email or not mobile:
+            return JsonResponse({'success': False, 'error': 'Merchant ID, email, and mobile are required.'})
+
+        email = email.strip().lower()  # normalize email
+
         try:
             merchant = Merchant.objects.get(id=merchant_id)
+            
+            # Check duplicate email in Merchant excluding current merchant
+            if Merchant.objects.filter(email=email).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
 
-            # Update only email and mobile
+            # Check duplicate mobile in Merchant excluding current merchant
+            if Merchant.objects.filter(mobile=mobile).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Check duplicate email in Corporate
+            if Corporate.objects.filter(email=email).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            # Check duplicate mobile in Corporate
+            if Corporate.objects.filter(mobile=mobile).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Update merchant email and mobile
             merchant.email = email
             merchant.mobile = mobile
             merchant.save()
@@ -1166,8 +1415,10 @@ def update_merchant(request):
                 "success": True,
                 "message": "Merchant updated successfully!"
             })
+
         except Merchant.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Merchant not found'})
+
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 from django.http import JsonResponse
@@ -2049,6 +2300,7 @@ def create_notification_view(request):
             messages.success(request, "Notification sent successfully to Merchant.")
             return redirect('send_notifications')
 
+    messages.error(request, "Notification sent failed.")
     return redirect('send_notifications')
 
 
@@ -2617,12 +2869,13 @@ def add_employee(request):
             return JsonResponse({"success": False, "message": f"Error: {str(e)}"})
 
         bopo_admin = BopoAdmin(username=username, role="employee", employee=employee)
-        bopo_admin.set_password(password)  # Hash the password
+        bopo_admin.set_password(password)  # <- HASHES the password before saving
         bopo_admin.save()
+        
+        
         return JsonResponse({"success": True, "message": "Employee added successfully!"})
 
     return render(request, 'bopo_admin/Employee/add_employee.html')
-
 
 
 from django.contrib import messages
@@ -2634,12 +2887,14 @@ def assign_employee_role(request):
             employee = Employee.objects.get(employee_id=employee_id)
         except Employee.DoesNotExist:
             messages.error(request, "Employee not found.")
-            return redirect('assign_employee_role')  # Redirect back to form
+            return redirect('assign_employee_role')
 
         roles_data = {
             'corporate_merchant': 'Corporate Merchant' in request.POST.getlist('roles'),
             'individual_merchant': 'Individual Merchant' in request.POST.getlist('roles'),
+            'terminals': 'terminals' in request.POST.getlist('roles'),
             'merchant_send_credentials': 'Merchant Send Credentials' in request.POST.getlist('roles'),
+            'reduce_limit': 'reduce_limit' in request.POST.getlist('roles'),
             'merchant_limit': 'Merchant Limit' in request.POST.getlist('roles'),
             'merchant_login_page_info': 'Merchant Login Page-Info' in request.POST.getlist('roles'),
             'merchant_send_notification': 'Merchant Send Notification' in request.POST.getlist('roles'),
@@ -2651,22 +2906,64 @@ def assign_employee_role(request):
             'account_info': 'Account-Info' in request.POST.getlist('roles'),
             'reports': 'Reports' in request.POST.getlist('roles'),
             'deduct_amount': 'Deduct Amount' in request.POST.getlist('roles'),
-            'helpdesk_action': 'HelpDesk Action' in request.POST.getlist('roles')
+            'superadmin_functionality': 'superadmin_functionality' in request.POST.getlist('roles'),
+
+            'helpdesk_action': 'HelpDesk Action' in request.POST.getlist('roles'),
         }
 
-        employee_role, created = EmployeeRole.objects.update_or_create(
+
+        EmployeeRole.objects.update_or_create(
             employee=employee,
             defaults=roles_data
         )
 
         messages.success(request, "Roles successfully assigned.")
-        return redirect('employee_list')  # This should be the same view that uses Toastr
+
+        # Instead of redirecting now, show the form again with the success message
+        employees = Employee.objects.all()
+        return render(request, 'bopo_admin/Employee/employee_role.html', {
+            'employees': employees,
+            'redirect_to_list': True  # Flag for JS redirect
+        })
 
     else:
         employees = Employee.objects.all()
         return render(request, 'bopo_admin/Employee/employee_role.html', {'employees': employees})
+    
+    
+    
+    
 
+def get_employee_roles(request):
+    employee_id = request.GET.get('employee_id')
+    try:
+        employee = Employee.objects.get(employee_id=employee_id)
+        emp_roles = EmployeeRole.objects.get(employee=employee)
 
+        roles = {
+            'corporate_merchant': emp_roles.corporate_merchant,
+            'individual_merchant': emp_roles.individual_merchant,
+            'terminals': emp_roles.terminals,
+            'merchant_send_credentials': emp_roles.merchant_send_credentials,
+            'reduce_limit': emp_roles.reduce_limit,
+            'merchant_limit': emp_roles.merchant_limit,
+            'merchant_login_page_info': emp_roles.merchant_login_page_info,
+            'merchant_send_notification': emp_roles.merchant_send_notification,
+            'merchant_received_offers': emp_roles.merchant_received_offers,
+            'modify_customer_details': emp_roles.modify_customer_details,
+            'customer_send_notification': emp_roles.customer_send_notification,
+            'create_employee': emp_roles.create_employee,
+            'payment_details': emp_roles.payment_details,
+            'account_info': emp_roles.account_info,
+            'reports': emp_roles.reports,
+            'deduct_amount': emp_roles.deduct_amount,
+            'superadmin_functionality': emp_roles.superadmin_functionality,
+            'helpdesk_action': emp_roles.helpdesk_action,
+        }
+
+        return JsonResponse({'roles': roles})
+    except (Employee.DoesNotExist, EmployeeRole.DoesNotExist):
+        return JsonResponse({'roles': {}}, status=404)
 
 # def payment_details(request):
 #     topups = PaymentDetails.objects.all().order_by('-created_at')  # or any custom ordering
@@ -2743,9 +3040,53 @@ def payment_details(request):
     return render(request, 'bopo_admin/Payment/payment_details.html', {'topups': topups})
 
 
+# def account_info(request):
+#     account = AccountInfo.objects.first()  # Get the first account (modify as per your logic)
+    
+#     if request.method == "POST":
+#         accountNumber = request.POST.get("accountNumber")
+#         payableTo = request.POST.get("payableTo")
+#         bankName = request.POST.get("bankName")
+#         city = request.POST.get("city")
+#         accountType = request.POST.get("accountType")
+#         ifscCode = request.POST.get("ifscCode")
+#         branchName = request.POST.get("branchName")
+#         pincode = request.POST.get("pincode")
+
+#         if account:
+#             # Update existing record
+#             account.accountNumber = accountNumber
+#             account.payableTo = payableTo
+#             account.bankName = bankName
+#             account.city = city
+#             accountType = accountType
+#             account.ifscCode = ifscCode
+#             account.branchName = branchName
+#             account.pincode = pincode
+#             account.save()
+#         else:
+#             # Create new record if none exists
+#             AccountInfo.objects.create(
+#                 accountNumber=accountNumber,
+#                 payableTo=payableTo,
+#                 bankName=bankName,
+#                 city=city,
+#                 accountType=accountType,
+#                 ifscCode=ifscCode,
+#                 branchName=branchName,
+#                 pincode=pincode
+#             )
+
+#         return JsonResponse({"message": "Account saved successfully!"})
+
+#     return render(request, "bopo_admin/Payment/account_info.html", {"account": account})
+
+
+
+
 def account_info(request):
     account = AccountInfo.objects.first()  # Get the first account (modify as per your logic)
-    
+
     if request.method == "POST":
         accountNumber = request.POST.get("accountNumber")
         payableTo = request.POST.get("payableTo")
@@ -2756,40 +3097,112 @@ def account_info(request):
         branchName = request.POST.get("branchName")
         pincode = request.POST.get("pincode")
 
-        if account:
-            # Update existing record
-            account.accountNumber = accountNumber
-            account.payableTo = payableTo
-            account.bankName = bankName
-            account.city = city
-            accountType = accountType
-            account.ifscCode = ifscCode
-            account.branchName = branchName
-            account.pincode = pincode
-            account.save()
-        else:
-            # Create new record if none exists
-            AccountInfo.objects.create(
-                accountNumber=accountNumber,
-                payableTo=payableTo,
-                bankName=bankName,
-                city=city,
-                accountType=accountType,
-                ifscCode=ifscCode,
-                branchName=branchName,
-                pincode=pincode
-            )
+        # Check required fields
+        if not all([accountNumber, payableTo, bankName, city, accountType, ifscCode, branchName, pincode]):
+            return JsonResponse({"status": "error", "message": "All fields are required."})
 
-        return JsonResponse({"message": "Account saved successfully!"})
+        try:
+            if account:
+                # Update existing record
+                account.accountNumber = accountNumber
+                account.payableTo = payableTo
+                account.bankName = bankName
+                account.city = city
+                account.accountType = accountType
+                account.ifscCode = ifscCode
+                account.branchName = branchName
+                account.pincode = pincode
+                account.save()
+            else:
+                # Create new record if none exists
+                AccountInfo.objects.create(
+                    accountNumber=accountNumber,
+                    payableTo=payableTo,
+                    bankName=bankName,
+                    city=city,
+                    accountType=accountType,
+                    ifscCode=ifscCode,
+                    branchName=branchName,
+                    pincode=pincode
+                )
 
+            return JsonResponse({"status": "success", "message": "Account saved successfully!"})
+        except Exception as e:
+          
+            return JsonResponse({
+                "status": "error",
+                "message": "Failed to save account information. Please try again later."
+            })
+
+    # For GET request, render the template
     return render(request, "bopo_admin/Payment/account_info.html", {"account": account})
+
 
 def reports(request):
     return render(request, 'bopo_admin/Payment/reports.html')
 
 
+# def login_view(request):
+#     # GET request (initial load or after auto logout)
+#     if request.GET.get('inactive'):
+#         error_message = "Your corporate account has been deactivated. Please contact the superadmin."
+#         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#     if request.method == 'POST':
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         user_type = request.POST.get('user_type')
+#         remember_me = request.POST.get('remember_me')  # Fetch the "remember me" checkbox
+
+#         # Authenticate user
+#         user = authenticate(request, username=username, password=password)
+
+#         if user:
+#             # Check corporate admin status
+#             if user_type == "corporate_admin":
+#                 try:
+#                     corporate = Corporate.objects.get(corporate_id=username)
+#                     if corporate.status == "Inactive":
+#                         logout(request)
+#                         request.session.flush()
+#                         error_message = "Your corporate account is currently not active. Please reach out to the superadmin for assistance."
+#                         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+#                 except Corporate.DoesNotExist:
+#                     error_message = "Corporate account not found."
+#                     return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#             # Check employee permissions
+#             elif user_type == "employee":
+#                 role_permissions = EmployeeRole.objects.filter(employee=user.employee)
+#                 if not role_permissions.exists():
+#                     error_message = "You do not have permission to access this page."
+#                     return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#             # Login the user
+#             login(request, user)
+
+#             # Set session expiry based on "remember me"
+#             if remember_me:
+#                request.session.set_expiry(2592000)  # 1 month
+
+#             else:
+#                 request.session.set_expiry(0)  # Session expires on browser close
+
+#             request.session['user_type'] = user_type
+#             return redirect('home')
+
+#         else:
+#             error_message = "Invalid credentials"
+#             return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#     return render(request, 'bopo_admin/login.html')
+
+
+
+
+from django.contrib.auth.models import User  # Replace with your custom User model if used
+
 def login_view(request):
-    # GET request (initial load or after auto logout)
     if request.GET.get('inactive'):
         error_message = "Your corporate account has been deactivated. Please contact the superadmin."
         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
@@ -2798,41 +3211,45 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         user_type = request.POST.get('user_type')
-        remember_me = request.POST.get('remember_me')  # Fetch the "remember me" checkbox
+        remember_me = request.POST.get('remember_me')
 
-        # Authenticate user
         user = authenticate(request, username=username, password=password)
 
         if user:
-            # Check corporate admin status
-            if user_type == "corporate_admin":
+            # ✅ Validate user type after successful authentication
+            if user_type == "super_admin":
+                if not user.is_superuser:
+                    error_message = "You are not authorized as a Super Admin."
+                    return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+            elif user_type == "corporate_admin":
                 try:
                     corporate = Corporate.objects.get(corporate_id=username)
                     if corporate.status == "Inactive":
                         logout(request)
                         request.session.flush()
-                        error_message = "Your corporate account is currently not active. Please reach out to the superadmin for assistance."
+                        error_message = "Your corporate account is currently not active. Please contact to the superadmin."
                         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
                 except Corporate.DoesNotExist:
                     error_message = "Corporate account not found."
                     return render(request, 'bopo_admin/login.html', {'error_message': error_message})
 
-            # Check employee permissions
             elif user_type == "employee":
+                if not hasattr(user, 'employee'):
+                    error_message = "This account is not registered as an employee."
+                    return render(request, 'bopo_admin/login.html', {'error_message': error_message})
                 role_permissions = EmployeeRole.objects.filter(employee=user.employee)
                 if not role_permissions.exists():
                     error_message = "You do not have permission to access this page."
                     return render(request, 'bopo_admin/login.html', {'error_message': error_message})
 
-            # Login the user
-            login(request, user)
-
-            # Set session expiry based on "remember me"
-            if remember_me:
-                request.session.set_expiry(1209600)  # 2 weeks
             else:
-                request.session.set_expiry(0)  # Session expires on browser close
+                error_message = "Invalid user type."
+                return render(request, 'bopo_admin/login.html', {'error_message': error_message})
 
+            # ✅ Passed all checks, login
+            login(request, user)
+            request.session.set_expiry(2592000 if remember_me else 0)
             request.session['user_type'] = user_type
             return redirect('home')
 
@@ -2843,9 +3260,360 @@ def login_view(request):
     return render(request, 'bopo_admin/login.html')
 
 
+# def login_view(request):
+#     # Debug: Print request method and query params
+#     print("Request method:", request.method)
+#     print("Query params:", request.GET)
+
+#     # GET request (initial load or after auto logout)
+#     if request.GET.get('inactive'):
+#         error_message = "Your corporate account has been deactivated. Please contact the superadmin."
+#         print("Corporate account inactive")
+#         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#     if request.method == 'POST':
+#         # Get form values
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         user_type = request.POST.get('user_type')
+#         remember_me = request.POST.get('remember_me')
+
+#         # Debug: Print form inputs
+#         print("Username:", username)
+#         print("User Type:", user_type)
+#         print("Remember Me Checked:", remember_me)
+
+#         # Authenticate user
+#         user = authenticate(request, username=username, password=password)
+#         print("Authenticated user:", user)
+
+#         if user:
+#             if user_type == "corporate_admin":
+#                 try:
+#                     corporate = Corporate.objects.get(corporate_id=username)
+#                     print("Corporate found:", corporate)
+#                     if corporate.status == "Inactive":
+#                         logout(request)
+#                         request.session.flush()
+#                         error_message = "Your corporate account is currently not active. Please reach out to the superadmin for assistance."
+#                         print("Corporate inactive, logging out.")
+#                         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+#                 except Corporate.DoesNotExist:
+#                     error_message = "Corporate account not found."
+#                     print("Corporate does not exist.")
+#                     return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#             elif user_type == "employee":
+#                 try:
+#                     role_permissions = EmployeeRole.objects.filter(employee=user.employee)
+#                     print("Employee role permissions found:", role_permissions)
+#                     if not role_permissions.exists():
+#                         error_message = "You do not have permission to access this page."
+#                         print("No role permissions, access denied.")
+#                         return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+#                 except Exception as e:
+#                     error_message = "Error checking employee roles."
+#                     print("Error checking employee roles:", str(e))
+#                     return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#             # Login user
+#             login(request, user)
+#             print("User logged in:", user)
+
+#             # Session expiry setup
+#             if remember_me:
+#                 request.session.set_expiry(2)  # 2 seconds for debug
+#                 print("Session expiry set to 2 seconds for testing.")
+#             else:
+#                 request.session.set_expiry(0)
+#                 print("Session will expire on browser close.")
+
+#             request.session['user_type'] = user_type
+#             print("Session user_type set to:", user_type)
+
+#             return redirect('home')
+
+#         else:
+#             error_message = "Invalid credentials"
+#             print("Authentication failed.")
+#             return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+
+#     print("Initial login page load (GET request).")
+#     return render(request, 'bopo_admin/login.html')
+
+
+from django.contrib.auth.forms import PasswordResetForm
+from django.core.mail import BadHeaderError
+
+
+# def forgot_password(request):
+    # print("Password reset view called") 
+    # if request.method == "POST":
+    #     email = request.POST.get('email')
+    #     form = PasswordResetForm({'email': email})
+    #     if form.is_valid():
+    #         try:
+    #             form.save(
+    #                 request=request,
+    #                 use_https=request.is_secure(),
+    #                 email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
+    #                 subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
+    #                 from_email='BOPO Team <006iipt@gmail.com>',
+    #             )
+    #             messages.success(request, "A password reset link has been sent to your email address.")
+    #             return redirect('forgot_password')
+    #         except BadHeaderError:
+    #             return HttpResponse('Invalid header found.')
+    #     else:
+    #         messages.error(request, "No user is associated with this email address.")
+    # else:
+    #     form = PasswordResetForm()
+
+    # return render(request, 'bopo_admin/ForgotPass/forgot_password.html', {'form': form})
+    
+from django.contrib.sites.shortcuts import get_current_site
+
+def forgot_password(request):
+    print("Password reset view called") 
+    if request.method == "POST":
+        email = request.POST.get('email')
+        print(f"Email received: {email}")
+        form = PasswordResetForm({'email': email})
+        if form.is_valid():
+            print("Form is valid. Sending reset email...")
+            try:
+                current_site = get_current_site(request)   
+                form.save(
+                    request=request,
+                    use_https=request.is_secure(),
+                    email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
+                    subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
+                    from_email='BOPO Team <006iipt@gmail.com>',
+                    html_email_template_name=None,
+                    extra_email_context={
+                        'domain': current_site.domain,
+                        'protocol': 'https' if request.is_secure() else 'http'
+                    }
+                )
+
+                messages.success(request, "A password reset link has been sent to your email address.")
+                return redirect('password_reset_done')  # ✅ Changed here
+            except BadHeaderError:
+                return HttpResponse('Invalid header found.')
+        else:
+            print("Form is invalid.")
+            messages.error(request, "No user is associated with this email address.")
+    else:
+        form = PasswordResetForm()
+
+    return render(request, 'bopo_admin/ForgotPass/forgot_password.html', {'form': form})
+
+from django.contrib.auth.views import PasswordResetView
+from django.conf import settings
+
+
+# class CustomPasswordResetView(PasswordResetView):
+#     def form_valid(self, form):
+#         form.save(
+#             use_https=self.request.is_secure(),
+#             from_email=self.from_email,
+#             email_template_name=self.email_template_name,
+#             subject_template_name=self.subject_template_name,
+#             request=self.request
+#         )
+#         return super().form_valid(form)
+    
+# from django.contrib.auth.views import PasswordResetConfirmView
+# from django.contrib.auth.hashers import make_password
+
+# class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+#     template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
+#     success_url = '/reset/done/'
+
+#     def dispatch(self, request, *args, **kwargs):
+#         self.user = self.get_user()
+#         return super().dispatch(request, *args, **kwargs)
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         user_type = "other"
+#         if hasattr(self.user, 'corporate') and self.user.corporate:
+#             user_type = "corporate"
+#         elif hasattr(self.user, 'employee') and self.user.employee:
+#             user_type = "employee"
+#         elif self.user.is_superuser:
+#             user_type = "superadmin"
+
+#         context['user_type'] = user_type
+#         return context
+
+class CustomPasswordResetView(PasswordResetView):
+    def form_valid(self, form):
+        form.save(
+            use_https=self.request.is_secure(),
+            from_email=self.from_email,
+            email_template_name=self.email_template_name,
+            subject_template_name=self.subject_template_name,
+            request=self.request
+        )
+        return super().form_valid(form)
+    
+
+
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
 from django.contrib.auth.hashers import make_password
-from django.shortcuts import render, redirect
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import update_session_auth_hash
+from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
+from django.utils.encoding import force_str
+from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN
+
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
+    success_url = reverse_lazy('password_reset_complete')
+    form_class = CustomSetPasswordForm  
+    invalid_link_template_name = 'bopo_admin/ForgotPass/password_reset_invalid.html'  # Custom error template
+
+
+    def get_user(self, uidb64):
+        UserModel = get_user_model()
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = UserModel._default_manager.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
+            user = None
+        return user
+
+    INTERNAL_RESET_SESSION_TOKEN = '_password_reset_token'
+    def dispatch(self, request, *args, **kwargs):
+        self.uidb64 = kwargs.get('uidb64')
+        self.token = kwargs.get('token')
+        self.user = self.get_user(self.uidb64)
+
+        print("Checking reset for:", self.uidb64, self.token, self.user)
+        print("Token from URL:", self.token)
+        print("Session token:", request.session.get(INTERNAL_RESET_SESSION_TOKEN))
+
+        if self.user is None:
+            # Invalid user
+            return self.render_invalid_link()
+
+        if self.token == 'set-password':
+            session_token = request.session.get(INTERNAL_RESET_SESSION_TOKEN)
+            if session_token and default_token_generator.check_token(self.user, session_token):
+                # Token valid, proceed to show password reset form
+                return super().dispatch(request, *args, **kwargs)
+            else:
+                # Invalid session token
+                return self.render_invalid_link()
+        else:
+            # Token from URL is a real token: validate and redirect to 'set-password'
+            if default_token_generator.check_token(self.user, self.token):
+                # Store token in session
+                request.session[INTERNAL_RESET_SESSION_TOKEN] = self.token
+                # Redirect to URL with token replaced by 'set-password'
+                redirect_url = request.path.replace(self.token, 'set-password')
+                return redirect(redirect_url)
+            else:
+                # Invalid token
+                return self.render_invalid_link()
+
+    
+    def render_invalid_link(self):
+        user_type = "other"
+        if self.user:
+            if hasattr(self.user, 'corporate') and self.user.corporate:
+                user_type = "corporate"
+            elif hasattr(self.user, 'employee') and self.user.employee:
+                user_type = "employee"
+            elif self.user.is_superuser:
+                user_type = "superadmin"
+
+        context = {
+            'title': 'Password reset link is invalid',
+            'message': 'Your password reset link is invalid or has expired. Please request a new one.',
+            'user_type': user_type,
+        }
+        return render(self.request, self.invalid_link_template_name, context)
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        user_type = "other"
+        if hasattr(self.user, 'corporate') and self.user.corporate:
+            user_type = "corporate"
+        elif hasattr(self.user, 'employee') and self.user.employee:
+            user_type = "employee"
+        elif self.user.is_superuser:
+            user_type = "superadmin"
+
+        context['user_type'] = user_type
+        return context
+
+    def form_valid(self, form):
+        user = self.user
+        new_password = form.cleaned_data['new_password1']
+
+        # Determine user_type for session
+        user_type = "other"
+        if hasattr(user, 'corporate') and user.corporate:
+            user_type = "corporate"
+        elif hasattr(user, 'employee') and user.employee:
+            user_type = "employee"
+        elif user.is_superuser:
+            user_type = "superadmin"
+
+        # Save user_type in session to use on completion page
+        self.request.session['user_type'] = user_type
+
+        # Update password in BopoAdmin (main model)
+        user.set_password(new_password)
+        user.save()
+
+                # Sync plain text password to Employee model (⚠️ Not secure)
+        if hasattr(user, 'employee') and user.employee:
+            user.employee.password = new_password  # ← Plain text password
+            user.employee.save()
+
+        # Update Corporate pin field (converted to int)
+        if hasattr(user, 'corporate') and user.corporate:
+            try:
+                user.corporate.pin = int(new_password)
+                user.corporate.save()
+            except ValueError:
+                # Handle invalid pin (non-numeric password) if necessary
+                pass
+
+        # Keep user logged in after password change
+        update_session_auth_hash(self.request, user)
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+    template_name = 'bopo_admin/ForgotPass/password_reset_complete.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Get user_type from session and then clear it
+        user_type = self.request.session.get('user_type', 'other')
+        context['user_type'] = user_type
+        self.request.session.pop('user_type', None)
+
+        return context
+
+def password_reset_invalid(request):
+    return render(request, 'bopo_admin/ForgotPass/password_reset_invalid.html')
+
+
 
 
 
@@ -2935,6 +3703,9 @@ def update_profile(request):
 
         elif user.role == 'super_admin':
             user.username = request.POST.get('username')
+            user.email = request.POST.get('email')
+            user.mobile = request.POST.get('mobile')
+            user.city = request.POST.get('city')
             user.save()
             messages.success(request, "Super admin profile updated successfully!")
 
@@ -3253,6 +4024,14 @@ def export_merchant_wise_balance(request):
 
     return response
 
+from django.contrib.auth.views import PasswordResetView
+from django.contrib import messages
+
+
+class CustomPasswordResetView(PasswordResetView):
+    def form_valid(self, form):
+        messages.success(self.request, "A password reset link has been sent to your email address.")
+        return super().form_valid(form)
 
 
 # def export_customer_wise_balance(request):
@@ -4033,54 +4812,45 @@ def get_admin_merchant(request, merchant_id):
 
     return JsonResponse(data)
 
+
 def update_admin_merchant(request):
     if request.method == 'POST':
         merchant_id = request.POST.get('merchant_id')
         try:
             merchant = Merchant.objects.get(id=merchant_id)
-            
-            # Get and debug state ID from frontend
-            state_id = request.POST.get('state')  # Expecting state ID here (e.g., "4010")
-            print(f"State ID from Frontend: {state_id}")  # Debugging line
-            
-            # Fetch the state object by its ID
-            try:
-                state_obj = State.objects.get(id=state_id)  # Now using ID to query
-            except State.DoesNotExist:
-                return JsonResponse({'success': False, 'message': f'State with ID "{state_id}" not found'})
-            
-            # Update the state and city fields
-            merchant.state = state_obj.name  # Store the state name (not the ID)
-            
-            # Handle city
-            city_id = request.POST.get('city')
-            try:
-                city_obj = City.objects.get(id=city_id)
-                merchant.city = city_obj.name  # Store city name (not the model instance)
-            except City.DoesNotExist:
-                return JsonResponse({'success': False, 'message': 'City not found'})
-            
-            # Update other merchant fields
-            merchant.first_name = request.POST.get('first_name')
-            merchant.last_name = request.POST.get('last_name')
-            merchant.email = request.POST.get('email')
-            merchant.mobile = request.POST.get('mobile')
-            merchant.aadhaar_number = request.POST.get('aadhaar_number')
-            merchant.shop_name = request.POST.get('shop_name')
-            merchant.address = request.POST.get('address')
-            merchant.pincode = request.POST.get('pincode')
-            merchant.gst_number = request.POST.get('gst_number')
-            merchant.pan_number = request.POST.get('pan_number')
-            merchant.legal_name = request.POST.get('legal_name')
-            
-            # Save the updated merchant information
+
+            email = request.POST.get('email')
+            mobile = request.POST.get('mobile')
+
+            # Check duplicate email in Merchant (excluding current)
+            if Merchant.objects.filter(email=email).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            # Check duplicate mobile in Merchant (excluding current)
+            if Merchant.objects.filter(mobile=mobile).exclude(id=merchant_id).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Check duplicate email in Corporate
+            if Corporate.objects.filter(email=email).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+
+            # Check duplicate mobile in Corporate
+            if Corporate.objects.filter(mobile=mobile).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+
+            # Save updated data
+            merchant.email = email
+            merchant.mobile = mobile
             merchant.save()
 
             return JsonResponse({'success': True, 'message': 'Merchant updated successfully'})
+        
         except Merchant.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Merchant not found'})
         except Exception as e:
             return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
         
 def corporate_credentials(request):

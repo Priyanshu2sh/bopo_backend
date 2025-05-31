@@ -6,6 +6,7 @@
     <meta charset="utf-8">
     <title>PLEASE LOGIN TO Bigbonuspoints ADMIN</title>
     {% load static %}
+        <link rel="icon" href="/media/logos/logo.jpg"> 
     <link rel="stylesheet" href="{% static 'bopo_admin/css/login.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -13,15 +14,15 @@
     <div class="colorful-line"></div>
 
     <div class="login-header">
-        <h2>Bigbonuspoints <span>ADMIN</span> <br/>Login</h2>
+        <h2>Bigbonuspoints <span>Login</span></h2>
 
         <div class="login-container">
- {% if error_message %}
-<div class="custom-alert">
-    <div class="icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-    <div class="message">{{ error_message }}</div>
-</div>
-{% endif %}
+                {% if error_message %}
+                <div class="custom-alert">
+                    <div class="icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="message">{{ error_message }}</div>
+                </div>
+                {% endif %}
 
      
             <form method="post" action="">
@@ -60,14 +61,22 @@
                         >
                         <i class="fa-solid fa-eye-slash" id="togglePassword"></i>
                     </div>
-                    <div class="input-hint">Your strong password</div>
+                   {% comment %} <div class="input-hint">Your strong password</div> {% endcomment %}
                 </div>
+
+           <div class="form-group forgot-password-container">
+                <a href="{% url 'forgot_password' %}" class="forgot-password-link">
+                    <i class="fa-solid fa-unlock-keyhole"></i> Forgot Password?
+                </a>
+                </div> 
+
             
                 <div class="form-group remember-me">
                     <input type="checkbox" name="remember_me" id="remember_me">
                     <label for="remember_me">Remember me</label>
                 </div>   <div class="remember-hint">(if this is a private computer)</div>
-            
+
+     
                          
                 <button type="submit">Login</button>
             </form>
