@@ -2654,9 +2654,23 @@ def send_notification_customer(request):
     })
 
 
+
+
 def employee_list(request):
-    employees = Employee.objects.all()
-    return render(request, 'bopo_admin/Employee/employee_list.html', {'employees': employees})
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        employees = Employee.objects.all()
+        data = []
+        for emp in employees:
+            data.append({
+                'employee_id': emp.employee_id,
+                'name': emp.name,
+                'email': emp.email,
+                'mobile': emp.mobile,
+                'username': emp.username,
+                'password': emp.password,
+            })
+        return JsonResponse({'data': data})
+    return render(request, 'bopo_admin/Employee/employee_list.html')
 
 
 from django.http import JsonResponse
