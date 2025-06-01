@@ -32,6 +32,7 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = ['*']
 
 
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -73,6 +74,7 @@ MIDDLEWARE = [
 
     'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
     'bopo_admin.login_required_middleware.LoginRequiredMiddleware',
+    'bopo_backend.middleware.Custom404Middleware',
 ]
 
 CORS_ALLOW_HEADERS = [

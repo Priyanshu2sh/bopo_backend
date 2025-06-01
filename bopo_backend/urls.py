@@ -36,5 +36,8 @@ urlpatterns = [
    
 ]
 
+# Place handler404 assignment here, outside urlpatterns list
+handler404 = 'bopo_admin.views.invalid_url_view'
+
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

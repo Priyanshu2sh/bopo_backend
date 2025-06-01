@@ -5165,3 +5165,9 @@ def transaction_history(request):
     
     return render(request, 'bopo_admin/Helpdesk/history.html',context)
 
+
+
+def invalid_url_view(request, exception):
+    print("⚠️ Custom 404 view hit")
+    return render(request, 'bopo_admin/Helpdesk/invalid.html', status=404)
+
