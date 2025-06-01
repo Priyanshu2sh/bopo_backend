@@ -122,7 +122,11 @@
     <div class="send-notification-form">
         <!-- Rental Model -->
         <div class="model-card"><br>
-            <h3 class="model-header">Model Plans</h3>
+   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3 class="model-header">Model Plans</h3>
+        <button class="btn-action1" onclick="openAddPlanModal()">Add Plan</button>
+    </div>
+
             <table class="plans-table">
                 <thead>
                     <tr>
@@ -155,7 +159,7 @@
 <!-- Edit Plan Modal -->
 <div id="editPlanModal" class="modal-container">
     <div class="modal-content-box">
-            <span class="modal-close-btn" onclick="closeEditModal()">&times;</span>
+        <span class="modal-close-btn" onclick="closeEditModal()">&times;</span>
         <h2 class="modal-header">Edit Plan</h2>
         <form id="editPlanForm">
             <div class="input-group">
@@ -165,21 +169,49 @@
             <div class="input-group">
                 <label for="edit-type-input">Plan Type</label>
                 <select id="edit-type-input" class="input-field" required>
-                        <option value="">-- Select Plan Type --</option>
-                        <option value="Rental">Rental</option>
-                        <option value="Prepaid">Prepaid</option>
+                    <option value="">-- Select Plan Type --</option>
+                    <option value="Rental">Rental</option>
+                    <option value="Prepaid">Prepaid</option>
                 </select>
-
             </div>
             <div class="input-group">
                 <label for="edit-description-input">Description</label>
                 <textarea id="edit-description-input" class="textarea-field" placeholder="Enter description..." required></textarea>
             </div>
-          
-          <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
+            <button type="button" class="btn-save" onclick="savePlanChanges()"> Save Changes</button>
         </form>
- </div>
+    </div>
 </div>
+
+
+
+<!-- Add Plan Modal -->
+<div id="addPlanModal" class="modal-container">
+    <div class="modal-content-box">
+        <span class="modal-close-btn" onclick="closeAddModal()">&times;</span>
+        <h2 class="modal-header">Add Plan</h2>
+        <form id="addPlanForm">
+            <div class="input-group">
+                <label for="add-validity-input">Plan Validity</label>
+                <input type="text" id="add-validity-input" class="input-field" placeholder="Enter plan validity in months" required>
+            </div>
+            <div class="input-group">
+                <label for="add-type-input">Plan Type</label>
+                <select id="add-type-input" class="input-field" required>
+                    <option value="">-- Select Plan Type --</option>
+                    <option value="Rental">Rental</option>
+                    <option value="Prepaid">Prepaid</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="add-description-input">Description</label>
+                <textarea id="add-description-input" class="textarea-field" placeholder="Enter description..." required></textarea>
+            </div>
+            <button type="button" class="btn-save" onclick="submitAddPlan()">Add Plan</button>
+        </form>
+    </div>
+</div>
+
 
 
         <!-- Award Points -->
@@ -736,138 +768,250 @@ document.addEventListener("DOMContentLoaded", function () {
         closeEditModal();
     }
 
- const validators = {
-  validity: function(value) {
-    if (!value || value.trim() === "") return "Plan validity is required";
-    if (!/^\d+$/.test(value.trim())) return "Plan validity must be a positive number (e.g., 12)";
-    return "";
-  },
+    // Validators for both edit and add inputs
+    const validators = {
+        validity: function(value) {
+            if (!value || value.trim() === "") return "Plan validity is required";
+            if (!/^\d+$/.test(value.trim())) return "Plan validity must be a positive number (e.g., 12)";
+            return "";
+        },
+        type: function(value) {
+            if (!value || value === "") return "Plan type is required";
+            if (!["Rental", "Prepaid"].includes(value)) return "Invalid plan type selected";
+            return "";
+        },
+        description: function(value) {
+            if (!value || value.trim() === "") return "Description is required";
+            if (value.trim().length < 10) return "Description must be at least 10 characters";
+            return "";
+        }
+    };
 
-  type: function(value) {
-    if (!value || value === "") return "Plan type is required";
-    if (!["Rental", "Prepaid"].includes(value)) return "Invalid plan type selected";
-    return "";
-  },
+    // Map validators for edit inputs
+    const editFieldIdMap = {
+        validity: "edit-validity-input",
+        type: "edit-type-input",
+        description: "edit-description-input"
+    };
 
-  description: function(value) {
-    if (!value || value.trim() === "") return "Description is required";
-    if (value.trim().length < 10) return "Description must be at least 10 characters";
-    return "";
-  }
-};
+    // Map validators for add inputs
+    const addFieldIdMap = {
+        validity: "add-validity-input",
+        type: "add-type-input",
+        description: "add-description-input"
+    };
 
-// Map validator keys to actual input element IDs
-const fieldIdMap = {
-  validity: "edit-validity-input",
-  type: "edit-type-input",
-  description: "edit-description-input"
-};
+    // Add live validation to inputs (edit modal)
+    Object.keys(validators).forEach(key => {
+        const input = document.getElementById(editFieldIdMap[key]);
+        if (!input) return;
 
-// Add live validation on inputs
-Object.keys(validators).forEach(key => {
-  const input = document.getElementById(fieldIdMap[key]);
-  if (!input) return;
+        input.addEventListener("input", () => {
+            const errorMessage = validators[key](input.value.trim());
+            input.setCustomValidity(errorMessage);
+            input.reportValidity();
+        });
+    });
 
-  input.addEventListener("input", () => {
-    const errorMessage = validators[key](input.value.trim());
-    input.setCustomValidity(errorMessage);
-    input.reportValidity();
-  });
-});
+    // Add live validation to inputs (add modal)
+    Object.keys(validators).forEach(key => {
+        const input = document.getElementById(addFieldIdMap[key]);
+        if (!input) return;
 
-function validateEditPlanForm() {
-  let isValid = true;
-  Object.keys(validators).forEach(key => {
-    const input = document.getElementById(fieldIdMap[key]);
-    if (!input) return;
+        input.addEventListener("input", () => {
+            const errorMessage = validators[key](input.value.trim());
+            input.setCustomValidity(errorMessage);
+            input.reportValidity();
+        });
+    });
 
-    const errorMessage = validators[key](input.value.trim());
-    input.setCustomValidity(errorMessage);
-    if (errorMessage) {
-      input.reportValidity();
-      isValid = false;
-    }
-  });
-  return isValid;
-}
+    // Validate Edit Plan form before saving
+    function validateEditPlanForm() {
+        let isValid = true;
+        Object.keys(validators).forEach(key => {
+            const input = document.getElementById(editFieldIdMap[key]);
+            if (!input) return;
 
-function savePlanChanges() {
-  if (!validateEditPlanForm()) return;
-
-  const validity = document.getElementById("edit-validity-input").value.trim();
-  const type = document.getElementById("edit-type-input").value.trim();
-  const description = document.getElementById("edit-description-input").value.trim();
-
-  fetch("/update-model-plan/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": getCSRFToken(),
-    },
-    body: JSON.stringify({
-      plan_validity: validity,
-      plan_type: type,
-      description: description,
-    }),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      showToast(`${type} Plan updated successfully!`, true);
-      closeEditModal();
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
-    } else {
-      showToast(data.message || "Failed to update plan", false);
-    }
-  })
-  .catch(error => {
-    console.error("Error:", error);
-    showToast("An error occurred", false);
-  });
-}
-
-
-
-
-function showToast(message, isSuccess = true) {
-    const toast = document.createElement('div');
-    toast.className = `toast-container toast-show ${isSuccess ? 'toast-success' : 'toast-error'}`;
-    toast.innerText = message;
-    document.body.appendChild(toast);
-
-    // Hide after 3.5s and animate fade out
-    setTimeout(() => {
-        toast.classList.add('toast-hide');
-        setTimeout(() => toast.remove(), 500); // Remove after animation
-    }, 3500);
-}
-
-function showToast(message, isSuccess = true) {
-    const toast = document.createElement('div');
-    toast.className = `toast-container toast-show ${isSuccess ? 'toast-success' : 'toast-error'}`;
-    toast.innerText = message;
-    document.body.appendChild(toast);
-
-    // Hide after 3.5s and animate fade out
-    setTimeout(() => {
-        toast.classList.add('toast-hide');
-        setTimeout(() => toast.remove(), 500); // Remove after animation
-    }, 3500);
-}
-
-    function updateExistingModelPlanRow(plan_type, plan_validity, description) {
-        const rows = document.querySelectorAll(".plans-table tbody tr");
-    
-        rows.forEach((row) => {
-            const currentType = row.querySelector(".plan-type-text")?.textContent.trim();
-            if (currentType === plan_type.trim()) {
-                row.querySelector(".plan-validity-text").textContent = plan_validity;
-                row.querySelector(".plan-description-text").textContent = description;
+            const errorMessage = validators[key](input.value.trim());
+            input.setCustomValidity(errorMessage);
+            if (errorMessage) {
+                input.reportValidity();
+                isValid = false;
             }
         });
+        return isValid;
     }
+
+    // Validate Add Plan form before submitting
+    function validateAddPlanForm() {
+        let isValid = true;
+        Object.keys(validators).forEach(key => {
+            const input = document.getElementById(addFieldIdMap[key]);
+            if (!input) return;
+
+            const errorMessage = validators[key](input.value.trim());
+            input.setCustomValidity(errorMessage);
+            if (errorMessage) {
+                input.reportValidity();
+                isValid = false;
+            }
+        });
+        return isValid;
+    }
+
+    // Open Edit Modal
+    function openEditPlanModal(button) {
+        const row = button.closest("tr");
+        const validity = row.querySelector(".plan-validity-text").textContent.trim();
+        const type = row.querySelector(".plan-type-text").textContent.trim();
+        const description = row.querySelector(".plan-description-text").textContent.trim();
+
+        document.getElementById("edit-validity-input").value = validity;
+        document.getElementById("edit-type-input").value = type;
+        document.getElementById("edit-description-input").value = description;
+
+        document.getElementById("editPlanModal").style.display = "block";
+    }
+
+    function closeEditModal() {
+        document.getElementById("editPlanModal").style.display = "none";
+    }
+
+    // Open Add Modal
+    function openAddPlanModal() {
+        document.getElementById("addPlanModal").style.display = "block";
+    }
+
+    function closeAddModal() {
+        document.getElementById("addPlanModal").style.display = "none";
+    }
+
+    // Save changes from Edit Plan modal
+    function savePlanChanges() {
+        if (!validateEditPlanForm()) return;
+
+        const validity = document.getElementById("edit-validity-input").value.trim();
+        const type = document.getElementById("edit-type-input").value.trim();
+        const description = document.getElementById("edit-description-input").value.trim();
+
+        fetch("/update-model-plan/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken(),
+            },
+            body: JSON.stringify({
+                plan_validity: validity,
+                plan_type: type,
+                description: description,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(`${type} Plan updated successfully!`, true);
+                closeEditModal();
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showToast(data.message || "Failed to update plan", false);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            showToast("An error occurred", false);
+        });
+    }
+
+    // Submit Add Plan form
+    function submitAddPlan() {
+        if (!validateAddPlanForm()) return;
+
+        const validity = document.getElementById("add-validity-input").value.trim();
+        const type = document.getElementById("add-type-input").value.trim();
+        const description = document.getElementById("add-description-input").value.trim();
+
+        fetch("/add-model-plan/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken(),
+            },
+            body: JSON.stringify({
+                plan_validity: validity,
+                plan_type: type,
+                description: description,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(`${type} Plan added successfully!`, true);
+                closeAddModal();
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showToast(data.message || "Failed to add plan", false);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            showToast("An error occurred", false);
+        });
+    }
+
+    // Toast notification helper
+    function showToast(message, isSuccess = true) {
+        const toast = document.createElement('div');
+        toast.className = `toast-container toast-show ${isSuccess ? 'toast-success' : 'toast-error'}`;
+        toast.innerText = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('toast-hide');
+            setTimeout(() => toast.remove(), 500);
+        }, 3500);
+    }
+
+    // CSRF token helper
+    function getCSRFToken() {
+        let cookieValue = null;
+        const name = 'csrftoken';
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Close edit modal when clicking outside modal content
+    window.onclick = function(event) {
+        const editModal = document.getElementById("editPlanModal");
+        if (event.target === editModal) {
+            closeEditModal();
+        }
+        const addModal = document.getElementById("addPlanModal");
+        if (event.target === addModal) {
+            closeAddModal();
+        }
+    }
+
+    // Close modals on DOMContentLoaded close buttons (optional, you already have it)
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.modal-close-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.closest('.modal-container').style.display = 'none';
+            });
+        });
+    });
     
     
     

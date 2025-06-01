@@ -170,6 +170,8 @@ urlpatterns = [
     
     path('logout/', custom_logout_view, name='logout'),
     path('update-model-plan/', views.update_model_plan, name='update_model_plan'),
+    path("add-model-plan/", views.add_model_plan, name="add-model-plan"),
+
     # path('save-award-points/', views.save_award_points, name='save_award_points'),
     
     path('get-award-point/', views.get_award_point, name='get_award_point'),

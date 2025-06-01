@@ -4668,6 +4668,25 @@ def update_model_plan(request):
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
+def add_model_plan(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        plan_validity = data.get('plan_validity')
+        plan_type = data.get('plan_type')
+        description = data.get('description')
+
+        try:
+            # Always create a new entry
+            ModelPlan.objects.create(
+                plan_validity=plan_validity,
+                plan_type=plan_type,
+                description=description
+            )
+            return JsonResponse({'success': True, 'message': 'Plan added successfully.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
 def model_plan_list(request):
     plans = ModelPlan.objects.all()
     print("Plans:", plans)  # Debugging log

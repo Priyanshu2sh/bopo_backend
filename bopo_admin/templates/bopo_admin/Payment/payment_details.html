@@ -3,93 +3,7 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/payment_details.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-
- <!-- Select2 CSS & JS -->
- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
- 
-<!-- DataTables & Buttons CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-<style>
-    /* Hide default DataTables search box */
-    div.dataTables_filter {
-        display: none !important;
-    }
-
-    /* Top controls styling */
-    .top-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-
-    .search-box {
-        padding: 6px 10px;
-        width: 250px;
-    }
-
-    #custom-buttons {
-        display: flex;
-        justify-content: flex-end;
-    }
-#payment-table tbody tr:hover {
-    background-color: #f8f8f8 !important; /* Light color for whole row */
-    transition: background-color 0.3s ease;
-}
-
-#payment-table tbody tr:hover td:first-child {
-    background-color: #f0f0f0 !important; /* Highlight only '#' column */
-    font-weight: bold;
-    color: #333;
-    transition: background-color 0.3s ease;
-}
-
-    
-    /* Custom Pagination Styling (Like .pagination-controls) */
-    .dataTables_paginate {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-        margin-top: 20px;
-        flex-wrap: wrap;
-    }
-
-    .dataTables_paginate .paginate_button {
-        background: linear-gradient(135deg, #ff7b54, #ff4e00);
-        color: white;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        box-shadow: 0 4px 8px rgba(52, 49, 48, 0.3);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-    }
-
-    .dataTables_paginate .paginate_button:hover {
-        transform: translateY(-2px);
-        background: linear-gradient(135deg, #ff9a76, #ff6a2d);
-        box-shadow: 0 6px 12px rgba(41, 39, 38, 0.4);
-    }
-
-    .dataTables_paginate .paginate_button.current {
-        background: linear-gradient(135deg, #333, #111);
-        color: #fff;
-        font-weight: bold;
-        border: 2px solid #ff4e00;
-        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
-    }
- 
-</style>
-
 
 <div class="payment_details-container">
     <div class="payment_details-back-to-list-btn">
@@ -102,204 +16,224 @@
         <h2>Top-Up Request</h2>
     </div>
 
-    <div class="payment_details-list">
-        <div class="payment_details-table">
-                <!-- Custom Search & Column Toggle Button -->
-            <div class="top-controls">
-                <input type="text" class="search-box" id="search-customer" placeholder="Search merchants...">
-                <div id="custom-buttons"></div>
-               
-<div class="plan-filter-wrapper" style="position: relative; display: inline-block;  margin-left: 85%;">
-  <button id="filter-toggle-btn" title="Filter Plans" 
-         style="
-                                background-color: #f8f8f8;
-                                border: 1px solid gray;
-                                border-radius: 6px;
-                                padding: 6px 10px;
-                                cursor: pointer;
-                                font-size: 20px;
-                                color: black;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                width: 40px;
-                                height: 40px;
-                                margin-top: -9%;
-                                margin-left: -300%;
-                            ">
-                            <i class="fas fa-filter"></i>
-                        </button>
+    
+<!-- Add DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
 
-                        <div id="filter-menu" style="
-                            display: none;
-                        position: absolute;
-                        top: 45px;
-                        right: 0;
-                        background: white;
-                        border: 1px solid #ddd;
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-                        border-radius: 4px;
-                        z-index: 1000;
-                        min-width: 160px;
-                    ">
-                    <ul style="list-style:none; margin:0; padding:8px 0;">
-                    <li class="filter-option" data-value="">All Plans</li>
-                    <li class="filter-option" data-value="rental">Rental</li>
-                    <li class="filter-option" data-value="prepaid">Prepaid</li>
-                    </ul>
-                </div>
-                </div>
+<div class="payment_details-list">
+    <div class="payment_details-table">
 
-            </div>
-            <table id="payment-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Contact Person</th>
-                        <th>Mobile Number</th>
-                        <th>Paid Amount</th>
-                        <th>Top-Up</th>
-                        <th>Date</th>
-                        <th>Payment Method</th>
-                        <th>Plan Type</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for payment in topups %}
-                    <tr id="payment-row-{{ payment.id }}">
-                        <td>{{ forloop.counter }}</td>
+<div class="top-controls" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px;">
 
-                        {% if payment.merchant %}
-                            <td>{{ payment.merchant.first_name }} {{ payment.merchant.last_name }}</td>
-                            <td>{{ payment.merchant.mobile }}</td>
-                        {% elif payment.customer %}
-                            <td>{{ payment.customer.first_name }} {{ payment.customer.last_name }}</td>
-                            <td>{{ payment.customer.mobile }}</td>
+  <!-- Search box -->
+  <input type="text" class="search-box" id="search-customer" placeholder="Search merchants..." style="flex-grow: 1; max-width: 300px; padding: 6px;">
+
+  <!-- Buttons group -->
+  <div class="buttons-group" style="display: flex; align-items: center; gap: 10px;">
+
+    <!-- Filter button -->
+    <div class="plan-filter-wrapper" style="position: relative; display: inline-block;">
+      <button id="filter-toggle-btn" title="Filter Plans (All)" 
+              style="
+                background-color: #f8f8f8; 
+                border: 1px solid gray;
+                border-radius: 6px;
+                padding: 6px 10px;
+                cursor: pointer;
+                font-size: 20px;
+                color: #007bff;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+        <i class="fas fa-filter"></i>
+      </button>
+
+      <div id="filter-menu" style="
+          display: none;
+          position: absolute;
+          top: 45px;
+          right: 0;
+          background: white;
+          border: 1px solid #ddd;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+          border-radius: 4px;
+          z-index: 1000;
+          min-width: 160px;
+        ">
+        <ul style="list-style:none; margin:0; padding:8px 0;">
+          <li class="filter-option" data-value="">All Plans</li>
+          <li class="filter-option" data-value="rental">Rental</li>
+          <li class="filter-option" data-value="prepaid">Prepaid</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Custom Buttons container (for colvis) -->
+    <div id="custom-buttons"></div>
+
+  </div>
+
+</div>
+
+   
+
+        <table id="payment-table" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Contact Person</th>
+                    <th>Mobile Number</th>
+                    <th>Paid Amount</th>
+                    <th>Top-Up</th>
+                    <th>Date</th>
+                    <th>Payment Method</th>
+                    <th>Plan Type</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in topups %}
+                <tr id="payment-row-{{ payment.id }}">
+                    <td>{{ forloop.counter }}</td>
+
+                    {% if payment.merchant %}
+                        <td>{{ payment.merchant.first_name }} {{ payment.merchant.last_name }}</td>
+                        <td>{{ payment.merchant.mobile }}</td>
+                    {% elif payment.customer %}
+                        <td>{{ payment.customer.first_name }} {{ payment.customer.last_name }}</td>
+                        <td>{{ payment.customer.mobile }}</td>
+                    {% else %}
+                        <td>Unknown</td>
+                        <td>Unknown</td>
+                    {% endif %}
+
+                    <td>{{ payment.paid_amount }}</td>
+                    <td>{{ payment.topup_amount }}</td>
+                    <td>{{ payment.created_at|date:"Y-m-d" }}</td>
+                    <td>{{ payment.payment_mode }}</td>
+                    <td>
+                        {% if payment.merchant and payment.merchant.plan_type %}
+                            {{ payment.merchant.plan_type|capfirst }}
                         {% else %}
-                            <td colspan="2">Unknown</td>
+                            Unknown
                         {% endif %}
-
-                        <td>{{ payment.paid_amount }}</td>
-                        <td>{{ payment.topup_amount }}</td>
-                        <td>{{ payment.created_at|date:"Y-m-d" }}</td>
-                        <td>{{ payment.payment_mode }}</td>
-                        <td>
-                            {% if payment.merchant and payment.merchant.plan_type %}
-                                {{ payment.merchant.plan_type|capfirst }}
-                            {% else %}
-                                Unknown
-                            {% endif %}
-                        </td>
-                        <td>
-                           {% if payment.status == 'approved' %}
-                            <button class="btn btn-sm approved-disabled" disabled>
-                            Approved
-                            </button>
+                    </td>
+                    <td>
+                        {% if payment.status == 'approved' %}
+                            <button class="btn btn-sm approved-disabled" disabled>Approved</button>
                         {% elif payment.status == 'rejected' %}
-                            <button class="btn btn-sm rejected-disabled" disabled>
-                            Rejected
-                            </button>
+                            <button class="btn btn-sm rejected-disabled" disabled>Rejected</button>
                         {% else %}
-                        <div class="d-flex gap-2">
-                            <button 
-                                id="approve-btn-{{ payment.id }}" 
-                                class="btn btn-sm btn-success" 
-                                onclick="showApproveModal('{{ payment.id }}', '{{ payment.plan_type }}')">
-                                <i class="fas fa-check-circle"></i> Approve
-                            </button>
-                            <button 
-                                id="reject-btn-{{ payment.id }}" 
-                                class="btn btn-sm btn-danger" 
-                                onclick="showRejectModal('{{ payment.id }}')">
-                                <i class="fas fa-times-circle"></i> Reject
-                            </button>
-                        </div>
-
+                            <div class="d-flex gap-2">
+                                <button 
+                                    id="approve-btn-{{ payment.id }}" 
+                                    class="btn btn-sm btn-success" 
+                                    onclick="showApproveModal('{{ payment.id }}', '{{ payment.plan_type }}')">
+                                    <i class="fas fa-check-circle"></i> Approve
+                                </button>
+                                <button 
+                                    id="reject-btn-{{ payment.id }}" 
+                                    class="btn btn-sm btn-danger" 
+                                    onclick="showRejectModal('{{ payment.id }}')">
+                                    <i class="fas fa-times-circle"></i> Reject
+                                </button>
+                            </div>
                         {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="9">No payment records found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
     </div>
 </div>
 
-
-<!-- DataTables & Buttons JS -->
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DataTables JS + Buttons extension -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
 <script>
+ $(document).ready(function() {
+    const table = $('#payment-table').DataTable({
+      dom: 'Bfrtip',
+      pageLength: 6,
+      paging: true,
+      responsive: true,
+      lengthChange: false,
+      searching: false,
+      buttons: [
+        {
+          extend: 'colvis',
+          text: '<i class="fas fa-table"></i>',
+          className: 'btn btn-light'
+        }
+      ],
+      stripeClasses: [],
+    });
 
- {% comment %} const table = $('#payment-table').DataTable({
-  dom: 'Bfrtip',
-  pageLength: 6,
-  paging: true,
-  responsive: true,
-  lengthChange: false,
-  buttons: [
-    {
-      extend: 'colvis',
-      text: '<i class="fas fa-table"></i>',
-      className: 'btn btn-light'
-    }
-  ],
-  stripeClasses: [],
-}); {% endcomment %}
+    // Attach buttons container to your custom div
+    table.buttons().container().appendTo('#custom-buttons');
 
-table.buttons().container().appendTo('#custom-buttons');
-$('#search-customer').on('keyup', function () {
-  table.search(this.value).draw();
-});
+    // Custom search box filtering
+    $('#search-customer').on('keyup', function () {
+      table.search(this.value).draw();
+    });
 
-// Variable to store selected filter value
-let selectedPlan = "";
+    // Variable to store selected plan filter
+    let selectedPlan = "";
 
-// Custom filter function
-$.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-  let planType = data[7].toLowerCase();
-  if (selectedPlan === "" || planType === selectedPlan) {
-    return true;
-  }
-  return false;
-});
+    // Custom filter for plan type column (index 7)
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+      let planType = data[7].toLowerCase().trim();
+      // Uncomment for debugging:
+      console.log('Filtering row', dataIndex, 'planType:', planType, 'selectedPlan:', selectedPlan);
 
-// Toggle filter menu visibility
-$('#filter-toggle-btn').on('click', function(e) {
-  e.stopPropagation();
-  $('#filter-menu').toggle();
-});
+      if (selectedPlan === "" || planType === selectedPlan) {
+        return true;
+      }
+      return false;
+    });
 
-// Hide filter menu if clicking outside
-$(document).on('click', function() {
-  $('#filter-menu').hide();
-});
+    // Toggle filter menu
+    $('#filter-toggle-btn').on('click', function(e) {
+      e.stopPropagation();
+      $('#filter-menu').toggle();
+    });
 
-// Handle filter option click
-$('.filter-option').on('click', function() {
-  selectedPlan = $(this).data('value').toLowerCase();
-  $('#filter-menu').hide();
+    // Hide filter menu if clicking outside
+    $(document).on('click', function() {
+      $('#filter-menu').hide();
+    });
 
-  // Optional: change button color or add small label showing current filter
-  if(selectedPlan === "") {
-    $('#filter-toggle-btn').css('color', '#007bff').attr('title', 'Filter Plans (All)');
-  } else {
-    $('#filter-toggle-btn').css('color', '#0056b3').attr('title', 'Filter Plans (' + $(this).text() + ')');
-  }
+    // Delegate click handler for filter options (important!)
+    $(document).on('click', '.filter-option', function() {
+      selectedPlan = $(this).data('value').toLowerCase().trim();
+      $('#filter-menu').hide();
 
-  table.draw();
-});
+      if (selectedPlan === "") {
+        $('#filter-toggle-btn').css('color', '#007bff').attr('title', 'Filter Plans (All)');
+      } else {
+        $('#filter-toggle-btn').css('color', '#0056b3').attr('title', 'Filter Plans (' + $(this).text() + ')');
+      }
 
+      table.draw();
+    });
+  });
 </script>
+
+
+
+
+
+
 
 <!-- Approve Modal -->
 <div id="approveModal" class="custom-modal">
