@@ -42,7 +42,7 @@
                 padding: 6px 10px;
                 cursor: pointer;
                 font-size: 20px;
-                color: #007bff;
+                color: black;
                 width: 40px;
                 height: 40px;
                 display: flex;
@@ -168,7 +168,7 @@
       paging: true,
       responsive: true,
       lengthChange: false,
-      searching: false,
+      searching: true,
       buttons: [
         {
           extend: 'colvis',
@@ -193,6 +193,11 @@
     // Custom filter for plan type column (index 7)
     $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
       let planType = data[7].toLowerCase().trim();
+      console.log('Plan Type Column:', data[7]);
+      console.log("Plan Type Raw Value:", data[7]);
+        console.log('Selected Plan:', selectedPlan);
+
+
       // Uncomment for debugging:
       console.log('Filtering row', dataIndex, 'planType:', planType, 'selectedPlan:', selectedPlan);
 
@@ -273,10 +278,10 @@
 </div>
 
 <!-- Toast -->
-        <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
-            <i class="fa fa-click-circle"></i>
-            <span class="toast-message">{{ message }}</span>
-        </div>
+      <div id="toast-container" class="toast-container {% if message %}toast-show{% endif %}">
+    <i id="toast-icon" class="fa fa-check-circle"></i>
+    <span id="toast-message" class="toast-message">{{ message }}</span>
+</div>
 
 <script>
 function showApproveModal(paymentId, planType) {

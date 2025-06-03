@@ -286,148 +286,120 @@
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
 <!-- DataTables Initialization -->
-<script>
-    $(document).ready(function () {
-        // History Table
-        const historyTable = $('#history-table').DataTable({
-            dom: 'Bfrtip',
-            pageLength: 6,
-            lengthChange: false,
-            buttons: [
-                {
-                    extend: 'colvis',
-                    text: '<i class="fas fa-table"></i>',
-                    className: 'btn btn-light'
-                }
-            ],
-            stripeClasses: []
-        });
-
-        historyTable.buttons().container().appendTo('#custom-buttons-history');
-
-        $('#search-history').on('keyup', function () {
-            historyTable.search(this.value).draw();
-        });
-
-        // Customers Table
-        const customersTable = $('#customers-table').DataTable({
-            dom: 'Bfrtip',
-            pageLength: 6,
-            lengthChange: false,
-            buttons: [
-                {
-                    extend: 'colvis',
-                    text: '<i class="fas fa-table"></i>',
-                    className: 'btn btn-light'
-                }
-            ],
-            stripeClasses: []
-        });
-
-        customersTable.buttons().container().appendTo('#custom-buttons-customers');
-
-        $('#search-customers').on('keyup', function () {
-            customersTable.search(this.value).draw();
-        });
-    });
-</script>
-
 
 <script>
-    $(document).ready(function() {
-    // Toggle date filter menu for cashout
-    $('#date-filter-toggle-cashout').on('click', function(e) {
-        e.stopPropagation();
-        $('#date-filter-menu-cashout').toggle();
-    });
+$(document).ready(function () {
+  // Initialize DataTables
+  const historyTable = $('#history-table').DataTable({
+    dom: 'Bfrtip',
+    pageLength: 6,
+    lengthChange: false,
+    buttons: [
+      {
+        extend: 'colvis',
+        text: '<i class="fas fa-table"></i>',
+        className: 'btn btn-light'
+      }
+    ],
+    stripeClasses: []
+  });
+  historyTable.buttons().container().appendTo('#custom-buttons-history');
 
-    $(document).on('click', function() {
-        $('#date-filter-menu-cashout').hide();
-    });
+  $('#search-history').on('keyup', function () {
+    historyTable.search(this.value).draw();
+  });
 
-    $('.date-filter-option-cashout').click(function () {
-        const range = $(this).data('range');
-        const now = new Date();
+  const customersTable = $('#customers-table').DataTable({
+    dom: 'Bfrtip',
+    pageLength: 6,
+    lengthChange: false,
+    buttons: [
+      {
+        extend: 'colvis',
+        text: '<i class="fas fa-table"></i>',
+        className: 'btn btn-light'
+      }
+    ],
+    stripeClasses: []
+  });
+  customersTable.buttons().container().appendTo('#custom-buttons-customers');
 
-        $('#merchant-table-history tbody tr').each(function () {
-            const $row = $(this);
-            const dateText = $row.find('td').eq(5).text(); // Date column index
-            if (!dateText) {
-                $row.show();
-                return;
-            }
-            const rowDate = new Date(dateText);
+  $('#search-customers').on('keyup', function () {
+    customersTable.search(this.value).draw();
+  });
 
-            let show = true;
-
-            if (range === 'daily') {
-                show = rowDate.toDateString() === now.toDateString();
-            } else if (range === 'weekly') {
-                const oneWeekAgo = new Date(now);
-                oneWeekAgo.setDate(now.getDate() - 7);
-                show = rowDate >= oneWeekAgo;
-            } else if (range === 'monthly') {
-                show = rowDate.getMonth() === now.getMonth() &&
-                       rowDate.getFullYear() === now.getFullYear();
-            } else if (range === 'yearly') {
-                show = rowDate.getFullYear() === now.getFullYear();
-            }
-
-            if (range === 'all' || show) {
-                $row.show();
-            } else {
-                $row.hide();
-            }
-        });
-
-        $('#date-filter-menu-cashout').hide();
-    });
-});
-
-// Toggle filter menu
-$('#date-filter-toggle').click(function () {
+  // Toggle filter menus
+  $('#date-filter-toggle').click(function (e) {
+    e.stopPropagation();
     $('#date-filter-menu').toggle();
-});
+  });
+  $('#date-filter-toggle-cashout').click(function (e) {
+    e.stopPropagation();
+    $('#date-filter-menu-cashout').toggle();
+  });
+  // Hide menus on outside click
+  $(document).click(function () {
+    $('.date-filter-menu').hide();
+  });
 
-// Filter logic
-$('.date-filter-option').click(function () {
-    const range = $(this).data('range');
-    const table = $('#merchant-table').DataTable(); // Adjust if needed for cash-out table
-
-    // Get today's date
+  // Helper function to check date range
+  function isInRange(date, range) {
     const now = new Date();
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return true; // if invalid date, show row by default
 
-    // Filter based on selected range
-    table.rows().every(function () {
-        const rowDateStr = this.data()[5]; // Column index of 'Date & Time'
-        const rowDate = new Date(rowDateStr);
+    switch (range) {
+      case 'daily':
+        return d.toDateString() === now.toDateString();
+      case 'weekly': {
+        const weekAgo = new Date(now);
+        weekAgo.setDate(now.getDate() - 7);
+        return d >= weekAgo && d <= now;
+      }
+      case 'monthly':
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      case 'yearly':
+        return d.getFullYear() === now.getFullYear();
+      case 'all':
+      default:
+        return true;
+    }
+  }
 
-        let show = true;
+  // Filter transaction history table by date
+  $('.date-filter-option').click(function () {
+    const range = $(this).data('range');
+    $('#date-filter-menu').hide();
 
-        if (range === 'daily') {
-            show = rowDate.toDateString() === now.toDateString();
-        } else if (range === 'weekly') {
-            const oneWeekAgo = new Date(now);
-            oneWeekAgo.setDate(now.getDate() - 7);
-            show = rowDate >= oneWeekAgo;
-        } else if (range === 'monthly') {
-            show = rowDate.getMonth() === now.getMonth() &&
-                   rowDate.getFullYear() === now.getFullYear();
-        } else if (range === 'yearly') {
-            show = rowDate.getFullYear() === now.getFullYear();
-        }
-
-        if (range === 'all' || show) {
-            $(this.node()).show();
-        } else {
-            $(this.node()).hide();
-        }
+    // Use DataTables API to filter rows
+    historyTable.rows().every(function () {
+      const rowDate = this.data()[5]; // Date column (6th column)
+      const show = isInRange(rowDate, range);
+      if (show) {
+        $(this.node()).show();
+      } else {
+        $(this.node()).hide();
+      }
     });
+  });
 
-    $('#date-filter-menu').hide(); // Hide menu after selection
+  // Filter cash out history table by date
+  $('.date-filter-option-cashout').click(function () {
+    const range = $(this).data('range');
+    $('#date-filter-menu-cashout').hide();
+
+    customersTable.rows().every(function () {
+      const rowDate = this.data()[5]; // Date column (6th column)
+      const show = isInRange(rowDate, range);
+      if (show) {
+        $(this.node()).show();
+      } else {
+        $(this.node()).hide();
+      }
+    });
+  });
 });
-
-    </script>
+</script>
 
 <!-- Toggle Section Script -->
 <script>
