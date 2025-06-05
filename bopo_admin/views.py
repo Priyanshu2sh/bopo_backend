@@ -1625,10 +1625,10 @@ def merchant_credentials(request):
                 message_text = (
                     f"Dear {corporate.first_name},\n\n"
                     # f"Your corporate credentials for project {project_id} are as follows:\n"
-                    f"Your corporate credentials for Corporate ID {corporate.corporate_id} are as follows:\n"
+                    f"Your corporate credentials:\n"
                     f"Corporate ID: {corporate.corporate_id}\n"
                     f"PIN: {corporate.pin}\n\n"
-                    f"Regards,\nBOPO Support Team"
+                    f"Regards,\nBBP Support Team"
                 )
 
                 client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
@@ -1660,11 +1660,11 @@ def merchant_credentials(request):
 
             message_text = (
                 f"Dear {merchant.first_name},\n\n"
-                f"Your BOPO login credentials:\n"
+                f"Your BBP login credentials:\n"
                 f"MID: {merchant.merchant_id}\n"
                 f"MPIN: {merchant.pin}\n"
                 f"TID:\n{terminal_info}\n\n"
-                f"Regards,\nBOPO Support Team"
+                f"Regards,\nBBP Support Team"
             )
 
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
