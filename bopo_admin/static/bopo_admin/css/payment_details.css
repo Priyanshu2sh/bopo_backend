@@ -310,6 +310,7 @@ button {
     opacity: 1; /* fade in */
 }
 
+
 /* Toast Icon */
 .toast-container i {
     margin-right: 10px;
@@ -354,3 +355,6 @@ button {
     }
 }
 
+ div.dataTables_filter {
+        display: none;
+    }

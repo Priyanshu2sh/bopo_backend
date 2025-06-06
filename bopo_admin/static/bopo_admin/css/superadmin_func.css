@@ -292,13 +292,17 @@ body {
     padding: 14px;
     border: 1px solid #ddd;
     text-align: center;
+
 }
 
 .plans-table th {
     background-color:  #f0f0f0;
     color: #004080;
     font-weight: bold;
+    text-align: center !important;
+
 }
+
 
 .plans-table td {
     background-color: #fdfdfd;
@@ -358,6 +362,27 @@ body {
     font-weight: bold;
     color: #004080;
 }
+.btn-action1 {
+    display: block;
+    width: 15%;
+    padding: 10px;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+.btn-action1:hover {
+    background-color: #002b5c;
+    
+}
+
+
 
 .model-description {
     font-size: 16px;
