@@ -3403,7 +3403,7 @@ def forgot_password(request):
                     use_https=request.is_secure(),
                     email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
                     subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
-                    from_email='BOPO Team <006iipt@gmail.com>',
+                    from_email='BBP Team <006iipt@gmail.com>',
                     html_email_template_name=None,
                     extra_email_context={
                         'domain': current_site.domain,
