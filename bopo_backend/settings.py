@@ -27,7 +27,7 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-fallback-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG=False
+DEBUG=True
 
 
 ALLOWED_HOSTS = ['*']
@@ -84,11 +84,24 @@ CORS_ALLOW_HEADERS = [
     'access-control-allow-origin',
 ]
 
+# CSRF_TRUSTED_ORIGINS = [
+#     "https://8e09-103-211-60-165.ngrok-free.app",
+#     "https://3fb0-2401-4900-79d1-d74-6851-4650-8615-4650-8615-f92c.ngrok-free.app",
+#     "https://7a22-2401-4900-57c6-ae7c-e933-a11b-70e7-85f4.ngrok-free.app",
+# ]
+
 CSRF_TRUSTED_ORIGINS = [
-    "https://8e09-103-211-60-165.ngrok-free.app",
-    "https://3fb0-2401-4900-79d1-d74-6851-4650-8615-4650-8615-f92c.ngrok-free.app",
-    "https://7a22-2401-4900-57c6-ae7c-e933-a11b-70e7-85f4.ngrok-free.app",
+    "http://localhost:8001",
+    "http://103.186.132.186:8001",
+    "https://test.biggbonuspoints.in:8001",
+    "https://biggbonuspoints.in:8001",
+    "https://biggbonuspoints.prushal.com:8001",
+    "http://biggbonuspoints.prushal.com:8001"
 ]
+
+# raw_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+# CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+
 
 ROOT_URLCONF = 'bopo_backend.urls'
 
