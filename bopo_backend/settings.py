@@ -94,9 +94,10 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8001",
     "http://103.186.132.186:8001",
     "https://test.biggbonuspoints.in:8001",
+    "http://test.biggbonuspoints.in:8001",
     "https://biggbonuspoints.in:8001",
-    "https://biggbonuspoints.prushal.com:8001",
-    "http://biggbonuspoints.prushal.com:8001"
+    # "https://biggbonuspoints.prushal.com:8001",
+    # "http://biggbonuspoints.prushal.com:8001"
 ]
 
 # raw_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
