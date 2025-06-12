@@ -157,9 +157,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False 
 EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
 EMAIL_HOST_PASSWORD = 'xjfybjccvkpmljmu'  # App password (not your Gmail password)
-DEFAULT_FROM_EMAIL = 'BOPO Team <006iipt@gmail.com>'
+DEFAULT_FROM_EMAIL = 'BBP Team <006iipt@gmail.com>'
 # DEFAULT_DOMAIN = "127.0.0.1:8000"
 
 
