@@ -30,7 +30,10 @@ urlpatterns = [
     path('api/transfer/', include('transfer.urls')),
     
     # state , city
-    path('bopo_admin/', include('bopo_admin.urls')), 
+    # path('bopo_admin/', include('bopo_admin.urls')), 
+    path('biggbonuspoints.in/portal/', include('bopo_admin.urls')), 
+
+
 
 
    
