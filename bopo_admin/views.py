@@ -4175,11 +4175,20 @@ def corporate_add_merchant(request):
             corporate = request.user.corporate  # Assuming user is a BopoAdmin and has a corporate field
             corporate_id = corporate.corporate_id  # Get the corporate_id associated with the logged-in user
 
-            # Generate Merchant ID
-            project_name = corporate.project_name  # Assuming this is the project name you want to associate
-            project_abbr = project_name[:4].upper()
-            random_number = ''.join(random.choices(string.digits, k=11))
-            merchant_id = f"{project_abbr}{random_number}"
+            # # Generate Merchant ID
+            # project_name = corporate.project_name  # Assuming this is the project name you want to associate
+            # project_abbr = project_name[:4].upper()
+            # random_number = ''.join(random.choices(string.digits, k=11))
+            # merchant_id = f"{project_abbr}{random_number}"
+            
+            
+            # Generate merchant_id
+            last_merchant = Merchant.objects.order_by('-id').first()
+            next_id = 1 if not last_merchant else last_merchant.id + 1
+            # merchant_id = f"MID{str(next_id).zfill(11)}"
+            prefix = "MID"
+            
+            merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
 
             # Create Merchant
             merchant = Merchant.objects.create(
