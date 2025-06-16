@@ -131,7 +131,7 @@ urlpatterns = [
         template_name='bopo_admin/ForgotPass/forgot_password.html',
         email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
         subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
-        success_url='/bopo_admin/forgot-password/done/',
+        success_url='/biggbonuspoints.in/portal/forgot-password/done/',
         form_class=CustomPasswordResetForm,
     ), name='forgot_password'),
 

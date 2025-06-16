@@ -1684,7 +1684,7 @@ def merchant_credentials(request):
             print(f"Error: {e}")
             return JsonResponse({'status': 'error', 'message': 'An error occurred while sending credentials'})
 
-    return render(request, 'bopo_admin/merchant/merchant_credentials.html', {
+    return render(request, 'bopo_admin/Merchant/merchant_credentials.html', {
         'merchants': merchants,
         'corporates': corporates
     })
