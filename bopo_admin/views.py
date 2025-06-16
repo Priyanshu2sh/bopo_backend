@@ -3468,38 +3468,228 @@ from django.conf import settings
 #         context['user_type'] = user_type
 #         return context
 
-class CustomPasswordResetView(PasswordResetView):
-    def form_valid(self, form):
-        form.save(
-            use_https=self.request.is_secure(),
-            from_email=self.from_email,
-            email_template_name=self.email_template_name,
-            subject_template_name=self.subject_template_name,
-            request=self.request
-        )
-        return super().form_valid(form)
+# class CustomPasswordResetView(PasswordResetView):
+#     def form_valid(self, form):
+#         form.save(
+#             use_https=self.request.is_secure(),
+#             from_email=self.from_email,
+#             email_template_name=self.email_template_name,
+#             subject_template_name=self.subject_template_name,
+#             request=self.request
+#         )
+#         return super().form_valid(form)
+
+# from django.contrib import messages
+# from django.contrib.auth import get_user_model
+
+# class CustomPasswordResetView(PasswordResetView):
+#     def form_valid(self, form):
+#         email = form.cleaned_data.get("email")
+#         users = self.get_users(email)
+#         if not users:
+#             messages.error(self.request, "No user found with this email address.")
+#             return self.form_invalid(form)  # stays on same page
+#         return super().form_valid(form)
+
+#     def get_users(self, email):
+#         UserModel = get_user_model()
+#         return UserModel._default_manager.filter(email__iexact=email, is_active=True)
+
     
 
 
-from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
+# from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
+# from django.contrib.auth.hashers import make_password
+# from django.contrib.auth import update_session_auth_hash
+# from django.urls import reverse_lazy
+# from django.http import HttpResponseRedirect
+# from django.utils.http import urlsafe_base64_decode
+# from django.contrib.auth.tokens import default_token_generator
+# from django.contrib.auth import get_user_model
+# from django.utils.encoding import force_str
+# from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN
+
+
+
+# class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+#     template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
+#     success_url = reverse_lazy('password_reset_complete')
+#     form_class = CustomSetPasswordForm  
+#     invalid_link_template_name = 'bopo_admin/ForgotPass/password_reset_invalid.html'  # Custom error template
+
+
+#     def get_user(self, uidb64):
+#         UserModel = get_user_model()
+#         try:
+#             uid = force_str(urlsafe_base64_decode(uidb64))
+#             user = UserModel._default_manager.get(pk=uid)
+#         except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
+#             user = None
+#         return user
+
+#     INTERNAL_RESET_SESSION_TOKEN = '_password_reset_token'
+#     def dispatch(self, request, *args, **kwargs):
+#         self.uidb64 = kwargs.get('uidb64')
+#         self.token = kwargs.get('token')
+#         self.user = self.get_user(self.uidb64)
+
+#         print("Checking reset for:", self.uidb64, self.token, self.user)
+#         print("Token from URL:", self.token)
+#         print("Session token:", request.session.get(INTERNAL_RESET_SESSION_TOKEN))
+
+#         if self.user is None:
+#             # Invalid user
+#             return self.render_invalid_link()
+
+#         if self.token == 'set-password':
+#             session_token = request.session.get(INTERNAL_RESET_SESSION_TOKEN)
+#             if session_token and default_token_generator.check_token(self.user, session_token):
+#                 # Token valid, proceed to show password reset form
+#                 return super().dispatch(request, *args, **kwargs)
+#             else:
+#                 # Invalid session token
+#                 return self.render_invalid_link()
+#         else:
+#             # Token from URL is a real token: validate and redirect to 'set-password'
+#             if default_token_generator.check_token(self.user, self.token):
+#                 # Store token in session
+#                 request.session[INTERNAL_RESET_SESSION_TOKEN] = self.token
+#                 # Redirect to URL with token replaced by 'set-password'
+#                 redirect_url = request.path.replace(self.token, 'set-password')
+#                 return redirect(redirect_url)
+#             else:
+#                 # Invalid token
+#                 return self.render_invalid_link()
+
+    
+#     def render_invalid_link(self):
+#         user_type = "other"
+#         if self.user:
+#             if hasattr(self.user, 'corporate') and self.user.corporate:
+#                 user_type = "corporate"
+#             elif hasattr(self.user, 'employee') and self.user.employee:
+#                 user_type = "employee"
+#             elif self.user.is_superuser:
+#                 user_type = "superadmin"
+
+#         context = {
+#             'title': 'Password reset link is invalid',
+#             'message': 'Your password reset link is invalid or has expired. Please request a new one.',
+#             'user_type': user_type,
+#         }
+#         return render(self.request, self.invalid_link_template_name, context)
+
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         user_type = "other"
+#         if hasattr(self.user, 'corporate') and self.user.corporate:
+#             user_type = "corporate"
+#         elif hasattr(self.user, 'employee') and self.user.employee:
+#             user_type = "employee"
+#         elif self.user.is_superuser:
+#             user_type = "superadmin"
+
+#         context['user_type'] = user_type
+#         return context
+    
+
+#     def form_valid(self, form):
+#         user = self.user
+#         new_password = form.cleaned_data['new_password1']
+
+#         # Determine user_type for session
+#         user_type = "other"
+#         if hasattr(user, 'corporate') and user.corporate:
+#             user_type = "corporate"
+#         elif hasattr(user, 'employee') and user.employee:
+#             user_type = "employee"
+#         elif user.is_superuser:
+#             user_type = "superadmin"
+
+#         # Save user_type in session to use on completion page
+#         self.request.session['user_type'] = user_type
+
+#         # Update password in BopoAdmin (main model)
+#         user.set_password(new_password)
+#         user.save()
+
+#                 # Sync plain text password to Employee model (⚠️ Not secure)
+#         if hasattr(user, 'employee') and user.employee:
+#             user.employee.password = new_password  # ← Plain text password
+#             user.employee.save()
+
+#         # Update Corporate pin field (converted to int)
+#         if hasattr(user, 'corporate') and user.corporate:
+#             try:
+#                 user.corporate.pin = int(new_password)
+#                 user.corporate.save()
+#             except ValueError:
+#                 # Handle invalid pin (non-numeric password) if necessary
+#                 pass
+
+#         # Keep user logged in after password change
+#         update_session_auth_hash(self.request, user)
+
+#         return HttpResponseRedirect(self.get_success_url())
+
+
+# class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+#     template_name = 'bopo_admin/ForgotPass/password_reset_complete.html'
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         # Get user_type from session and then clear it
+#         user_type = self.request.session.get('user_type', 'other')
+#         context['user_type'] = user_type
+#         self.request.session.pop('user_type', None)
+
+#         return context
+
+# def password_reset_invalid(request):
+#     return render(request, 'bopo_admin/ForgotPass/password_reset_invalid.html')
+
+
+from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash, get_user_model
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect
 from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth import get_user_model
 from django.utils.encoding import force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib import messages
 from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN
+from .forms import CustomPasswordResetForm, CustomSetPasswordForm  # Assuming you have these
+
+# ✅ Custom Password Reset View
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'bopo_admin/ForgotPass/forgot_password.html'
+    email_template_name = 'bopo_admin/ForgotPass/password_reset_email.html'
+    subject_template_name = 'bopo_admin/ForgotPass/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+    form_class = CustomPasswordResetForm
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get('email')
+        UserModel = get_user_model()
+
+        if UserModel.objects.filter(email=email).exists():
+            return super().form_valid(form)
+        else:
+            messages.error(self.request, "No account is associated with this email address.")
+            return self.form_invalid(form)
 
 
-
+# ✅ Confirm View
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
     success_url = reverse_lazy('password_reset_complete')
-    form_class = CustomSetPasswordForm  
-    invalid_link_template_name = 'bopo_admin/ForgotPass/password_reset_invalid.html'  # Custom error template
-
+    form_class = CustomSetPasswordForm
+    invalid_link_template_name = 'bopo_admin/ForgotPass/password_reset_invalid.html'
 
     def get_user(self, uidb64):
         UserModel = get_user_model()
@@ -3510,41 +3700,28 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             user = None
         return user
 
-    INTERNAL_RESET_SESSION_TOKEN = '_password_reset_token'
     def dispatch(self, request, *args, **kwargs):
         self.uidb64 = kwargs.get('uidb64')
         self.token = kwargs.get('token')
         self.user = self.get_user(self.uidb64)
 
-        print("Checking reset for:", self.uidb64, self.token, self.user)
-        print("Token from URL:", self.token)
-        print("Session token:", request.session.get(INTERNAL_RESET_SESSION_TOKEN))
-
         if self.user is None:
-            # Invalid user
             return self.render_invalid_link()
 
         if self.token == 'set-password':
             session_token = request.session.get(INTERNAL_RESET_SESSION_TOKEN)
             if session_token and default_token_generator.check_token(self.user, session_token):
-                # Token valid, proceed to show password reset form
                 return super().dispatch(request, *args, **kwargs)
             else:
-                # Invalid session token
                 return self.render_invalid_link()
         else:
-            # Token from URL is a real token: validate and redirect to 'set-password'
             if default_token_generator.check_token(self.user, self.token):
-                # Store token in session
                 request.session[INTERNAL_RESET_SESSION_TOKEN] = self.token
-                # Redirect to URL with token replaced by 'set-password'
                 redirect_url = request.path.replace(self.token, 'set-password')
                 return redirect(redirect_url)
             else:
-                # Invalid token
                 return self.render_invalid_link()
 
-    
     def render_invalid_link(self):
         user_type = "other"
         if self.user:
@@ -3562,10 +3739,8 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         }
         return render(self.request, self.invalid_link_template_name, context)
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         user_type = "other"
         if hasattr(self.user, 'corporate') and self.user.corporate:
             user_type = "corporate"
@@ -3573,7 +3748,6 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             user_type = "employee"
         elif self.user.is_superuser:
             user_type = "superadmin"
-
         context['user_type'] = user_type
         return context
 
@@ -3581,7 +3755,6 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         user = self.user
         new_password = form.cleaned_data['new_password1']
 
-        # Determine user_type for session
         user_type = "other"
         if hasattr(user, 'corporate') and user.corporate:
             user_type = "corporate"
@@ -3590,50 +3763,41 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         elif user.is_superuser:
             user_type = "superadmin"
 
-        # Save user_type in session to use on completion page
         self.request.session['user_type'] = user_type
 
-        # Update password in BopoAdmin (main model)
         user.set_password(new_password)
         user.save()
 
-                # Sync plain text password to Employee model (⚠️ Not secure)
         if hasattr(user, 'employee') and user.employee:
-            user.employee.password = new_password  # ← Plain text password
+            user.employee.password = new_password
             user.employee.save()
 
-        # Update Corporate pin field (converted to int)
         if hasattr(user, 'corporate') and user.corporate:
             try:
                 user.corporate.pin = int(new_password)
                 user.corporate.save()
             except ValueError:
-                # Handle invalid pin (non-numeric password) if necessary
                 pass
 
-        # Keep user logged in after password change
         update_session_auth_hash(self.request, user)
-
         return HttpResponseRedirect(self.get_success_url())
 
 
+# ✅ Complete View
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'bopo_admin/ForgotPass/password_reset_complete.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Get user_type from session and then clear it
         user_type = self.request.session.get('user_type', 'other')
         context['user_type'] = user_type
         self.request.session.pop('user_type', None)
-
         return context
 
+
+# ✅ Invalid link fallback
 def password_reset_invalid(request):
     return render(request, 'bopo_admin/ForgotPass/password_reset_invalid.html')
-
-
 
 
 
