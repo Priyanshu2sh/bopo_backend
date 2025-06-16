@@ -3215,12 +3215,15 @@ def reports(request):
 
 
 
-from django.contrib.auth.models import User  # Replace with your custom User model if used
+
 
 def login_view(request):
+    
+    logo = Logo.objects.first()  # Get the latest uploaded logo
+    
     if request.GET.get('inactive'):
         error_message = "Your corporate account has been deactivated. Please contact the superadmin."
-        return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+        return render(request, 'bopo_admin/login.html', {'error_message': error_message, 'logo': logo})
 
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -3235,7 +3238,7 @@ def login_view(request):
             if user_type == "super_admin":
                 if not user.is_superuser:
                     error_message = "You are not authorized as a Super Admin."
-                    return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+                    return render(request, 'bopo_admin/login.html', {'error_message': error_message, 'logo': logo})
 
             elif user_type == "corporate_admin":
                 try:
@@ -3244,23 +3247,23 @@ def login_view(request):
                         logout(request)
                         request.session.flush()
                         error_message = "Your corporate account is currently not active. Please contact to the superadmin."
-                        return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+                        return render(request, 'bopo_admin/login.html', {'error_message': error_message, 'logo': logo})
                 except Corporate.DoesNotExist:
                     error_message = "Corporate account not found."
-                    return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+                    return render(request, 'bopo_admin/login.html', {'error_message': error_message, 'logo': logo})
 
             elif user_type == "employee":
                 if not hasattr(user, 'employee'):
                     error_message = "This account is not registered as an employee."
-                    return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+                    return render(request, 'bopo_admin/login.html', {'error_message': error_message, 'logo': logo})
                 role_permissions = EmployeeRole.objects.filter(employee=user.employee)
                 if not role_permissions.exists():
                     error_message = "You do not have permission to access this page."
-                    return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+                    return render(request, 'bopo_admin/login.html', {'error_message': error_message, 'logo': logo})
 
             else:
                 error_message = "Invalid user type."
-                return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+                return render(request, 'bopo_admin/login.html', {'error_message': error_message, 'logo': logo})
 
             # ✅ Passed all checks, login
             login(request, user)
@@ -3270,9 +3273,11 @@ def login_view(request):
 
         else:
             error_message = "Invalid credentials"
-            return render(request, 'bopo_admin/login.html', {'error_message': error_message})
+            return render(request, 'bopo_admin/login.html', {'error_message': error_message, 'logo': logo})
 
-    return render(request, 'bopo_admin/login.html')
+    # ✅ For GET request (initial page load)
+    return render(request, 'bopo_admin/login.html', {'logo': logo})
+
 
 
 # def login_view(request):
@@ -3403,7 +3408,7 @@ def forgot_password(request):
                     use_https=request.is_secure(),
                     email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
                     subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
-                    from_email='BOPO Team <006iipt@gmail.com>',
+                    from_email='BBP Team <006iipt@gmail.com>',
                     html_email_template_name=None,
                     extra_email_context={
                         'domain': current_site.domain,

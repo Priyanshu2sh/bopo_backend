@@ -94,9 +94,10 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8001",
     "http://103.186.132.186:8001",
     "https://test.biggbonuspoints.in:8001",
+    "http://test.biggbonuspoints.in:8001",
     "https://biggbonuspoints.in:8001",
-    "https://biggbonuspoints.prushal.com:8001",
-    "http://biggbonuspoints.prushal.com:8001"
+    # "https://biggbonuspoints.prushal.com:8001",
+    # "http://biggbonuspoints.prushal.com:8001"
 ]
 
 # raw_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
@@ -157,9 +158,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False 
 EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
 EMAIL_HOST_PASSWORD = 'xjfybjccvkpmljmu'  # App password (not your Gmail password)
-DEFAULT_FROM_EMAIL = 'BOPO Team <006iipt@gmail.com>'
+DEFAULT_FROM_EMAIL = 'BBP Team <006iipt@gmail.com>'
 # DEFAULT_DOMAIN = "127.0.0.1:8000"
 
 

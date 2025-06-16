@@ -18,21 +18,31 @@ body {
 
 .login-header {
     margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center horizontally */
+    gap: 10px; /* Space between image and text */
+    margin-left: -5%;
+}
+
+#logoImage {
+    height: 40px;
+   
 }
 
 h2 {
-    text-align: center;
     font-size: 1.5rem;
-    color: #2c3e50;
-    margin-bottom: 2rem;
+    color: #b84545; /* Applied directly as your span earlier */
+    margin-bottom: 10;
     font-weight: 600;
 }
+
 
 span {
     text-align: center;
     font-size: 1.5rem;
-    color: #b84545;
-    margin-bottom: 2rem;
+    color: #030303;
+    margin-bottom: 0rem;
     font-weight: 600;
 }
 
@@ -45,7 +55,7 @@ span {
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    margin-top: -0.1%;
+    margin-top: 3%;
 }
 
 .login-container:hover {
