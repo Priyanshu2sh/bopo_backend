@@ -4583,6 +4583,7 @@ def save_cash_out(request):
             cashout_id = data.get('cashout_id')
             transaction_id = data.get('transaction_id')
             payment_method = data.get('payment_method')
+              
 
             cashout = CashOut.objects.get(id=cashout_id)
    

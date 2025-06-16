@@ -314,66 +314,63 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 3000);
     }
 
-    
-function submitCashOut() {
-    const isMerchant = $('#merchantCashOutModal').is(':visible');
-    let id, transactionId, paymentMethod;
+     function submitCashOut() {
+        const isMerchant = $('#merchantCashOutModal').is(':visible');
+        let id, transactionId, paymentMethod, paymentDate;
 
-    if (isMerchant) {
-        id = $('#merchantCashOutModal').data('cashOutId');
-        transactionId = $('#merchantTransactionId').val();
-        paymentMethod = $('#merchantPaymentMethod').val();
-    } else {
-        id = $('#cashOutModal').data('cashOutId');
-        transactionId = $('#transactionId').val();
-        paymentMethod = $('#paymentMethod').val();
-    }
-
-    fetch('/save-cash-out/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-            cashout_id: id,
-            transaction_id: transactionId,
-            payment_method: paymentMethod
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            setTimeout(() => {
-            $('#toast').removeClass('toast-show');
-
-        }, 3000);
-            showToast("Payment saved successfully!");
-
-            // ✅ Disable the button
-            const button = document.querySelector(`.open-merchant-modal-btn[data-id="${id}"]`);
-            if (button) {
-                button.disabled = true;
-                button.classList.remove('btn-success');
-                button.classList.add('btn-secondary');
-                button.textContent = '✅ Paid';
-            }
-
-            // Close the modal after success
-            if (isMerchant) {
-                closeMerchantCashOutModal();
-            } else {
-                closeCashOutModal();
-            }
-        } else {
-            showToast("Error: " + data.message);
+        if (isMerchant) {
+            id = $('#merchantCashOutModal').data('cashOutId');
+            transactionId = $('#merchantTransactionId').val();
+            paymentMethod = $('#merchantPaymentMethod').val();
+            paymentDate = $('#merchantPaymentDate').val(); // e.g. "2025-06-16"
         }
-    })
-    .catch(err => {
-        showToast("Error: " + err.message);
-    });
-}
 
+        if (!transactionId || !paymentMethod || !paymentDate) {
+            showToast("Please fill all fields.");
+            return;
+        }
+
+        // Add time component (current time)
+        const now = new Date();
+        const isoDatetime = `${paymentDate}T${now.toTimeString().slice(0, 8)}`; // e.g. "2025-06-16T14:20:00"
+
+        fetch('/save-cash-out/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                cashout_id: id,
+                transaction_id: transactionId,
+                payment_method: paymentMethod,
+                payment_date: isoDatetime
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast("Payment saved successfully!");
+
+                const button = document.querySelector(`.open-merchant-modal-btn[data-id="${id}"]`);
+                if (button) {
+                    button.disabled = true;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-secondary');
+                    button.textContent = '✅ Paid';
+                }
+
+                if (isMerchant) {
+                    closeMerchantCashOutModal();
+                }
+            } else {
+                showToast("Error: " + data.message);
+            }
+        })
+        .catch(err => {
+            showToast("Error: " + err.message);
+        });
+    }
     
     function getCookie(name) {
         let cookieValue = null;
