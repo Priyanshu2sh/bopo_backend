@@ -2035,7 +2035,9 @@ class HistoryAPIView(APIView):
         for history in histories:
             history_data.append({
                 "customer_id": history.customer.customer_id if history.customer else None,
+                "customer_name": history.customer.first_name + " " + history.customer.last_name if history.customer else None,
                 "merchant_id": history.merchant.merchant_id if history.merchant else None,
+                "merchant_name": history.merchant.first_name + " " + history.merchant.last_name if history.merchant else None,
                 "points": history.points,
                 "transaction_type": history.transaction_type,
                 "created_at": history.created_at,
@@ -2045,14 +2047,16 @@ class HistoryAPIView(APIView):
  
 class CorporateGlobalMerchantAPIView(APIView):
     """
-    API to get all corporate merchants with global account type and associated project name.
+    API to get:
+    - All corporate merchants whose project has 'global' account_type.
+    - All individual merchants with 'prepaid' plan_type.
     """
 
     def get(self, request):
-        # Filter merchants based on their related Corporate project_name account type being 'global'
+        # Filter merchants: corporate with global account_type OR individual with prepaid plan_type
         merchants = Merchant.objects.filter(
-            project_name__account_type='global'  # Filtering merchants based on the related Corporate's account_type
-        ).select_related('project_name')  # Fetch the related project_name from Corporate
+            Q(project_name__account_type='global') | Q(user_type='individual', plan_type='prepaid')
+        ).select_related('project_name')  # Ensure related project_name is prefetched
 
         if not merchants:
             return Response({"message": "No global corporate merchants found."}, status=status.HTTP_404_NOT_FOUND)

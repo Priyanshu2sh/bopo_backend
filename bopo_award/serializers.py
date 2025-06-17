@@ -144,4 +144,4 @@ class GlobalPointsSerializer(serializers.Serializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['id', 'title', 'description', 'created_at']
+        fields = ['id', 'title', 'type', 'description', 'created_at']
