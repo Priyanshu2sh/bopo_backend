@@ -25,6 +25,8 @@ class LoginRequiredMiddleware:
             re.compile(r'^/media/'),
             re.compile(r'^/.well-known/'),
             re.compile(r'^/biggbonuspoints.in/portal/reset/.+/.+/'),
+            re.compile(r'^/api/'),
+
         ]
 
     def __call__(self, request):
