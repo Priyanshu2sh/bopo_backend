@@ -845,7 +845,7 @@ class FetchAllUsersAPIView(APIView):
             merchant_data = [
                 {
                     # "user_type": "corporate",
-                     "user_id": merchant.merchant_id,
+                    "user_id": merchant.merchant_id,
                     "mobile": merchant.mobile,
                     "first_name": merchant.first_name,
                     "last_name": merchant.last_name,

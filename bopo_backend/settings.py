@@ -75,7 +75,11 @@ MIDDLEWARE = [
 
     'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
     'bopo_admin.login_required_middleware.LoginRequiredMiddleware',
-    'bopo_backend.middleware.Custom404Middleware',
+    'bopo_backend.middleware.Custom404Middleware', 
+    
+   
+    
+    
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -131,8 +135,8 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("redis", 6379)],
-            # "hosts": [("127.0.0.1", 6379)],
+            # "hosts": [("redis", 6379)],
+            "hosts": [("127.0.0.1", 6379)],
         },
     },
 }
@@ -212,9 +216,9 @@ AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
 LOGIN_URL = '/login/'
 
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = "ACefc2b57333c60eaaea16e2ba775ade3c"
-TWILIO_AUTH_TOKEN = "429cf6ac7db12f61126cf0bbdee64d3d"
-TWILIO_PHONE_NUMBER = "+12706338124"
+TWILIO_ACCOUNT_SID = "ACacaecf422d9f93836e549cbd3adde231"
+TWILIO_AUTH_TOKEN = "3584b709694fe03abfefac57ec19d2cf"
+TWILIO_PHONE_NUMBER = "+19379091558"
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
@@ -238,5 +242,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
 
 

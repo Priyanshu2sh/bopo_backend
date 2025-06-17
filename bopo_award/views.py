@@ -706,7 +706,7 @@ class CustomerToCustomerTransferAPIView(APIView):
             # elif Merchant.DoesNotExist:
             #     return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
         except Customer.DoesNotExist:
-            return Response({"error": "Sender or receiver customer not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Sender or receiver customer not found"}, status=status.HTTP_400_BAD_REQUEST)
         except Merchant.DoesNotExist:
             return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -774,6 +774,7 @@ class MerchantToMerchantTransferAPIView(APIView):
     """
 
     def post(self, request):
+        # print('testing 00021a')
         sender_merchant_id = request.data.get("sender_merchant_id")
         pin = request.data.get("pin")
         receiver_merchant_id = request.data.get("receiver_merchant_id")
@@ -787,11 +788,19 @@ class MerchantToMerchantTransferAPIView(APIView):
             sender_merchant = Merchant.objects.get(merchant_id=sender_merchant_id)
             receiver_merchant = Merchant.objects.get(merchant_id=receiver_merchant_id)
         except Merchant.DoesNotExist:
-            return Response({"error": "Invalid sender or receiver merchant ID"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Invalid sender or receiver merchant ID"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # ❌ Restrict individual → corporate transfer
+        if sender_merchant.user_type == "individual" and receiver_merchant.user_type == "corporate":
+            return Response(
+                {"error": "Individual merchants are not allowed to transfer points to corporate merchants."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         
         # ✅ Validate PIN
         if str(sender_merchant.pin) != str(pin):
-            return Response({'error': 'Please enter the correct PIN.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Please enter the correct PIN.'}, status=status.HTTP_404_NOT_FOUND)
 
 
         # Fetch LATEST PaymentDetails for both merchants (avoid MultipleObjectsReturned)
@@ -799,7 +808,7 @@ class MerchantToMerchantTransferAPIView(APIView):
         receiver_payment = PaymentDetails.objects.filter(merchant=receiver_merchant).order_by('-created_at').first()
 
         if not sender_payment or not receiver_payment:
-            return Response({"error": "Payment details not found for sender or receiver merchant."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Payment details not found for sender or receiver merchant."}, status=status.HTTP_400_BAD_REQUEST)
 
         sender_plan = sender_payment.plan_type.plan_type.lower()
         receiver_plan = receiver_payment.plan_type.plan_type.lower()

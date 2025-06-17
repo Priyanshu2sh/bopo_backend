@@ -7,8 +7,25 @@ class Custom404Middleware:
     def __call__(self, request):
         response = self.get_response(request)
 
-        if response.status_code == 404:
+        if response.status_code == 403:
             # Render your custom 404 page instead of default Django debug page
-            return render(request, "bopo_admin/Helpdesk/invalid.html", status=404)
+            return render(request, "bopo_admin/Helpdesk/invalid.html", status=403)
 
         return response
+
+
+# from django.shortcuts import render
+
+# class Custom404Middleware:
+#     def _init_(self, get_response):
+#         self.get_response = get_response
+
+#     def _call_(self, request):
+#         response = self.get_response(request)
+
+#         # Show custom 404 only for URLs under /portal/
+#         if response.status_code == 404 and request.path.startswith('bopo_admin/'):
+#             return render(request, "bopo_admin/Helpdesk/invalid.html", status=404)
+
+#         return response
+
