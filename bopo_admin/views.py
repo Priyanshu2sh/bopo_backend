@@ -4585,6 +4585,8 @@ def save_cash_out(request):
             payment_method = data.get('payment_method')
             payment_date_str = data.get('payment_date')
 
+              
+
             cashout = CashOut.objects.get(id=cashout_id)
 
             if cashout.status == 'paid':
