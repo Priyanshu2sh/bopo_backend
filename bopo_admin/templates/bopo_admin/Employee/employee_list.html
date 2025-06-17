@@ -423,7 +423,7 @@ function filterTable(tableId, searchBoxId) {
 }
 
     function openEditModal(employeeId) {
-        fetch(`/bopo_admin/get-employee/${employeeId}/`)
+        fetch(`/get-employee/${employeeId}/`)
             .then(res => res.json())
             .then(data => {
                 document.getElementById("edit_employee_id").value = data.id;
@@ -459,7 +459,7 @@ function filterTable(tableId, searchBoxId) {
 
 
     function fetchStates() {
-        return fetch("/bopo_admin/get-states/")
+        return fetch("/get-states/")
             .then(response => response.json())
             .then(states => {
                 console.log(states);  // Check if states are being returned
@@ -475,7 +475,7 @@ function filterTable(tableId, searchBoxId) {
     }
 
     function fetchCities(state) {
-        return fetch(`/bopo_admin/get-cities/${state}/`)
+        return fetch(`/get-cities/${state}/`)
             .then(res => res.json())
             .then(cities => {
                 const cityDropdown = document.getElementById("edit_city");
@@ -517,7 +517,7 @@ function filterTable(tableId, searchBoxId) {
 
         const formData = new FormData(this);
 
-        fetch("/bopo_admin/update-employee/", {
+        fetch("/update-employee/", {
             method: "POST",
             body: formData,
             headers: {
@@ -587,7 +587,7 @@ function deleteEmployee(employeeId) {
     document.getElementById("confirmationMessage").textContent = "Are you sure you want to delete this employee?";
 
     document.getElementById("confirmDelete").onclick = function() {
-        fetch(`/bopo_admin/delete-employee/${employeeId}/`, {
+        fetch(`/delete-employee/${employeeId}/`, {
             method: "DELETE",
             headers: {
                 "X-CSRFToken": getCookie("csrftoken")

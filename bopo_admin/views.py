@@ -4571,9 +4571,9 @@ def merchant_cash_outs_view(request):
     return render(request, 'bopo_admin/Merchant/merchant_cash_outs.html', {
         'merchant_cash_outs': merchant_cash_outs,
     })
-
-
-
+    
+    
+from datetime import datetime, time
 from django.utils import timezone
 
 def save_cash_out(request):
@@ -4583,18 +4583,27 @@ def save_cash_out(request):
             cashout_id = data.get('cashout_id')
             transaction_id = data.get('transaction_id')
             payment_method = data.get('payment_method')
+            payment_date_str = data.get('payment_date')
 
             cashout = CashOut.objects.get(id=cashout_id)
-   
+
             if cashout.status == 'paid':
                 return JsonResponse({'status': 'error', 'message': 'This cash-out is already paid.'})
 
-            # Mark cashout as paid
+            if payment_date_str:
+                # ✅ Combine date with a time (e.g. noon)
+                naive_date = datetime.combine(
+                    datetime.strptime(payment_date_str, "%Y-%m-%d").date(),
+                    time(hour=12, minute=0)
+                )
+                # ✅ Make it timezone-aware in Asia/Kolkata
+                payment_date = timezone.make_aware(naive_date, timezone.get_current_timezone())
+            else:
+                payment_date = timezone.now()
+
             cashout.status = 'paid'
-            cashout.paid_at = timezone.now()
+            cashout.paid_at = payment_date
             cashout.save()
-
-
 
             SuperAdminPayment.objects.create(
                 transaction_id=transaction_id,
@@ -4603,13 +4612,13 @@ def save_cash_out(request):
             )
 
             return JsonResponse({'status': 'success', 'message': 'Payment saved successfully'})
+
         except CashOut.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'CashOut not found'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
-
 
 
 #     return render(request, 'bopo_admin/Superadmin/security_questions.html')
@@ -4885,16 +4894,35 @@ def get_award_point(request):
     return JsonResponse({'percentage': award.percentage if award else 0})
 
 
+# def update_award_point(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         new_percentage = int(data.get('percentage', 0))
+
+#         award, created = AwardPoints.objects.get_or_create(id=1)
+#         award.percentage = new_percentage
+#         award.save()
+#         return JsonResponse({'status': 'success', 'percentage': award.percentage})
+#     return JsonResponse({'status': 'error'}, status=400)
+
+
 def update_award_point(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         new_percentage = int(data.get('percentage', 0))
 
-        award, created = AwardPoints.objects.get_or_create(id=1)
-        award.percentage = new_percentage
-        award.save()
+        award = AwardPoints.objects.first()
+
+        if not award:
+            award = AwardPoints.objects.create(percentage=new_percentage)
+        else:
+            award.percentage = new_percentage
+            award.save()
+
         return JsonResponse({'status': 'success', 'percentage': award.percentage})
+
     return JsonResponse({'status': 'error'}, status=400)
+
 
 def save_superadmin_payment(request):
     if request.method == "POST":
@@ -5145,14 +5173,12 @@ def corporate_add_merchant(request):
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
             # Fetch the corporate ID of the logged-in user
-            corporate = request.user.corporate  # Assuming user is a BopoAdmin and has a corporate field
-            corporate_id = corporate.corporate_id  # Get the corporate_id associated with the logged-in user
+            corporate = request.user.corporate  
+            corporate_id = corporate.corporate_id  
 
             # Generate Merchant ID
-            project_name = corporate.project_name  # Assuming this is the project name you want to associate
-            project_abbr = project_name[:4].upper()
-            random_number = ''.join(random.choices(string.digits, k=11))
-            merchant_id = f"{project_abbr}{random_number}"
+            prefix = "MID"
+            merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
 
             # Create Merchant
             merchant = Merchant.objects.create(

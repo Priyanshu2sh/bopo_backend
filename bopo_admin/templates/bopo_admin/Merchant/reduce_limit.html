@@ -323,10 +323,14 @@ function submitCashOut() {
         id = $('#merchantCashOutModal').data('cashOutId');
         transactionId = $('#merchantTransactionId').val();
         paymentMethod = $('#merchantPaymentMethod').val();
+        paymentDate = $('#merchantPaymentDate').val();  // Already in your code
+
     } else {
         id = $('#cashOutModal').data('cashOutId');
         transactionId = $('#transactionId').val();
         paymentMethod = $('#paymentMethod').val();
+        paymentDate = $('#PaymentDate').val();  // Already in your code
+
     }
 
     fetch('/save-cash-out/', {
@@ -338,7 +342,8 @@ function submitCashOut() {
         body: JSON.stringify({
             cashout_id: id,
             transaction_id: transactionId,
-            payment_method: paymentMethod
+            payment_method: paymentMethod,
+            payment_date: paymentDate 
         })
     })
     .then(response => response.json())
@@ -390,8 +395,6 @@ function submitCashOut() {
         return cookieValue;
     }
     
-    
-
-</script>
+    </script>
 
 {% endblock %}

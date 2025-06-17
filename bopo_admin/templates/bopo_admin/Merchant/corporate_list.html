@@ -733,8 +733,8 @@ $('#cancelDelete').click(function () {
 // Handle item deletion via AJAX
 function deleteItem(id, type) {
     const url = type === 'corporate'
-        ? `/bopo_admin/delete-corporate/${id}/`
-        : `/bopo_admin/delete-merchant/${id}/`;
+        ? `/delete-corporate/${id}/`
+        : `/delete-merchant/${id}/`;
 
     $.ajax({
         url: url,
@@ -801,7 +801,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function fetchStates() {
-    return fetch("/bopo_admin/get-states/")
+    return fetch("/get-states/")
         .then(response => response.json())
         .then(states => {
             const stateDropdown = document.getElementById("edit_state");
@@ -817,7 +817,7 @@ function fetchStates() {
 
 function fetchCities(state) {
     const stateId = state || document.getElementById("edit_state").value;
-    return fetch(`/bopo_admin/get-cities/${stateId}/`)
+    return fetch(`/get-cities/${stateId}/`)
         .then(res => res.json())
         .then(cities => {
             const cityDropdown = document.getElementById("edit_city");

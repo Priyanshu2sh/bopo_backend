@@ -2033,7 +2033,7 @@ class HistoryAPIView(APIView):
  
 class CorporateGlobalMerchantAPIView(APIView):
     """
-    API to get all corporate merchants with global account type and associated project name.
+    API to get all corporate merchants and indi with global account type and associated project name.
     """
 
     def get(self, request):
