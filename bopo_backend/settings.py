@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from decouple import config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -215,10 +217,13 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
 LOGIN_URL = '/login/'
 
+
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = "ACacaecf422d9f93836e549cbd3adde231"
-TWILIO_AUTH_TOKEN = "3584b709694fe03abfefac57ec19d2cf"
-TWILIO_PHONE_NUMBER = "+19379091558"
+TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER")
+
+
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
