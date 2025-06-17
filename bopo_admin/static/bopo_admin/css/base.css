@@ -252,6 +252,14 @@ body {
     background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
     color:white
 }
+/* Menu icon styling */
+.menu-icon {
+    cursor: pointer;
+    font-size: 24px;
+    color: white;
+    padding: 10px;
+    display: none;
+}
 
 /* Responsive handling for smaller screens */
 @media (max-width: 768px) {
@@ -268,6 +276,10 @@ body {
         width: 100%;
         justify-content: space-between;
         margin-top: 5px;
+        margin-left: -5%;
+    }
+    .menu-icon{
+        margin-left: 22%;
     }
     .navbar-right {
         width: 100%;
@@ -296,18 +308,6 @@ body {
     }
 
    }
-
-
-
-
-/* Menu icon styling */
-.menu-icon {
-    cursor: pointer;
-    font-size: 24px;
-    color: white;
-    padding: 10px;
-    display: none;
-}
 
 
 /* Show menu icon on mobile screens */

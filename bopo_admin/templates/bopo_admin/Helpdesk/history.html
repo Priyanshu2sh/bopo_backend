@@ -1,0 +1,431 @@
+{% extends "bopo_admin/base.html" %}
+{% load static %}
+{% block content %}
+
+<!-- CSS Links -->
+<link rel="stylesheet" href="{% static 'bopo_admin/css/history.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+
+<style>
+    div.dataTables_filter {
+        display: none !important;
+    }
+
+    .top-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .search-box {
+        padding: 6px 10px;
+        width: 250px;
+    }
+
+    .dataTables_paginate {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .dataTables_paginate .paginate_button {
+        background: linear-gradient(135deg, #ff7b54, #ff4e00);
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(52, 49, 48, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    }
+
+    .dataTables_paginate .paginate_button:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+        box-shadow: 0 6px 12px rgba(41, 39, 38, 0.4);
+    }
+
+    .dataTables_paginate .paginate_button.current {
+        background: linear-gradient(135deg, #333, #111);
+        color: #fff;
+        font-weight: bold;
+        border: 2px solid #ff4e00;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+    }
+</style>
+
+<!-- Main Container -->
+<div class="send-notification-container">
+    <div class="send-notification-header">
+        <h2>History</h2>
+    </div>
+
+    <!-- Transaction History Toggle -->
+    <div class="send-notification-item">
+        <input type="checkbox" id="toggle-single-customer" class="toggle-checkbox">
+        <label for="toggle-single-customer" class="send-notification-label">
+            <span class="send-notification-icon">👤</span>
+            <span>Transaction History</span>
+        </label>
+
+        <div class="send-notification-form">
+ 
+            <div class="customer-container">
+                
+
+              <div class="top-controls" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+
+  <!-- Search box on left -->
+  <input type="text" class="search-box" id="search-history" placeholder="Search transaction history..." style="flex-grow: 1; max-width: 300px;">
+
+  <!-- Buttons on right -->
+  <div class="buttons-group" style="display: flex; align-items: center; gap: 10px;">
+
+    <!-- Filter button first -->
+    <div class="date-filter-wrapper" style="position: relative; display: inline-block;">
+      <button id="date-filter-toggle" title="Filter by Date" 
+              style="
+                background-color: #f8f8f8;
+                border: 1px solid gray;
+                border-radius: 6px;
+                padding: 6px 10px;
+                cursor: pointer;
+                font-size: 20px;
+                color: black;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+        <i class="fas fa-filter"></i>
+      </button>
+
+      <div id="date-filter-menu" style="
+          display: none;
+          position: absolute;
+          top: 45px;
+          right: 0;
+          background: white;
+          border: 1px solid #ddd;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+          border-radius: 4px;
+          z-index: 1000;
+          min-width: 160px;
+        ">
+        <ul style="list-style: none; margin: 0; padding: 8px 0;">
+          <li class="date-filter-option" data-range="all" style="padding: 6px 16px; cursor: pointer;">All</li>
+          <li class="date-filter-option" data-range="daily" style="padding: 6px 16px; cursor: pointer;">Today</li>
+          <li class="date-filter-option" data-range="weekly" style="padding: 6px 16px; cursor: pointer;">This Week</li>
+          <li class="date-filter-option" data-range="monthly" style="padding: 6px 16px; cursor: pointer;">This Month</li>
+          <li class="date-filter-option" data-range="yearly" style="padding: 6px 16px; cursor: pointer;">This Year</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Custom buttons second -->
+    <div id="custom-buttons-history"></div>
+
+  </div>
+
+</div>
+
+
+                    <table id="history-table" class="display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Customer</th>
+                                <th>Merchant</th>
+                                <th>Points</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for history in history_list %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ history.customer.customer_id }}</td>
+                                <td>{{ history.merchant.merchant_id }}</td>
+                                <td>{{ history.points }}</td>
+                                <td>{{ history.get_transaction_type_display }}</td>
+                                <td>{{ history.created_at|date:"Y-m-d" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Customers Toggle -->
+        <div class="send-notification-item">
+            <input type="checkbox" id="toggle-all-customers" class="toggle-checkbox">
+            <label for="toggle-all-customers" class="send-notification-label">
+                <span class="send-notification-icon">🏢</span>
+                <span>Cash Out History</span>
+            </label>
+
+            <div class="send-notification-form">
+
+                <div class="customer-container">
+                    
+             <div class="top-controls" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+
+                <!-- Search box on the left -->
+                <input type="text" class="search-box" id="search-customers" placeholder="Search cash out history..." style="flex-grow: 1; max-width: 300px;">
+
+                <!-- Buttons group on the right -->
+                <div class="buttons-group" style="display: flex; align-items: center; gap: 10px;">
+
+                    <!-- Filter button first -->
+                    <div class="date-filter-wrapper" style="position: relative; display: inline-block;">
+                    <button id="date-filter-toggle-cashout" title="Filter by Date" 
+                            style="
+                                background-color: #f8f8f8;
+                                border: 1px solid gray;
+                                border-radius: 6px;
+                                padding: 6px 10px;
+                                cursor: pointer;
+                                font-size: 20px;
+                                color: black;
+                                width: 40px;
+                                height: 40px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            ">
+                        <i class="fas fa-filter"></i>
+                    </button>
+
+                    <div id="date-filter-menu-cashout" style="
+                        display: none;
+                        position: absolute;
+                        top: 45px;
+                        right: 0;
+                        background: white;
+                        border: 1px solid #ddd;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+                        border-radius: 4px;
+                        z-index: 1000;
+                        min-width: 160px;
+                        ">
+                        <ul style="list-style: none; margin: 0; padding: 8px 0;">
+                        <li class="date-filter-option-cashout" data-range="all" style="padding: 6px 16px; cursor: pointer;">All</li>
+                        <li class="date-filter-option-cashout" data-range="daily" style="padding: 6px 16px; cursor: pointer;">Today</li>
+                        <li class="date-filter-option-cashout" data-range="weekly" style="padding: 6px 16px; cursor: pointer;">This Week</li>
+                        <li class="date-filter-option-cashout" data-range="monthly" style="padding: 6px 16px; cursor: pointer;">This Month</li>
+                        <li class="date-filter-option-cashout" data-range="yearly" style="padding: 6px 16px; cursor: pointer;">This Year</li>
+                        </ul>
+                    </div>
+                    </div>
+
+                    <!-- Colvis button second -->
+                    <div id="custom-buttons-customers"></div>
+
+                </div>
+
+                </div>
+
+
+                <table id="customers-table" class="display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Merchant ID</th>
+                            <th>Status</th>
+                            <th>Amount</th>  
+                            <th>Payment Method</th>
+                            <th>Date</th>
+
+                        </tr>
+                    </thead>
+                   <tbody>
+                        {% for cashout in merchant_cashouts %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ cashout.merchant.merchant_id }}</td>
+                            <td>{{ cashout.status }}</td>
+                            <td>{{ cashout.amount }}</td>
+                            <td>
+                                {% with payments=cashout.superadminpayment_set.all %}
+                                    {% if payments %}
+                                        {% for payment in payments %}
+                                            {{ payment.payment_method }}<br>
+                                        {% endfor %}
+                                    {% else %}
+                                        No payments
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>{{ cashout.created_at|date:"Y-m-d" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS Links -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+
+<!-- DataTables Initialization -->
+
+<script>
+$(document).ready(function () {
+  // Initialize DataTables
+  const historyTable = $('#history-table').DataTable({
+    dom: 'Bfrtip',
+    pageLength: 6,
+    lengthChange: false,
+    buttons: [
+      {
+        extend: 'colvis',
+        text: '<i class="fas fa-table"></i>',
+        className: 'btn btn-light'
+      }
+    ],
+    stripeClasses: []
+  });
+  historyTable.buttons().container().appendTo('#custom-buttons-history');
+
+  $('#search-history').on('keyup', function () {
+    historyTable.search(this.value).draw();
+  });
+
+  const customersTable = $('#customers-table').DataTable({
+    dom: 'Bfrtip',
+    pageLength: 6,
+    lengthChange: false,
+    buttons: [
+      {
+        extend: 'colvis',
+        text: '<i class="fas fa-table"></i>',
+        className: 'btn btn-light'
+      }
+    ],
+    stripeClasses: []
+  });
+  customersTable.buttons().container().appendTo('#custom-buttons-customers');
+
+  $('#search-customers').on('keyup', function () {
+    customersTable.search(this.value).draw();
+  });
+
+  // Toggle filter menus
+  $('#date-filter-toggle').click(function (e) {
+    e.stopPropagation();
+    $('#date-filter-menu').toggle();
+  });
+  $('#date-filter-toggle-cashout').click(function (e) {
+    e.stopPropagation();
+    $('#date-filter-menu-cashout').toggle();
+  });
+  // Hide menus on outside click
+  $(document).click(function () {
+    $('.date-filter-menu').hide();
+  });
+
+  // Helper function to check date range
+  function isInRange(date, range) {
+    const now = new Date();
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return true; // if invalid date, show row by default
+
+    switch (range) {
+      case 'daily':
+        return d.toDateString() === now.toDateString();
+      case 'weekly': {
+        const weekAgo = new Date(now);
+        weekAgo.setDate(now.getDate() - 7);
+        return d >= weekAgo && d <= now;
+      }
+      case 'monthly':
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      case 'yearly':
+        return d.getFullYear() === now.getFullYear();
+      case 'all':
+      default:
+        return true;
+    }
+  }
+
+  // Filter transaction history table by date
+  $('.date-filter-option').click(function () {
+    const range = $(this).data('range');
+    $('#date-filter-menu').hide();
+
+    // Use DataTables API to filter rows
+    historyTable.rows().every(function () {
+      const rowDate = this.data()[5]; // Date column (6th column)
+      const show = isInRange(rowDate, range);
+      if (show) {
+        $(this.node()).show();
+      } else {
+        $(this.node()).hide();
+      }
+    });
+  });
+
+  // Filter cash out history table by date
+  $('.date-filter-option-cashout').click(function () {
+    const range = $(this).data('range');
+    $('#date-filter-menu-cashout').hide();
+
+    customersTable.rows().every(function () {
+      const rowDate = this.data()[5]; // Date column (6th column)
+      const show = isInRange(rowDate, range);
+      if (show) {
+        $(this.node()).show();
+      } else {
+        $(this.node()).hide();
+      }
+    });
+  });
+});
+</script>
+
+<!-- Toggle Section Script -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
+
+        toggleCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener("change", function () {
+                const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
+
+                document.querySelectorAll(".send-notification-form").forEach((otherForm) => {
+                    if (otherForm !== form) {
+                        otherForm.style.display = "none";
+                        otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
+                    }
+                });
+
+                form.style.display = this.checked ? "block" : "none";
+            });
+        });
+
+        // Hide all forms initially
+        document.querySelectorAll(".send-notification-form").forEach((form) => {
+            form.style.display = "none";
+        });
+    });
+</script>
+
+{% endblock %}

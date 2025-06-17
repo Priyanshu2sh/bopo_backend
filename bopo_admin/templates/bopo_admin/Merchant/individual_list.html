@@ -351,6 +351,51 @@
 
 <!-- JavaScript -->
 <script>
+
+ const validators = {
+                email: function (value) {
+                    if (value === "") return "Email is required";
+                    if (value.includes(" ")) return "Email must not contain spaces";
+                    if (!value.includes("@")) return "Email must contain '@'";
+                    
+                    const parts = value.split("@");
+                    if (parts.length !== 2) return "Email must contain only one '@' symbol";
+                    
+                    const [local, domain] = parts;
+            
+                    if (local.trim() === "") return "Email must have a name before '@'";
+                    if (domain.trim() === "") return "Email must have a domain after '@'";
+                    if (!domain.includes(".")) return "Email domain must contain a '.' (e.g., gmail.com)";
+                    
+                    const domainParts = domain.split(".");
+                    if (domainParts.some(part => part.trim() === "")) return "Email domain must not have empty sections (e.g., 'example..com' is invalid)";
+                    if (domainParts[domainParts.length - 1].length < 2) return "Email domain extension must be at least 2 characters (e.g., '.com', '.in')";
+            
+                    return ""; // All good
+                },
+                
+                mobile: function (value) {
+                    if (value === "") return "Mobile number is required";
+                    if (!/^\d+$/.test(value)) return "Mobile number must contain only digits";
+                    if (value.length !== 10) return "Mobile number must be 10 digits";
+                    return "";
+                }
+            }
+
+              Object.keys(validators).forEach(id => {
+                const input = document.getElementById(id);
+                if (!input) return;
+    
+                input.addEventListener("input", () => {
+                    const value = input.value.trim();
+                    const errorMessage = validators[id](value);
+                    input.setCustomValidity(errorMessage);
+                    input.reportValidity();
+                });
+            });
+
+
+
 function filterTable() {
     const filter = document.getElementById("search-individual").value.toLowerCase();
     const rows = document.querySelectorAll("#individual-table tbody tr");

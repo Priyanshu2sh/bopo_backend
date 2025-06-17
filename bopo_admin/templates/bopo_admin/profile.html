@@ -24,11 +24,13 @@
     <div id="toast-container">
         {% for message in messages %}
             <div class="toast-message success">
-                {{ message }}
+                <i class="fas fa-check-circle toast-icon"></i>
+                <span>{{ message }}</span>
             </div>
         {% endfor %}
     </div>
 {% endif %}
+
 
 
         <!-- View Mode -->
@@ -47,8 +49,8 @@
 
             {% elif role == "super_admin" %}
                 <p><strong>Username:</strong> {{ user.username }}</p>
-                {% comment %} <p><strong>Email:</strong> admin12@gmail.com</p>
-                <p><strong>Mobile:</strong> 9423432604</p> {% endcomment %}
+                <p><strong>Email:</strong> {{user.email}}</p>
+                <p><strong>Mobile:</strong> {{user.mobile}}</p> 
             {% endif %}
             <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
         </div>
@@ -58,20 +60,20 @@
             {% csrf_token %}
             {% if role == "corporate_admin" %}
                 <div><label>Project Name:</label> <input type="text" name="project_name" value="{{ profile.project_name }}"></div>
-                <div><label>Email:</label> <input type="email" name="email" value="{{ profile.email }}"></div>
-                <div><label>Mobile:</label> <input type="text" name="mobile" value="{{ profile.mobile }}"></div>
+                <div><label>Email:</label> <input type="email" name="email" id="email" value="{{ profile.email }}"></div>
+                <div><label>Mobile:</label> <input type="text" name="mobile" id="mobile" value="{{ profile.mobile }}"></div>
                 <div><label>City:</label> <input type="text" name="city" value="{{ profile.city }}"></div>
 
             {% elif role == "employee" %}
                 <div><label>Name:</label> <input type="text" name="name" value="{{ profile.name }}"></div>
-                <div><label>Email:</label> <input type="email" name="email" value="{{ profile.email }}"></div>
-                <div><label>Mobile:</label> <input type="text" name="mobile" value="{{ profile.mobile }}"></div>
+                <div><label>Email:</label> <input type="email" name="email" id="email" value="{{ profile.email }}"></div>
+                <div><label>Mobile:</label> <input type="text" name="mobile" id="mobile" value="{{ profile.mobile }}"></div>
                 <div><label>City:</label> <input type="text" name="city" value="{{ profile.city }}"></div>
 
             {% elif role == "super_admin" %}
                 <div><label>Username:</label> <input type="text" name="username" value="{{ user.username }}"></div>
-                {% comment %} <div><label>Email:</label> <input type="email" name="email" value="admin12@gmail.com"></div>
-                <div><label>Mobile:</label> <input type="text" name="mobile" value="9423432604"></div> {% endcomment %}
+                <div><label>Email:</label> <input type="email" name="email" id="email" value="{{user.email}}"></div>
+                <div><label>Mobile:</label> <input type="text" name="mobile" id="mobile" value="{{user.mobile}} "></div> 
             {% endif %}
             <button type="submit" class="btn btn-success"><i class="fa fa-paper-plane"></i> Update</button>
             <button type="button" id="cancel-edit-btn" class="btn btn-secondary"><i class="fa fa-times-circle"></i> Cancel</button>
@@ -82,6 +84,49 @@
 
 
 <script>
+
+     const validators = {
+                email: function (value) {
+                    if (value === "") return "Email is required";
+                    if (value.includes(" ")) return "Email must not contain spaces";
+                    if (!value.includes("@")) return "Email must contain '@'";
+                    
+                    const parts = value.split("@");
+                    if (parts.length !== 2) return "Email must contain only one '@' symbol";
+                    
+                    const [local, domain] = parts;
+            
+                    if (local.trim() === "") return "Email must have a name before '@'";
+                    if (domain.trim() === "") return "Email must have a domain after '@'";
+                    if (!domain.includes(".")) return "Email domain must contain a '.' (e.g., gmail.com)";
+                    
+                    const domainParts = domain.split(".");
+                    if (domainParts.some(part => part.trim() === "")) return "Email domain must not have empty sections (e.g., 'example..com' is invalid)";
+                    if (domainParts[domainParts.length - 1].length < 2) return "Email domain extension must be at least 2 characters (e.g., '.com', '.in')";
+            
+                    return ""; // All good
+                },
+                
+                mobile: function (value) {
+                    if (value === "") return "Mobile number is required";
+                    if (!/^\d+$/.test(value)) return "Mobile number must contain only digits";
+                    if (value.length !== 10) return "Mobile number must be 10 digits";
+                    return "";
+                }
+            }
+
+              Object.keys(validators).forEach(id => {
+                const input = document.getElementById(id);
+                if (!input) return;
+    
+                input.addEventListener("input", () => {
+                    const value = input.value.trim();
+                    const errorMessage = validators[id](value);
+                    input.setCustomValidity(errorMessage);
+                    input.reportValidity();
+                });
+            });
+
  document.getElementById("edit-profile-btn").addEventListener("click", function() {
         document.getElementById("profile-view").style.display = "none";
         document.getElementById("profile-edit-form").style.display = "block";

@@ -57,14 +57,20 @@
                 <input type="checkbox" id="individual_merchant" name="roles" value="Individual Merchant">
                 <label for="individual_merchant">Individual Merchant</label>
 
-                <input type="checkbox" id="terminals" name="roles" value="Terminals">
-                <label for="terminals">Terminals</label>
-                
-                <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
+                 <input type="checkbox" id="merchant_send_credentials" name="roles" value="Merchant Send Credentials">
                 <label for="merchant_send_credentials">Merchant Send Credentials</label>
+                
+               {% comment %} <input type="checkbox" id="terminals" name="roles" value="terminals">
+                <label for="terminals">Terminals</label> {% endcomment %}
 
-                <input type="checkbox" id="reduce_limit" name="roles" value="Reduce Limit">
+                    <input type="checkbox" id="reduce_limit" name="roles" value="reduce_limit">
                 <label for="reduce_limit">Reduce Merchant Points</label>
+
+                
+
+               
+
+            
 
                 
                 {% comment %} <input type="checkbox" id="merchant_limit" name="roles" value="Merchant Limit">
@@ -105,8 +111,8 @@
                 {% comment %} <input type="checkbox" id="deduct_amount" name="roles" value="Deduct Amount">
                 <label for="deduct_amount">Deduct Amount</label> {% endcomment %}
 
-                <input type="checkbox" id="superadmin_functionality" name="roles" value="SuperAdmin Functionality">
-                <label for="superadmin_functionality">SuperAdmin Functionality</label>
+              <input type="checkbox" id="superadmin_functionality" name="roles" value="superadmin_functionality">
+<label for="superadmin_functionality">SuperAdmin Functionality</label>
 
                 <input type="checkbox" id="helpdesk_action" name="roles" value="HelpDesk Action">
                 <label for="helpdesk_action">HelpDesk Action</label>
@@ -125,47 +131,141 @@
     </form>
 </div>
 
-<!-- Toastr Messages -->
 {% if messages %}
-<script>
+<div id="toast" class="toast-container toast-show">
     {% for message in messages %}
-        toastr.options = {
-            "closeButton": true,
-            "progressBar": true,
-            "timeOut": "1000",
-            "positionClass": "toast-top-right"
-        };
-        toastr["{{ message.tags }}"]("{{ message|escapejs }}");
+        <div class="toast-message {{ message.tags }}">
+            <i class="fa fa-exclamation-circle"></i>
+            <span>{{ message }}</span>
+        </div>
     {% endfor %}
-</script>
+</div>
 {% endif %}
+
+
 
 <!-- Select All Role JS -->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const selectAll = document.getElementById('select_all');
-        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="roles"]');
+document.addEventListener('DOMContentLoaded', () => {
+    // Remove toast after 3.5s
+      const toast = document.querySelector('.toast-container');
+    if (toast) {
+        // Show toast container if hidden (usually visible anyway)
+        toast.style.display = 'block';
 
-        selectAll.addEventListener('change', function () {
+        // Remove toast after 3.5s
+        setTimeout(() => {
+            toast.remove();
+        }, 3500);
+    }
+
+    const selectAll = document.getElementById('select_all');
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name="roles"]');
+
+    if (selectAll) {
+        selectAll.addEventListener('change', () => {
             checkboxes.forEach(cb => cb.checked = selectAll.checked);
         });
+    }
 
-        checkboxes.forEach(cb => {
-            cb.addEventListener('change', function () {
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+            if (selectAll) {
                 selectAll.checked = [...checkboxes].every(cb => cb.checked);
-            });
+            }
         });
-         // Initialize Select2 on employee dropdown
+    });
+
+    // Initialize Select2 on employee dropdown
+    if ($('#employee').length) {
         $('#employee').select2({
             placeholder: "Select Employee",
             allowClear: true
         });
-    });
 
-    function confirmCancel() {
-        if (confirm("Are you sure you want to cancel? Any unsaved changes will be lost.")) {
-            window.location.href = "{% url 'employee_list' %}";
-        }
+        // AJAX load roles for selected employee
+        $('#employee').on('change', function () {
+            const employeeId = $(this).val();
+
+            // Uncheck all role checkboxes initially
+            $('input[name="roles"]').prop('checked', false);
+            $('#select_all').prop('checked', false);
+
+            if (employeeId) {
+                $.ajax({
+                    url: "{% url 'get_employee_roles' %}",
+                    data: { employee_id: employeeId },
+                    success: function (response) {
+                        const roles = response.roles;
+                        for (const [key, value] of Object.entries(roles)) {
+                            if (value) {
+                                $(`input[name="roles"][value="${convertKeyToLabel(key)}"]`).prop('checked', true);
+                            }
+                        }
+
+                        // Update Select All state
+                        const allChecked = $('input[name="roles"]').length === $('input[name="roles"]:checked').length;
+                        $('#select_all').prop('checked', allChecked);
+                    }
+                });
+            }
+        });
     }
+
+    // Cancel confirmation modal logic
+    const dismissBtn = document.getElementById("dismissCancel");
+    const confirmBtn = document.getElementById("confirmCancel");
+    const closeModalBtn = document.getElementById("closeCancelModal");
+
+    if (dismissBtn) {
+        dismissBtn.addEventListener("click", () => {
+            document.getElementById("cancelConfirmationModal").style.display = "none";
+        });
+    }
+
+    if (confirmBtn) {
+        confirmBtn.addEventListener("click", () => {
+            window.location.href = "{% url 'home' %}";
+        });
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener("click", () => {
+            document.getElementById("cancelConfirmationModal").style.display = "none";
+        });
+    }
+});
+
+// Show cancel modal
+function confirmCancel() {
+    const modal = document.getElementById("cancelConfirmationModal");
+    if (modal) modal.style.display = "block";
+}
+
+// Role key-to-label converter
+function convertKeyToLabel(key) {
+    const map = {
+        corporate_merchant: "Corporate Merchant",
+        individual_merchant: "Individual Merchant",
+        terminals: "terminals",
+        merchant_send_credentials: "Merchant Send Credentials",
+        reduce_limit: "reduce_limit",
+        merchant_limit: "Merchant Limit",
+        merchant_login_page_info: "Merchant Login Page-Info",
+        merchant_send_notification: "Merchant Send Notification",
+        merchant_received_offers: "Merchant Received Offers",
+        modify_customer_details: "Modify Customer Details",
+        customer_send_notification: "Customer Send Notification",
+        create_employee: "Create Employee",
+        payment_details: "Payment Details",
+        account_info: "Account-Info",
+        reports: "Reports",
+        deduct_amount: "Deduct Amount",
+        superadmin_functionality: 'superadmin_functionality',
+        helpdesk_action: "HelpDesk Action",
+    };
+    return map[key] || key;
+}
 </script>
+
 {% endblock %}

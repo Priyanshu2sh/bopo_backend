@@ -6,7 +6,7 @@ body {
 }
 
 .merchant-container {
-    background-color: #fff;
+     background-color: #fff;
     padding: 20px;
     border-radius: 10px;
     max-width: 1300px;
@@ -151,115 +151,6 @@ button {
     font-size: 16px;
 }
 
-
-/* RESPONSIVE DESIGN */
-
-/* Tablets */
-@media (max-width: 1024px) {
-    .merchant-container {
-        padding: 15px;
-        margin-top: 3%;
-    }
-
-    .merchant-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-
-    .add-merchant-btn {
-        font-size: 14px;
-        padding: 8px 12px;
-    }
-}
-
-/* Mobile Devices */
-@media (max-width: 768px) {
-    .merchant-container {
-        max-width: 95%;
-        padding: 15px;
-        margin-top: -80%;
-    }
-
-    .merchant-header {
-        font-size: 18px;
-    }
-
-    .merchant-label {
-        font-size: 14px;
-    }
-
-    .merchant-icon {
-        font-size: 16px;
-    }
-
-    .search-box {
-        width: 100%;
-        max-width: 100%;
-        font-size: 12px;
-    }
-
-    /* Table becomes scrollable */
-    .merchant-table {
-        overflow-x: auto;
-    }
-
-    table {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-
-    /* Adjust buttons */
-    button {
-        font-size: 14px;
-    }
-}
-
-
-
-
-/* 🔹 Tablets (1024px and below) */
-@media (max-width: 1024px) {
-    .merchant-container {
-        padding: 15px;
-        margin-top: 24%;
-    }
-
-    .merchant-header {
-        flex-direction: column; /* Stack header elements */
-        text-align: center;
-    }
-
-    .add-merchant-btn {
-        font-size: 14px;
-        padding: 8px 12px;
-        margin-left: 20%;
-        width: 10%;
-      
-    }
-}
-
-/* 🔹 Mobile Devices (768px and below) */
-@media (max-width: 768px) {
-    .merchant-header {
-        flex-direction: column; /* Stack header elements */
-        text-align: center;
-    }
-
-    /* Move the button more below */
-    .add-merchant-btn {
-        font-size: 14px;
-        padding: 12px;
-        width: 30%;
-        max-width: 250px;
-        margin-top: -10%; 
-        margin-left: 75%;
-        
-       
-    }
-}
 .pagination-controls {
     display: flex;
     justify-content: center;
@@ -306,16 +197,20 @@ button {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
- .modal {
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 120%;
-        height: 120%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.4);
-    }
+.modal {
+
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 120%;
+    height: 120%;
+    margin-left: -5%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+    align-items: center;    /* Vertically center */
+    justify-content: center; /* Horizontally center */
+}
     
     .modal-content {
         background-color: #fff;
@@ -400,36 +295,38 @@ button {
     .add_individual_merchant-btn-submit:hover {
         background: linear-gradient(178deg, red 0%, #85060c 100%);
     }
-    
-/* Toast Notification Styling */
+  /* Toast Notification Styling */
 .toast-container {
     visibility: hidden;
+    max-width: 90vw;
+    width: fit-content;
     min-width: 250px;
-    background-color: #28a745; /* Green Color */
+    background-color: #28a745;
     color: white;
     text-align: center;
     border-radius: 5px;
-    padding: 16px;
+    padding: 1rem 1.5rem;
     position: fixed;
-    top: 20px; /* Move to top */
-    left: 50%; /* Align to right */
-    font-size: 17px;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    font-size: 1rem;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     gap: 10px;
     opacity: 0;
-    transform: translateY(-50%); /* Initial hidden position */
     transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    z-index: 9999;
 }
 
 .toast-success {
-    background-color: #4CAF50; /* green */
+    background-color: #4CAF50;
     color: white;
 }
 
 .toast-error {
-    background-color: #ff4d4d; /* red (error) */
+    background-color: #ff4d4d;
     color: white;
 }
 
@@ -437,20 +334,34 @@ button {
 .toast-show {
     visibility: visible;
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
 }
 
 /* Fade Out Animation */
 .toast-hide {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateX(-50%) translateY(-20px);
 }
 
 /* Toast Icon */
 .toast-container i {
-    font-size: 20px;
+    font-size: 1.25rem;
     color: white;
 }
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+    .toast-container {
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .toast-container i {
+        font-size: 1rem;
+    }
+}
+
+
 
 
 .select2-container {
@@ -737,3 +648,194 @@ button {
   color: red;
 }
 
+
+/* RESPONSIVE DESIGN */
+
+/* Tablets */
+@media (max-width: 1024px) {
+    .merchant-container {
+        padding: 15px;
+        margin-top: 3%;
+    }
+
+    .merchant-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .add-merchant-btn {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+}
+
+/* Mobile Devices */
+@media (max-width: 768px) {
+    .merchant-container {
+        max-width: 95%;
+        padding: 15px;
+        margin-top: -80%;
+    }
+
+    .merchant-header {
+        font-size: 18px;
+    }
+
+    .merchant-label {
+        font-size: 14px;
+    }
+
+    .merchant-icon {
+        font-size: 16px;
+    }
+
+    .search-box {
+        width: 100%;
+        max-width: 100%;
+        font-size: 12px;
+    }
+
+    /* Table becomes scrollable */
+    .merchant-table {
+        overflow-x: auto;
+    }
+
+    table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    /* Adjust buttons */
+    button {
+        font-size: 14px;
+    }
+     .modal {
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        margin: 0;
+    }
+
+    .modal-content {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .addmerchant-form-container {
+        flex-direction: column;
+    }
+
+    .addmerchant-form-group {
+        width: 100%;
+    }
+
+    .addmerchant-btn-submit {
+        width: 30%;
+        margin: 15px auto 0;
+        display: block;
+    }
+
+    #toast-container {
+        top: 10px;
+        margin-left: 5%;
+    }
+
+    .merchant-container {
+        max-width: 95%;
+        padding: 15px;
+        margin-top: 5%;
+        margin-left: 1%;
+    }
+
+    .merchant-header {
+        font-size: 18px;
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+        margin-top: -2%
+    }
+
+    .merchant-label {
+        font-size: 14px;
+    }
+
+    .merchant-icon {
+        font-size: 16px;
+    }
+
+    .search-box {
+        width: 100%;
+        max-width: 100%;
+        font-size: 12px;
+    }
+
+    .merchant-table {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    button {
+        font-size: 14px;
+    }
+    
+    .add-merchant-btn {
+    
+        width: 30%;
+    }
+    
+}
+
+
+
+
+/* 🔹 Tablets (1024px and below) */
+@media (max-width: 1024px) {
+    .merchant-container {
+        padding: 15px;
+        margin-top: 24%;
+    }
+
+    .merchant-header {
+        flex-direction: column; /* Stack header elements */
+        text-align: center;
+    }
+
+    .add-merchant-btn {
+        font-size: 14px;
+        padding: 8px 12px;
+        margin-left: 20%;
+        width: 10%;
+      
+    }
+}
+
+/* 🔹 Mobile Devices (768px and below) */
+@media (max-width: 768px) {
+    .merchant-header {
+        flex-direction: column; /* Stack header elements */
+        text-align: center;
+    }
+
+    /* Move the button more below */
+    .add-merchant-btn {
+        font-size: 14px;
+        padding: 12px;
+        width: 30%;
+        max-width: 250px;
+        margin-top: -10%; 
+        margin-left: 75%;
+        
+       
+    }
+}

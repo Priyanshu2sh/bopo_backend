@@ -27,9 +27,11 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-fallback-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG=True
+
 
 ALLOWED_HOSTS = ['*']
+
 
 
 # Application definition
@@ -55,6 +57,8 @@ INSTALLED_APPS = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+APPEND_SLASH = True
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -70,6 +74,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
+    'bopo_admin.login_required_middleware.LoginRequiredMiddleware',
+    'bopo_backend.middleware.Custom404Middleware',
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -78,11 +84,25 @@ CORS_ALLOW_HEADERS = [
     'access-control-allow-origin',
 ]
 
+# CSRF_TRUSTED_ORIGINS = [
+#     "https://8e09-103-211-60-165.ngrok-free.app",
+#     "https://3fb0-2401-4900-79d1-d74-6851-4650-8615-4650-8615-f92c.ngrok-free.app",
+#     "https://7a22-2401-4900-57c6-ae7c-e933-a11b-70e7-85f4.ngrok-free.app",
+# ]
+
 CSRF_TRUSTED_ORIGINS = [
-    "https://8e09-103-211-60-165.ngrok-free.app",
-    "https://3fb0-2401-4900-79d1-d74-6851-4650-8615-4650-8615-f92c.ngrok-free.app",
-    "https://7a22-2401-4900-57c6-ae7c-e933-a11b-70e7-85f4.ngrok-free.app",
+    "http://localhost:8001",
+    "http://103.186.132.186:8001",
+    "https://test.biggbonuspoints.in:8001",
+    "http://test.biggbonuspoints.in:8001",
+    "https://biggbonuspoints.in:8001",
+    # "https://biggbonuspoints.prushal.com:8001",
+    # "http://biggbonuspoints.prushal.com:8001"
 ]
+
+# raw_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+# CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+
 
 ROOT_URLCONF = 'bopo_backend.urls'
 
@@ -121,6 +141,45 @@ CHANNEL_LAYERS = {
 USE_TZ = True
 TIME_ZONE = 'Asia/Kolkata'
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keeps session after browser is closed
+SESSION_COOKIE_AGE = 2592000  # 30 days in seconds (used if remember_me is checked)
+
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
+# EMAIL_HOST_PASSWORD = 'xjfy bjcc vkpm ljmu'  # App password from step above
+# DEFAULT_FROM_EMAIL = 'BOPO Team <006iipt@gmail.com>'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False 
+EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
+EMAIL_HOST_PASSWORD = 'xjfybjccvkpmljmu'  # App password (not your Gmail password)
+DEFAULT_FROM_EMAIL = 'BBP Team <006iipt@gmail.com>'
+# DEFAULT_DOMAIN = "127.0.0.1:8000"
+
+
+# settings.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+
 # Database configuration from environment variables
 DATABASES = {
     'default': {
@@ -135,18 +194,18 @@ DATABASES = {
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    # },
 ]
 
 AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
@@ -174,7 +233,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (Uploaded files)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+

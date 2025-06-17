@@ -1,16 +1,22 @@
 services:
   web:
-    build: .
+    # build: .
+    image: ashish1106/bopo:v1
     command: "daphne -b 0.0.0.0 -p 8000 bopo_backend.asgi:application"
     ports:
-      - "8000:8000"
-    env_file: .env
-    volumes:
-      - .:/app 
+      - "8001:8000"
+    # env_file: .env
+    # volumes:
+    #   - .:/app 
     depends_on:
       - redis
     environment:
       - REDIS_HOST=redis
+      - DB_NAME=bopolocal
+      - DB_USER=bopouser
+      - DB_PASSWORD=Bopo@1234
+      - DB_HOST=172.17.0.1
+      - DB_PORT=3306
 
   redis:
     image: redis:alpine

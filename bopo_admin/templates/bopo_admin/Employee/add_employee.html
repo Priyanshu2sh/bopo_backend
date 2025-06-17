@@ -236,6 +236,23 @@
                 if (!/^\d{6}$/.test(value)) return "Pincode must be 6 digits";
                 return "";
             },
+            password: function(value) {
+                if (value === "") return "Password is required";
+                // At least 8 chars, 1 letter, 1 number, 1 special char (@$!%*?&)
+                const pattern = /^(?=.*\d)(?=.*[a-zA-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+                if (!pattern.test(value)) {
+                    return "Password must be at least 8 characters and include 1 letter, 1 number, and 1 special character";
+                }
+                return "";
+            },
+
+            confirm_password: function(value) {
+                const passwordValue = document.getElementsByName("password")[0].value;
+                if (value === "") return "Confirm Password is required";
+                if (value !== passwordValue) return "Password and Confirm Password do not match";
+                return "";
+            },
+
           
         };
 
