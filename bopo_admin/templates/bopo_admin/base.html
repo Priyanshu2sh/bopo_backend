@@ -82,7 +82,7 @@
         {% comment %} <li><a href="{% url 'merchant_limit_list' %}"><i class="fas fa-chart-bar"></i> Merchant Limit List</a></li> {% endcomment %}
         {% endif %}
 
-        {% if request.user.role == 'super_admin' or role_permissions.merchant_limit == True %}
+        {% if request.user.role == 'super_admin' or role_permissions.reduce_limit == True %}
         <li><a href="{% url 'reduce_limit' %}"><i class="fas fa-minus-circle"></i> Reduce Merchant Points</a></li>
         {% endif %}
         

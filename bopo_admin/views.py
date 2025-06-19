@@ -759,22 +759,44 @@ def add_merchant(request):
             legal_name = request.POST.get("legal_name")
             pincode = request.POST.get("pincode")
             account_type = request.POST.get("account_type", "normal")
-            city_id = request.POST.get("city")
-            state_id = request.POST.get("state")
+            city = request.POST.get("city")
+            state = request.POST.get("state")
             country = request.POST.get("country", "India")
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
 
+            # ✅ Validate State and City selection
+            if not state:
+                message = "Please select a state."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            if not city:
+                message = "Please select a city."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            try:
+                state = State.objects.get(id=state)
+            except State.DoesNotExist:
+                message = "Selected state is invalid."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            try:
+                city = City.objects.get(id=city)
+            except City.DoesNotExist:
+                message = "Selected city is invalid."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+          
+         # ✅ Require logo upload
             logo_file = request.FILES.get("logo")
-            logo_instance = None
+            if not logo_file:
+                message = "Logo upload is required."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
-            if logo_file:
-                print("Logo file received:", logo_file.name)  # Debugging line
-                logo_instance = Logo.objects.create(logo=logo_file)
-                print("Logo saved:", logo_instance.logo.url)  # Debugging line
+            # If logo is provided, save it
+            logo_instance = Logo.objects.create(logo=logo_file)
+            print("Logo saved:", logo_instance.logo.url)
 
 
-            # Unique field checks for email, mobile, Aadhaar number, etc.
+            # ✅ Check for unique fields
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
                 message = "Email is already registered."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
@@ -786,28 +808,25 @@ def add_merchant(request):
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
                 message = "Aadhaar number is already registered."
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+            
+            if project_type == "New Project":
+                if Corporate.objects.filter(pan_number=pan_number).exists():
+                    message = "PAN number is already registered."
+                    return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
-            # Corporate ID Generation Logic
+            # ✅ Generate Corporate ID
             last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
             new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
             corporate_id = f"CORP{new_corporate_id:06d}"
 
-            # Handling Existing Project
             if project_type == "Existing Project" and select_project:
                 corporate = Corporate.objects.get(id=select_project)
                 project_name = corporate.project_name
                 project_id = corporate.project_id
 
-                # # Merchant ID Generation
-                # project_abbr = project_name[:4].upper()
-                # random_number = ''.join(random.choices(string.digits, k=11))
-                # merchant_id = f"{project_abbr}{random_number}"
-                
                 prefix = "MID"
                 merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
-                # otp = random.randint(100000, 999999)
 
-                # Create the Merchant instance
                 merchant = Merchant.objects.create(
                     user_type='corporate',
                     merchant_id=merchant_id,
@@ -828,12 +847,9 @@ def add_merchant(request):
                     country=country,
                     corporate_id=corporate.corporate_id,
                     project_name=corporate,
-                    logo=logo_instance  # Associate the logo with the merchant
+                    logo=logo_instance
                 )
 
-                merchant = Merchant.objects.get(merchant_id=merchant_id)
-
-                # Terminal Generation Logic
                 terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
                 tid_pin = random.randint(1000, 9999)
 
@@ -844,12 +860,10 @@ def add_merchant(request):
                 )
 
             elif project_type == "New Project":
-                # Create New Project and Corporate Instance
                 if not project_name:
                     message = "Project name is required for new projects."
                     return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
-                # Project ID Generation
                 last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
                 new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
                 project_id = f"PROJ{new_project_id:06d}"
@@ -875,11 +889,10 @@ def add_merchant(request):
                     city=city,
                     country=country,
                     role="admin",
-                    account_type=account_type, 
-                    logo=logo_instance  # Associate the logo with the new corporate account
+                    account_type=account_type,
+                    logo=logo_instance
                 )
 
-                # Create BopoAdmin user
                 bopo_admin = BopoAdmin(username=corporate_id, role="corporate_admin", corporate=corporate)
                 bopo_admin.set_password(pin)
                 bopo_admin.save()
@@ -893,7 +906,7 @@ def add_merchant(request):
 
         except Exception as e:
             print("Error saving merchant:", e)
-            return JsonResponse({"success": False, "message": "wrong from backend."})
+            return JsonResponse({"success": False, "message": "Failed to save mercahnt."})
 
     corporates = Corporate.objects.all()
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
@@ -1458,12 +1471,27 @@ def add_individual_merchant(request):
             legal_name = request.POST.get("legal_name")
             address = request.POST.get("address")
             pincode = request.POST.get("pincode")
-            state_id = request.POST.get("state")
-            city_id = request.POST.get("city")
+            state= request.POST.get("state")
+            city = request.POST.get("city")
             country = request.POST.get("country", "India")
 
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
+             # ✅ Validate State and City selection
+            if not state:
+                return JsonResponse({"success": False, "message": "Please select a state."})
+            if not city:
+                return JsonResponse({"success": False, "message": "Please select a city."})
+
+            # ✅ Convert IDs to model instances
+            try:
+                state = State.objects.get(id=state)
+            except State.DoesNotExist:
+                return JsonResponse({"success": False, "message": "Invalid state selected."})
+
+            try:
+                city = City.objects.get(id=city)
+            except City.DoesNotExist:
+                return JsonResponse({"success": False, "message": "Invalid city selected."})
+
 
             # Uniqueness checks
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
@@ -1472,8 +1500,8 @@ def add_individual_merchant(request):
                 return JsonResponse({"success": False, "message": "Mobile number already exists!"})
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
                 return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
-            if Merchant.objects.filter(pan_number=pan_number).exists():
-                return JsonResponse({"success": False, "message": "PAN number already exists!"})
+            # if Merchant.objects.filter(pan_number=pan_number).exists():
+            #     return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
             # Generate merchant_id
             last_merchant = Merchant.objects.order_by('-id').first()
@@ -2554,16 +2582,29 @@ def add_customer(request):
         pin = request.POST.get('pin') 
         pan_number = request.POST.get('pan_number')
         address = request.POST.get('address')
-        state_id = request.POST.get('state')
-        city_id = request.POST.get('city')
+        state = request.POST.get('state')
+        city = request.POST.get('city')
         pincode = request.POST.get('pincode')
         country = request.POST.get("country", "India")
 
+      # ✅ Validate State and City selection
+        if not state:
+            return JsonResponse({"success": False, "message": "Please select a state."})
+        if not city:
+            return JsonResponse({"success": False, "message": "Please select a city."})
+
+            # ✅ Convert IDs to model instances
         try:
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
-        except (State.DoesNotExist, City.DoesNotExist):
-            return JsonResponse({"success": False, "message": "Invalid state or city selection."})
+            state = State.objects.get(id=state)
+        except State.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid state selected."})
+
+        try:
+            city = City.objects.get(id=city)
+        except City.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid city selected."})
+
+
 
         # Validation checks
         if Customer.objects.filter(email=email).exists():
@@ -2834,14 +2875,31 @@ def add_employee(request):
         email = request.POST.get("email")
         aadhaar = request.POST.get("aadhaar")
         address = request.POST.get("address")
-        state_id = request.POST.get("state")
-        city_id = request.POST.get("city")
+        state = request.POST.get("state")
+        city= request.POST.get("city")
         mobile = request.POST.get("mobile")
         pan = request.POST.get("pan")
         pincode = request.POST.get("pincode")
         username = request.POST.get("username")
         password = request.POST.get("password")
         country = request.POST.get("country", "India")
+        
+        if not state:
+            return JsonResponse({"success": False, "message": "Please select a state."})
+        if not city:
+            return JsonResponse({"success": False, "message": "Please select a city."})
+
+            # ✅ Convert IDs to model instances
+        try:
+            state = State.objects.get(id=state)
+        except State.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid state selected."})
+
+        try:
+            city = City.objects.get(id=city)
+        except City.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid city selected."})
+
 
         # Validation checks
         if Employee.objects.filter(email=email).exists():
@@ -2853,12 +2911,7 @@ def add_employee(request):
         if Employee.objects.filter(pan=pan).exists():
             return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
-        # Fetch state and city objects
-        try:
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
-        except (State.DoesNotExist, City.DoesNotExist):
-            return JsonResponse({"success": False, "message": "Invalid state or city selection."})
+      
 
         # Create employee record
         try:
@@ -5308,10 +5361,10 @@ def send_customer_credentials(request):
 
             message_text = (
                 f"Dear {customer.first_name},\n\n"
-                f"Your BOPO login credentials:\n"
+                f"Your BBP login credentials:\n"
                 f"Customer ID: {customer.customer_id}\n"
                 f"Customer PIN: {customer.pin}\n\n"
-                f"Regards,\nBOPO Support Team"
+                f"Regards,\nBBP  Support Team"
             )
 
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)

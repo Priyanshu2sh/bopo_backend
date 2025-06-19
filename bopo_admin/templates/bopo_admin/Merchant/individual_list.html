@@ -87,6 +87,11 @@
         border: 2px solid #ff4e00;
         box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
     }
+    .dataTables_paginate .ellipsis {
+    padding: 0 8px;
+    color: #888;
+    font-size: 16px;
+}
 </style>
 
 <div class="merchant-container">
@@ -131,7 +136,7 @@
                                 <td>{{ merchant.mobile }}</td>
                                 <td>{{ merchant.shop_name }}</td>
                                 <td>{{ merchant.city }}</td>
-                                <td>{{ points_mapping|get_item:merchant.id|default:"0" }}</td>
+                                <td>{{ points_mapping|get_item:merchant.id }}</td>
 
                                 <td>
                                 <label class="switch">
@@ -165,10 +170,15 @@
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
     <script>
+
+                // Show only 5 pagination buttons at a time (around the current page)
+$.fn.DataTable.ext.pager.numbers_length = 5;
+
         $(document).ready(function () {
             const table = $('#individual-table').DataTable({
                 dom: 'Bfrtip',
                 pageLength: 6,
+                  pagingType: "simple_numbers",
                 buttons: [
                     {
                         extend: 'colvis',
@@ -628,7 +638,7 @@ function deleteMerchant(merchantId) {
     };
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+{% comment %} document.addEventListener("DOMContentLoaded", function () {
     fetchStates();
     paginateTable();
 
@@ -637,7 +647,7 @@ document.addEventListener("DOMContentLoaded", function () {
         allowClear: true,
         width: '100%'
     });
-});
+}); {% endcomment %}
 
 
 function fetchStates() {
