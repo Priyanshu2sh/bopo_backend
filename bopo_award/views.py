@@ -789,6 +789,14 @@ class MerchantToMerchantTransferAPIView(APIView):
         except Merchant.DoesNotExist:
             return Response({"error": "Invalid sender or receiver merchant ID"}, status=status.HTTP_404_NOT_FOUND)
         
+        # Restrict individual → corporate transfer
+        if sender_merchant.user_type == "individual" and receiver_merchant.user_type == "corporate":
+            return Response(
+                {"error": "Individual merchants are not allowed to transfer points to corporate merchants."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        
         # ✅ Validate PIN
         if str(sender_merchant.pin) != str(pin):
             return Response({'error': 'Please enter the correct PIN.'}, status=status.HTTP_400_BAD_REQUEST)

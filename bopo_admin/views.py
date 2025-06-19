@@ -5128,7 +5128,7 @@ def send_customer_credentials(request):
                 f"Your BOPO login credentials:\n"
                 f"Customer ID: {customer.customer_id}\n"
                 f"Customer PIN: {customer.pin}\n\n"
-                f"Regards,\nBOPO Support Team"
+                f"Regards,\nBBP Support Team"
             )
 
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)

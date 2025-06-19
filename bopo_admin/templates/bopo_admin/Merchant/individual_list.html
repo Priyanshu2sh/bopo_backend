@@ -131,7 +131,7 @@
                                 <td>{{ merchant.mobile }}</td>
                                 <td>{{ merchant.shop_name }}</td>
                                 <td>{{ merchant.city }}</td>
-                                <td>{{ points_mapping|get_item:merchant.id }}</td>
+                                <td>{{ points_mapping|get_item:merchant.id|default:"0" }}</td>
                                 <td>
                                 <label class="switch">
                                     <input type="checkbox" class="status-toggle"
