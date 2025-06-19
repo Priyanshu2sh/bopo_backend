@@ -53,5 +53,5 @@ Thumbs.db
 serviceAccountKey.json
 
 
-.docker-compose.yml
+docker-compose.yml
 # Ignore Docker-related files
