@@ -314,19 +314,22 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 3000);
     }
 
-    
-function submitCashOut() {
-    const isMerchant = $('#merchantCashOutModal').is(':visible');
-    let id, transactionId, paymentMethod;
+     function submitCashOut() {
+        const isMerchant = $('#merchantCashOutModal').is(':visible');
+        let id, transactionId, paymentMethod, paymentDate;
 
     if (isMerchant) {
         id = $('#merchantCashOutModal').data('cashOutId');
         transactionId = $('#merchantTransactionId').val();
         paymentMethod = $('#merchantPaymentMethod').val();
+        paymentDate = $('#merchantPaymentDate').val();  // Already in your code
+
     } else {
         id = $('#cashOutModal').data('cashOutId');
         transactionId = $('#transactionId').val();
         paymentMethod = $('#paymentMethod').val();
+        paymentDate = $('#PaymentDate').val();  // Already in your code
+
     }
 
     fetch('/save-cash-out/', {
@@ -338,7 +341,8 @@ function submitCashOut() {
         body: JSON.stringify({
             cashout_id: id,
             transaction_id: transactionId,
-            payment_method: paymentMethod
+            payment_method: paymentMethod,
+            payment_date: paymentDate 
         })
     })
     .then(response => response.json())
@@ -350,30 +354,25 @@ function submitCashOut() {
         }, 3000);
             showToast("Payment saved successfully!");
 
-            // ✅ Disable the button
-            const button = document.querySelector(`.open-merchant-modal-btn[data-id="${id}"]`);
-            if (button) {
-                button.disabled = true;
-                button.classList.remove('btn-success');
-                button.classList.add('btn-secondary');
-                button.textContent = '✅ Paid';
-            }
+                const button = document.querySelector(`.open-merchant-modal-btn[data-id="${id}"]`);
+                if (button) {
+                    button.disabled = true;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-secondary');
+                    button.textContent = '✅ Paid';
+                }
 
-            // Close the modal after success
-            if (isMerchant) {
-                closeMerchantCashOutModal();
+                if (isMerchant) {
+                    closeMerchantCashOutModal();
+                }
             } else {
-                closeCashOutModal();
+                showToast("Error: " + data.message);
             }
-        } else {
-            showToast("Error: " + data.message);
-        }
-    })
-    .catch(err => {
-        showToast("Error: " + err.message);
-    });
-}
-
+        })
+        .catch(err => {
+            showToast("Error: " + err.message);
+        });
+    }
     
     function getCookie(name) {
         let cookieValue = null;
@@ -390,8 +389,6 @@ function submitCashOut() {
         return cookieValue;
     }
     
-    
-
-</script>
+    </script>
 
 {% endblock %}

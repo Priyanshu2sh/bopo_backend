@@ -87,6 +87,11 @@
         border: 2px solid #ff4e00;
         box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
     }
+    .dataTables_paginate .ellipsis {
+    padding: 0 8px;
+    color: #888;
+    font-size: 16px;
+}
 </style>
 
 <div class="merchant-container">
@@ -132,6 +137,7 @@
                                 <td>{{ merchant.shop_name }}</td>
                                 <td>{{ merchant.city }}</td>
                                 <td>{{ points_mapping|get_item:merchant.id }}</td>
+
                                 <td>
                                 <label class="switch">
                                     <input type="checkbox" class="status-toggle"
@@ -164,10 +170,15 @@
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
     <script>
+
+                // Show only 5 pagination buttons at a time (around the current page)
+$.fn.DataTable.ext.pager.numbers_length = 5;
+
         $(document).ready(function () {
             const table = $('#individual-table').DataTable({
                 dom: 'Bfrtip',
                 pageLength: 6,
+                  pagingType: "simple_numbers",
                 buttons: [
                     {
                         extend: 'colvis',
@@ -405,7 +416,7 @@ function filterTable() {
 }
 
 function openEditModal(merchantId) {
-    fetch(`/bopo_admin/edit-merchants/${merchantId}/`)
+    fetch(`/edit-merchants/${merchantId}/`)
 
         .then(res => res.json())
         .then(data => {
@@ -538,7 +549,7 @@ document.getElementById("closeModal").addEventListener("click", function() {
 document.getElementById("editmerchantForm").onsubmit = function (e) {
     e.preventDefault();
     const formData = new FormData(this);
-    fetch("/bopo_admin/update-merchant/", {
+    fetch("/update-merchant/", {
         method: "POST",
         headers: {
             "X-CSRFToken": getCookie("csrftoken")  // Ensure the CSRF token is being sent
@@ -596,7 +607,7 @@ function deleteMerchant(merchantId) {
     document.getElementById("confirmationMessage").textContent = "Are you sure you want to delete this merchant?";
 
     document.getElementById("confirmDelete").onclick = function() {
-        fetch(`/bopo_admin/delete-merchant/${merchantId}/`, {
+        fetch(`/delete-merchant/${merchantId}/`, {
             method: "DELETE",
             headers: {
                 "X-CSRFToken": getCookie("csrftoken")  
@@ -627,7 +638,7 @@ function deleteMerchant(merchantId) {
     };
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+{% comment %} document.addEventListener("DOMContentLoaded", function () {
     fetchStates();
     paginateTable();
 
@@ -636,11 +647,11 @@ document.addEventListener("DOMContentLoaded", function () {
         allowClear: true,
         width: '100%'
     });
-});
+}); {% endcomment %}
 
 
 function fetchStates() {
-    return fetch("/bopo_admin/get-states/")
+    return fetch("/get-states/")
         .then(response => response.json())
         .then(states => {
             const stateDropdown = document.getElementById("edit_state");
@@ -656,7 +667,7 @@ function fetchStates() {
 
 function fetchCities(state) {
     const stateId = state || document.getElementById("edit_state").value;
-    return fetch(`/bopo_admin/get-cities/${stateId}/`)
+    return fetch(`/get-cities/${stateId}/`)
         .then(res => res.json())
         .then(cities => {
             const cityDropdown = document.getElementById("edit_city");
