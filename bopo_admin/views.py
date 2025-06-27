@@ -925,7 +925,8 @@ def add_merchant(request):
                     country=country,
                     corporate_id=corporate.corporate_id,
                     project_name=corporate,
-                    logo=logo_instance
+                    logo=logo_instance,
+                    verified_at=timezone.now(),
                 )
 
                 terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
