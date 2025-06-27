@@ -268,7 +268,7 @@ class RegisterUserAPIView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         prefix = "MID"
-        merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=12))}"
+        merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
         otp = random.randint(100000, 999999)
 
         terminal_id, tid_pin = self._generate_terminal_info()
@@ -405,11 +405,11 @@ class LoginAPIView(APIView):
         try:
             if logo_instance and logo_instance.logo and default_storage.exists(logo_instance.logo.name):
                 with default_storage.open(logo_instance.logo.name, 'rb') as logo_file:
-                    logo_data = logo_file.read()
+                    logo = logo_file.read()
                 # Detect the image type based on file extension
                 ext = logo_instance.logo.name.split('.')[-1].lower()
                 mime_type = f"image/{'jpeg' if ext in ['jpg', 'jpeg'] else ext}"
-                logo_base64 = base64.b64encode(logo_data).decode('utf-8')
+                logo_base64 = base64.b64encode(logo).decode('utf-8')
                 return f"data:{mime_type};base64,{logo_base64}"
         except Exception as e:
             logger.error(f"Error encoding logo to base64: {e}")
@@ -469,8 +469,10 @@ class LoginAPIView(APIView):
 
             if user_category == "customer":
                 user = Customer.objects.filter(mobile=str(identifier)).first()
-                if not user or str(user.status).strip().lower() != "active":
-                    return Response({"error": "Invalid credentials or inactive account."}, status=status.HTTP_400_BAD_REQUEST)
+                if not user :
+                    return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+                if str(user.status).strip().lower() != "active":
+                    return Response({"error": "Your account is inactive. Please contact support."}, status=status.HTTP_400_BAD_REQUEST)
                 
                 # Check if user is verified
                 if not user.verified_at:
@@ -520,8 +522,10 @@ class LoginAPIView(APIView):
                 else:
                     user = Merchant.objects.filter(merchant_id=identifier).first()
 
-                if not user or str(user.status).strip().lower() != "active":
-                    return Response({"error": "Invalid credentials or inactive account."}, status=status.HTTP_400_BAD_REQUEST)
+                if not user:
+                    return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+                if str(user.status).strip().lower() != "active":
+                    return Response({"error": "Your account is inactive. Please contact support."}, status=status.HTTP_400_BAD_REQUEST)
 
                 if not user.verified_at and user.user_type != "corporate":
                     if not otp:
@@ -845,7 +849,7 @@ class FetchAllUsersAPIView(APIView):
             merchant_data = [
                 {
                     # "user_type": "corporate",
-                     "user_id": merchant.merchant_id,
+                    "user_id": merchant.merchant_id,
                     "mobile": merchant.mobile,
                     "first_name": merchant.first_name,
                     "last_name": merchant.last_name,
@@ -962,7 +966,7 @@ class RequestMobileChangeAPIView(APIView):
                         )
                     except Exception as e:
                         return Response({'error': f'Failed to send OTP: {str(e)}'},
-                                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                                        status=status.HTTP_400_BAD_REQUEST)
 
                     return Response({
                         'message': 'OTP sent successfully',

@@ -70,7 +70,7 @@ class RedeemPointsAPIView(APIView):
             else:
                 return Response({'error': 'Customer ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
         except Customer.DoesNotExist:
-            return Response({'error': 'Customer not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Customer not found.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # ✅ Validate PIN
         if str(customer.pin) != str(pin):
@@ -82,7 +82,7 @@ class RedeemPointsAPIView(APIView):
             try:
                 merchant = Merchant.objects.get(merchant_id__iexact=merchant_id)
             except Merchant.DoesNotExist:
-                return Response({'error': f'Merchant not found for ID {merchant_id}'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': f'Merchant not found for ID {merchant_id}'}, status=status.HTTP_400_BAD_REQUEST)
         elif merchant_mobile:
             merchant, created = Merchant.objects.get_or_create(
                 mobile=merchant_mobile,
@@ -105,7 +105,7 @@ class RedeemPointsAPIView(APIView):
             cust_merch_deduct = 5.0  # default 5%
 
         cust_merch_factor = (100 - cust_merch_deduct) / 100
-        merchant_points_to_credit = round(points * cust_merch_factor, 2)
+        merchant_points_to_credit = round(points * cust_merch_factor)
 
         # ✅ Check active CustomerPoints for this merchant
         total_customer_points = CustomerPoints.objects.filter(
@@ -444,7 +444,7 @@ class AwardPointsAPIView(APIView):
             return Response({'error': 'Purchased amount must be at least ₹5 to earn reward points.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Calculate awarded points
-        awarded_points = int((award_percentage / 100) * purchased_amt)
+        awarded_points = round((award_percentage / 100) * purchased_amt)
 
         # Ensure at least 1 point is awarded if amount is ≥ ₹5
         if awarded_points <= 0:
@@ -571,8 +571,13 @@ class TransferPointsMerchantToCustomerAPIView(APIView):
             merchant_id=merchant.pk,
             tid_pin=tid_pin
         ).first()
+         # ✅ Validate PIN
+        if str(terminal.tid_pin) != str(tid_pin):
+            return Response({'error': 'Please enter the correct PIN.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
         if not terminal:
-            return Response({'error': 'Invalid Terminal ID or PIN for this merchant.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'Invalid Terminal ID'}, status=status.HTTP_403_FORBIDDEN)
         # ✅ Check merchant has sufficient points
         merchant_points = MerchantPoints.objects.filter(merchant=merchant).first()
         if not merchant_points or merchant_points.points < points:
@@ -757,6 +762,21 @@ class CustomerToCustomerTransferAPIView(APIView):
             merchant=merchant,
             points=points_after_deduction
         )
+        # History entry for sender (as transferCToC - deduction side)
+        History.objects.create(
+            customer=sender_customer,
+            merchant=merchant,
+            points=points,
+            transaction_type='transferCToC'
+        )
+
+        # History entry for receiver (as transferCToC - after deduction)
+        History.objects.create(
+            customer=receiver_customer,
+            merchant=merchant,
+            points=points_after_deduction,
+            transaction_type='transferCToC'
+        )
 
         return Response({
             "message": f"Points transferred successfully with {deduct_percentage}% deduction.",
@@ -769,8 +789,10 @@ class CustomerToCustomerTransferAPIView(APIView):
 
 class MerchantToMerchantTransferAPIView(APIView):
     """
-    API for Merchant to Merchant point transfer.
-    Only allowed if BOTH sender and receiver have valid plans (checked from the ModelPlan table).
+    -   API for Merchant to Merchant point transfer.
+    -   Only allowed if BOTH sender and receiver have valid plans (checked from the ModelPlan table).
+    -   individual merchant not transfer points corporate merchnat
+    -   if the reciver merchant is corpoarte then sender merchant also same corporate then only transfer points 
     """
 
     def post(self, request):
@@ -787,8 +809,18 @@ class MerchantToMerchantTransferAPIView(APIView):
             sender_merchant = Merchant.objects.get(merchant_id=sender_merchant_id)
             receiver_merchant = Merchant.objects.get(merchant_id=receiver_merchant_id)
         except Merchant.DoesNotExist:
-            return Response({"error": "Invalid sender or receiver merchant ID"}, status=status.HTTP_404_NOT_FOUND)
-        
+            return Response({"error": "Invalid sender or receiver merchant ID"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check: if receiver is under corporate, sender must also be under same corporate
+        if receiver_merchant.user_type == "corporate" and receiver_merchant.project_name:
+            receiver_corp_id = receiver_merchant.project_name
+
+            if sender_merchant.project_name != receiver_corp_id:
+                return Response(
+                    {"error": "Sender and receiver must be under the same corporate to transfer points."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         # Restrict individual → corporate transfer
         if sender_merchant.user_type == "individual" and receiver_merchant.user_type == "corporate":
             return Response(
@@ -807,7 +839,7 @@ class MerchantToMerchantTransferAPIView(APIView):
         receiver_payment = PaymentDetails.objects.filter(merchant=receiver_merchant).order_by('-created_at').first()
 
         if not sender_payment or not receiver_payment:
-            return Response({"error": "Payment details not found for sender or receiver merchant."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Payment details not found for sender or receiver merchant."}, status=status.HTTP_400_BAD_REQUEST)
 
         sender_plan = sender_payment.plan_type.plan_type.lower()
         receiver_plan = receiver_payment.plan_type.plan_type.lower()
@@ -832,7 +864,7 @@ class MerchantToMerchantTransferAPIView(APIView):
             receiver_plan_info = receiver_payment.plan_type
 
         except ModelPlan.DoesNotExist:
-            return Response({"error": "Invalid plan type for one or both merchants."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Invalid plan type for one or both merchants."}, status=status.HTTP_400_BAD_REQUEST)
 
         sender_plan_validity = sender_plan_info.plan_validity
         receiver_plan_validity = receiver_plan_info.plan_validity
@@ -895,6 +927,18 @@ class MerchantToMerchantTransferAPIView(APIView):
 
         updated_sender_balance = int(MerchantPoints.objects.get(merchant=sender_merchant).points)
         updated_receiver_balance = int(MerchantPoints.objects.get(merchant=receiver_merchant).points)
+        
+        History.objects.create(
+            merchant=sender_merchant,
+            points=total_points_deducted,
+            transaction_type='transferMToM'
+        )
+
+        History.objects.create(
+            merchant=receiver_merchant,
+            points=points_after_deduction,
+            transaction_type='transfer'
+        )
 
         return Response(
             {
@@ -903,10 +947,9 @@ class MerchantToMerchantTransferAPIView(APIView):
                 "receiver_balance": updated_receiver_balance
             },
             status=status.HTTP_200_OK
-        )   
-        
-        
-           
+        )
+
+
 class CheckPointsAPIView(APIView):
     """
     API to check:
@@ -1049,8 +1092,8 @@ class UpdateMerchantProfileAPIView(APIView):
         """
         merchant = get_object_or_404(Merchant, merchant_id=merchant_id)
         
-        # Extract logo_data separately to handle it manually
-        logo_data = request.data.get('logo_data', None)
+        # Extract  separately to handle it manually
+        logo = request.data.get('logo', None)
 
         serializer = MerchantSerializer(merchant, data=request.data, partial=True, context={'request': request})
 
@@ -1058,7 +1101,7 @@ class UpdateMerchantProfileAPIView(APIView):
 
         if serializer.is_valid():
             try:
-                # Save main merchant fields including logo_data if it's valid
+                # Save main merchant fields including logo if it's valid
                 serializer.save()
 
                 # Set is_profile_updated flag
@@ -1066,7 +1109,7 @@ class UpdateMerchantProfileAPIView(APIView):
                 merchant.save(update_fields=["is_profile_updated"])
 
                 # Determine logo upload message
-                if logo_data:
+                if logo:
                     logo_message = "Logo updated successfully."
                 else:
                     logo_message = "No logo data provided."
@@ -1215,18 +1258,12 @@ class PaymentDetailsListCreateAPIView(APIView):
             payment = serializer.save()
 
             merchant_instance = serializer.validated_data.get('merchant')
-            plan_type_value = serializer.validated_data.get('plan_type')
+            plan_type_instance = serializer.validated_data.get('plan_type')  # ModelPlan instance
 
-            # If plan_type is a foreign key object, extract the string; else use directly
-            if hasattr(plan_type_value, 'plan_type'):
-                plan_type_str = plan_type_value.plan_type
-            else:
-                plan_type_str = plan_type_value
-
-            if merchant_instance and plan_type_str and hasattr(merchant_instance, 'plan_type'):
-                if merchant_instance.plan_type != plan_type_str:
-                    merchant_instance.plan_type = plan_type_str
-                    merchant_instance.save()
+            if merchant_instance and plan_type_instance:
+                # Assign only the string, not the whole object
+                merchant_instance.plan_type = plan_type_instance.plan_type
+                merchant_instance.save()
 
             return Response(
                 {"message": "Payment sent successfully.", "data": serializer.data},
@@ -1237,7 +1274,6 @@ class PaymentDetailsListCreateAPIView(APIView):
             {"errors": serializer.errors, "message": "Payment send failed."},
             status=status.HTTP_400_BAD_REQUEST
         )
-
 
 class TerminalCustomerPointsAPIView(APIView):
     """
@@ -1433,15 +1469,15 @@ class BankDetailByUserAPIView(APIView):
         if user_type == "merchant":
             try:
                 merchant = Merchant.objects.get(merchant_id=id)
-                bank_detail = BankDetail.objects.get(merchant=merchant)
+                bank_detail = BankDetail.objects.filter(merchant=merchant).first()
+                if not bank_detail:
+                    return Response({"error": "Bank details not found for this merchant"}, status=status.HTTP_404_NOT_FOUND)
             except Merchant.DoesNotExist:
                 return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
-            except BankDetail.DoesNotExist:
-                return Response({"error": "Bank details not found for this merchant"}, status=status.HTTP_404_NOT_FOUND)
-            
-            # Use merchant database ID for updating
+
             data['merchant'] = merchant.id
             data['customer'] = None
+
 
         elif user_type == "customer":
             try:
@@ -1832,7 +1868,7 @@ class GlobalRedeemPointsAPIView(APIView):
             deduct_percentage = 5.0
 
         deduction_factor = (100 - deduct_percentage) / 100
-        merchant_points_to_credit = round(points * deduction_factor, 2)
+        merchant_points_to_credit = round(points * deduction_factor)
 
         # ✅ Fetch merchant
         merchant = None
@@ -1928,7 +1964,7 @@ class GlobalRedeemPointsAPIView(APIView):
                 if not recent_transactions:
                     original_points = gp.points
                     deducted_points = round(original_points * (deduction_percent / 100), 2)
-                    remaining_points = round(original_points - deducted_points, 2)
+                    remaining_points = round(original_points - deducted_points)
 
                     gp.points = remaining_points
                     gp.updated_at = timezone.now()
@@ -2163,4 +2199,28 @@ class NotificationListAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     
+class SameCorporateUnderMerchnatAPIView(APIView):
+    def get(self, request, merchant_id):
+        try:
+            # Step 1: Get merchant by merchant_id
+            merchant = Merchant.objects.get(merchant_id=merchant_id)
 
+            # Step 2: Check if this merchant is of type 'corporate'
+            if merchant.user_type != 'corporate':
+                return Response(
+                    {"detail": "Merchant is not of type corporate."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Step 3: Get all merchants under the same project_name
+            related_merchants = Merchant.objects.filter(project_name=merchant.project_name)
+
+            # Step 4: Serialize and return
+            serializer = MerchantSerializer(related_merchants, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Merchant.DoesNotExist:
+            return Response(
+                {"detail": "Merchant ID not found. Please enter a correct ID."},
+                status=status.HTTP_400_BAD_REQUEST
+            )

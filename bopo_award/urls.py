@@ -1,5 +1,7 @@
 from django.urls import path
-from .views import NotificationListAPIView, cron_trigger_global_point_deduction
+
+from bopo_admin.views import get_cities, get_states
+from .views import NotificationListAPIView, SameCorporateUnderMerchnatAPIView, cron_trigger_global_point_deduction
 
 from .views import AwardPointsAPIView,  BankDetailByUserAPIView, CashOutCreateAPIView, CheckPointsAPIView, CorporateGlobalMerchantAPIView, CorporateProjectListAPIView, CorporateRedeemAPIView, CustomerCashOutAPIView, CustomerPointsForPrepaidMerchantsAPIView, CustomerToCustomerTransferAPIView, GetGlobalCustomerPointsAPIView, GetPrepaidMerchantAPIView, GlobalRedeemPointsAPIView, HelpAPIView, MerchantCashOutAPIView, MerchantCustomerPointsAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, SecurityQuestionAPIView, TerminalCustomerPointsAPIView, TransferPointsMerchantToCustomerAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView, cron_trigger_global_point_deduction
 
@@ -51,7 +53,14 @@ urlpatterns = [
     path('get-history/', HistoryAPIView.as_view(), name='get-history-id'),
     path('notifications/', NotificationListAPIView.as_view(), name='notification-list'),
     
-     path('cron-deduct-global/', cron_trigger_global_point_deduction, name='cron_deduct_global'),
+    path('cron-deduct-global/', cron_trigger_global_point_deduction, name='cron_deduct_global'),
+     
+    path('same-corporate-merchants/<str:merchant_id>/', SameCorporateUnderMerchnatAPIView.as_view()),
+    
+    
+    path("get-states/", get_states, name="get_states"),
+    path("get-cities/<int:state_id>/", get_cities, name="get_cities"),
+
     
     
 ]

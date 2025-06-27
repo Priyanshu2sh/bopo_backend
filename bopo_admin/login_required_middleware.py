@@ -10,6 +10,7 @@ class LoginRequiredMiddleware:
         self.exempt_urls = [
             re.compile(r'^/api/'),  # ✅ Exempt all API routes
             re.compile(r'^/ws/'), 
+            re.compile(r'^/bopo_admin/'),  # ✅ Exempt all bopo_admin routes
             re.compile(r'^/bopo_admin/login/$'),
             re.compile(r'^/bopo_admin/logout/$'),
             re.compile(r'^/bopo_admin/forgot-password/$'),

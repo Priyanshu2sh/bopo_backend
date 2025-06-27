@@ -236,14 +236,14 @@ urlpatterns = [
     path('send-customer-credentials/', views.send_customer_credentials, name='send_customer_credentials'),
 
     
- 
+
     path('create_notification/', create_notification_view, name='create_notification'),
     path("transaction_history/", views.transaction_history, name="transaction_history"),
     
 
-
-
     path('api/save-fcm-token/', views.save_fcm_token, name='save_fcm_token'),
+    
+    path('corporate/<str:corporate_id>/merchants/', views.view_corporate_merchants, name='view_corporate_merchants'),
 
 
 ]
