@@ -72,6 +72,11 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'type': n.notification_type,
             'timestamp': str(n.created_at),
         } for n in notifications]
+        
+    async def unread_notification_update(self, event):
+                await self.send(text_data=json.dumps({
+                    "unread_count": event["unread_count"]
+                }))
 
 # import json
 # from channels.generic.websocket import AsyncWebsocketConsumer

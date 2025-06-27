@@ -24,7 +24,7 @@ class Custom404Middleware:
         response = self.get_response(request)
 
         # Show custom 404 only for URLs under /portal/
-        if response.status_code == 404 and request.path.startswith('/biggbonuspoints.in/portal/'):
+        if response.status_code == 404 and request.path.startswith('/portal/'):
             return render(request, "bopo_admin/Helpdesk/invalid.html", status=404)
 
         return response

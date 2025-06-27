@@ -31,7 +31,7 @@ urlpatterns = [
     
     # state , city
     # path('bopo_admin/', include('bopo_admin.urls')), 
-    path('biggbonuspoints.in/portal/', include('bopo_admin.urls')), 
+    path('portal/', include('bopo_admin.urls')), 
 
 
 

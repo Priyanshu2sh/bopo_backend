@@ -2074,9 +2074,9 @@ def send_fcm_notification(token, title, body, data=None):
 from django.db.models import F
 
 def create_notification(project_id, merchant_id, customer_id, notification_type, title, description, to_all_ind_merch, to_all_customer):
-    print("Creating notification...")
-    print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
-    print(f"To All Individual Merchants: {to_all_ind_merch}")
+    # print("Creating notification...")
+    # print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
+    # print(f"To All Individual Merchants: {to_all_ind_merch}")
 
     project = Corporate.objects.filter(project_id=project_id).first() if project_id else None
     merchant = Merchant.objects.filter(merchant_id=merchant_id).first() if merchant_id else None

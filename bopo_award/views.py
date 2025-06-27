@@ -2113,9 +2113,12 @@ def auto_deduct_inactive_global_points():
             gp.points = original - deducted_amount
             gp.save()
 
-            print(f"[{now}] Deducted {deducted_amount} from customer {customer.id}. Remaining: {gp.points}")
+            # print(f"[{now}] Deducted {deducted_amount} from customer {customer.id}. Remaining: {gp.points}")
             
+            # ----------------
             
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 class NotificationListAPIView(APIView):
     def get(self, request):
         customer_id_param = request.GET.get("customer_id")
@@ -2132,6 +2135,17 @@ class NotificationListAPIView(APIView):
 
                 customer.unread_notification = 0
                 customer.save()
+                 # socket
+                merchant_id = merchant_id_param
+                group_name = f"merchant_{merchant_id}"
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    group_name,
+                    {
+                        "type": "unread_notification_update",
+                        "unread_count": 0,  # Reset unread count
+                    }
+                )
             except Customer.DoesNotExist:
                 return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -2142,6 +2156,17 @@ class NotificationListAPIView(APIView):
 
                 merchant.unread_notification = 0
                 merchant.save()
+                # socket
+                merchant_id = merchant_id_param
+                group_name = f"merchant_{merchant_id}"
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    group_name,
+                    {
+                        "type": "unread_notification_update",
+                        "unread_count": 0,  # Reset unread count
+                    }
+                )
             except Merchant.DoesNotExist:
                 return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
 

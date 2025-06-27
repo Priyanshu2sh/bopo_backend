@@ -7,12 +7,12 @@ class LoginRequiredMiddleware:
         self.get_response = get_response
 
         exempt_paths = [
-            '/biggbonuspoints.in/portal/login/',
-            '/biggbonuspoints.in/portal/logout/',
-            '/biggbonuspoints.in/portal/forgot-password/',
-            '/biggbonuspoints.in/portal/forgot-password/done/',
-            '/biggbonuspoints.in/portal/reset/done/',
-            '/biggbonuspoints.in/portal/reset/invalid/',
+            '/portal/login/',
+            '/portal/logout/',
+            '/portal/forgot-password/',
+            '/portal/forgot-password/done/',
+            '/portal/reset/done/',
+            '/portal/reset/invalid/',
             '/admin/login/',
             '/favicon.ico',
         ]
@@ -24,7 +24,7 @@ class LoginRequiredMiddleware:
             re.compile(r'^/static/'),
             re.compile(r'^/media/'),
             re.compile(r'^/.well-known/'),
-            re.compile(r'^/biggbonuspoints.in/portal/reset/.+/.+/'),
+            re.compile(r'^/portal/reset/.+/.+/'),
             re.compile(r'^/api/'),
 
         ]
@@ -36,7 +36,7 @@ class LoginRequiredMiddleware:
         if not request.user.is_authenticated:
             if not any(pattern.match(path) for pattern in self.exempt_urls):
                 print(f"[Middleware] ❌ Not exempt: {path}, redirecting...")
-                return redirect('/biggbonuspoints.in/portal/login/')
+                return redirect('/portal/login/')
             else:
                 print(f"[Middleware] ✅ Exempted: {path}")
 
