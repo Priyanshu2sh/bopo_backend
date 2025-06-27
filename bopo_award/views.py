@@ -2180,8 +2180,8 @@ class NotificationListAPIView(APIView):
                 customer.unread_notification = 0
                 customer.save()
                  # socket
-                merchant_id = merchant_id_param
-                group_name = f"merchant_{merchant_id}"
+                customer_id = customer_id_param
+                group_name = f"customer_{customer_id}"
                 channel_layer = get_channel_layer()
                 async_to_sync(channel_layer.group_send)(
                     group_name,
