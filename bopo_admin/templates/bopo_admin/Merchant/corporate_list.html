@@ -25,7 +25,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
-    mar
+    
 }
 
 .search-box {
@@ -120,9 +120,8 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                {% comment %} <th>Project ID</th> {% endcomment %}
                                 <th>Corporate ID</th>
-                                <th>Merchant ID</th>
+                                <th>User Type</th>
                                 <th>Contact Person</th>
                                 <th>Mobile Number</th>
                                 <th>Shop Name</th>
@@ -137,9 +136,16 @@
                             {% for data in corporate_data %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
-                                    {% comment %} <td>{{ data.corporate.project_id }}</td> {% endcomment %}
-                                     <td>{{ data.corporate.corporate_id }}</td>
-                                     <td>Admin</td>
+                                    <td>
+                                        {% if data.corporate.corporate_id %}
+                                            <a href="{% url 'view_corporate_merchants' data.corporate.corporate_id %}">
+                                                {{ data.corporate.corporate_id }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>Admin</td>
                                     <td>{{ data.corporate.first_name }} {{ data.corporate.last_name }}</td>
                                     <td>{{ data.corporate.mobile }}</td>
                                     <td>{{ data.corporate.shop_name }}</td>
@@ -150,48 +156,44 @@
                                     <td>
                                         <label class="switch">
                                             <input type="checkbox"
-                                            {% if data.corporate.status == "Active" %}checked{% endif %}
-                                            data-id="{{ data.corporate.corporate_id }}" 
-                                            data-type="corporate"
-                                            class="status-toggle">
+                                                {% if data.corporate.status == "Active" %}checked{% endif %}
+                                                data-id="{{ data.corporate.corporate_id }}"
+                                                data-type="corporate"
+                                                class="status-toggle">
                                             <span class="slider round"></span>
                                         </label>
-                                        </td>                       
-                                        <td>
+                                    </td>
+                                    <td>
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ data.corporate.corporate_id }}', 'corporate')">✏️ Edit</button>
-                                      {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ data.corporate.id }}, 'corporate')">🗑️ Delete</button>  {% endcomment %}
                                     </td>
                                 </tr>
-                                {% for merchant in data.merchants %}
-                                <tr>
-                                    <td>-</td>
-                                    <td>-</td> 
-                                    <td>{{ merchant.merchant_id }}</td>
-                                    <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
-                                    <td>{{ merchant.mobile }}</td>
-                                    <td>{{ merchant.shop_name }}</td>
-                                    <td>{{ merchant.city }}</td>
-                                    <td>{{ merchant.created_at|date:"Y-m-d " }}</td>
-                                    <td>{{ merchant.last_updated_at|date:"Y-m-d " }}</td>
-
-                                    <td>
-                                    <label class="switch">
-                                        <input type="checkbox"
-                                        {% if merchant.status == "Active" %}checked{% endif %}
-                                        data-id="{{ merchant.merchant_id }}" 
-                                        data-type="merchant"
-                                        class="status-toggle">
-                                        <span class="slider round"></span>
-                                    </label>
-                                    </td>                
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ merchant.id }}', 'merchant')">✏️ Edit</button>
-                                       {% comment %} <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ merchant.id }}, 'merchant')">🗑️ Delete</button>   {% endcomment %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
+                                <!-- {% for merchant in data.merchants %}
+                                    <tr>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>{{ merchant.merchant_id }}</td>
+                                        <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
+                                        <td>{{ merchant.mobile }}</td>
+                                        <td>{{ merchant.shop_name }}</td>
+                                        <td>{{ merchant.city }}</td>
+                                        <td>
+                                            <label class="switch">
+                                                <input type="checkbox"
+                                                    {% if merchant.status == "Active" %}checked{% endif %}
+                                                    data-id="{{ merchant.merchant_id }}"
+                                                    data-type="merchant"
+                                                    class="status-toggle">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ merchant.id }}', 'merchant')">✏️ Edit</button>
+                                        </td>
+                                    </tr>
+                                {% endfor %} -->
                             {% endfor %}
                         </tbody>
+
                     </table>
                       </div>
             </div>
@@ -204,12 +206,8 @@
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
-    <script>
-
-        // Show only 5 pagination buttons at a time (around the current page)
-$.fn.DataTable.ext.pager.numbers_length = 5;
-
-  $(document).ready(function () {
+<script>
+ $(document).ready(function () {
     const table = $('#corporate-table').DataTable({
          dom: 'Bfrtip',
         pageLength: 5,
@@ -236,7 +234,7 @@ $.fn.DataTable.ext.pager.numbers_length = 5;
     });
 });
 
-    </script>
+</script>
 
 
 <!-- Edit Merchant Modal -->

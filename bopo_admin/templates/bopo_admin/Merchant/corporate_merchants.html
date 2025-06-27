@@ -1,0 +1,472 @@
+{% extends "bopo_admin/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'bopo_admin/css/corporate_merchant.css' %}">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
+<style>
+#toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.toast {
+  background-color: #333;
+  color: white;
+  padding: 12px 18px;
+  margin-top: 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  font-size: 14px;
+  max-width: 300px;
+}
+
+.toast.success {
+  background-color: #28a745;
+}
+
+.toast.error {
+  background-color: #dc3545;
+}
+
+.toast i {
+  margin-right: 6px;
+}
+</style>
+
+
+
+<div class="card">
+
+    <div class="reduce-limit-back-btn">
+        <a href="{% url 'corporate_list' %}" class="reduce-limit-back-btn-submit">
+            <i class="fa fa-arrow-left"></i> Back
+        </a>
+    </div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Merchants under Corporate: {{ corporate.corporate_id }}</h5>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="merchant-table" class="table table-bordered table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sr.No.</th>
+                        <th>Merchant ID</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Shop Name</th>
+                        <th>City</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for merchant in merchants %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ merchant.merchant_id }}</td>
+                        <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
+                        <td>{{ merchant.mobile }}</td>
+                        <td>{{ merchant.shop_name }}</td>
+                        <td>{{ merchant.city }}</td>
+                        <td>
+                                            <label class="switch">
+                                                <input type="checkbox"
+                                                    {% if merchant.status == "Active" %}checked{% endif %}
+                                                    data-id="{{ merchant.merchant_id }}"
+                                                    data-type="merchant"
+                                                    class="status-toggle">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ merchant.id }}', 'merchant')">✏️ Edit</button>
+
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No merchants found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<div id="confirmationModal" class="custom-modal" style="display: none;">
+  <div class="custom-modal-content">
+    <span class="custom-close" id="closeModal">&times;</span>
+    <h3 id="confirmationMessage">Are you sure you want to change the status?</h3>
+    <div class="custom-modal-buttons">
+      <button id="confirmAction" class="custom-btn">Yes</button>
+      <button id="cancelAction" class="custom-btn">No</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Edit Merchant Modal -->
+<div id="editCorporateModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+
+        <h2 id="modalTitle">Edit Merchant</h2>
+        <form id="editCorporateForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="corporate_id" id="edit_corporate_id">
+            <input type="hidden" name="merchant_id" id="edit_merchant_id">
+
+            <!-- Project Name Input Field (Initially Hidden) -->
+            <div id="project-name-container" class="hidden">
+                <label for="project_name">Project Name:</label>
+                <div class="addmerchant-input-container">
+                    <input type="text" id="edit_project_name" name="project_name" placeholder="Enter Project Name">
+                </div>
+            </div>
+
+            <!-- Form Fields (Left & Right Columns) -->
+            <div class="addmerchant-form-container">
+                <!-- Left Column -->
+                <div class="addmerchant-form-group">
+                    <label>First Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="first_name" id='edit_first_name' disabled>
+                    </div>
+                    <label>Email ID</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" id="edit_email" required>
+                    </div>
+                    <label>Aadhaar Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="aadhaar_number" id ="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" disabled>
+                    </div>
+                    <label>Shop Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-store"></i>
+                        <input type="text" name="shop_name" id="edit_shop_name" disabled>
+                    </div>
+                    <label>Address</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" name="address" id="edit_address" disabled>
+                    </div>
+                     <label>State</label>
+                        <div class="addmerchant-input-container">
+                                <i class="fas fa-map"></i>
+                                <input type="text" name="state" id="edit_state" disabled>
+                        </div>
+
+                             <label>City</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-city"></i>
+                        <input type="text" name="city" id="edit_city" disabled>
+                    </div>
+                                
+                    <label>Country</label>
+                    <div class="addmerchant-input-container">
+                        <input type="text" name="country" value="India" disabled>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="addmerchant-form-group">
+                    <label>Last Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="last_name" id ="edit_last_name" disabled>
+                    </div>
+                    <label>Mobile Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-mobile-alt"></i>
+                        <input type="text" name="mobile" id="edit_mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
+                    </div>
+                    <label>Pin</label>
+                        <div class="addmerchant-input-container">
+                            <i class="fas fa-thumbtack"></i>
+                            <input type="text" name="pin" id="edit_pin"  disabled>
+                        </div>
+
+                    <label>GST Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-file-invoice"></i>
+                        <input type="text" name="gst_number" id="edit_gst_number" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" disabled>
+                    </div>
+                    <div id="gst_error" style="display: none; margin-top: 10px;">
+                        <div style="background-color: #ffe6e6; border: 1px solid #ff4d4d; color: #d8000c; padding: 10px; border-radius: 5px; font-size: 14px; display: flex; align-items: center;">
+                            <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
+                            Please enter a valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)
+                        </div>
+                    </div>
+
+                    <label>Pan Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" disabled>
+                    </div>
+                    <label>Legal Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-building"></i>
+                        <input type="text" name="legal_name" id="edit_legal_name" disabled>
+                    </div>
+
+                      <label>Pincode</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-home"></i>
+                        <input type="text" name="pincode" id="edit_pincode" disabled>
+
+                    </div>
+                </div>
+            </div><br>
+
+            <button type="submit" class="addmerchant-btn-submit">Submit</button>
+        </form>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast-container" class="toast"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const toggles = document.querySelectorAll(".status-toggle");
+    const modal = document.getElementById("confirmationModal");
+    const confirmBtn = document.getElementById("confirmAction");
+    const cancelBtn = document.getElementById("cancelAction");
+    const closeModal = document.getElementById("closeModal");
+
+    let currentToggle = null;
+    let pendingStatus = false;
+
+    toggles.forEach(toggle => {
+        toggle.addEventListener("change", function () {
+            currentToggle = this;
+            pendingStatus = this.checked;
+
+            // Temporarily revert the toggle until confirmed
+            this.checked = !this.checked;
+
+            // Show modal
+            modal.style.display = "block";
+        });
+       
+    });
+
+
+    confirmBtn.addEventListener("click", function () {
+        if (!currentToggle) return;
+
+        const entityId = currentToggle.dataset.id;
+        const entityType = currentToggle.dataset.type;
+        const url = `/toggle-status/${entityType}/${entityId}/`;
+
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: JSON.stringify({
+                is_active: pendingStatus
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentToggle.checked = pendingStatus;
+                showToast("Status updated successfully", "success");
+            } else {
+                alert("Failed to update status.");
+            }
+        })
+        .catch(() => {
+            alert("Something went wrong.");
+        })
+        .finally(() => {
+            modal.style.display = "none";
+            currentToggle = null;
+        });
+    });
+
+    cancelBtn.addEventListener("click", function () {
+        modal.style.display = "none";
+        currentToggle = null;
+    });
+
+    closeModal.addEventListener("click", function () {
+        modal.style.display = "none";
+        currentToggle = null;
+    });
+
+    // Optional: click outside the modal to close it
+    window.addEventListener("click", function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+            currentToggle = null;
+        }
+    });
+});
+
+function openEditCorporateModal(id, type = 'corporate') {
+    const url = type === 'merchant' ? `/get-copmerchant/${id}/` : `/get-corporate/${id}/`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                showToast(data.error);
+                return;
+            }
+
+            const modalTitle = type === 'merchant' ? "Edit Merchant" : "Edit Corporate";
+            document.getElementById('modalTitle').textContent = modalTitle;
+
+            document.getElementById('edit_corporate_id').value = type === 'corporate' ? data.corporate_id : '';
+            document.getElementById('edit_merchant_id').value = type === 'merchant' ? data.merchant_id : '';
+
+            document.getElementById('edit_first_name').value = data.first_name || '';
+            document.getElementById('edit_last_name').value = data.last_name || '';
+            document.getElementById('edit_email').value = data.email || '';
+            document.getElementById('edit_mobile').value = data.mobile || '';
+            document.getElementById('edit_address').value = data.address || '';
+            document.getElementById('edit_shop_name').value = data.shop_name || '';
+            document.getElementById('edit_aadhaar_number').value = data.aadhaar_number || '';
+            document.getElementById('edit_gst_number').value = data.gst_number || '';
+            document.getElementById('edit_pan').value = data.pan_number || '';
+             document.getElementById('edit_pin').value = data.pin || '';
+            document.getElementById('edit_legal_name').value = data.legal_name || '';
+            document.getElementById('edit_pincode').value = data.pincode || '';
+            document.getElementById('edit_project_name').value = data.project_name || '';
+
+            // Set prefilled state and city (not as dropdowns)
+            document.getElementById("edit_state").value = data.state || '';
+            document.getElementById("edit_city").value = data.city || '';
+
+            console.log("Pincode value being sent:", document.getElementById('edit_pincode').value);
+
+            
+
+            // Show the modal
+            document.getElementById("editCorporateModal").style.display = "block";
+        })
+        .catch(error => {
+            console.error("Error loading data:", error);
+            showToast("Error loading data, please try again.");
+        });
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editCorporateModal');
+    if (modal) modal.style.display = 'none';
+}
+
+
+window.onclick = function (event) {
+    let modal = document.getElementById("editCorporateModal");
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+};
+
+function showToast(message, type = 'success') {
+    console.log("Toast called:", message); 
+    let container = document.getElementById('toast-container');
+
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fa fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
+
+
+
+
+// ✅ Submit form using AJAX
+$('#editCorporateForm').submit(function (e) {
+    e.preventDefault();
+
+    let formData = new FormData(this);
+    const corporateId = formData.get('corporate_id');
+    const merchantId = formData.get('merchant_id');
+
+    let url = '';
+    let formType = '';
+
+    if (merchantId) {
+        formType = 'merchant';
+        url = `/update-copmerchant/${merchantId}/`;
+    } else if (corporateId) {
+        formType = 'corporate';
+        url = `/update-corporate/${corporateId}/`;
+    }
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        },
+        body: formData
+    })
+        .then(res => res.json())
+       .then(data => {
+    if (data.success) {
+        showToast(`${formType.charAt(0).toUpperCase() + formType.slice(1)} updated successfully`);
+        closeEditModal();
+        setTimeout(() => {
+            location.reload(); // Refresh to reflect changes
+        }, 1000);
+    } else {
+        showToast(data.message || "Update failed");
+    }
+})
+
+        .catch(err => {
+            console.error(err);
+            showToast("An error occurred during update");
+        });
+});
+
+   
+</script>
+
+
+{% endblock %}

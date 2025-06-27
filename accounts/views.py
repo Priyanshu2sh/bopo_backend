@@ -268,7 +268,7 @@ class RegisterUserAPIView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         prefix = "MID"
-        merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=12))}"
+        merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
         otp = random.randint(100000, 999999)
 
         terminal_id, tid_pin = self._generate_terminal_info()
@@ -405,11 +405,11 @@ class LoginAPIView(APIView):
         try:
             if logo_instance and logo_instance.logo and default_storage.exists(logo_instance.logo.name):
                 with default_storage.open(logo_instance.logo.name, 'rb') as logo_file:
-                    logo_data = logo_file.read()
+                    logo = logo_file.read()
                 # Detect the image type based on file extension
                 ext = logo_instance.logo.name.split('.')[-1].lower()
                 mime_type = f"image/{'jpeg' if ext in ['jpg', 'jpeg'] else ext}"
-                logo_base64 = base64.b64encode(logo_data).decode('utf-8')
+                logo_base64 = base64.b64encode(logo).decode('utf-8')
                 return f"data:{mime_type};base64,{logo_base64}"
         except Exception as e:
             logger.error(f"Error encoding logo to base64: {e}")
@@ -469,8 +469,10 @@ class LoginAPIView(APIView):
 
             if user_category == "customer":
                 user = Customer.objects.filter(mobile=str(identifier)).first()
-                if not user or str(user.status).strip().lower() != "active":
-                    return Response({"error": "Invalid credentials or inactive account."}, status=status.HTTP_400_BAD_REQUEST)
+                if not user :
+                    return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+                if str(user.status).strip().lower() != "active":
+                    return Response({"error": "Your account is inactive. Please contact support."}, status=status.HTTP_400_BAD_REQUEST)
                 
                 # Check if user is verified
                 if not user.verified_at:
@@ -520,8 +522,10 @@ class LoginAPIView(APIView):
                 else:
                     user = Merchant.objects.filter(merchant_id=identifier).first()
 
-                if not user or str(user.status).strip().lower() != "active":
-                    return Response({"error": "Invalid credentials or inactive account."}, status=status.HTTP_400_BAD_REQUEST)
+                if not user:
+                    return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+                if str(user.status).strip().lower() != "active":
+                    return Response({"error": "Your account is inactive. Please contact support."}, status=status.HTTP_400_BAD_REQUEST)
 
                 if not user.verified_at and user.user_type != "corporate":
                     if not otp:
@@ -845,7 +849,7 @@ class FetchAllUsersAPIView(APIView):
             merchant_data = [
                 {
                     # "user_type": "corporate",
-                     "user_id": merchant.merchant_id,
+                    "user_id": merchant.merchant_id,
                     "mobile": merchant.mobile,
                     "first_name": merchant.first_name,
                     "last_name": merchant.last_name,
@@ -875,31 +879,103 @@ class RequestMobileChangeAPIView(APIView):
         if not new_mobile:
             return Response({'error': 'New mobile number is required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Prevent mixed verification
+        if pin and (security_question or answer):
+            return Response({'error': 'Provide either PIN or Security Question/Answer, not both'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         new_mobile_otp = str(random.randint(100000, 999999))  # Generate OTP
 
         try:
+            # CUSTOMER FLOW
             if customer_id:
                 customer = Customer.objects.get(customer_id=customer_id)
-                if (pin and customer.pin == int(pin)) or (
-                    security_question and answer and
-                    customer.security_question == security_question and customer.answer == answer
-                ):
+
+                # ✅ Security Question Path
+                if security_question and answer:
+                    if (int(getattr(customer.security_question, 'id', 0)) == int(security_question) and
+                        customer.answer.strip().lower() == answer.strip().lower()):
+                        customer.mobile = new_mobile
+                        customer.new_mobile_otp = None  # clear any existing OTP
+                        customer.save()
+                        return Response({
+                            'message': 'Mobile number changed successfully via security question.'
+                        }, status=status.HTTP_200_OK)
+
+                    else:
+                        return Response({'error': 'Security Question/Answer does not match for customer'},
+                                        status=status.HTTP_400_BAD_REQUEST)
+
+                # ✅ PIN Path
+                elif pin and customer.pin == int(pin):
                     customer.new_mobile_otp = new_mobile_otp
                     customer.save()
+
+                    # Send OTP via SMS
+                    try:
+                        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                        client.messages.create(
+                            body=f"Your BOPO OTP is: {new_mobile_otp}",
+                            from_=settings.TWILIO_PHONE_NUMBER,
+                            to=f'+91{new_mobile}'
+                        )
+                    except Exception as e:
+                        return Response({'error': f'Failed to send OTP: {str(e)}'},
+                                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                    return Response({
+                        'message': 'OTP sent successfully',
+                        'new_mobile': new_mobile,
+                        'otp': new_mobile_otp  # Optional: for debugging
+                    }, status=status.HTTP_201_CREATED)
+                
                 else:
-                    return Response({'error': 'PIN or Security Question/Answer does not match for customer'},
+                    return Response({'error': 'PIN or Security Question/Answer required and must be valid for customer'},
                                     status=status.HTTP_400_BAD_REQUEST)
 
+            # MERCHANT FLOW
             elif merchant_id:
                 merchant = Merchant.objects.get(merchant_id=merchant_id)
-                if (pin and merchant.pin == int(pin)) or (
-                    security_question and answer and
-                    merchant.security_question == security_question and merchant.answer == answer
-                ):
+
+                # ✅ Security Question Path
+                if security_question and answer:
+                    if (int(getattr(merchant.security_question, 'id', 0)) == int(security_question) and
+                        merchant.answer.strip().lower() == answer.strip().lower()):
+                        merchant.mobile = new_mobile
+                        merchant.new_mobile_otp = None  # clear any existing OTP
+                        merchant.save()
+                        return Response({
+                            'message': 'Using security question successfully change mobile number.'
+                        }, status=status.HTTP_200_OK)
+                    else:
+                        return Response({'error': 'Security Question/Answer does not match for merchant'},
+                                        status=status.HTTP_400_BAD_REQUEST)
+
+                # ✅ PIN Path
+                elif pin and merchant.pin == int(pin):
                     merchant.new_mobile_otp = new_mobile_otp
                     merchant.save()
+
+                    # Send OTP via SMS
+                    try:
+                        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                        client.messages.create(
+                            body=f"Your BOPO OTP is: {new_mobile_otp}",
+                            from_=settings.TWILIO_PHONE_NUMBER,
+                            to=f'+91{new_mobile}'
+                        )
+                    except Exception as e:
+                        return Response({'error': f'Failed to send OTP: {str(e)}'},
+                                        status=status.HTTP_400_BAD_REQUEST)
+
+                    return Response({
+                        'message': 'OTP sent successfully',
+                        'new_mobile': new_mobile,
+                        'otp': new_mobile_otp
+                    }, status=status.HTTP_201_CREATED)
+
                 else:
-                    return Response({'error': 'PIN or Security Question/Answer does not match for merchant'},
+                    return Response({'error': 'PIN or Security Question/Answer required and must be valid for merchant'},
                                     status=status.HTTP_400_BAD_REQUEST)
 
             else:
@@ -909,23 +985,6 @@ class RequestMobileChangeAPIView(APIView):
         except (Customer.DoesNotExist, Merchant.DoesNotExist):
             return Response({'error': 'Invalid customer or merchant ID'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Send OTP via SMS
-        try:
-            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-            client.messages.create(
-                body=f"Your BOPO OTP is: {new_mobile_otp}",
-                from_=settings.TWILIO_PHONE_NUMBER,
-                to=f'+91{new_mobile}'
-            )
-        except Exception as e:
-            return Response({'error': f'Failed to send OTP: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response({
-            'message': 'OTP sent successfully',
-            'new_mobile': new_mobile,
-            'otp': new_mobile_otp  # Optional: useful for debugging, hide in production
-        }, status=status.HTTP_201_CREATED)
-
 
 
 class VerifyMobileChangeAPIView(APIView):
@@ -934,37 +993,74 @@ class VerifyMobileChangeAPIView(APIView):
         merchant_id = request.data.get('merchant_id')
         new_mobile = request.data.get('new_mobile')
         new_mobile_otp_input = request.data.get('new_mobile_otp')
+        security_question = request.data.get('security_question')
+        answer = request.data.get('answer')
 
-        if not new_mobile or not new_mobile_otp_input:
-            return Response({'error': 'new_mobile and otp are required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not new_mobile:
+            return Response({'error': 'new_mobile is required'}, status=status.HTTP_400_BAD_REQUEST)
+
 
         try:
             if customer_id:
                 customer = Customer.objects.get(customer_id=customer_id)
-                if customer.new_mobile_otp == new_mobile_otp_input:
-                    customer.mobile = new_mobile
-                    customer.new_mobile_otp = None  # clear OTP
-                    customer.save()
-                    return Response({'message': 'Mobile number updated successfully'}, status=status.HTTP_200_OK)
+
+                # OTP verification path
+                if new_mobile_otp_input:
+                    if customer.new_mobile_otp == new_mobile_otp_input:
+                        customer.mobile = new_mobile
+                        customer.new_mobile_otp = None
+                        customer.save()
+                        return Response({'message': 'Mobile number updated successfully via OTP'}, status=status.HTTP_200_OK)
+                    else:
+                        return Response({'error': 'Invalid OTP for customer'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Security question verification path
+                elif security_question and answer:
+                    if (str(customer.security_question).strip().lower() == security_question.strip().lower() and
+                        customer.answer.strip().lower() == answer.strip().lower()):
+
+
+                        customer.mobile = new_mobile
+                        customer.new_mobile_otp = None
+                        customer.save()
+                        return Response({'message': 'Mobile number updated successfully via security question'}, status=status.HTTP_200_OK)
+                    else:
+                        return Response({'error': 'Security question or answer incorrect for customer'}, status=status.HTTP_400_BAD_REQUEST)
+
                 else:
-                    return Response({'error': 'Invalid OTP for customer'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error': 'Either OTP or Security Question/Answer is required'}, status=status.HTTP_400_BAD_REQUEST)
 
             elif merchant_id:
                 merchant = Merchant.objects.get(merchant_id=merchant_id)
-                if merchant.new_mobile_otp == new_mobile_otp_input:
-                    merchant.mobile = new_mobile
-                    merchant.new_mobile_otp = None  # clear OTP
-                    merchant.save()
-                    return Response({'message': 'Mobile number updated successfully'}, status=status.HTTP_200_OK)
+
+                # OTP verification path
+                if new_mobile_otp_input:
+                    if merchant.new_mobile_otp == new_mobile_otp_input:
+                        merchant.mobile = new_mobile
+                        merchant.new_mobile_otp = None
+                        merchant.save()
+                        return Response({'message': 'Mobile number updated successfully via OTP'}, status=status.HTTP_200_OK)
+                    else:
+                        return Response({'error': 'Invalid OTP for merchant'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Security question verification path
+                elif security_question and answer:
+                    if merchant.security_question == security_question and merchant.answer == answer:
+                        merchant.mobile = new_mobile
+                        merchant.new_mobile_otp = None
+                        merchant.save()
+                        return Response({'message': 'Mobile number updated successfully via security question'}, status=status.HTTP_200_OK)
+                    else:
+                        return Response({'error': 'Security question or answer incorrect for merchant'}, status=status.HTTP_400_BAD_REQUEST)
+
                 else:
-                    return Response({'error': 'Invalid OTP for merchant'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error': 'Either OTP or Security Question/Answer is required'}, status=status.HTTP_400_BAD_REQUEST)
 
             else:
-                return Response({'error': 'customer or merchant ID must be provided'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'customer_id or merchant_id must be provided'}, status=status.HTTP_400_BAD_REQUEST)
 
         except (Customer.DoesNotExist, Merchant.DoesNotExist):
             return Response({'error': 'Invalid customer or merchant ID'}, status=status.HTTP_400_BAD_REQUEST)
-        
 
      
 # Logic for change or forgot Pin
@@ -1034,9 +1130,9 @@ class VerifyPinChangeAPIView(APIView):
                 return Response({'error': 'Invalid user category.'}, status=status.HTTP_400_BAD_REQUEST)
 
             if user.otp == otp:
-                user.pin = user.pin  # Finalize the PIN change
+                user.pin = user.temp_pin  # ✅ Correct logic
+                user.temp_pin = None
                 user.otp = None
-                
                 user.save()
                 return Response({'message': 'PIN updated successfully.'}, status=status.HTTP_200_OK)
             else:
@@ -1044,7 +1140,7 @@ class VerifyPinChangeAPIView(APIView):
 
         except (Customer.DoesNotExist, Merchant.DoesNotExist):
             return Response({'error': 'User not found.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+     
         
       
 class VerifySecurityQuestionAPIView(APIView):

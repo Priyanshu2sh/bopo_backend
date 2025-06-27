@@ -55,6 +55,11 @@ class PaymentDetailsSerializer(serializers.ModelSerializer):
         
 
 class BankDetailSerializer(serializers.ModelSerializer):
+    account_holder_name = serializers.CharField(required=True)
+    bank_name = serializers.CharField(required=True)
+    account_number = serializers.CharField(required=True)
+    ifsc_code = serializers.CharField(required=True)
+    branch = serializers.CharField(required=True)
     """
     Serializer for Bank Details API
     
@@ -144,4 +149,4 @@ class GlobalPointsSerializer(serializers.Serializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['id', 'title', 'type', 'description', 'created_at']
+        fields = ['id', 'title', 'notification_type', 'description', 'created_at']

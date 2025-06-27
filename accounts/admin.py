@@ -5,5 +5,11 @@ from .models import *
 admin.site.register(Merchant)
 admin.site.register(Customer)
 admin.site.register(Corporate)
-admin.site.register(Terminal)
+
+class TerminalAdmin(admin.ModelAdmin):
+    list_display = ('terminal_id', 'tid_pin', 'merchant_id', 'status', 'created_at')
+    search_fields = ('terminal_id', 'status')
+  
+admin.site.register(Terminal, TerminalAdmin)
+
 admin.site.register(Logo)

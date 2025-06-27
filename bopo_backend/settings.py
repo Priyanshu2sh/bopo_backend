@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from decouple import config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -164,7 +166,17 @@ EMAIL_HOST_PASSWORD = 'xjfybjccvkpmljmu'  # App password (not your Gmail passwor
 DEFAULT_FROM_EMAIL = 'BBP Team <006iipt@gmail.com>'
 # DEFAULT_DOMAIN = "127.0.0.1:8000"
 
+# ================================Shweta
 
+# Email settings for Gmail SMTP
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = '002iipt@gmail.com'       
+# EMAIL_HOST_PASSWORD = 'pnqhgteuanykydbj' 
+
+# ===================================
 # settings.py
 LOGGING = {
     'version': 1,
@@ -212,9 +224,11 @@ AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
 LOGIN_URL = '/login/'
 
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = "ACefc2b57333c60eaaea16e2ba775ade3c"
-TWILIO_AUTH_TOKEN = "429cf6ac7db12f61126cf0bbdee64d3d"
-TWILIO_PHONE_NUMBER = "+12706338124"
+# Twilio Configuration
+TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER")
+
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'

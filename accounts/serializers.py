@@ -30,22 +30,32 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 class MerchantSerializer(serializers.ModelSerializer):
-
     merchant_id = serializers.CharField()
     email = serializers.EmailField(required=False, allow_null=True, allow_blank=True) 
-    logo_data = Base64ImageField(required=False)  # ✅ Allow read and write
-    logo = serializers.SerializerMethodField()     # ✅ Returns base64 in response
+
+    # Separate field for writing (base64 upload)
+    logo_upload = Base64ImageField(write_only=True, required=False)
+
+    # Separate field for reading
+    logo = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Merchant
         fields = '__all__'
-        extra_kwargs = {'project_id' :{'required':False},'age' :{'required':False}, 'aadhar_number': {'required':False}, 'pan_number': {'required':False}, 'legal_name': {'required':False}, 'gender':{'required':False}, 'project_name':{'required':False},
-                        'pincode': {'required':False}, 'is_profile_updated':{'required' : False}, 'address': {'required':False}, 'state': {'required':False}, 'country': {'required':False}, 'city': {'required':False}, 'corporate_id': {'required':False}, 
-                        'shop_name':{'required':False}, 'plan-type':{'required': False}, 'gst_number':{'required':False}, 'project_name':{'required':False}, 'employee_id':{'required':False} }
+        extra_kwargs = {
+            'project_id': {'required': False}, 'age': {'required': False},
+            'aadhaar_number': {'required': False}, 'pan_number': {'required': False},
+            'legal_name': {'required': False}, 'gender': {'required': False},
+            'project_name': {'required': False}, 'pincode': {'required': False},
+            'is_profile_updated': {'required': False}, 'address': {'required': False},
+            'state': {'required': False}, 'country': {'required': False},
+            'city': {'required': False}, 'corporate_id': {'required': False},
+            'shop_name': {'required': False}, 'plan-type': {'required': False},
+            'gst_number': {'required': False}, 'employee_id': {'required': False},
+            'mobile': {'required': False}
+        }
 
     def get_logo(self, obj):
-        """
-        Return base64-encoded image for the logo field in the response.
-        """
         if obj.logo and obj.logo.logo:
             try:
                 with obj.logo.logo.open('rb') as image_file:
@@ -55,19 +65,19 @@ class MerchantSerializer(serializers.ModelSerializer):
         return None
 
     def create(self, validated_data):
-        logo_data = validated_data.pop('logo_data', None)
+        logo_data = validated_data.pop('logo_upload', None)
         if logo_data:
             logo_instance = Logo.objects.create(logo=logo_data)
             validated_data['logo'] = logo_instance
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        logo_data = validated_data.pop('logo_data', None)
+        logo_data = validated_data.pop('logo_upload', None)
         if logo_data:
             logo_instance = Logo.objects.create(logo=logo_data)
             validated_data['logo'] = logo_instance
         return super().update(instance, validated_data)
-    
+ 
 
 class CustomerSerializer(serializers.ModelSerializer):
    

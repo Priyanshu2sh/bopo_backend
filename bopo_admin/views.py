@@ -6,6 +6,7 @@ import os
 import random
 import string
 from sys import prefix
+import traceback
 # from tkinter.font import Font
 from django.db.models import Max
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect, JsonResponse
@@ -19,8 +20,10 @@ from twilio.rest import Client
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
 from django.utils.timezone import now
-from datetime import datetime
+# from django.utils import timezone
 
+from datetime import datetime
+from twilio.base.exceptions import TwilioRestException
 
 
 from accounts import models
@@ -101,8 +104,21 @@ from accounts.models import Merchant  # Replace `your_app` and `Merchant` with a
 
 def terminals(request):
     merchants = Merchant.objects.all().order_by('merchant_id')
-    return render(request, 'bopo_admin/Payment/terminals.html', {'merchants': merchants})
+    selected_merchant_id = request.GET.get("merchant_id")
+    terminals = []
 
+    if selected_merchant_id:
+        terminals = Terminal.objects.filter(merchant_id__merchant_id=selected_merchant_id).order_by('-created_at')
+        for terminal in terminals:
+            # Add attribute directly
+            terminal.show_delete = (now() - terminal.created_at) < timedelta(minutes=15)
+
+    return render(request, 'bopo_admin/Payment/terminals.html', {
+        'merchants': merchants,
+        'terminals': terminals,
+        'selected_merchant_id': selected_merchant_id
+    })
+    
 from django.http import JsonResponse
 from accounts.models import Merchant, Terminal
 
@@ -112,14 +128,20 @@ def get_terminals(request, merchant_id):
     except Merchant.DoesNotExist:
         return JsonResponse({'error': 'Merchant not found'}, status=404)
 
-    terminals = Terminal.objects.filter(merchant_id=merchant)
+    terminals = Terminal.objects.filter(merchant_id=merchant).order_by('-created_at')
+    data = []
+    for t in terminals:
+        show_delete = (now() - t.created_at) < timedelta(minutes=15)
+        data.append({
+            "terminal_id": t.terminal_id,
+            "tid_pin": t.tid_pin,
+            "status": t.status,
+            "created_at": t.created_at.isoformat(),
+            "show_delete": show_delete  # ✅ Include this
+        })
 
-    terminal_data = [
-        {'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin, 'status': terminal.status }
-        for terminal in terminals
-    ]
+    return JsonResponse({"terminals": data})
 
-    return JsonResponse({'terminals': terminal_data})
 
 import random
 import string
@@ -130,31 +152,67 @@ def generate_terminal_id():
     """Generate a unique terminal ID."""
     return "TID" + ''.join(random.choices(string.digits, k=8))
 
+# def add_terminal(request, merchant_id):
+#     """Generate a new terminal and pin for the merchant."""
+#     try:
+#         merchant = Merchant.objects.get(merchant_id=merchant_id)
+#     except Merchant.DoesNotExist:
+#         return JsonResponse({'error': 'Merchant not found'}, status=404)
+
+#     # Generate unique terminal ID
+#     terminal_id = generate_terminal_id()
+#     while Terminal.objects.filter(terminal_id=terminal_id).exists():
+#         terminal_id = generate_terminal_id()  # Ensure it's unique
+
+#     # Generate a 4-digit PIN
+#     tid_pin = random.randint(1000, 9999)
+
+#     # Save terminal info to the database
+#     terminal = Terminal.objects.create(
+#         terminal_id=terminal_id,
+#         tid_pin=tid_pin,
+#         merchant_id=merchant
+        
+#     )
+
+#     # Return the newly created terminal details
+#     return JsonResponse({'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin, 'status':terminal.status})
+
+
 def add_terminal(request, merchant_id):
     """Generate a new terminal and pin for the merchant."""
-    try:
-        merchant = Merchant.objects.get(merchant_id=merchant_id)
-    except Merchant.DoesNotExist:
-        return JsonResponse({'error': 'Merchant not found'}, status=404)
+    if request.method == "POST":
+        try:
+            merchant = Merchant.objects.get(merchant_id=merchant_id)
+        except Merchant.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Merchant not found'}, status=404)
 
-    # Generate unique terminal ID
-    terminal_id = generate_terminal_id()
-    while Terminal.objects.filter(terminal_id=terminal_id).exists():
-        terminal_id = generate_terminal_id()  # Ensure it's unique
+        # Generate unique terminal ID
+        terminal_id = generate_terminal_id()
+        while Terminal.objects.filter(terminal_id=terminal_id).exists():
+            terminal_id = generate_terminal_id()
 
-    # Generate a 4-digit PIN
-    tid_pin = random.randint(1000, 9999)
+        # Generate a 4-digit PIN
+        tid_pin = random.randint(1000, 9999)
 
-    # Save terminal info to the database
-    terminal = Terminal.objects.create(
-        terminal_id=terminal_id,
-        tid_pin=tid_pin,
-        merchant_id=merchant
-        
-    )
+        # Save terminal info to the database
+        terminal = Terminal.objects.create(
+            terminal_id=terminal_id,
+            tid_pin=tid_pin,
+            merchant_id=merchant
+        )
 
-    # Return the newly created terminal details
-    return JsonResponse({'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin, 'status':terminal.status})
+        # ✅ Add "success": True here
+        return JsonResponse({
+            'success': True,
+            'terminal_id': terminal.terminal_id,
+            'tid_pin': terminal.tid_pin,
+            'status': terminal.status,
+            "created_at": terminal.created_at.isoformat(),
+            'show_delete': True 
+        })
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 
 # In views.py
 
@@ -599,8 +657,27 @@ def delete_customer(request, customer_id):
 def merchant_list(request):
     return render(request, "bopo_admin/Merchant/merchant_list.html")
 
+# def corporate_list(request):
+#     corporates = Corporate.objects.all()
+#     corporate_data = []
+
+#     for corporate in corporates:
+#         # Fetch merchants linked to the corporate
+#         merchants = Merchant.objects.filter(corporate_id=corporate.corporate_id, user_type='corporate')
+#         corporate_data.append({
+#             "corporate": corporate,
+#             "merchants": merchants
+#         })
+
+#     return render(request, 'bopo_admin/Merchant/corporate_list.html', {
+#         "corporate_data": corporate_data
+#     })
+
+
 def corporate_list(request):
-    corporates = Corporate.objects.all()
+    # Only include corporates with a non-empty corporate_id
+    corporates = Corporate.objects.exclude(corporate_id__isnull=True).exclude(corporate_id='')
+
     corporate_data = []
 
     for corporate in corporates:
@@ -614,6 +691,7 @@ def corporate_list(request):
     return render(request, 'bopo_admin/Merchant/corporate_list.html', {
         "corporate_data": corporate_data
     })
+
 
 
 def individual_list(request):
@@ -1540,6 +1618,7 @@ def add_individual_merchant(request):
                 state=state,
                 city=city,
                 country=country,
+                verified_at=timezone.now(),
             
             )
 
@@ -1640,40 +1719,60 @@ def merchant_credentials(request):
         merchant_id = request.POST.get('merchant_id')
 
         try:
-            # ✅ 1. Corporate Admin Logic — ONLY send Corporate ID and PIN
+            # ✅ Step 1: Validate user is super_admin with Twilio plan
+            if not request.user.is_authenticated:
+                return JsonResponse({'status': 'error', 'message': 'You must be logged in.'})
+
+            try:
+                super_admin = BopoAdmin.objects.get(username=request.user.username)
+            except BopoAdmin.DoesNotExist:
+                try:
+                    super_admin = BopoAdmin.objects.get(email=request.user.email)
+                except BopoAdmin.DoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': 'Super admin not found.'})
+
+            # if super_admin.role.strip().lower() != 'super_admin' or not super_admin.has_twilio_subscription:
+            #     return JsonResponse({
+            #         'status': 'error',
+            #         'message': 'Twilio plan not found or inactive for this super admin.'
+            #     })
+
+            # ✅ Step 2: Corporate Admin case
             if merchant_type == 'corporate_admin':
                 if not project_id:
                     return JsonResponse({'status': 'error', 'message': 'Project ID is required for corporate admin'})
 
                 corporate = Corporate.objects.get(project_id=project_id)
-                phone_number = corporate.mobile
+                phone_number = corporate.mobile.strip()
                 if not phone_number.startswith('+'):
                     phone_number = f'+91{phone_number}'
 
                 message_text = (
                     f"Dear {corporate.first_name},\n\n"
-                    # f"Your corporate credentials for project {project_id} are as follows:\n"
                     f"Your corporate credentials:\n"
                     f"Corporate ID: {corporate.corporate_id}\n"
                     f"PIN: {corporate.pin}\n\n"
                     f"Regards,\nBBP Support Team"
                 )
 
-                client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-                client.messages.create(
-                    body=message_text,
-                    from_=settings.TWILIO_PHONE_NUMBER,
-                    to=phone_number
-                )
+                try:
+                    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                    client.messages.create(
+                        body=message_text,
+                        from_=settings.TWILIO_PHONE_NUMBER,
+                        to=phone_number
+                    )
+                    return JsonResponse({'status': 'success', 'message': 'Corporate admin credentials sent successfully!'})
+                except TwilioRestException as e:
+                    print(f"Twilio Error: {e}")
+                    return JsonResponse({'status': 'error', 'message': 'Twilio error: Invalid credentials or plan.'})
 
-                return JsonResponse({'status': 'success', 'message': 'Corporate admin credentials sent successfully!'})
-
-            # ✅ 2. Merchant Logic — for both corporate and individual merchants
+            # ✅ Step 3: Merchant case (individual or corporate merchant)
             if not merchant_id:
                 return JsonResponse({'status': 'error', 'message': 'Merchant ID is required for merchant credentials'})
 
             merchant = Merchant.objects.get(merchant_id=merchant_id)
-            phone_number = merchant.mobile
+            phone_number = merchant.mobile.strip()
             if not phone_number.startswith('+'):
                 phone_number = f'+91{phone_number}'
 
@@ -1695,22 +1794,27 @@ def merchant_credentials(request):
                 f"Regards,\nBBP Support Team"
             )
 
-            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-            client.messages.create(
-                body=message_text,
-                from_=settings.TWILIO_PHONE_NUMBER,
-                to=phone_number
-            )
-
-            return JsonResponse({'status': 'success', 'message': 'Merchant credentials sent successfully!'})
+            try:
+                client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                client.messages.create(
+                    body=message_text,
+                    from_=settings.TWILIO_PHONE_NUMBER,
+                    to=phone_number
+                )
+                return JsonResponse({'status': 'success', 'message': 'Merchant credentials sent successfully!'})
+            except TwilioRestException as e:
+                print(f"Twilio Error: {e}")
+                return JsonResponse({'status': 'error', 'message': 'Twilio error: Invalid credentials or plan.'})
 
         except Corporate.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Corporate not found'})
+            return JsonResponse({'status': 'error', 'message': 'Corporate not found.'})
+
         except Merchant.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Merchant not found'})
+            return JsonResponse({'status': 'error', 'message': 'Merchant not found.'})
+
         except Exception as e:
-            print(f"Error: {e}")
-            return JsonResponse({'status': 'error', 'message': 'An error occurred while sending credentials'})
+            print("Unhandled Exception:", traceback.format_exc())
+            return JsonResponse({'status': 'error', 'message': 'An unexpected error occurred while sending credentials.'})
 
     return render(request, 'bopo_admin/Merchant/merchant_credentials.html', {
         'merchants': merchants,
@@ -3051,6 +3155,7 @@ def payment_details(request):
     if request.method == "POST":
         payment_id = request.POST.get("payment_id")
         action = request.POST.get("action")
+        password = request.POST.get("password")
 
         if not payment_id or not action:
             return JsonResponse({"success": False, "message": "Missing payment ID or action."})
@@ -3059,7 +3164,6 @@ def payment_details(request):
 
         if action == "approve":
 
-            # Check if merchant has any other approved plan of DIFFERENT plan_type
             existing_payment = PaymentDetails.objects.filter(
                 merchant=payment.merchant,
                 status="approved"
@@ -3076,13 +3180,12 @@ def payment_details(request):
                 if not validity or not validity.isdigit() or int(validity) <= 0:
                     return JsonResponse({"success": False, "message": "Invalid rental validity provided."})
 
-                payment.validity_days = int(validity)  # Assuming this field exists
+                payment.validity_days = int(validity)
                 payment.status = "approved"
                 payment.save()
 
                 return JsonResponse({"success": True, "message": f"Rental plan approved for {validity} days."})
 
-            # For prepaid or other plan types
             topup_value = payment.topup_amount
             if topup_value is None:
                 return JsonResponse({"success": False, "message": "Top-up amount is invalid."})
@@ -3098,6 +3201,13 @@ def payment_details(request):
             return JsonResponse({"success": True, "message": "Payment approved successfully"})
 
         elif action == "reject":
+            # ✅ Only allow superusers to reject with password confirmation
+            if not request.user.is_superuser:
+                return JsonResponse({"success": False, "message": "Unauthorized access."})
+
+            if not password or not request.user.check_password(password):
+                return JsonResponse({"success": False, "message": "Incorrect password."})
+
             payment.status = "rejected"
             payment.save()
             return JsonResponse({"success": True, "message": "Payment has been rejected."})
@@ -3106,6 +3216,7 @@ def payment_details(request):
 
     topups = PaymentDetails.objects.all().order_by('-created_at')
     return render(request, 'bopo_admin/Payment/payment_details.html', {'topups': topups})
+
 
 
 # def account_info(request):
@@ -5352,13 +5463,48 @@ def send_customer_credentials(request):
 
         try:
             if not customer_id:
-                return JsonResponse({'status': 'error', 'message': 'Customer ID is required'})
+                return JsonResponse({'status': 'error', 'message': 'Customer ID is required.'})
 
+            if not request.user.is_authenticated:
+                return JsonResponse({'status': 'error', 'message': 'You must be logged in.'})
+
+            # Attempt to fetch BopoAdmin linked to logged-in user
+            super_admin = None
+            try:
+                super_admin = BopoAdmin.objects.get(username=request.user.username)
+            except BopoAdmin.DoesNotExist:
+                try:
+                    super_admin = BopoAdmin.objects.get(email=request.user.email)
+                except BopoAdmin.DoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': 'Super admin not found.'})
+
+            # Debug print to verify values
+            print("Super Admin Debug:")
+            print("  Username:", super_admin.username)
+            print("  Role:", super_admin.role)
+            print("  Mobile:", super_admin.mobile)
+            # print("  Twilio Subscription:", super_admin.has_twilio_subscription)
+
+            # Safe check: role (case-insensitive) and Twilio subscription
+            # if super_admin.role.strip().lower() != 'super_admin':
+            #     return JsonResponse({
+            #         'status': 'error',
+            #         'message': 'Twilio plan not found for this super admin.',
+            #         'debug': {
+            #             'role': super_admin.role,
+            #             'twilio': super_admin.has_twilio_subscription,
+            #             'mobile': super_admin.mobile
+            #         }
+            #     })
+
+            # Get customer object
             customer = Customer.objects.get(customer_id=customer_id)
-            phone_number = customer.mobile
+
+            phone_number = customer.mobile.strip()
             if not phone_number.startswith('+'):
                 phone_number = f'+91{phone_number}'
 
+            # Compose message
             message_text = (
                 f"Dear {customer.first_name},\n\n"
                 f"Your BBP login credentials:\n"
@@ -5367,6 +5513,7 @@ def send_customer_credentials(request):
                 f"Regards,\nBBP  Support Team"
             )
 
+            # Send SMS via Twilio
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
             client.messages.create(
                 body=message_text,
@@ -5377,18 +5524,24 @@ def send_customer_credentials(request):
             return JsonResponse({'status': 'success', 'message': 'Customer credentials sent successfully!'})
 
         except Customer.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Customer not found'})
-        except Exception as e:
-            print(f"Error: {e}")
-            return JsonResponse({'status': 'error', 'message': 'An error occurred while sending credentials'})
+            return JsonResponse({'status': 'error', 'message': 'Customer not found.'})
 
+        except TwilioRestException as e:
+            print(f"Twilio Error: {e}")
+            return JsonResponse({'status': 'error', 'message': 'Twilio error: Check twilio credentials or plan.'})
+
+        except Exception as e:
+            print("Unhandled Exception:", traceback.format_exc())
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    # For GET requests, render the page with customer list
     return render(request, 'bopo_admin/Customer/send_customer_credentials.html', {
         'customers': customers
     })
-    
-    
-    
-    
+   
+   
+   
+     
 def get_individual_merchants(request):
     merchants = Merchant.objects.filter(user_type='individual')
     data = {
@@ -5421,4 +5574,17 @@ def transaction_history(request):
 def invalid_url_view(request, exception):
     print("⚠️ Custom 404 view hit")
     return render(request, 'bopo_admin/Helpdesk/invalid.html', status=404)
+
+
+def view_corporate_merchants(request, corporate_id):
+    # Get the corporate object
+    corporate = get_object_or_404(Corporate, corporate_id=corporate_id)
+    
+    # Fetch merchants linked to this corporate_id
+    merchants = Merchant.objects.filter(corporate_id=corporate_id, user_type='corporate')
+
+    return render(request, 'bopo_admin/Merchant/corporate_merchants.html', {
+        'corporate': corporate,
+        'merchants': merchants,
+    })
 
