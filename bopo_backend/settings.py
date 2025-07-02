@@ -20,13 +20,14 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load .env file
-load_dotenv(os.path.join(BASE_DIR, '.env'))
+ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+load_dotenv(dotenv_path=ENV_PATH)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-fallback-secret-key")
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG=True
@@ -225,9 +226,9 @@ LOGIN_URL = '/login/'
 
 # Twilio Configuration
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID")
-TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN")
-TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER")
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
 
 # Internationalization

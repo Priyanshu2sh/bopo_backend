@@ -18,7 +18,7 @@ from accounts.serializers import CustomerSerializer, MerchantSerializer
 from bopo_admin.models import DeductSetting, Notification, SecurityQuestion
 from django.db import transaction
 
-from .serializers import BankDetailSerializer, CashOutSerializer, CorporateProjectSerializer, CustomerCashOutSerializer, HelpSerializer, MerchantCashOutSerializer, NotificationSerializer, PaymentDetailsSerializer
+from .serializers import BankDetailSerializer, CashOutSerializer, CorporateProjectSerializer, CustomerCashOutSerializer, CustomerToCustomerSerializer, HelpSerializer, MerchantCashOutSerializer, MerchantToMerchantSerializer, NotificationSerializer, PaymentDetailsSerializer
 
 from .models import AwardPoints, BankDetail, CashOut, CustomerToCustomer, GlobalPoints, Help, LastExpiryRun, MerchantToMerchant, ModelPlan, PaymentDetails
 from accounts.models import Corporate, Customer, Merchant, Terminal
@@ -763,20 +763,21 @@ class CustomerToCustomerTransferAPIView(APIView):
             points=points_after_deduction
         )
         # History entry for sender (as transferCToC - deduction side)
-        History.objects.create(
-            customer=sender_customer,
-            merchant=merchant,
-            points=points,
-            transaction_type='transferCToC'
-        )
+        # History.objects.create(
+        #     sender_customer=sender_customer,
+        #     receiver_customer=receiver_customer,
+        #     merchant=merchant,
+        #     points=points,
+        #     transaction_type='transferCToC'
+        # )
 
-        # History entry for receiver (as transferCToC - after deduction)
-        History.objects.create(
-            customer=receiver_customer,
-            merchant=merchant,
-            points=points_after_deduction,
-            transaction_type='transferCToC'
-        )
+        # # History entry for receiver (as transferCToC - after deduction)
+        # History.objects.create(
+        #     customer=receiver_customer,
+        #     merchant=merchant,
+        #     points=points_after_deduction,
+        #     transaction_type='transferCToC'
+        # )
 
         return Response({
             "message": f"Points transferred successfully with {deduct_percentage}% deduction.",
@@ -915,30 +916,52 @@ class MerchantToMerchantTransferAPIView(APIView):
                 receiver_points.points += points_after_deduction
                 receiver_points.save()
 
-            # Update transaction history
-            merchant_transfer, created = MerchantToMerchant.objects.get_or_create(
+            # Either update if exists, or create if not
+            merchant_transfer = MerchantToMerchant.objects.create(
                 sender_merchant=sender_merchant,
                 receiver_merchant=receiver_merchant,
-                defaults={"points": points}
+                # defaults={"points": points_after_deduction},
+                points= points_after_deduction
             )
-            if not created:
-                merchant_transfer.points = F("points") + points
-                merchant_transfer.save()
+
+            # if not created:
+            #     merchant_transfer.points = F("points") + points_after_deduction
+            #     merchant_transfer.save()
+
 
         updated_sender_balance = int(MerchantPoints.objects.get(merchant=sender_merchant).points)
         updated_receiver_balance = int(MerchantPoints.objects.get(merchant=receiver_merchant).points)
         
-        History.objects.create(
-            merchant=sender_merchant,
-            points=total_points_deducted,
-            transaction_type='transferMToM'
-        )
+        
+        # MerchantToMerchant.objects.create(
+        #     sender_merchant=sender_merchant,
+        #     receiver_merchant=receiver_merchant,
+        #     transferred_points=points,
+        #     deducted_points=total_points_deducted,
+        #     net_received_points=points_after_deduction,
+        #     deduction_percentage=deduct_percentage
+        # )
+        
+        # MerchantToMerchant.objects.create(
+        #     sender_merchant=sender_merchant,
+        #     receiver_merchant=receiver_merchant,
+        #     # merchant=merchant,
+        #     points=points_after_deduction
+        # )
+        
+                    
+        # History.objects.create(
+        #     sender_merchant=sender_merchant,
+        #     receiver_merchant=receiver_merchant,
+        #     points=total_points_deducted,
+        #     transaction_type='transferMToM'
+        # )
 
-        History.objects.create(
-            merchant=receiver_merchant,
-            points=points_after_deduction,
-            transaction_type='transfer'
-        )
+        # History.objects.create(
+        #     merchant=receiver_merchant,
+        #     points=points_after_deduction,
+        #     transaction_type='transfer'
+        # )
 
         return Response(
             {
@@ -1062,12 +1085,12 @@ class UpdateCustomerProfileAPIView(APIView):
                 "updated_data": serializer.data
             }, status=status.HTTP_200_OK)
 
-        return Response({
-            "message": "Validation error",
-            "errors": serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-
+        # return Response({
+        #     "message": "Validation error",
+        #     "errors": serializer.errors
+        # }, status=status.HTTP_400_BAD_REQUEST)
+        # return Response({'error': 'Invalid data provided.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": serializer.errors},status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateMerchantProfileAPIView(APIView):
@@ -1131,10 +1154,12 @@ class UpdateMerchantProfileAPIView(APIView):
                     "logo_status": "Failed to upload logo."
                 }, status=status.HTTP_200_OK)
 
-        return Response({
-            "message": "Validation error",
-            "errors": serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+        # return Response({
+            # "message": "Validation error",
+        #     "errors": serializer.errors
+        # }, status=status.HTTP_400_BAD_REQUEST)
+        # return Response({'error':'Invalid data provided.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": serializer.errors},status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -1159,14 +1184,14 @@ class CustomerMerchantPointsAPIView(APIView):
 
         # Fetch points from CustomerPoints table grouped by merchants
         customer_points = CustomerPoints.objects.filter(customer=customer).values(
-            "merchant__merchant_id", "merchant__shop_name", "points"
+            "merchant__merchant_id", "merchant__first_name","merchant__last_name", "points"
         )
 
         # Prepare response data
         merchant_points_data = [
             {
                 "merchant_id": cp["merchant__merchant_id"],
-                "merchant_name": cp["merchant__shop_name"],
+                "merchant_name": f"{cp['merchant__first_name']} {cp['merchant__last_name']}",
                 "points": cp["points"]
             }
             for cp in customer_points
@@ -2224,3 +2249,86 @@ class SameCorporateUnderMerchnatAPIView(APIView):
                 {"detail": "Merchant ID not found. Please enter a correct ID."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+            
+
+class TransferHistoryAPIView(APIView):
+    """
+    API to get flat transfer history list for a given customer or merchant.
+    """
+
+    def get(self, request, id, user_type):
+        history_data = []
+
+        if user_type == "customer":
+            try:
+                customer = Customer.objects.get(customer_id=id)
+            except Customer.DoesNotExist:
+                return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            sent = CustomerToCustomer.objects.filter(sender_customer=customer)
+            received = CustomerToCustomer.objects.filter(receiver_customer=customer)
+
+            for transfer in sent:
+                history_data.append({
+                    "sender_customer_id": transfer.sender_customer.customer_id,
+                    "sender_customer_name": f"{transfer.sender_customer.first_name} {transfer.sender_customer.last_name}",
+                    "receiver_customer_id": transfer.receiver_customer.customer_id,
+                    "receiver_customer_name": f"{transfer.receiver_customer.first_name} {transfer.receiver_customer.last_name}",
+                    "points": transfer.points,
+                    "transaction_type":'transfer',
+                    "direction": "sent",
+                    "created_at": transfer.created_at
+                })
+
+            for transfer in received:
+                history_data.append({
+                    "sender_customer_id": transfer.sender_customer.customer_id,
+                    "sender_customer_name": f"{transfer.sender_customer.first_name} {transfer.sender_customer.last_name}",
+                    "receiver_customer_id": transfer.receiver_customer.customer_id,
+                    "receiver_customer_name": f"{transfer.receiver_customer.first_name} {transfer.receiver_customer.last_name}",
+                    "points": transfer.points,
+                    "direction": "received",
+                    "created_at": transfer.created_at
+                })
+
+        elif user_type == "merchant":
+            try:
+                merchant = Merchant.objects.get(merchant_id=id)
+            except Merchant.DoesNotExist:
+                return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            sent = MerchantToMerchant.objects.filter(sender_merchant=merchant)
+            received = MerchantToMerchant.objects.filter(receiver_merchant=merchant)
+
+            for transfer in sent:
+                history_data.append({
+                    "sender_merchant_id": transfer.sender_merchant.merchant_id,
+                    "sender_merchant_name": f"{transfer.sender_merchant.first_name} {transfer.sender_merchant.last_name}",
+                    "receiver_merchant_id": transfer.receiver_merchant.merchant_id,
+                    "receiver_merchant_name": f"{transfer.receiver_merchant.first_name} {transfer.receiver_merchant.last_name}",
+                    "points": transfer.points,
+                    "transaction_type":'transfer',
+                    "created_at": transfer.created_at
+                })
+
+            for transfer in received:
+                history_data.append({
+                    "sender_merchant_id": transfer.sender_merchant.merchant_id,
+                    "sender_merchant_name": f"{transfer.sender_merchant.first_name} {transfer.sender_merchant.last_name}",
+                    "receiver_merchant_id": transfer.receiver_merchant.merchant_id,
+                    "receiver_merchant_name": f"{transfer.receiver_merchant.first_name} {transfer.receiver_merchant.last_name}",
+                    "points": transfer.points,
+                    "direction": "received",
+                    "created_at": transfer.created_at
+                })
+
+        else:
+            return Response({"error": "Invalid user_type parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not history_data:
+            return Response({"message": "No transfer history found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Sort by created_at descending like in HistoryAPIView
+        history_data.sort(key=lambda x: x['created_at'], reverse=True)
+
+        return Response({"transfer_history": history_data}, status=status.HTTP_200_OK)

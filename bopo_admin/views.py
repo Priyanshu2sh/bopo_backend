@@ -815,14 +815,175 @@ import string
 
 
 
+# def add_merchant(request):
+#     if request.method == "POST":
+#         try:
+#             is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+#             # Extract form data
+#             select_project = request.POST.get("select_project")
+#             project_type = request.POST.get("project_type")
+#             project_name = request.POST.get("project_name", "")
+#             first_name = request.POST.get("first_name")
+#             last_name = request.POST.get("last_name")
+#             email = request.POST.get("email")
+#             mobile = request.POST.get("mobile")
+#             aadhaar_number = request.POST.get("aadhaar_number")
+#             pin = request.POST.get("pin")
+#             gst_number = request.POST.get("gst_number")
+#             shop_name = request.POST.get("shop_name")
+#             pan_number = request.POST.get("pan_number")
+#             address = request.POST.get("address")
+#             legal_name = request.POST.get("legal_name")
+#             pincode = request.POST.get("pincode")
+#             account_type = request.POST.get("account_type", "normal")
+#             city_id = request.POST.get("city")
+#             state_id = request.POST.get("state")
+#             country = request.POST.get("country", "India")
+#             state = State.objects.get(id=state_id)
+#             city = City.objects.get(id=city_id)
+
+#             logo_file = request.FILES.get("logo")
+#             logo_instance = None
+
+#             if logo_file:
+#                 print("Logo file received:", logo_file.name)  # Debugging line
+#                 logo_instance = Logo.objects.create(logo=logo_file)
+#                 print("Logo saved:", logo_instance.logo.url)  # Debugging line
+
+
+#             # Unique field checks for email, mobile, Aadhaar number, etc.
+#             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
+#                 message = "Email is already registered."
+#                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+#             if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
+#                 message = "Mobile number is already registered."
+#                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+#             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
+#                 message = "Aadhaar number is already registered."
+#                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+#             # Corporate ID Generation Logic
+#             last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
+#             new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
+#             corporate_id = f"CORP{new_corporate_id:06d}"
+
+#             # Handling Existing Project
+#             if project_type == "Existing Project" and select_project:
+#                 corporate = Corporate.objects.get(id=select_project)
+#                 project_name = corporate.project_name
+#                 project_id = corporate.project_id
+
+#                 # # Merchant ID Generation
+#                 # project_abbr = project_name[:4].upper()
+#                 # random_number = ''.join(random.choices(string.digits, k=11))
+#                 # merchant_id = f"{project_abbr}{random_number}"
+                
+#                 prefix = "MID"
+#                 merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
+#                 # otp = random.randint(100000, 999999)
+
+#                 # Create the Merchant instance
+#                 merchant = Merchant.objects.create(
+#                     user_type='corporate',
+#                     merchant_id=merchant_id,
+#                     first_name=first_name,
+#                     last_name=last_name,
+#                     email=email,
+#                     mobile=mobile,
+#                     aadhaar_number=aadhaar_number,
+#                     pin=pin,
+#                     gst_number=gst_number,
+#                     pan_number=pan_number,
+#                     shop_name=shop_name,
+#                     legal_name=legal_name,
+#                     address=address,
+#                     pincode=pincode,
+#                     state=state,
+#                     city=city,
+#                     country=country,
+#                     corporate_id=corporate.corporate_id,
+#                     project_name=corporate,
+#                     logo=logo_instance,  # Associate the logo with the merchant
+#                     verified_at=timezone.now(),
+#                 )
+
+#                 merchant = Merchant.objects.get(merchant_id=merchant_id)
+
+#                 # Terminal Generation Logic
+#                 terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
+#                 tid_pin = random.randint(1000, 9999)
+
+#                 Terminal.objects.create(
+#                     terminal_id=terminal_id,
+#                     tid_pin=tid_pin,
+#                     merchant_id=merchant
+#                 )
+
+#             elif project_type == "New Project":
+#                 # Create New Project and Corporate Instance
+#                 if not project_name:
+#                     message = "Project name is required for new projects."
+#                     return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+#                 # Project ID Generation
+#                 last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
+#                 new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
+#                 project_id = f"PROJ{new_project_id:06d}"
+
+#                 corporate = Corporate.objects.create(
+#                     select_project=select_project,
+#                     corporate_id=corporate_id,
+#                     project_name=project_name,
+#                     project_id=project_id,
+#                     first_name=first_name,
+#                     last_name=last_name,
+#                     email=email,
+#                     mobile=mobile,
+#                     aadhaar_number=aadhaar_number,
+#                     pin=pin,
+#                     gst_number=gst_number,
+#                     pan_number=pan_number,
+#                     shop_name=shop_name,
+#                     legal_name=legal_name,
+#                     address=address,
+#                     pincode=pincode,
+#                     state=state,
+#                     city=city,
+#                     country=country,
+#                     role="admin",
+#                     account_type=account_type, 
+#                     logo=logo_instance  # Associate the logo with the new corporate account
+#                 )
+
+#                 # Create BopoAdmin user
+#                 bopo_admin = BopoAdmin(username=corporate_id, role="corporate_admin", corporate=corporate)
+#                 bopo_admin.set_password(pin)
+#                 bopo_admin.save()
+
+#             else:
+#                 message = "Invalid project type selected."
+#                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+#             success_message = "Merchant added successfully."
+#             return JsonResponse({"success": True, "message": success_message}) if is_ajax else redirect_with_success(success_message)
+
+#         except Exception as e:
+#             print("Error saving merchant:", e)
+#             return JsonResponse({"success": False, "message": "wrong from backend."})
+
+#     corporates = Corporate.objects.all()
+#     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
+
+
 def add_merchant(request):
     if request.method == "POST":
         try:
             is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
             # Extract form data
-            select_project = request.POST.get("select_project")
-            project_type = request.POST.get("project_type")
             project_name = request.POST.get("project_name", "")
             first_name = request.POST.get("first_name")
             last_name = request.POST.get("last_name")
@@ -845,134 +1006,71 @@ def add_merchant(request):
 
             logo_file = request.FILES.get("logo")
             logo_instance = None
-
             if logo_file:
-                print("Logo file received:", logo_file.name)  # Debugging line
                 logo_instance = Logo.objects.create(logo=logo_file)
-                print("Logo saved:", logo_instance.logo.url)  # Debugging line
 
-
-            # Unique field checks for email, mobile, Aadhaar number, etc.
+            # Validate uniqueness
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
-                message = "Email is already registered."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+                return JsonResponse({"success": False, "message": "Email is already registered."}) if is_ajax else redirect_with_error("Email is already registered.")
 
             if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
-                message = "Mobile number is already registered."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."}) if is_ajax else redirect_with_error("Mobile number is already registered.")
 
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
-                message = "Aadhaar number is already registered."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+                return JsonResponse({"success": False, "message": "Aadhaar number is already registered."}) if is_ajax else redirect_with_error("Aadhaar number is already registered.")
 
-            # Corporate ID Generation Logic
+            # Only require project_name if user is adding a new project (optional logic)
+            # For example, if a checkbox or flag like "include_project" is passed
+            include_project = request.POST.get("include_project") == "true"
+
+            if include_project and not project_name:
+                return JsonResponse({"success": False, "message": "Project name is required."}) if is_ajax else redirect_with_error("Project name is required.")
+
+            # Generate corporate ID and project ID
             last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
             new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
             corporate_id = f"CORP{new_corporate_id:06d}"
 
-            # Handling Existing Project
-            if project_type == "Existing Project" and select_project:
-                corporate = Corporate.objects.get(id=select_project)
-                project_name = corporate.project_name
-                project_id = corporate.project_id
+            last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
+            new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
+            project_id = f"PROJ{new_project_id:06d}"
 
-                # # Merchant ID Generation
-                # project_abbr = project_name[:4].upper()
-                # random_number = ''.join(random.choices(string.digits, k=11))
-                # merchant_id = f"{project_abbr}{random_number}"
-                
-                prefix = "MID"
-                merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
-                # otp = random.randint(100000, 999999)
+            # Create new corporate
+            corporate = Corporate.objects.create(
+                corporate_id=corporate_id,
+                project_name=project_name,
+                project_id=project_id,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                mobile=mobile,
+                aadhaar_number=aadhaar_number,
+                pin=pin,
+                gst_number=gst_number,
+                pan_number=pan_number,
+                shop_name=shop_name,
+                legal_name=legal_name,
+                address=address,
+                pincode=pincode,
+                state=state,
+                city=city,
+                country=country,
+                role="admin",
+                account_type=account_type,
+                logo=logo_instance
+            )
 
-                # Create the Merchant instance
-                merchant = Merchant.objects.create(
-                    user_type='corporate',
-                    merchant_id=merchant_id,
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email,
-                    mobile=mobile,
-                    aadhaar_number=aadhaar_number,
-                    pin=pin,
-                    gst_number=gst_number,
-                    pan_number=pan_number,
-                    shop_name=shop_name,
-                    legal_name=legal_name,
-                    address=address,
-                    pincode=pincode,
-                    state=state,
-                    city=city,
-                    country=country,
-                    corporate_id=corporate.corporate_id,
-                    project_name=corporate,
-                    logo=logo_instance,  # Associate the logo with the merchant
-                    verified_at=timezone.now(),
-                )
+            # Create BopoAdmin user
+            bopo_admin = BopoAdmin(username=corporate_id, role="corporate_admin", corporate=corporate)
+            bopo_admin.set_password(pin)
+            bopo_admin.save()
 
-                merchant = Merchant.objects.get(merchant_id=merchant_id)
-
-                # Terminal Generation Logic
-                terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
-                tid_pin = random.randint(1000, 9999)
-
-                Terminal.objects.create(
-                    terminal_id=terminal_id,
-                    tid_pin=tid_pin,
-                    merchant_id=merchant
-                )
-
-            elif project_type == "New Project":
-                # Create New Project and Corporate Instance
-                if not project_name:
-                    message = "Project name is required for new projects."
-                    return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
-
-                # Project ID Generation
-                last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
-                new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
-                project_id = f"PROJ{new_project_id:06d}"
-
-                corporate = Corporate.objects.create(
-                    select_project=select_project,
-                    corporate_id=corporate_id,
-                    project_name=project_name,
-                    project_id=project_id,
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email,
-                    mobile=mobile,
-                    aadhaar_number=aadhaar_number,
-                    pin=pin,
-                    gst_number=gst_number,
-                    pan_number=pan_number,
-                    shop_name=shop_name,
-                    legal_name=legal_name,
-                    address=address,
-                    pincode=pincode,
-                    state=state,
-                    city=city,
-                    country=country,
-                    role="admin",
-                    account_type=account_type, 
-                    logo=logo_instance  # Associate the logo with the new corporate account
-                )
-
-                # Create BopoAdmin user
-                bopo_admin = BopoAdmin(username=corporate_id, role="corporate_admin", corporate=corporate)
-                bopo_admin.set_password(pin)
-                bopo_admin.save()
-
-            else:
-                message = "Invalid project type selected."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
-
-            success_message = "Merchant added successfully."
-            return JsonResponse({"success": True, "message": success_message}) if is_ajax else redirect_with_success(success_message)
+            success_message = "Merchant and corporate created successfully."
+            return JsonResponse({"success": True, "message": success_message, "corporate_id": corporate.corporate_id}) if is_ajax else redirect_with_success(success_message)
 
         except Exception as e:
             print("Error saving merchant:", e)
-            return JsonResponse({"success": False, "message": "wrong from backend."})
+            return JsonResponse({"success": False, "message": "Something went wrong from backend."})
 
     corporates = Corporate.objects.all()
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
@@ -5349,8 +5447,106 @@ def view_corporate_merchants(request, corporate_id):
     # Fetch merchants linked to this corporate_id
     merchants = Merchant.objects.filter(corporate_id=corporate_id, user_type='corporate')
 
-    return render(request, 'bopo_admin/Merchant/corporate_merchants.html', {
+    return render(request, 'bopo_admin/Merchant/corporate_merchants_list.html', {
         'corporate': corporate,
         'merchants': merchants,
     })
+    
+def corporate_merchants(request):
+  
+    return render(request, 'bopo_admin/Merchant/corporate_merchants.html')
 
+def corporate_under_merchant(request):
+    if request.method == "GET":
+        corporate_id = request.GET.get("corporate_id")
+        corporate = None
+        if corporate_id:
+            corporate = Corporate.objects.filter(corporate_id=corporate_id).first()
+        return render(request, "bopo_admin/Merchant/corporate_merchants.html", {"corporate": corporate})
+
+    elif request.method == "POST":
+        # print('asssssssssssssssssss')
+        try:
+            is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+            # Extract form data
+            print("POST data:", request.POST.get('corporate_id'))
+            corporate_id = request.POST.get("corporate_id")
+            corporate = get_object_or_404(Corporate, corporate_id=corporate_id)
+            # print("================corporate id", corporate_id)
+
+            # 🔽 Extract other form data
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")
+            email = request.POST.get("email")
+            mobile = request.POST.get("mobile")
+            aadhaar_number = request.POST.get("aadhaar_number")
+            pin = request.POST.get("pin")
+            gst_number = request.POST.get("gst_number")
+            shop_name = request.POST.get("shop_name")
+            pan_number = request.POST.get("pan_number")
+            address = request.POST.get("address")
+            legal_name = request.POST.get("legal_name")
+            pincode = request.POST.get("pincode")
+            city_id = request.POST.get("city")
+            state_id = request.POST.get("state")
+            country = request.POST.get("country", "India")
+            state = State.objects.get(id=state_id)
+            city = City.objects.get(id=city_id)
+
+            # ✅ Check for unique fields
+            if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+            if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
+                return JsonResponse({"success": False, "message": "Aadhaar number is already registered."})
+
+            # ✅ Generate merchant_id
+            merchant_id = f"MID{''.join(random.choices(string.digits, k=11))}"
+
+            # ✅ Create Merchant
+            merchant = Merchant.objects.create(
+                user_type='corporate',
+                merchant_id=merchant_id,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                mobile=mobile,
+                aadhaar_number=aadhaar_number,
+                pin=pin,
+                gst_number=gst_number,
+                pan_number=pan_number,
+                shop_name=shop_name,
+                legal_name=legal_name,
+                address=address,
+                pincode=pincode,
+                state=state,
+                city=city,
+                country=country,
+                corporate_id=corporate.corporate_id,
+                project_name=corporate  # assigning full corporate object
+            )
+
+            # ✅ Create Terminal
+            terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
+            tid_pin = random.randint(1000, 9999)
+
+            Terminal.objects.create(
+                terminal_id=terminal_id,
+                tid_pin=tid_pin,
+                merchant_id=merchant
+            )
+
+            return JsonResponse({
+                "success": True,
+                "message": "Merchant added successfully.",
+                "corporate_id": corporate.corporate_id
+            })
+
+        except Exception as e:
+            print("Error saving merchant:", e)
+            return JsonResponse({"success": False, "message": "Something went wrong. Please check your inputs."})
+
+    corporates = Corporate.objects.all()
+    return render(request, "bopo_admin/Merchant/corporate_merchants.html", {"corporates": corporates})

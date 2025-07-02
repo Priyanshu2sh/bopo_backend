@@ -1,7 +1,7 @@
 from django.urls import path
 
 from bopo_admin.views import get_cities, get_states
-from .views import NotificationListAPIView, SameCorporateUnderMerchnatAPIView, cron_trigger_global_point_deduction
+from .views import NotificationListAPIView, SameCorporateUnderMerchnatAPIView, TransferHistoryAPIView, cron_trigger_global_point_deduction
 
 from .views import AwardPointsAPIView,  BankDetailByUserAPIView, CashOutCreateAPIView, CheckPointsAPIView, CorporateGlobalMerchantAPIView, CorporateProjectListAPIView, CorporateRedeemAPIView, CustomerCashOutAPIView, CustomerPointsForPrepaidMerchantsAPIView, CustomerToCustomerTransferAPIView, GetGlobalCustomerPointsAPIView, GetPrepaidMerchantAPIView, GlobalRedeemPointsAPIView, HelpAPIView, MerchantCashOutAPIView, MerchantCustomerPointsAPIView, MerchantToMerchantTransferAPIView, PaymentDetailsListCreateAPIView, PaymentDetailsRetrieveUpdateDestroyAPIView, RedeemPointsAPIView, HistoryAPIView, SecurityQuestionAPIView, TerminalCustomerPointsAPIView, TransferPointsMerchantToCustomerAPIView, UpdateCustomerProfileAPIView, UpdateMerchantProfileAPIView, CustomerMerchantPointsAPIView, MerchantPointsAPIView, cron_trigger_global_point_deduction
 
@@ -61,8 +61,7 @@ urlpatterns = [
     path("get-states/", get_states, name="get_states"),
     path("get-cities/<int:state_id>/", get_cities, name="get_cities"),
 
-    
-    
+    path('transfer-history/<str:id>/<str:user_type>/', TransferHistoryAPIView.as_view(), name='transfer-history'),
 ]
 
 

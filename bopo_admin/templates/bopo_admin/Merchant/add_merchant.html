@@ -27,7 +27,7 @@
         </a>
     </div>
 
-    <h2 class="heading">Add Corporate Merchant</h2>
+    <h2 class="heading">Add Corporate </h2>
     <div class="addmerchant-container">
 
     <form method="POST" action="{% url 'add_merchant' %}" id="copmerchantForm">
@@ -42,23 +42,28 @@
 
             
         <!-- Project Type Selection (Centered and Inline) -->
-            <div class="project-type-container">
-                <label>Select Project Type:</label>
-                <div class="addmerchant-radio-group">
-                    <label for="existing_project">
-                        <input type="radio" id="existing_project" name="project_type" value="Existing Project" required onclick="toggleProjectDropdown()">
-                        Existing Project
-                    </label>
+            <!-- Project Name Input Field -->
+<div id="project-name-container">
+    <label for="project_name">Project Name:</label>
+    <div class="addmerchant-input-container">
+        <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name" required>
+    </div>
+</div>
 
-                    <label for="new_project">
-                        <input type="radio" id="new_project" name="project_type" value="New Project" required onclick="toggleProjectDropdown()">
-                        New Project
-                    </label>
-                </div>
-            </div>
+
+
+<!-- Upload Logo -->
+<!-- <div id="upload-logo-container">
+    <label>Upload Logo</label>
+    <div class="addmerchant-input-container">
+        <i class="fas fa-image"></i>
+        <input type="file" name="logo" accept="image/*">
+    </div>
+</div> -->
+
 
             <!-- Select Project Dropdown (Hidden Initially) -->
-            <div id="select-project-container" class="hidden">
+            <!-- <div id="select-project-container" class="hidden">
                 <label for="select_project">Select Project:</label>
                 <div class="addmerchant-input-container">
                     <select id="select_project" name="select_project">
@@ -68,20 +73,20 @@
                         {% endfor %}
                     </select>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Project Name Input Field (Initially Hidden) -->
             
-            <div id="project-name-container" class="hidden">
+            <!-- <div id="project-name-container" class="hidden">
                 <label for="project_name">Project Name:</label>
                 <div class="addmerchant-input-container">
                     <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name">
                 </div>
-            </div>
+            </div> -->
 
 
 <!-- Account Type Selection (Initially Hidden) -->
-<div id="account-type-container" style="display:none;">
+<div id="account-type-container">
     <label for="account_type">Account Type:</label>
     <div class="addmerchant-input-container">
         <select id="account_type" name="account_type">
@@ -204,7 +209,7 @@
                         <input type="file" name="logo" accept="image/*">
                     </div> {% endcomment %}
 
-                    <div id="upload-logo-container" style="display: none;">
+                    <div id="upload-logo-container" >
                         <label>Upload Logo</label>
                         <div class="addmerchant-input-container">
                             <i class="fas fa-image"></i>
@@ -494,7 +499,7 @@ function showToast(message, type) {
 
     </script>
 
-<script>
+<!-- <script>
     document.addEventListener("DOMContentLoaded", function () {
         const existingProjectRadio = document.getElementById("existing_project");
         const newProjectRadio = document.getElementById("new_project");
@@ -527,7 +532,7 @@ function showToast(message, type) {
 
         toggleProjectFields(); // Initial check
     });
-</script>
+</script> -->
 
 
     

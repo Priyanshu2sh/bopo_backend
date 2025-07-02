@@ -62,7 +62,7 @@ class OTPService:
 
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN, http_client=http_client)
             message = client.messages.create(
-                body=f'Your OTP for verification is {otp}',
+                body=f'BBP OTP for verification is {otp}',
                 from_=settings.TWILIO_PHONE_NUMBER,
                 to=f'+91{mobile_number}'
             )
@@ -135,9 +135,7 @@ class OTPService:
 
 class RegisterUserAPIView(APIView):
     """API to register, update, and delete a Merchant or Customer"""
-
-     
-
+    
     def post(self, request):
         """Handles customer or merchant registration"""
         mobile = request.data.get("mobile")
@@ -229,8 +227,6 @@ class RegisterUserAPIView(APIView):
         else:
             return Response({"message": "Failed to send OTP.", "user_type": "customer", "customer_id": None},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    
 
     def update_customer(self, request, mobile):
         """Update customer details"""
@@ -344,11 +340,7 @@ class RegisterUserAPIView(APIView):
                 break
 
         return terminal_id, tid_pin
-
-
-
-            
-            
+         
     def update_merchant(self, request, mobile):
         """Update merchant details"""
         merchant = get_object_or_404(Merchant, mobile=mobile)
@@ -687,32 +679,32 @@ from rest_framework.views import APIView
 from django.utils.timezone import now
 # from .models import User
 # from .serializers import UserSerializer
-from .utils import send_otp_to_mobile
+# from .utils import send_otp_to_mobile
 
-class RegisterUser(APIView):
-    def post(self, request):
-        data = request.data
-        mobile_number = data.get("mobile_number")
+# class RegisterUser(APIView):
+#     def post(self, request):
+#         data = request.data
+#         mobile_number = data.get("mobile_number")
 
-        # Check if user already exists
-        user = User.objects.filter(mobile_number=mobile_number).first()
+#         # Check if user already exists
+#         user = User.objects.filter(mobile_number=mobile_number).first()
 
-        if user:
-            user.generate_otp()
-            send_otp_to_mobile(user.mobile_number, user.otp)
-            request.session["mobile_number"] = user.mobile_number  # Store mobile number in session
-            return Response({"message": "User already registered. OTP resent to mobile."}, status=status.HTTP_200_OK)
+#         if user:
+#             user.generate_otp()
+#             send_otp_to_mobile(user.mobile_number, user.otp)
+#             request.session["mobile_number"] = user.mobile_number  # Store mobile number in session
+#             return Response({"message": "User already registered. OTP resent to mobile."}, status=status.HTTP_200_OK)
 
-        # If user does not exist, create a new one
-        serializer = UserSerializer(data=data)
-        if serializer.is_valid():
-            user = serializer.save()
-            user.generate_otp()
-            send_otp_to_mobile(user.mobile_number, user.otp)
-            request.session["mobile_number"] = user.mobile_number  # Store mobile number in session
-            return Response({"message": "User registered successfully. OTP sent to mobile."}, status=status.HTTP_201_CREATED)
+#         # If user does not exist, create a new one
+#         serializer = UserSerializer(data=data)
+#         if serializer.is_valid():
+#             user = serializer.save()
+#             user.generate_otp()
+#             send_otp_to_mobile(user.mobile_number, user.otp)
+#             request.session["mobile_number"] = user.mobile_number  # Store mobile number in session
+#             return Response({"message": "User registered successfully. OTP sent to mobile."}, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class VerifyOTP(APIView):
