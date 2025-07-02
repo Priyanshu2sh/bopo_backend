@@ -211,7 +211,7 @@ class Customer(models.Model):
     pin = models.IntegerField(null=True, blank=True)
     security_question = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='customers') 
     answer = models.CharField(max_length=255, null=True, blank=True)
-    aadhar_number = models.CharField(max_length=255, null=True, blank=True)
+    aadhaar_number = models.CharField(max_length=255, null=True, blank=True)
     pan_number = models.CharField(max_length=255, null=True, blank=True, unique=True)
     pincode = models.IntegerField(null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)

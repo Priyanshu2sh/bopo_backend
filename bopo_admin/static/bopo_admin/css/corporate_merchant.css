@@ -460,6 +460,7 @@ button {
 .select2-selection__arrow {
     height: 100%;
 }
+
 /* Modal Background */
 .custom-modal {
     display: none;  /* Hidden by default */
@@ -482,106 +483,65 @@ button {
     text-align: center;
     max-width: 400px;
     width: 80%;
-    position: relative; 
 
   }
 
-/* Modal Overlay */
-.custom-modal {
-  display: none; /* Hidden by default */
-  position: fixed;
-  z-index: 9999;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.5); /* Dark semi-transparent background */
-}
+  /* Modal Header Text (Message) */
+#confirmationMessage {
+    font-size: 20px;  /* Reduced font size */
+    color: #333;
+    font-weight: bold;
+  }
+  
+  /* Modal Buttons */
+  .custom-modal-buttons {
+    margin-top: 20px;
+  }
+  
+  .custom-btn {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+  }
+  
+  .custom-btn:hover {
+    background-color: #80af83;
+  }
+  
+  #cancelDelete,#cancelAction {
+    background-color: #f44336; /* Red */
+  }
+  
+  #cancelDelete:hover,  #cancelAction:hover {
+    background-color: #e53935;
+  }
 
-/* Modal Content Box */
-.custom-modal-content {
-  background-color: #fff;
-  margin: 15% auto;
-  padding: 30px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  position: relative;
-  animation: slideDown 0.3s ease;
-  text-align: center;
-}
-
-/* Close (×) Button */
-.custom-close {
+#confirmAction {
+     background-color: #4CAF50;
+  }
+#confirmAction:hover {
+        background-color: #80af83;
+  
+  }
+  .custom-close {
   position: absolute;
-  top: 12px;
-  right: 20px;
-  font-size: 22px;
+  top: -1%;
+  right: 10px;
+  font-size: 24px;
   font-weight: bold;
-  color: #000;
   cursor: pointer;
+  color: #000;
 }
 
 .custom-close:hover {
-  color: #d24d4d;
+  color: red;
 }
-
-/* Message Text */
-#confirmationMessage {
-  margin-bottom: 20px;
-  font-size: 18px;
-  color: #333;
-}
-
-/* Button Container */
-.custom-modal-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-/* Yes/No Buttons */
-.custom-btn {
-  padding: 10px 20px;
-  font-size: 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-
-#confirmAction {
-  background-color: #28a745;
-  color: white;
-}
-
-#confirmAction:hover {
-  background-color: #218838;
-}
-
-#cancelAction {
-  background-color: #dc3545;
-  color: white;
-}
-
-#cancelAction:hover {
-  background-color: #c82333;
-}
-
-/* Animation */
-@keyframes slideDown {
-  from {
-    transform: translateY(-40px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 
   /* Toast container */
 #toast-container {
@@ -853,7 +813,20 @@ button {
     }
 }
 
+
+
 /* Back Button */
+.reduce-limit-back-btn {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 7%;
+  margin-bottom: 20px;
+  margin-right: 2%;
+}
+
 .reduce-limit-back-btn a {
   display: inline-block;
   padding: 10px 20px;
@@ -866,10 +839,8 @@ button {
   text-align: center;
   text-decoration: none;
   transition: background 0.3s ease;
-  margin-left: 87%;
-  width: 10%;
   font-weight: bold;
-  margin-top: 7%;
+  /* Remove margin-left and width for side-by-side layout */
 }
 
 .reduce-limit-back-btn a:hover {
@@ -877,23 +848,29 @@ button {
 }
 
 @media (max-width: 1024px) {
+  .reduce-limit-back-btn {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 4%;
+  }
   .reduce-limit-back-btn a {
     display: block;
-    width: 30%;
-    margin: 10px auto 0;
+    width: 100%;
+    margin: 0;
     font-size: 14px;
   }
 }
 
 @media (max-width: 576px) {
   .reduce-limit-back-btn a {
-    width: 90%;
+    width: 100%;
     font-size: 14px;
     padding: 10px;
   }
 }
 
-#toast-container {
+ #toast-container {
   position: fixed;
   top: 20px;
   right: 20px;
@@ -921,3 +898,4 @@ button {
 .toast i {
   margin-right: 6px;
 }
+

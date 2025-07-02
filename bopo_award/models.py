@@ -83,9 +83,7 @@ class MerchantToMerchant(models.Model):
     points = models.IntegerField()
     created_at = models.DateTimeField(default=now)
 
-    class Meta:
-        unique_together = ('sender_merchant', 'receiver_merchant')  # Ensures unique sender-receiver pair
-
+  
     def __str__(self):
         return f"{self.sender_merchant.merchant_id} -> {self.receiver_merchant.merchant_id}: {self.points} points"
     
@@ -226,5 +224,8 @@ class SuperAdminPayment(models.Model):
     
 class LastExpiryRun(models.Model):
     last_run = models.DateField(auto_now=True)
+    
+    
+
 
 
