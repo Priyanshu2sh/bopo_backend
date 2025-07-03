@@ -1000,12 +1000,33 @@ def add_merchant(request):
             legal_name = request.POST.get("legal_name")
             pincode = request.POST.get("pincode")
             account_type = request.POST.get("account_type", "normal")
-            city_id = request.POST.get("city")
-            state_id = request.POST.get("state")
+            city = request.POST.get("city")
+            state = request.POST.get("state")
             country = request.POST.get("country", "India")
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
 
+            # ✅ Validate State and City selection
+            if not state:
+                message = "Please select a state."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            if not city:
+                message = "Please select a city."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            try:
+                state = State.objects.get(id=state)
+            except State.DoesNotExist:
+                message = "Selected state is invalid."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            try:
+                city = City.objects.get(id=city)
+            except City.DoesNotExist:
+                message = "Selected city is invalid."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+          
+         # ✅ Require logo upload
             logo_file = request.FILES.get("logo")
             logo_instance = None
             if logo_file:
@@ -1637,12 +1658,27 @@ def add_individual_merchant(request):
             legal_name = request.POST.get("legal_name")
             address = request.POST.get("address")
             pincode = request.POST.get("pincode")
-            state_id = request.POST.get("state")
-            city_id = request.POST.get("city")
+            state= request.POST.get("state")
+            city = request.POST.get("city")
             country = request.POST.get("country", "India")
 
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
+             # ✅ Validate State and City selection
+            if not state:
+                return JsonResponse({"success": False, "message": "Please select a state."})
+            if not city:
+                return JsonResponse({"success": False, "message": "Please select a city."})
+
+            # ✅ Convert IDs to model instances
+            try:
+                state = State.objects.get(id=state)
+            except State.DoesNotExist:
+                return JsonResponse({"success": False, "message": "Invalid state selected."})
+
+            try:
+                city = City.objects.get(id=city)
+            except City.DoesNotExist:
+                return JsonResponse({"success": False, "message": "Invalid city selected."})
+
 
             # Uniqueness checks
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
@@ -1651,8 +1687,8 @@ def add_individual_merchant(request):
                 return JsonResponse({"success": False, "message": "Mobile number already exists!"})
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
                 return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
-            if Merchant.objects.filter(pan_number=pan_number).exists():
-                return JsonResponse({"success": False, "message": "PAN number already exists!"})
+            # if Merchant.objects.filter(pan_number=pan_number).exists():
+            #     return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
             # Generate merchant_id
             last_merchant = Merchant.objects.order_by('-id').first()
@@ -1889,8 +1925,7 @@ def merchant_credentials(request):
             print("Unhandled Exception:", traceback.format_exc())
             return JsonResponse({'status': 'error', 'message': 'An unexpected error occurred while sending credentials.'})
 
-    # For GET requests
-    return render(request, 'bopo_admin/merchant/merchant_credentials.html', {
+    return render(request, 'bopo_admin/Merchant/merchant_credentials.html', {
         'merchants': merchants,
         'corporates': corporates
     })
@@ -2252,9 +2287,9 @@ def send_fcm_notification(token, title, body, data=None):
 from django.db.models import F
 
 def create_notification(project_id, merchant_id, customer_id, notification_type, title, description, to_all_ind_merch, to_all_customer):
-    print("Creating notification...")
-    print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
-    print(f"To All Individual Merchants: {to_all_ind_merch}")
+    # print("Creating notification...")
+    # print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
+    # print(f"To All Individual Merchants: {to_all_ind_merch}")
 
     project = Corporate.objects.filter(project_id=project_id).first() if project_id else None
     merchant = Merchant.objects.filter(merchant_id=merchant_id).first() if merchant_id else None
@@ -2760,16 +2795,29 @@ def add_customer(request):
         pin = request.POST.get('pin') 
         pan_number = request.POST.get('pan_number')
         address = request.POST.get('address')
-        state_id = request.POST.get('state')
-        city_id = request.POST.get('city')
+        state = request.POST.get('state')
+        city = request.POST.get('city')
         pincode = request.POST.get('pincode')
         country = request.POST.get("country", "India")
 
+      # ✅ Validate State and City selection
+        if not state:
+            return JsonResponse({"success": False, "message": "Please select a state."})
+        if not city:
+            return JsonResponse({"success": False, "message": "Please select a city."})
+
+            # ✅ Convert IDs to model instances
         try:
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
-        except (State.DoesNotExist, City.DoesNotExist):
-            return JsonResponse({"success": False, "message": "Invalid state or city selection."})
+            state = State.objects.get(id=state)
+        except State.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid state selected."})
+
+        try:
+            city = City.objects.get(id=city)
+        except City.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid city selected."})
+
+
 
         # Validation checks
         if Customer.objects.filter(email=email).exists():
@@ -3040,14 +3088,31 @@ def add_employee(request):
         email = request.POST.get("email")
         aadhaar = request.POST.get("aadhaar")
         address = request.POST.get("address")
-        state_id = request.POST.get("state")
-        city_id = request.POST.get("city")
+        state = request.POST.get("state")
+        city= request.POST.get("city")
         mobile = request.POST.get("mobile")
         pan = request.POST.get("pan")
         pincode = request.POST.get("pincode")
         username = request.POST.get("username")
         password = request.POST.get("password")
         country = request.POST.get("country", "India")
+        
+        if not state:
+            return JsonResponse({"success": False, "message": "Please select a state."})
+        if not city:
+            return JsonResponse({"success": False, "message": "Please select a city."})
+
+            # ✅ Convert IDs to model instances
+        try:
+            state = State.objects.get(id=state)
+        except State.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid state selected."})
+
+        try:
+            city = City.objects.get(id=city)
+        except City.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid city selected."})
+
 
         # Validation checks
         if Employee.objects.filter(email=email).exists():
@@ -3059,12 +3124,7 @@ def add_employee(request):
         if Employee.objects.filter(pan=pan).exists():
             return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
-        # Fetch state and city objects
-        try:
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
-        except (State.DoesNotExist, City.DoesNotExist):
-            return JsonResponse({"success": False, "message": "Invalid state or city selection."})
+      
 
         # Create employee record
         try:
@@ -3681,38 +3741,228 @@ from django.conf import settings
 #         context['user_type'] = user_type
 #         return context
 
-class CustomPasswordResetView(PasswordResetView):
-    def form_valid(self, form):
-        form.save(
-            use_https=self.request.is_secure(),
-            from_email=self.from_email,
-            email_template_name=self.email_template_name,
-            subject_template_name=self.subject_template_name,
-            request=self.request
-        )
-        return super().form_valid(form)
+# class CustomPasswordResetView(PasswordResetView):
+#     def form_valid(self, form):
+#         form.save(
+#             use_https=self.request.is_secure(),
+#             from_email=self.from_email,
+#             email_template_name=self.email_template_name,
+#             subject_template_name=self.subject_template_name,
+#             request=self.request
+#         )
+#         return super().form_valid(form)
+
+# from django.contrib import messages
+# from django.contrib.auth import get_user_model
+
+# class CustomPasswordResetView(PasswordResetView):
+#     def form_valid(self, form):
+#         email = form.cleaned_data.get("email")
+#         users = self.get_users(email)
+#         if not users:
+#             messages.error(self.request, "No user found with this email address.")
+#             return self.form_invalid(form)  # stays on same page
+#         return super().form_valid(form)
+
+#     def get_users(self, email):
+#         UserModel = get_user_model()
+#         return UserModel._default_manager.filter(email__iexact=email, is_active=True)
+
     
 
 
-from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
+# from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
+# from django.contrib.auth.hashers import make_password
+# from django.contrib.auth import update_session_auth_hash
+# from django.urls import reverse_lazy
+# from django.http import HttpResponseRedirect
+# from django.utils.http import urlsafe_base64_decode
+# from django.contrib.auth.tokens import default_token_generator
+# from django.contrib.auth import get_user_model
+# from django.utils.encoding import force_str
+# from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN
+
+
+
+# class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+#     template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
+#     success_url = reverse_lazy('password_reset_complete')
+#     form_class = CustomSetPasswordForm  
+#     invalid_link_template_name = 'bopo_admin/ForgotPass/password_reset_invalid.html'  # Custom error template
+
+
+#     def get_user(self, uidb64):
+#         UserModel = get_user_model()
+#         try:
+#             uid = force_str(urlsafe_base64_decode(uidb64))
+#             user = UserModel._default_manager.get(pk=uid)
+#         except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
+#             user = None
+#         return user
+
+#     INTERNAL_RESET_SESSION_TOKEN = '_password_reset_token'
+#     def dispatch(self, request, *args, **kwargs):
+#         self.uidb64 = kwargs.get('uidb64')
+#         self.token = kwargs.get('token')
+#         self.user = self.get_user(self.uidb64)
+
+#         print("Checking reset for:", self.uidb64, self.token, self.user)
+#         print("Token from URL:", self.token)
+#         print("Session token:", request.session.get(INTERNAL_RESET_SESSION_TOKEN))
+
+#         if self.user is None:
+#             # Invalid user
+#             return self.render_invalid_link()
+
+#         if self.token == 'set-password':
+#             session_token = request.session.get(INTERNAL_RESET_SESSION_TOKEN)
+#             if session_token and default_token_generator.check_token(self.user, session_token):
+#                 # Token valid, proceed to show password reset form
+#                 return super().dispatch(request, *args, **kwargs)
+#             else:
+#                 # Invalid session token
+#                 return self.render_invalid_link()
+#         else:
+#             # Token from URL is a real token: validate and redirect to 'set-password'
+#             if default_token_generator.check_token(self.user, self.token):
+#                 # Store token in session
+#                 request.session[INTERNAL_RESET_SESSION_TOKEN] = self.token
+#                 # Redirect to URL with token replaced by 'set-password'
+#                 redirect_url = request.path.replace(self.token, 'set-password')
+#                 return redirect(redirect_url)
+#             else:
+#                 # Invalid token
+#                 return self.render_invalid_link()
+
+    
+#     def render_invalid_link(self):
+#         user_type = "other"
+#         if self.user:
+#             if hasattr(self.user, 'corporate') and self.user.corporate:
+#                 user_type = "corporate"
+#             elif hasattr(self.user, 'employee') and self.user.employee:
+#                 user_type = "employee"
+#             elif self.user.is_superuser:
+#                 user_type = "superadmin"
+
+#         context = {
+#             'title': 'Password reset link is invalid',
+#             'message': 'Your password reset link is invalid or has expired. Please request a new one.',
+#             'user_type': user_type,
+#         }
+#         return render(self.request, self.invalid_link_template_name, context)
+
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         user_type = "other"
+#         if hasattr(self.user, 'corporate') and self.user.corporate:
+#             user_type = "corporate"
+#         elif hasattr(self.user, 'employee') and self.user.employee:
+#             user_type = "employee"
+#         elif self.user.is_superuser:
+#             user_type = "superadmin"
+
+#         context['user_type'] = user_type
+#         return context
+    
+
+#     def form_valid(self, form):
+#         user = self.user
+#         new_password = form.cleaned_data['new_password1']
+
+#         # Determine user_type for session
+#         user_type = "other"
+#         if hasattr(user, 'corporate') and user.corporate:
+#             user_type = "corporate"
+#         elif hasattr(user, 'employee') and user.employee:
+#             user_type = "employee"
+#         elif user.is_superuser:
+#             user_type = "superadmin"
+
+#         # Save user_type in session to use on completion page
+#         self.request.session['user_type'] = user_type
+
+#         # Update password in BopoAdmin (main model)
+#         user.set_password(new_password)
+#         user.save()
+
+#                 # Sync plain text password to Employee model (⚠️ Not secure)
+#         if hasattr(user, 'employee') and user.employee:
+#             user.employee.password = new_password  # ← Plain text password
+#             user.employee.save()
+
+#         # Update Corporate pin field (converted to int)
+#         if hasattr(user, 'corporate') and user.corporate:
+#             try:
+#                 user.corporate.pin = int(new_password)
+#                 user.corporate.save()
+#             except ValueError:
+#                 # Handle invalid pin (non-numeric password) if necessary
+#                 pass
+
+#         # Keep user logged in after password change
+#         update_session_auth_hash(self.request, user)
+
+#         return HttpResponseRedirect(self.get_success_url())
+
+
+# class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+#     template_name = 'bopo_admin/ForgotPass/password_reset_complete.html'
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         # Get user_type from session and then clear it
+#         user_type = self.request.session.get('user_type', 'other')
+#         context['user_type'] = user_type
+#         self.request.session.pop('user_type', None)
+
+#         return context
+
+# def password_reset_invalid(request):
+#     return render(request, 'bopo_admin/ForgotPass/password_reset_invalid.html')
+
+
+from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash, get_user_model
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect
 from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth import get_user_model
 from django.utils.encoding import force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib import messages
 from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN
+from .forms import CustomPasswordResetForm, CustomSetPasswordForm  # Assuming you have these
+
+# ✅ Custom Password Reset View
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'bopo_admin/ForgotPass/forgot_password.html'
+    email_template_name = 'bopo_admin/ForgotPass/password_reset_email.html'
+    subject_template_name = 'bopo_admin/ForgotPass/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+    form_class = CustomPasswordResetForm
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get('email')
+        UserModel = get_user_model()
+
+        if UserModel.objects.filter(email=email).exists():
+            return super().form_valid(form)
+        else:
+            messages.error(self.request, "No account is associated with this email address.")
+            return self.form_invalid(form)
 
 
-
+# ✅ Confirm View
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
     success_url = reverse_lazy('password_reset_complete')
-    form_class = CustomSetPasswordForm  
-    invalid_link_template_name = 'bopo_admin/ForgotPass/password_reset_invalid.html'  # Custom error template
-
+    form_class = CustomSetPasswordForm
+    invalid_link_template_name = 'bopo_admin/ForgotPass/password_reset_invalid.html'
 
     def get_user(self, uidb64):
         UserModel = get_user_model()
@@ -3723,41 +3973,28 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             user = None
         return user
 
-    INTERNAL_RESET_SESSION_TOKEN = '_password_reset_token'
     def dispatch(self, request, *args, **kwargs):
         self.uidb64 = kwargs.get('uidb64')
         self.token = kwargs.get('token')
         self.user = self.get_user(self.uidb64)
 
-        print("Checking reset for:", self.uidb64, self.token, self.user)
-        print("Token from URL:", self.token)
-        print("Session token:", request.session.get(INTERNAL_RESET_SESSION_TOKEN))
-
         if self.user is None:
-            # Invalid user
             return self.render_invalid_link()
 
         if self.token == 'set-password':
             session_token = request.session.get(INTERNAL_RESET_SESSION_TOKEN)
             if session_token and default_token_generator.check_token(self.user, session_token):
-                # Token valid, proceed to show password reset form
                 return super().dispatch(request, *args, **kwargs)
             else:
-                # Invalid session token
                 return self.render_invalid_link()
         else:
-            # Token from URL is a real token: validate and redirect to 'set-password'
             if default_token_generator.check_token(self.user, self.token):
-                # Store token in session
                 request.session[INTERNAL_RESET_SESSION_TOKEN] = self.token
-                # Redirect to URL with token replaced by 'set-password'
                 redirect_url = request.path.replace(self.token, 'set-password')
                 return redirect(redirect_url)
             else:
-                # Invalid token
                 return self.render_invalid_link()
 
-    
     def render_invalid_link(self):
         user_type = "other"
         if self.user:
@@ -3775,10 +4012,8 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         }
         return render(self.request, self.invalid_link_template_name, context)
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         user_type = "other"
         if hasattr(self.user, 'corporate') and self.user.corporate:
             user_type = "corporate"
@@ -3786,7 +4021,6 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             user_type = "employee"
         elif self.user.is_superuser:
             user_type = "superadmin"
-
         context['user_type'] = user_type
         return context
 
@@ -3794,7 +4028,6 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         user = self.user
         new_password = form.cleaned_data['new_password1']
 
-        # Determine user_type for session
         user_type = "other"
         if hasattr(user, 'corporate') and user.corporate:
             user_type = "corporate"
@@ -3803,50 +4036,41 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         elif user.is_superuser:
             user_type = "superadmin"
 
-        # Save user_type in session to use on completion page
         self.request.session['user_type'] = user_type
 
-        # Update password in BopoAdmin (main model)
         user.set_password(new_password)
         user.save()
 
-                # Sync plain text password to Employee model (⚠️ Not secure)
         if hasattr(user, 'employee') and user.employee:
-            user.employee.password = new_password  # ← Plain text password
+            user.employee.password = new_password
             user.employee.save()
 
-        # Update Corporate pin field (converted to int)
         if hasattr(user, 'corporate') and user.corporate:
             try:
                 user.corporate.pin = int(new_password)
                 user.corporate.save()
             except ValueError:
-                # Handle invalid pin (non-numeric password) if necessary
                 pass
 
-        # Keep user logged in after password change
         update_session_auth_hash(self.request, user)
-
         return HttpResponseRedirect(self.get_success_url())
 
 
+# ✅ Complete View
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'bopo_admin/ForgotPass/password_reset_complete.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Get user_type from session and then clear it
         user_type = self.request.session.get('user_type', 'other')
         context['user_type'] = user_type
         self.request.session.pop('user_type', None)
-
         return context
 
+
+# ✅ Invalid link fallback
 def password_reset_invalid(request):
     return render(request, 'bopo_admin/ForgotPass/password_reset_invalid.html')
-
-
 
 
 
@@ -4620,9 +4844,9 @@ def merchant_cash_outs_view(request):
     return render(request, 'bopo_admin/Merchant/merchant_cash_outs.html', {
         'merchant_cash_outs': merchant_cash_outs,
     })
-
-
-
+    
+    
+from datetime import datetime, time
 from django.utils import timezone
 
 def save_cash_out(request):
@@ -4632,18 +4856,29 @@ def save_cash_out(request):
             cashout_id = data.get('cashout_id')
             transaction_id = data.get('transaction_id')
             payment_method = data.get('payment_method')
+            payment_date_str = data.get('payment_date')
+
+              
 
             cashout = CashOut.objects.get(id=cashout_id)
-   
+
             if cashout.status == 'paid':
                 return JsonResponse({'status': 'error', 'message': 'This cash-out is already paid.'})
 
-            # Mark cashout as paid
+            if payment_date_str:
+                # ✅ Combine date with a time (e.g. noon)
+                naive_date = datetime.combine(
+                    datetime.strptime(payment_date_str, "%Y-%m-%d").date(),
+                    time(hour=12, minute=0)
+                )
+                # ✅ Make it timezone-aware in Asia/Kolkata
+                payment_date = timezone.make_aware(naive_date, timezone.get_current_timezone())
+            else:
+                payment_date = timezone.now()
+
             cashout.status = 'paid'
-            cashout.paid_at = timezone.now()
+            cashout.paid_at = payment_date
             cashout.save()
-
-
 
             SuperAdminPayment.objects.create(
                 transaction_id=transaction_id,
@@ -4652,13 +4887,13 @@ def save_cash_out(request):
             )
 
             return JsonResponse({'status': 'success', 'message': 'Payment saved successfully'})
+
         except CashOut.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'CashOut not found'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
-
 
 
 #     return render(request, 'bopo_admin/Superadmin/security_questions.html')
@@ -4934,16 +5169,35 @@ def get_award_point(request):
     return JsonResponse({'percentage': award.percentage if award else 0})
 
 
+# def update_award_point(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         new_percentage = int(data.get('percentage', 0))
+
+#         award, created = AwardPoints.objects.get_or_create(id=1)
+#         award.percentage = new_percentage
+#         award.save()
+#         return JsonResponse({'status': 'success', 'percentage': award.percentage})
+#     return JsonResponse({'status': 'error'}, status=400)
+
+
 def update_award_point(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         new_percentage = int(data.get('percentage', 0))
 
-        award, created = AwardPoints.objects.get_or_create(id=1)
-        award.percentage = new_percentage
-        award.save()
+        award = AwardPoints.objects.first()
+
+        if not award:
+            award = AwardPoints.objects.create(percentage=new_percentage)
+        else:
+            award.percentage = new_percentage
+            award.save()
+
         return JsonResponse({'status': 'success', 'percentage': award.percentage})
+
     return JsonResponse({'status': 'error'}, status=400)
+
 
 def save_superadmin_payment(request):
     if request.method == "POST":
@@ -5194,22 +5448,11 @@ def corporate_add_merchant(request):
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
             # Fetch the corporate ID of the logged-in user
-            corporate = request.user.corporate  # Assuming user is a BopoAdmin and has a corporate field
-            corporate_id = corporate.corporate_id  # Get the corporate_id associated with the logged-in user
+            corporate = request.user.corporate  
+            corporate_id = corporate.corporate_id  
 
-            # # Generate Merchant ID
-            # project_name = corporate.project_name  # Assuming this is the project name you want to associate
-            # project_abbr = project_name[:4].upper()
-            # random_number = ''.join(random.choices(string.digits, k=11))
-            # merchant_id = f"{project_abbr}{random_number}"
-            
-            
-            # Generate merchant_id
-            last_merchant = Merchant.objects.order_by('-id').first()
-            next_id = 1 if not last_merchant else last_merchant.id + 1
-            # merchant_id = f"MID{str(next_id).zfill(11)}"
+            # Generate Merchant ID
             prefix = "MID"
-            
             merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
 
             # Create Merchant
@@ -5373,10 +5616,10 @@ def send_customer_credentials(request):
             # Compose message
             message_text = (
                 f"Dear {customer.first_name},\n\n"
-                f"Your BOPO login credentials:\n"
+                f"Your BBP login credentials:\n"
                 f"Customer ID: {customer.customer_id}\n"
                 f"Customer PIN: {customer.pin}\n\n"
-                f"Regards,\nBBP Support Team"
+                f"Regards,\nBBP  Support Team"
             )
 
             # Send SMS via Twilio

@@ -78,7 +78,11 @@ MIDDLEWARE = [
 
     'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
     'bopo_admin.login_required_middleware.LoginRequiredMiddleware',
-    'bopo_backend.middleware.Custom404Middleware',
+    'bopo_backend.middleware.Custom404Middleware', 
+    
+   
+    
+    
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -99,8 +103,10 @@ CSRF_TRUSTED_ORIGINS = [
     "https://test.biggbonuspoints.in:8001",
     "http://test.biggbonuspoints.in:8001",
     "https://biggbonuspoints.in:8001",
-    # "https://biggbonuspoints.prushal.com:8001",
-    # "http://biggbonuspoints.prushal.com:8001"
+    "https://test.biggbonuspoints.in",
+    "http://test.biggbonuspoints.in",
+    "https://biggbonuspoints.in",
+    "http://biggbonuspoints.in",
 ]
 
 # raw_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
@@ -224,6 +230,7 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
 LOGIN_URL = '/login/'
 
+
 # Twilio Configuration
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
@@ -253,5 +260,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
 
 

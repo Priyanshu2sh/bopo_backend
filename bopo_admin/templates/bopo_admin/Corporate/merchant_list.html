@@ -424,7 +424,7 @@ function showToast(message, isSuccess = true) {
 
 
     function fetchStates() {
-        return fetch("/bopo_admin/get-states/")
+        return fetch("/get-states/")
             .then(response => response.json())
             .then(states => {
                 const stateDropdown = document.getElementById("edit_state");
@@ -440,7 +440,7 @@ function showToast(message, isSuccess = true) {
     
     function fetchCities(state) {
         const stateId = state || document.getElementById("edit_state").value;
-        return fetch(`/bopo_admin/get-cities/${stateId}/`)
+        return fetch(`/get-cities/${stateId}/`)
             .then(res => res.json())
             .then(cities => {
                 const cityDropdown = document.getElementById("edit_city");

@@ -160,6 +160,31 @@ button:hover {
     color: #e53935;
 }
 
+.custom-error-message {
+  color: #d43e3e;
+  background-color: #FFBABA;
+  border: 1px solid #D8000C;
+  padding: 10px 15px;
+  margin-top: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.custom-error-message i {
+  color: #D8000C;
+  font-size: 16px;
+}
+
+/* Optional fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 480px) {
     .login-header {
         padding: 1.5rem;

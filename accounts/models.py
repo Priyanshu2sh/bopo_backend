@@ -45,6 +45,8 @@ class Corporate(models.Model):
     verified_at = models.DateTimeField(null=True, blank=True)
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='corporates')
     account_type = models.CharField(max_length=20, choices=[('global', 'Global'), ('normal', 'Normal')], default='normal')
+    last_updated_at = models.DateTimeField(auto_now=True)
+
 
 
     
@@ -142,7 +144,7 @@ class Merchant(models.Model):
     # New fields added
     aadhaar_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
     gst_number = models.CharField(max_length=15, unique=False, null=True, blank=True) 
-    pan_number = models.CharField(max_length=10, unique=True, null=True, blank=True)
+    pan_number = models.CharField(max_length=10, unique=False, null=True, blank=True)
     shop_name = models.CharField(max_length=255, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     legal_name = models.CharField(max_length=255, null=True, blank=True)
@@ -153,6 +155,8 @@ class Merchant(models.Model):
     corporate_id = models.CharField(max_length=20, null=True, blank=True)  # Add this field
     project_name = models.ForeignKey(Corporate, on_delete=models.SET_NULL, null=True)
     logo = models.ForeignKey('Logo', on_delete=models.SET_NULL, null=True, blank=True, related_name='merchants')
+    last_updated_at = models.DateTimeField(auto_now=True)
+
     
     unread_notification = models.IntegerField(default=0)  # New field added
     fcm_token = models.CharField(max_length=255, blank=True, null=True)
