@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Merchant</title>
+    <title>Add Corporate Merchant</title>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'bopo_admin/css/add_merchant.css' %}">
@@ -22,30 +22,30 @@
 <body>
 
     <div class="back-to-list-btn">
-        <a href="{% url 'merchant_list' %}" class="addmerchant-btn-submit">
+        <a href="{% url 'corporate_list' %}" class="addmerchant-btn-submit">
             <i class="fa fa-arrow-left"></i> Back to List
         </a>
     </div>
 
-    <h2 class="heading">Add Merchant</h2>
+    <h2 class="heading">Add Corporate Merchant</h2>
     <div class="addmerchant-container">
 
-    <form method="POST" action="{% url 'corporate_add_merchant' %}" id="copmerchantForm">
+    <form method="POST" action="{% url 'corporate_under_merchant' %}" id="copmerchantForm">
         {% csrf_token %}
 
+         <input type="hidden" name="corporate_id" value="{{ corporate.corporate_id }}">
         {% if messages %}
         {% for message in messages %}
           <div style="color: green; font-weight: bold;">{{ message }}</div>
         {% endfor %}
       {% endif %}
-  
-
+            
             <!-- Form Fields (Left & Right Columns) -->
             <div class="addmerchant-form-container">
                 
                 <!-- Left Column -->
                 <div class="addmerchant-form-group">
-                <input type="hidden" name="corporate_id" value="{{corporate.corporate_id}}">
+                
                     <label>First Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
@@ -112,7 +112,7 @@
                     <label>PIN</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-lock"></i>
-                        <input type="password" name="pin" id="pin" maxlength="4" >
+                        <input type="password" name="pin" id="pin" maxlength="4" placeholder="Enter 4-digit pin" >
                         <span class="password-toggle" onclick="togglePassword('pin')">
                             <i class="fas fa-eye-slash"></i> <!-- Closed eye by default -->
                         </span>
@@ -145,15 +145,27 @@
                             <input type="text" name="pincode" id="pincode"  maxlength="6" >
                   </div>
 
+                  {% comment %} <label>Upload Logo</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-image"></i>
+                        <input type="file" name="logo" accept="image/*">
+                    </div> {% endcomment %}
+
+                    <div id="upload-logo-container" style="display: none;">
+                        <label>Upload Logo</label>
+                        <div class="addmerchant-input-container">
+                            <i class="fas fa-image"></i>
+                            <input type="file" name="logo" accept="image/*">
+                        </div>
+                    </div>
+
+
                 </div>
                                    
             </div>
             <button type="submit" class="addmerchant-btn-submit"><i class="fa fa-paper-plane"></i> Submit</button>
         </form>
     </div>
-    
-
-  
 
     <!-- Toast Notification -->
     <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
@@ -161,9 +173,6 @@
         <span class="toast-message">{{ message }}</span>
     </div>
 
-  
-      
-    
     <script>
 
  // Toggle password visibility
@@ -274,112 +283,121 @@
        }
    };
 
-        // Live validation
+      // Live validation
+    Object.keys(validators).forEach(name => {
+        const input = document.getElementsByName(name)[0];
+        if (!input) return;
+
+        input.addEventListener("input", () => {
+            const value = input.value.trim();
+            const errorMessage = validators[name](value);
+            input.setCustomValidity(errorMessage);
+            input.reportValidity();
+        });
+    });
+
+    document.querySelector("form").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const form = this;
+        let isValid = true;
+
         Object.keys(validators).forEach(name => {
             const input = document.getElementsByName(name)[0];
-            if (!input) return;
-    
-            input.addEventListener("input", () => {
-                const value = input.value.trim();
-                const errorMessage = validators[name](value);
-                input.setCustomValidity(errorMessage);
+            const value = input.value.trim();
+            const errorMessage = validators[name](value);
+            input.setCustomValidity(errorMessage);
+            if (errorMessage) {
                 input.reportValidity();
-            });
+                isValid = false;
+            }
         });
-    
 
-            document.querySelector("form").addEventListener("submit", function (event) {
-                event.preventDefault(); // Add this to stop default form submit
-            
-                const form = this;
-                let isValid = true;
-        
-                Object.keys(validators).forEach(name => {
-                    const input = document.getElementsByName(name)[0];
-                    const value = input.value.trim();
-                    const errorMessage = validators[name](value);
-                    input.setCustomValidity(errorMessage);
-                    if (errorMessage) {
-                        input.reportValidity();
-                        isValid = false;
+        if (!isValid) return;
+
+        const formData = new FormData(form);
+
+        fetch(form.action || window.location.href, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "success");
+
+                // Show modal to upload logo if corporate_id sent from backend
+                if (data.corporate_id) {
+                    const modal = new bootstrap.Modal(document.getElementById("uploadLogoModal"));
+                    document.querySelector("#uploadLogoModal input[name='corporate_id']").value = data.corporate_id;
+                    modal.show();
+                }
+
+                setTimeout(() => {
+                    form.reset();
+                    // Reset select2 dropdowns if you use them
+                    if (typeof $ !== "undefined" && $.fn.select2) {
+                        $('.select2').val(null).trigger('change');
                     }
-                });
-        
-                if (!isValid) return;
-        
-                let formData = new FormData(form);
-                   // Submit the form via AJAX (Fetch API)
-                   fetch(form.action || window.location.href, {
-                       method: "POST",
-                       body: formData,
-                       headers: {
-                           "X-Requested-With": "XMLHttpRequest"
-                       }
-                   })
-                   .then(response => response.json())
-                   .then(data => {
-                       if (data.success) {
-                           showToast(data.message, "success");
-                           // Clear the form only upon successful submission
+                    window.location.href = `/corporate/${data.corporate_id}/merchants/`;
+                }, 3500);
+            } else {
+                showToast(data.message || "Error submitting form.", "error");
+            }
+        })
+        .catch(error => {
+            console.error("Error submitting form:", error);
+            showToast("An unexpected error occurred in frontend.", "error");
+        });
+    });
 
-                           setTimeout(() => {
-                               form.reset();
-                               $('.select2').val(null).trigger('change');
-                               window.location.href = "/merchant/list/";
-                           }, 3500);
-                       } else {
-                           showToast(data.message, "error");
-                       }
-                   })
-                   .catch(error => {
-                       console.error("Error submitting form:", error);
-                       showToast("An unexpected error occurred. Please try again later.", "error");
-                   });
-               });
-               
-               // Auto-hide any toast if already visible (such as success messages passed from server)
-               const toast = document.getElementById("toast");
-               if (toast && toast.classList.contains("toast-show")) {
-                   setTimeout(() => {
-                       toast.classList.add("toast-hide");
-                       setTimeout(() => {
-                           toast.classList.remove("toast-show", "toast-hide");
-                       }, 500);
-                   }, 3000);
-               }
-           });
-   
-           // Simple toast function to display messages
-           function showToast(message, type) {
-               let toast = document.getElementById("toast");
-               // Remove any pre-existing type-specific classes
-               toast.classList.remove("toast-success", "toast-error");
-           
-               // Set the text
-               toast.querySelector(".toast-message").textContent = message;
-           
-               // Add the new class based on the type
-               if (type === "success") {
-                   toast.classList.add("toast-success");
-               } else if (type === "error") {
-                   toast.classList.add("toast-error");
-               }
-           
-               // Show the toast
-               toast.classList.add("toast-show");
-               setTimeout(() => {
-                   toast.classList.add("toast-hide");
-                   setTimeout(() => {
-                       toast.classList.remove("toast-show", "toast-hide");
-                   }, 500);
-               }, 3000);
-           }
-           
+    // Toast auto-hide if already visible
+    const toast = document.getElementById("toast");
+    if (toast && toast.classList.contains("toast-show")) {
+        setTimeout(() => {
+            toast.classList.add("toast-hide");
+            setTimeout(() => {
+                toast.classList.remove("toast-show", "toast-hide");
+            }, 500);
+        }, 3000);
+    }
+});
+
+// Simple toast function
+function showToast(message, type) {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+
+    toast.classList.remove("toast-success", "toast-error");
+    toast.querySelector(".toast-message").textContent = message;
+
+    if (type === "success") {
+        toast.classList.add("toast-success");
+    } else if (type === "error") {
+        toast.classList.add("toast-error");
+    }
+
+    toast.classList.add("toast-show");
+    setTimeout(() => {
+        toast.classList.add("toast-hide");
+        setTimeout(() => {
+            toast.classList.remove("toast-show", "toast-hide");
+        }, 500);
+    }, 3000);
+}
 
  
 
         function fetchStates() {
-            fetch("/get-states/")
+            fetch("/bopo_admin/get-states/")
                 .then(response => response.json())
                 .then(data => {
                     let stateDropdown = document.getElementById("state");
@@ -400,7 +418,7 @@
             cityDropdown.innerHTML = '<option value="">Select City</option>';
 
             if (stateId) {
-                fetch(`/get-cities/${stateId}/`)
+                fetch(`/bopo_admin/get-cities/${stateId}/`)
                     .then(response => response.json())
                     .then(data => {
                         data.forEach(city => {
@@ -417,35 +435,42 @@
 
     </script>
 
+<!-- <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const existingProjectRadio = document.getElementById("existing_project");
+        const newProjectRadio = document.getElementById("new_project");
+        const selectProjectContainer = document.getElementById("select-project-container");
+        const projectNameContainer = document.getElementById("project-name-container");
+        const accountTypeContainer = document.getElementById("account-type-container");
+        const uploadLogoContainer = document.getElementById("upload-logo-container"); // New line
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const existingProjectRadio = document.getElementById("existing_project");
-            const newProjectRadio = document.getElementById("new_project");
-            const selectProjectContainer = document.getElementById("select-project-container");
-            const projectNameContainer = document.getElementById("project-name-container");
-        
-            function toggleProjectFields() {
-                if (existingProjectRadio.checked) {
-                    selectProjectContainer.style.display = "block";
-                    projectNameContainer.style.display = "none"; // Hide project name input
-                } else if (newProjectRadio.checked) {
-                    selectProjectContainer.style.display = "none"; // Hide select project dropdown
-                    projectNameContainer.style.display = "block"; // Show project name input
-                } else {
-                    selectProjectContainer.style.display = "none";
-                    projectNameContainer.style.display = "none";
-                }
+        function toggleProjectFields() {
+            if (existingProjectRadio.checked) {
+                selectProjectContainer.style.display = "block";
+                projectNameContainer.style.display = "none";
+                accountTypeContainer.style.display = "none";
+                uploadLogoContainer.style.display = "none"; // Hide for existing project
+            } else if (newProjectRadio.checked) {
+                selectProjectContainer.style.display = "none";
+                projectNameContainer.style.display = "block";
+                accountTypeContainer.style.display = "block";
+                uploadLogoContainer.style.display = "block"; // Show for new project
+            } else {
+                selectProjectContainer.style.display = "none";
+                projectNameContainer.style.display = "none";
+                accountTypeContainer.style.display = "none";
+                uploadLogoContainer.style.display = "none";
             }
-        
-            existingProjectRadio.addEventListener("change", toggleProjectFields);
-            newProjectRadio.addEventListener("change", toggleProjectFields);
-        
-            // Initial check
-            toggleProjectFields();
-        });
-        
-    </script>
+        }
+
+        existingProjectRadio.addEventListener("change", toggleProjectFields);
+        newProjectRadio.addEventListener("change", toggleProjectFields);
+
+        toggleProjectFields(); // Initial check
+    });
+</script> -->
+
+
     
 </body>
 </html>

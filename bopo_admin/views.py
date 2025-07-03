@@ -6,6 +6,7 @@ import os
 import random
 import string
 from sys import prefix
+import traceback
 # from tkinter.font import Font
 from django.db.models import Max
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect, JsonResponse
@@ -19,8 +20,10 @@ from twilio.rest import Client
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
 from django.utils.timezone import now
-from datetime import datetime
+# from django.utils import timezone
 
+from datetime import datetime
+from twilio.base.exceptions import TwilioRestException
 
 
 from accounts import models
@@ -101,8 +104,21 @@ from accounts.models import Merchant  # Replace `your_app` and `Merchant` with a
 
 def terminals(request):
     merchants = Merchant.objects.all().order_by('merchant_id')
-    return render(request, 'bopo_admin/Payment/terminals.html', {'merchants': merchants})
+    selected_merchant_id = request.GET.get("merchant_id")
+    terminals = []
 
+    if selected_merchant_id:
+        terminals = Terminal.objects.filter(merchant_id__merchant_id=selected_merchant_id).order_by('-created_at')
+        for terminal in terminals:
+            # Add attribute directly
+            terminal.show_delete = (now() - terminal.created_at) < timedelta(minutes=15)
+
+    return render(request, 'bopo_admin/Payment/terminals.html', {
+        'merchants': merchants,
+        'terminals': terminals,
+        'selected_merchant_id': selected_merchant_id
+    })
+    
 from django.http import JsonResponse
 from accounts.models import Merchant, Terminal
 
@@ -112,14 +128,20 @@ def get_terminals(request, merchant_id):
     except Merchant.DoesNotExist:
         return JsonResponse({'error': 'Merchant not found'}, status=404)
 
-    terminals = Terminal.objects.filter(merchant_id=merchant)
+    terminals = Terminal.objects.filter(merchant_id=merchant).order_by('-created_at')
+    data = []
+    for t in terminals:
+        show_delete = (now() - t.created_at) < timedelta(minutes=15)
+        data.append({
+            "terminal_id": t.terminal_id,
+            "tid_pin": t.tid_pin,
+            "status": t.status,
+            "created_at": t.created_at.isoformat(),
+            "show_delete": show_delete  # ✅ Include this
+        })
 
-    terminal_data = [
-        {'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin, 'status': terminal.status }
-        for terminal in terminals
-    ]
+    return JsonResponse({"terminals": data})
 
-    return JsonResponse({'terminals': terminal_data})
 
 import random
 import string
@@ -130,31 +152,67 @@ def generate_terminal_id():
     """Generate a unique terminal ID."""
     return "TID" + ''.join(random.choices(string.digits, k=8))
 
+# def add_terminal(request, merchant_id):
+#     """Generate a new terminal and pin for the merchant."""
+#     try:
+#         merchant = Merchant.objects.get(merchant_id=merchant_id)
+#     except Merchant.DoesNotExist:
+#         return JsonResponse({'error': 'Merchant not found'}, status=404)
+
+#     # Generate unique terminal ID
+#     terminal_id = generate_terminal_id()
+#     while Terminal.objects.filter(terminal_id=terminal_id).exists():
+#         terminal_id = generate_terminal_id()  # Ensure it's unique
+
+#     # Generate a 4-digit PIN
+#     tid_pin = random.randint(1000, 9999)
+
+#     # Save terminal info to the database
+#     terminal = Terminal.objects.create(
+#         terminal_id=terminal_id,
+#         tid_pin=tid_pin,
+#         merchant_id=merchant
+        
+#     )
+
+#     # Return the newly created terminal details
+#     return JsonResponse({'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin, 'status':terminal.status})
+
+
 def add_terminal(request, merchant_id):
     """Generate a new terminal and pin for the merchant."""
-    try:
-        merchant = Merchant.objects.get(merchant_id=merchant_id)
-    except Merchant.DoesNotExist:
-        return JsonResponse({'error': 'Merchant not found'}, status=404)
+    if request.method == "POST":
+        try:
+            merchant = Merchant.objects.get(merchant_id=merchant_id)
+        except Merchant.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Merchant not found'}, status=404)
 
-    # Generate unique terminal ID
-    terminal_id = generate_terminal_id()
-    while Terminal.objects.filter(terminal_id=terminal_id).exists():
-        terminal_id = generate_terminal_id()  # Ensure it's unique
+        # Generate unique terminal ID
+        terminal_id = generate_terminal_id()
+        while Terminal.objects.filter(terminal_id=terminal_id).exists():
+            terminal_id = generate_terminal_id()
 
-    # Generate a 4-digit PIN
-    tid_pin = random.randint(1000, 9999)
+        # Generate a 4-digit PIN
+        tid_pin = random.randint(1000, 9999)
 
-    # Save terminal info to the database
-    terminal = Terminal.objects.create(
-        terminal_id=terminal_id,
-        tid_pin=tid_pin,
-        merchant_id=merchant
-        
-    )
+        # Save terminal info to the database
+        terminal = Terminal.objects.create(
+            terminal_id=terminal_id,
+            tid_pin=tid_pin,
+            merchant_id=merchant
+        )
 
-    # Return the newly created terminal details
-    return JsonResponse({'terminal_id': terminal.terminal_id, 'tid_pin': terminal.tid_pin, 'status':terminal.status})
+        # ✅ Add "success": True here
+        return JsonResponse({
+            'success': True,
+            'terminal_id': terminal.terminal_id,
+            'tid_pin': terminal.tid_pin,
+            'status': terminal.status,
+            "created_at": terminal.created_at.isoformat(),
+            'show_delete': True 
+        })
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 
 # In views.py
 
@@ -599,8 +657,27 @@ def delete_customer(request, customer_id):
 def merchant_list(request):
     return render(request, "bopo_admin/Merchant/merchant_list.html")
 
+# def corporate_list(request):
+#     corporates = Corporate.objects.all()
+#     corporate_data = []
+
+#     for corporate in corporates:
+#         # Fetch merchants linked to the corporate
+#         merchants = Merchant.objects.filter(corporate_id=corporate.corporate_id, user_type='corporate')
+#         corporate_data.append({
+#             "corporate": corporate,
+#             "merchants": merchants
+#         })
+
+#     return render(request, 'bopo_admin/Merchant/corporate_list.html', {
+#         "corporate_data": corporate_data
+#     })
+
+
 def corporate_list(request):
-    corporates = Corporate.objects.all()
+    # Only include corporates with a non-empty corporate_id
+    corporates = Corporate.objects.exclude(corporate_id__isnull=True).exclude(corporate_id='')
+
     corporate_data = []
 
     for corporate in corporates:
@@ -614,6 +691,7 @@ def corporate_list(request):
     return render(request, 'bopo_admin/Merchant/corporate_list.html', {
         "corporate_data": corporate_data
     })
+
 
 
 def individual_list(request):
@@ -737,14 +815,175 @@ import string
 
 
 
+# def add_merchant(request):
+#     if request.method == "POST":
+#         try:
+#             is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+#             # Extract form data
+#             select_project = request.POST.get("select_project")
+#             project_type = request.POST.get("project_type")
+#             project_name = request.POST.get("project_name", "")
+#             first_name = request.POST.get("first_name")
+#             last_name = request.POST.get("last_name")
+#             email = request.POST.get("email")
+#             mobile = request.POST.get("mobile")
+#             aadhaar_number = request.POST.get("aadhaar_number")
+#             pin = request.POST.get("pin")
+#             gst_number = request.POST.get("gst_number")
+#             shop_name = request.POST.get("shop_name")
+#             pan_number = request.POST.get("pan_number")
+#             address = request.POST.get("address")
+#             legal_name = request.POST.get("legal_name")
+#             pincode = request.POST.get("pincode")
+#             account_type = request.POST.get("account_type", "normal")
+#             city_id = request.POST.get("city")
+#             state_id = request.POST.get("state")
+#             country = request.POST.get("country", "India")
+#             state = State.objects.get(id=state_id)
+#             city = City.objects.get(id=city_id)
+
+#             logo_file = request.FILES.get("logo")
+#             logo_instance = None
+
+#             if logo_file:
+#                 print("Logo file received:", logo_file.name)  # Debugging line
+#                 logo_instance = Logo.objects.create(logo=logo_file)
+#                 print("Logo saved:", logo_instance.logo.url)  # Debugging line
+
+
+#             # Unique field checks for email, mobile, Aadhaar number, etc.
+#             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
+#                 message = "Email is already registered."
+#                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+#             if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
+#                 message = "Mobile number is already registered."
+#                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+#             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
+#                 message = "Aadhaar number is already registered."
+#                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+#             # Corporate ID Generation Logic
+#             last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
+#             new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
+#             corporate_id = f"CORP{new_corporate_id:06d}"
+
+#             # Handling Existing Project
+#             if project_type == "Existing Project" and select_project:
+#                 corporate = Corporate.objects.get(id=select_project)
+#                 project_name = corporate.project_name
+#                 project_id = corporate.project_id
+
+#                 # # Merchant ID Generation
+#                 # project_abbr = project_name[:4].upper()
+#                 # random_number = ''.join(random.choices(string.digits, k=11))
+#                 # merchant_id = f"{project_abbr}{random_number}"
+                
+#                 prefix = "MID"
+#                 merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
+#                 # otp = random.randint(100000, 999999)
+
+#                 # Create the Merchant instance
+#                 merchant = Merchant.objects.create(
+#                     user_type='corporate',
+#                     merchant_id=merchant_id,
+#                     first_name=first_name,
+#                     last_name=last_name,
+#                     email=email,
+#                     mobile=mobile,
+#                     aadhaar_number=aadhaar_number,
+#                     pin=pin,
+#                     gst_number=gst_number,
+#                     pan_number=pan_number,
+#                     shop_name=shop_name,
+#                     legal_name=legal_name,
+#                     address=address,
+#                     pincode=pincode,
+#                     state=state,
+#                     city=city,
+#                     country=country,
+#                     corporate_id=corporate.corporate_id,
+#                     project_name=corporate,
+#                     logo=logo_instance,  # Associate the logo with the merchant
+#                     verified_at=timezone.now(),
+#                 )
+
+#                 merchant = Merchant.objects.get(merchant_id=merchant_id)
+
+#                 # Terminal Generation Logic
+#                 terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
+#                 tid_pin = random.randint(1000, 9999)
+
+#                 Terminal.objects.create(
+#                     terminal_id=terminal_id,
+#                     tid_pin=tid_pin,
+#                     merchant_id=merchant
+#                 )
+
+#             elif project_type == "New Project":
+#                 # Create New Project and Corporate Instance
+#                 if not project_name:
+#                     message = "Project name is required for new projects."
+#                     return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+#                 # Project ID Generation
+#                 last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
+#                 new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
+#                 project_id = f"PROJ{new_project_id:06d}"
+
+#                 corporate = Corporate.objects.create(
+#                     select_project=select_project,
+#                     corporate_id=corporate_id,
+#                     project_name=project_name,
+#                     project_id=project_id,
+#                     first_name=first_name,
+#                     last_name=last_name,
+#                     email=email,
+#                     mobile=mobile,
+#                     aadhaar_number=aadhaar_number,
+#                     pin=pin,
+#                     gst_number=gst_number,
+#                     pan_number=pan_number,
+#                     shop_name=shop_name,
+#                     legal_name=legal_name,
+#                     address=address,
+#                     pincode=pincode,
+#                     state=state,
+#                     city=city,
+#                     country=country,
+#                     role="admin",
+#                     account_type=account_type, 
+#                     logo=logo_instance  # Associate the logo with the new corporate account
+#                 )
+
+#                 # Create BopoAdmin user
+#                 bopo_admin = BopoAdmin(username=corporate_id, role="corporate_admin", corporate=corporate)
+#                 bopo_admin.set_password(pin)
+#                 bopo_admin.save()
+
+#             else:
+#                 message = "Invalid project type selected."
+#                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+#             success_message = "Merchant added successfully."
+#             return JsonResponse({"success": True, "message": success_message}) if is_ajax else redirect_with_success(success_message)
+
+#         except Exception as e:
+#             print("Error saving merchant:", e)
+#             return JsonResponse({"success": False, "message": "wrong from backend."})
+
+#     corporates = Corporate.objects.all()
+#     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
+
+
 def add_merchant(request):
     if request.method == "POST":
         try:
             is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
             # Extract form data
-            select_project = request.POST.get("select_project")
-            project_type = request.POST.get("project_type")
             project_name = request.POST.get("project_name", "")
             first_name = request.POST.get("first_name")
             last_name = request.POST.get("last_name")
@@ -759,141 +998,100 @@ def add_merchant(request):
             legal_name = request.POST.get("legal_name")
             pincode = request.POST.get("pincode")
             account_type = request.POST.get("account_type", "normal")
-            city_id = request.POST.get("city")
-            state_id = request.POST.get("state")
+            city = request.POST.get("city")
+            state = request.POST.get("state")
             country = request.POST.get("country", "India")
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
 
+            # ✅ Validate State and City selection
+            if not state:
+                message = "Please select a state."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            if not city:
+                message = "Please select a city."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            try:
+                state = State.objects.get(id=state)
+            except State.DoesNotExist:
+                message = "Selected state is invalid."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            try:
+                city = City.objects.get(id=city)
+            except City.DoesNotExist:
+                message = "Selected city is invalid."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+          
+         # ✅ Require logo upload
             logo_file = request.FILES.get("logo")
             logo_instance = None
-
             if logo_file:
-                print("Logo file received:", logo_file.name)  # Debugging line
                 logo_instance = Logo.objects.create(logo=logo_file)
-                print("Logo saved:", logo_instance.logo.url)  # Debugging line
 
-
-            # Unique field checks for email, mobile, Aadhaar number, etc.
+            # Validate uniqueness
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
-                message = "Email is already registered."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+                return JsonResponse({"success": False, "message": "Email is already registered."}) if is_ajax else redirect_with_error("Email is already registered.")
 
             if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
-                message = "Mobile number is already registered."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."}) if is_ajax else redirect_with_error("Mobile number is already registered.")
 
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
-                message = "Aadhaar number is already registered."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+                return JsonResponse({"success": False, "message": "Aadhaar number is already registered."}) if is_ajax else redirect_with_error("Aadhaar number is already registered.")
 
-            # Corporate ID Generation Logic
+            # Only require project_name if user is adding a new project (optional logic)
+            # For example, if a checkbox or flag like "include_project" is passed
+            include_project = request.POST.get("include_project") == "true"
+
+            if include_project and not project_name:
+                return JsonResponse({"success": False, "message": "Project name is required."}) if is_ajax else redirect_with_error("Project name is required.")
+
+            # Generate corporate ID and project ID
             last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
             new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
             corporate_id = f"CORP{new_corporate_id:06d}"
 
-            # Handling Existing Project
-            if project_type == "Existing Project" and select_project:
-                corporate = Corporate.objects.get(id=select_project)
-                project_name = corporate.project_name
-                project_id = corporate.project_id
+            last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
+            new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
+            project_id = f"PROJ{new_project_id:06d}"
 
-                # # Merchant ID Generation
-                # project_abbr = project_name[:4].upper()
-                # random_number = ''.join(random.choices(string.digits, k=11))
-                # merchant_id = f"{project_abbr}{random_number}"
-                
-                prefix = "MID"
-                merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
-                # otp = random.randint(100000, 999999)
+            # Create new corporate
+            corporate = Corporate.objects.create(
+                corporate_id=corporate_id,
+                project_name=project_name,
+                project_id=project_id,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                mobile=mobile,
+                aadhaar_number=aadhaar_number,
+                pin=pin,
+                gst_number=gst_number,
+                pan_number=pan_number,
+                shop_name=shop_name,
+                legal_name=legal_name,
+                address=address,
+                pincode=pincode,
+                state=state,
+                city=city,
+                country=country,
+                role="admin",
+                account_type=account_type,
+                logo=logo_instance
+            )
 
-                # Create the Merchant instance
-                merchant = Merchant.objects.create(
-                    user_type='corporate',
-                    merchant_id=merchant_id,
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email,
-                    mobile=mobile,
-                    aadhaar_number=aadhaar_number,
-                    pin=pin,
-                    gst_number=gst_number,
-                    pan_number=pan_number,
-                    shop_name=shop_name,
-                    legal_name=legal_name,
-                    address=address,
-                    pincode=pincode,
-                    state=state,
-                    city=city,
-                    country=country,
-                    corporate_id=corporate.corporate_id,
-                    project_name=corporate,
-                    logo=logo_instance  # Associate the logo with the merchant
-                )
+            # Create BopoAdmin user
+            bopo_admin = BopoAdmin(username=corporate_id, role="corporate_admin", corporate=corporate)
+            bopo_admin.set_password(pin)
+            bopo_admin.save()
 
-                merchant = Merchant.objects.get(merchant_id=merchant_id)
-
-                # Terminal Generation Logic
-                terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
-                tid_pin = random.randint(1000, 9999)
-
-                Terminal.objects.create(
-                    terminal_id=terminal_id,
-                    tid_pin=tid_pin,
-                    merchant_id=merchant
-                )
-
-            elif project_type == "New Project":
-                # Create New Project and Corporate Instance
-                if not project_name:
-                    message = "Project name is required for new projects."
-                    return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
-
-                # Project ID Generation
-                last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
-                new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
-                project_id = f"PROJ{new_project_id:06d}"
-
-                corporate = Corporate.objects.create(
-                    select_project=select_project,
-                    corporate_id=corporate_id,
-                    project_name=project_name,
-                    project_id=project_id,
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email,
-                    mobile=mobile,
-                    aadhaar_number=aadhaar_number,
-                    pin=pin,
-                    gst_number=gst_number,
-                    pan_number=pan_number,
-                    shop_name=shop_name,
-                    legal_name=legal_name,
-                    address=address,
-                    pincode=pincode,
-                    state=state,
-                    city=city,
-                    country=country,
-                    role="admin",
-                    account_type=account_type, 
-                    logo=logo_instance  # Associate the logo with the new corporate account
-                )
-
-                # Create BopoAdmin user
-                bopo_admin = BopoAdmin(username=corporate_id, role="corporate_admin", corporate=corporate)
-                bopo_admin.set_password(pin)
-                bopo_admin.save()
-
-            else:
-                message = "Invalid project type selected."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
-
-            success_message = "Merchant added successfully."
-            return JsonResponse({"success": True, "message": success_message}) if is_ajax else redirect_with_success(success_message)
+            success_message = "Merchant and corporate created successfully."
+            return JsonResponse({"success": True, "message": success_message, "corporate_id": corporate.corporate_id}) if is_ajax else redirect_with_success(success_message)
 
         except Exception as e:
             print("Error saving merchant:", e)
-            return JsonResponse({"success": False, "message": "wrong from backend."})
+            return JsonResponse({"success": False, "message": "Something went wrong from backend."})
 
     corporates = Corporate.objects.all()
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
@@ -1458,12 +1656,27 @@ def add_individual_merchant(request):
             legal_name = request.POST.get("legal_name")
             address = request.POST.get("address")
             pincode = request.POST.get("pincode")
-            state_id = request.POST.get("state")
-            city_id = request.POST.get("city")
+            state= request.POST.get("state")
+            city = request.POST.get("city")
             country = request.POST.get("country", "India")
 
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
+             # ✅ Validate State and City selection
+            if not state:
+                return JsonResponse({"success": False, "message": "Please select a state."})
+            if not city:
+                return JsonResponse({"success": False, "message": "Please select a city."})
+
+            # ✅ Convert IDs to model instances
+            try:
+                state = State.objects.get(id=state)
+            except State.DoesNotExist:
+                return JsonResponse({"success": False, "message": "Invalid state selected."})
+
+            try:
+                city = City.objects.get(id=city)
+            except City.DoesNotExist:
+                return JsonResponse({"success": False, "message": "Invalid city selected."})
+
 
             # Uniqueness checks
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
@@ -1472,8 +1685,8 @@ def add_individual_merchant(request):
                 return JsonResponse({"success": False, "message": "Mobile number already exists!"})
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists():
                 return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
-            if Merchant.objects.filter(pan_number=pan_number).exists():
-                return JsonResponse({"success": False, "message": "PAN number already exists!"})
+            # if Merchant.objects.filter(pan_number=pan_number).exists():
+            #     return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
             # Generate merchant_id
             last_merchant = Merchant.objects.order_by('-id').first()
@@ -1512,6 +1725,7 @@ def add_individual_merchant(request):
                 state=state,
                 city=city,
                 country=country,
+                verified_at=timezone.now(),
             
             )
 
@@ -1612,40 +1826,60 @@ def merchant_credentials(request):
         merchant_id = request.POST.get('merchant_id')
 
         try:
-            # ✅ 1. Corporate Admin Logic — ONLY send Corporate ID and PIN
+            # ✅ Step 1: Validate user is super_admin with Twilio plan
+            if not request.user.is_authenticated:
+                return JsonResponse({'status': 'error', 'message': 'You must be logged in.'})
+
+            try:
+                super_admin = BopoAdmin.objects.get(username=request.user.username)
+            except BopoAdmin.DoesNotExist:
+                try:
+                    super_admin = BopoAdmin.objects.get(email=request.user.email)
+                except BopoAdmin.DoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': 'Super admin not found.'})
+
+            # if super_admin.role.strip().lower() != 'super_admin' or not super_admin.has_twilio_subscription:
+            #     return JsonResponse({
+            #         'status': 'error',
+            #         'message': 'Twilio plan not found or inactive for this super admin.'
+            #     })
+
+            # ✅ Step 2: Corporate Admin case
             if merchant_type == 'corporate_admin':
                 if not project_id:
                     return JsonResponse({'status': 'error', 'message': 'Project ID is required for corporate admin'})
 
                 corporate = Corporate.objects.get(project_id=project_id)
-                phone_number = corporate.mobile
+                phone_number = corporate.mobile.strip()
                 if not phone_number.startswith('+'):
                     phone_number = f'+91{phone_number}'
 
                 message_text = (
                     f"Dear {corporate.first_name},\n\n"
-                    # f"Your corporate credentials for project {project_id} are as follows:\n"
                     f"Your corporate credentials:\n"
                     f"Corporate ID: {corporate.corporate_id}\n"
                     f"PIN: {corporate.pin}\n\n"
                     f"Regards,\nBBP Support Team"
                 )
 
-                client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-                client.messages.create(
-                    body=message_text,
-                    from_=settings.TWILIO_PHONE_NUMBER,
-                    to=phone_number
-                )
+                try:
+                    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                    client.messages.create(
+                        body=message_text,
+                        from_=settings.TWILIO_PHONE_NUMBER,
+                        to=phone_number
+                    )
+                    return JsonResponse({'status': 'success', 'message': 'Corporate admin credentials sent successfully!'})
+                except TwilioRestException as e:
+                    print(f"Twilio Error: {e}")
+                    return JsonResponse({'status': 'error', 'message': 'Twilio error: Invalid credentials or plan.'})
 
-                return JsonResponse({'status': 'success', 'message': 'Corporate admin credentials sent successfully!'})
-
-            # ✅ 2. Merchant Logic — for both corporate and individual merchants
+            # ✅ Step 3: Merchant case (individual or corporate merchant)
             if not merchant_id:
                 return JsonResponse({'status': 'error', 'message': 'Merchant ID is required for merchant credentials'})
 
             merchant = Merchant.objects.get(merchant_id=merchant_id)
-            phone_number = merchant.mobile
+            phone_number = merchant.mobile.strip()
             if not phone_number.startswith('+'):
                 phone_number = f'+91{phone_number}'
 
@@ -1667,24 +1901,29 @@ def merchant_credentials(request):
                 f"Regards,\nBBP Support Team"
             )
 
-            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-            client.messages.create(
-                body=message_text,
-                from_=settings.TWILIO_PHONE_NUMBER,
-                to=phone_number
-            )
-
-            return JsonResponse({'status': 'success', 'message': 'Merchant credentials sent successfully!'})
+            try:
+                client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                client.messages.create(
+                    body=message_text,
+                    from_=settings.TWILIO_PHONE_NUMBER,
+                    to=phone_number
+                )
+                return JsonResponse({'status': 'success', 'message': 'Merchant credentials sent successfully!'})
+            except TwilioRestException as e:
+                print(f"Twilio Error: {e}")
+                return JsonResponse({'status': 'error', 'message': 'Twilio error: Invalid credentials or plan.'})
 
         except Corporate.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Corporate not found'})
-        except Merchant.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Merchant not found'})
-        except Exception as e:
-            print(f"Error: {e}")
-            return JsonResponse({'status': 'error', 'message': 'An error occurred while sending credentials'})
+            return JsonResponse({'status': 'error', 'message': 'Corporate not found.'})
 
-    return render(request, 'bopo_admin/merchant/merchant_credentials.html', {
+        except Merchant.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Merchant not found.'})
+
+        except Exception as e:
+            print("Unhandled Exception:", traceback.format_exc())
+            return JsonResponse({'status': 'error', 'message': 'An unexpected error occurred while sending credentials.'})
+
+    return render(request, 'bopo_admin/Merchant/merchant_credentials.html', {
         'merchants': merchants,
         'corporates': corporates
     })
@@ -2046,9 +2285,9 @@ def send_fcm_notification(token, title, body, data=None):
 from django.db.models import F
 
 def create_notification(project_id, merchant_id, customer_id, notification_type, title, description, to_all_ind_merch, to_all_customer):
-    print("Creating notification...")
-    print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
-    print(f"To All Individual Merchants: {to_all_ind_merch}")
+    # print("Creating notification...")
+    # print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
+    # print(f"To All Individual Merchants: {to_all_ind_merch}")
 
     project = Corporate.objects.filter(project_id=project_id).first() if project_id else None
     merchant = Merchant.objects.filter(merchant_id=merchant_id).first() if merchant_id else None
@@ -2554,16 +2793,29 @@ def add_customer(request):
         pin = request.POST.get('pin') 
         pan_number = request.POST.get('pan_number')
         address = request.POST.get('address')
-        state_id = request.POST.get('state')
-        city_id = request.POST.get('city')
+        state = request.POST.get('state')
+        city = request.POST.get('city')
         pincode = request.POST.get('pincode')
         country = request.POST.get("country", "India")
 
+      # ✅ Validate State and City selection
+        if not state:
+            return JsonResponse({"success": False, "message": "Please select a state."})
+        if not city:
+            return JsonResponse({"success": False, "message": "Please select a city."})
+
+            # ✅ Convert IDs to model instances
         try:
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
-        except (State.DoesNotExist, City.DoesNotExist):
-            return JsonResponse({"success": False, "message": "Invalid state or city selection."})
+            state = State.objects.get(id=state)
+        except State.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid state selected."})
+
+        try:
+            city = City.objects.get(id=city)
+        except City.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid city selected."})
+
+
 
         # Validation checks
         if Customer.objects.filter(email=email).exists():
@@ -2834,14 +3086,31 @@ def add_employee(request):
         email = request.POST.get("email")
         aadhaar = request.POST.get("aadhaar")
         address = request.POST.get("address")
-        state_id = request.POST.get("state")
-        city_id = request.POST.get("city")
+        state = request.POST.get("state")
+        city= request.POST.get("city")
         mobile = request.POST.get("mobile")
         pan = request.POST.get("pan")
         pincode = request.POST.get("pincode")
         username = request.POST.get("username")
         password = request.POST.get("password")
         country = request.POST.get("country", "India")
+        
+        if not state:
+            return JsonResponse({"success": False, "message": "Please select a state."})
+        if not city:
+            return JsonResponse({"success": False, "message": "Please select a city."})
+
+            # ✅ Convert IDs to model instances
+        try:
+            state = State.objects.get(id=state)
+        except State.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid state selected."})
+
+        try:
+            city = City.objects.get(id=city)
+        except City.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Invalid city selected."})
+
 
         # Validation checks
         if Employee.objects.filter(email=email).exists():
@@ -2853,12 +3122,7 @@ def add_employee(request):
         if Employee.objects.filter(pan=pan).exists():
             return JsonResponse({"success": False, "message": "PAN number already exists!"})
 
-        # Fetch state and city objects
-        try:
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
-        except (State.DoesNotExist, City.DoesNotExist):
-            return JsonResponse({"success": False, "message": "Invalid state or city selection."})
+      
 
         # Create employee record
         try:
@@ -2998,6 +3262,7 @@ def payment_details(request):
     if request.method == "POST":
         payment_id = request.POST.get("payment_id")
         action = request.POST.get("action")
+        password = request.POST.get("password")
 
         if not payment_id or not action:
             return JsonResponse({"success": False, "message": "Missing payment ID or action."})
@@ -3006,7 +3271,6 @@ def payment_details(request):
 
         if action == "approve":
 
-            # Check if merchant has any other approved plan of DIFFERENT plan_type
             existing_payment = PaymentDetails.objects.filter(
                 merchant=payment.merchant,
                 status="approved"
@@ -3023,13 +3287,12 @@ def payment_details(request):
                 if not validity or not validity.isdigit() or int(validity) <= 0:
                     return JsonResponse({"success": False, "message": "Invalid rental validity provided."})
 
-                payment.validity_days = int(validity)  # Assuming this field exists
+                payment.validity_days = int(validity)
                 payment.status = "approved"
                 payment.save()
 
                 return JsonResponse({"success": True, "message": f"Rental plan approved for {validity} days."})
 
-            # For prepaid or other plan types
             topup_value = payment.topup_amount
             if topup_value is None:
                 return JsonResponse({"success": False, "message": "Top-up amount is invalid."})
@@ -3045,6 +3308,13 @@ def payment_details(request):
             return JsonResponse({"success": True, "message": "Payment approved successfully"})
 
         elif action == "reject":
+            # ✅ Only allow superusers to reject with password confirmation
+            if not request.user.is_superuser:
+                return JsonResponse({"success": False, "message": "Unauthorized access."})
+
+            if not password or not request.user.check_password(password):
+                return JsonResponse({"success": False, "message": "Incorrect password."})
+
             payment.status = "rejected"
             payment.save()
             return JsonResponse({"success": True, "message": "Payment has been rejected."})
@@ -3053,6 +3323,7 @@ def payment_details(request):
 
     topups = PaymentDetails.objects.all().order_by('-created_at')
     return render(request, 'bopo_admin/Payment/payment_details.html', {'topups': topups})
+
 
 
 # def account_info(request):
@@ -3468,38 +3739,228 @@ from django.conf import settings
 #         context['user_type'] = user_type
 #         return context
 
-class CustomPasswordResetView(PasswordResetView):
-    def form_valid(self, form):
-        form.save(
-            use_https=self.request.is_secure(),
-            from_email=self.from_email,
-            email_template_name=self.email_template_name,
-            subject_template_name=self.subject_template_name,
-            request=self.request
-        )
-        return super().form_valid(form)
+# class CustomPasswordResetView(PasswordResetView):
+#     def form_valid(self, form):
+#         form.save(
+#             use_https=self.request.is_secure(),
+#             from_email=self.from_email,
+#             email_template_name=self.email_template_name,
+#             subject_template_name=self.subject_template_name,
+#             request=self.request
+#         )
+#         return super().form_valid(form)
+
+# from django.contrib import messages
+# from django.contrib.auth import get_user_model
+
+# class CustomPasswordResetView(PasswordResetView):
+#     def form_valid(self, form):
+#         email = form.cleaned_data.get("email")
+#         users = self.get_users(email)
+#         if not users:
+#             messages.error(self.request, "No user found with this email address.")
+#             return self.form_invalid(form)  # stays on same page
+#         return super().form_valid(form)
+
+#     def get_users(self, email):
+#         UserModel = get_user_model()
+#         return UserModel._default_manager.filter(email__iexact=email, is_active=True)
+
     
 
 
-from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
+# from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView
+# from django.contrib.auth.hashers import make_password
+# from django.contrib.auth import update_session_auth_hash
+# from django.urls import reverse_lazy
+# from django.http import HttpResponseRedirect
+# from django.utils.http import urlsafe_base64_decode
+# from django.contrib.auth.tokens import default_token_generator
+# from django.contrib.auth import get_user_model
+# from django.utils.encoding import force_str
+# from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN
+
+
+
+# class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+#     template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
+#     success_url = reverse_lazy('password_reset_complete')
+#     form_class = CustomSetPasswordForm  
+#     invalid_link_template_name = 'bopo_admin/ForgotPass/password_reset_invalid.html'  # Custom error template
+
+
+#     def get_user(self, uidb64):
+#         UserModel = get_user_model()
+#         try:
+#             uid = force_str(urlsafe_base64_decode(uidb64))
+#             user = UserModel._default_manager.get(pk=uid)
+#         except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
+#             user = None
+#         return user
+
+#     INTERNAL_RESET_SESSION_TOKEN = '_password_reset_token'
+#     def dispatch(self, request, *args, **kwargs):
+#         self.uidb64 = kwargs.get('uidb64')
+#         self.token = kwargs.get('token')
+#         self.user = self.get_user(self.uidb64)
+
+#         print("Checking reset for:", self.uidb64, self.token, self.user)
+#         print("Token from URL:", self.token)
+#         print("Session token:", request.session.get(INTERNAL_RESET_SESSION_TOKEN))
+
+#         if self.user is None:
+#             # Invalid user
+#             return self.render_invalid_link()
+
+#         if self.token == 'set-password':
+#             session_token = request.session.get(INTERNAL_RESET_SESSION_TOKEN)
+#             if session_token and default_token_generator.check_token(self.user, session_token):
+#                 # Token valid, proceed to show password reset form
+#                 return super().dispatch(request, *args, **kwargs)
+#             else:
+#                 # Invalid session token
+#                 return self.render_invalid_link()
+#         else:
+#             # Token from URL is a real token: validate and redirect to 'set-password'
+#             if default_token_generator.check_token(self.user, self.token):
+#                 # Store token in session
+#                 request.session[INTERNAL_RESET_SESSION_TOKEN] = self.token
+#                 # Redirect to URL with token replaced by 'set-password'
+#                 redirect_url = request.path.replace(self.token, 'set-password')
+#                 return redirect(redirect_url)
+#             else:
+#                 # Invalid token
+#                 return self.render_invalid_link()
+
+    
+#     def render_invalid_link(self):
+#         user_type = "other"
+#         if self.user:
+#             if hasattr(self.user, 'corporate') and self.user.corporate:
+#                 user_type = "corporate"
+#             elif hasattr(self.user, 'employee') and self.user.employee:
+#                 user_type = "employee"
+#             elif self.user.is_superuser:
+#                 user_type = "superadmin"
+
+#         context = {
+#             'title': 'Password reset link is invalid',
+#             'message': 'Your password reset link is invalid or has expired. Please request a new one.',
+#             'user_type': user_type,
+#         }
+#         return render(self.request, self.invalid_link_template_name, context)
+
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         user_type = "other"
+#         if hasattr(self.user, 'corporate') and self.user.corporate:
+#             user_type = "corporate"
+#         elif hasattr(self.user, 'employee') and self.user.employee:
+#             user_type = "employee"
+#         elif self.user.is_superuser:
+#             user_type = "superadmin"
+
+#         context['user_type'] = user_type
+#         return context
+    
+
+#     def form_valid(self, form):
+#         user = self.user
+#         new_password = form.cleaned_data['new_password1']
+
+#         # Determine user_type for session
+#         user_type = "other"
+#         if hasattr(user, 'corporate') and user.corporate:
+#             user_type = "corporate"
+#         elif hasattr(user, 'employee') and user.employee:
+#             user_type = "employee"
+#         elif user.is_superuser:
+#             user_type = "superadmin"
+
+#         # Save user_type in session to use on completion page
+#         self.request.session['user_type'] = user_type
+
+#         # Update password in BopoAdmin (main model)
+#         user.set_password(new_password)
+#         user.save()
+
+#                 # Sync plain text password to Employee model (⚠️ Not secure)
+#         if hasattr(user, 'employee') and user.employee:
+#             user.employee.password = new_password  # ← Plain text password
+#             user.employee.save()
+
+#         # Update Corporate pin field (converted to int)
+#         if hasattr(user, 'corporate') and user.corporate:
+#             try:
+#                 user.corporate.pin = int(new_password)
+#                 user.corporate.save()
+#             except ValueError:
+#                 # Handle invalid pin (non-numeric password) if necessary
+#                 pass
+
+#         # Keep user logged in after password change
+#         update_session_auth_hash(self.request, user)
+
+#         return HttpResponseRedirect(self.get_success_url())
+
+
+# class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+#     template_name = 'bopo_admin/ForgotPass/password_reset_complete.html'
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         # Get user_type from session and then clear it
+#         user_type = self.request.session.get('user_type', 'other')
+#         context['user_type'] = user_type
+#         self.request.session.pop('user_type', None)
+
+#         return context
+
+# def password_reset_invalid(request):
+#     return render(request, 'bopo_admin/ForgotPass/password_reset_invalid.html')
+
+
+from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash, get_user_model
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect
 from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth import get_user_model
 from django.utils.encoding import force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib import messages
 from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN
+from .forms import CustomPasswordResetForm, CustomSetPasswordForm  # Assuming you have these
+
+# ✅ Custom Password Reset View
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'bopo_admin/ForgotPass/forgot_password.html'
+    email_template_name = 'bopo_admin/ForgotPass/password_reset_email.html'
+    subject_template_name = 'bopo_admin/ForgotPass/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+    form_class = CustomPasswordResetForm
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get('email')
+        UserModel = get_user_model()
+
+        if UserModel.objects.filter(email=email).exists():
+            return super().form_valid(form)
+        else:
+            messages.error(self.request, "No account is associated with this email address.")
+            return self.form_invalid(form)
 
 
-
+# ✅ Confirm View
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'bopo_admin/ForgotPass/password_reset_confirm.html'
     success_url = reverse_lazy('password_reset_complete')
-    form_class = CustomSetPasswordForm  
-    invalid_link_template_name = 'bopo_admin/ForgotPass/password_reset_invalid.html'  # Custom error template
-
+    form_class = CustomSetPasswordForm
+    invalid_link_template_name = 'bopo_admin/ForgotPass/password_reset_invalid.html'
 
     def get_user(self, uidb64):
         UserModel = get_user_model()
@@ -3510,41 +3971,28 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             user = None
         return user
 
-    INTERNAL_RESET_SESSION_TOKEN = '_password_reset_token'
     def dispatch(self, request, *args, **kwargs):
         self.uidb64 = kwargs.get('uidb64')
         self.token = kwargs.get('token')
         self.user = self.get_user(self.uidb64)
 
-        print("Checking reset for:", self.uidb64, self.token, self.user)
-        print("Token from URL:", self.token)
-        print("Session token:", request.session.get(INTERNAL_RESET_SESSION_TOKEN))
-
         if self.user is None:
-            # Invalid user
             return self.render_invalid_link()
 
         if self.token == 'set-password':
             session_token = request.session.get(INTERNAL_RESET_SESSION_TOKEN)
             if session_token and default_token_generator.check_token(self.user, session_token):
-                # Token valid, proceed to show password reset form
                 return super().dispatch(request, *args, **kwargs)
             else:
-                # Invalid session token
                 return self.render_invalid_link()
         else:
-            # Token from URL is a real token: validate and redirect to 'set-password'
             if default_token_generator.check_token(self.user, self.token):
-                # Store token in session
                 request.session[INTERNAL_RESET_SESSION_TOKEN] = self.token
-                # Redirect to URL with token replaced by 'set-password'
                 redirect_url = request.path.replace(self.token, 'set-password')
                 return redirect(redirect_url)
             else:
-                # Invalid token
                 return self.render_invalid_link()
 
-    
     def render_invalid_link(self):
         user_type = "other"
         if self.user:
@@ -3562,10 +4010,8 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         }
         return render(self.request, self.invalid_link_template_name, context)
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         user_type = "other"
         if hasattr(self.user, 'corporate') and self.user.corporate:
             user_type = "corporate"
@@ -3573,7 +4019,6 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             user_type = "employee"
         elif self.user.is_superuser:
             user_type = "superadmin"
-
         context['user_type'] = user_type
         return context
 
@@ -3581,7 +4026,6 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         user = self.user
         new_password = form.cleaned_data['new_password1']
 
-        # Determine user_type for session
         user_type = "other"
         if hasattr(user, 'corporate') and user.corporate:
             user_type = "corporate"
@@ -3590,50 +4034,41 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         elif user.is_superuser:
             user_type = "superadmin"
 
-        # Save user_type in session to use on completion page
         self.request.session['user_type'] = user_type
 
-        # Update password in BopoAdmin (main model)
         user.set_password(new_password)
         user.save()
 
-                # Sync plain text password to Employee model (⚠️ Not secure)
         if hasattr(user, 'employee') and user.employee:
-            user.employee.password = new_password  # ← Plain text password
+            user.employee.password = new_password
             user.employee.save()
 
-        # Update Corporate pin field (converted to int)
         if hasattr(user, 'corporate') and user.corporate:
             try:
                 user.corporate.pin = int(new_password)
                 user.corporate.save()
             except ValueError:
-                # Handle invalid pin (non-numeric password) if necessary
                 pass
 
-        # Keep user logged in after password change
         update_session_auth_hash(self.request, user)
-
         return HttpResponseRedirect(self.get_success_url())
 
 
+# ✅ Complete View
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'bopo_admin/ForgotPass/password_reset_complete.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Get user_type from session and then clear it
         user_type = self.request.session.get('user_type', 'other')
         context['user_type'] = user_type
         self.request.session.pop('user_type', None)
-
         return context
 
+
+# ✅ Invalid link fallback
 def password_reset_invalid(request):
     return render(request, 'bopo_admin/ForgotPass/password_reset_invalid.html')
-
-
 
 
 
@@ -4407,9 +4842,9 @@ def merchant_cash_outs_view(request):
     return render(request, 'bopo_admin/Merchant/merchant_cash_outs.html', {
         'merchant_cash_outs': merchant_cash_outs,
     })
-
-
-
+    
+    
+from datetime import datetime, time
 from django.utils import timezone
 
 def save_cash_out(request):
@@ -4419,18 +4854,29 @@ def save_cash_out(request):
             cashout_id = data.get('cashout_id')
             transaction_id = data.get('transaction_id')
             payment_method = data.get('payment_method')
+            payment_date_str = data.get('payment_date')
+
+              
 
             cashout = CashOut.objects.get(id=cashout_id)
-   
+
             if cashout.status == 'paid':
                 return JsonResponse({'status': 'error', 'message': 'This cash-out is already paid.'})
 
-            # Mark cashout as paid
+            if payment_date_str:
+                # ✅ Combine date with a time (e.g. noon)
+                naive_date = datetime.combine(
+                    datetime.strptime(payment_date_str, "%Y-%m-%d").date(),
+                    time(hour=12, minute=0)
+                )
+                # ✅ Make it timezone-aware in Asia/Kolkata
+                payment_date = timezone.make_aware(naive_date, timezone.get_current_timezone())
+            else:
+                payment_date = timezone.now()
+
             cashout.status = 'paid'
-            cashout.paid_at = timezone.now()
+            cashout.paid_at = payment_date
             cashout.save()
-
-
 
             SuperAdminPayment.objects.create(
                 transaction_id=transaction_id,
@@ -4439,13 +4885,13 @@ def save_cash_out(request):
             )
 
             return JsonResponse({'status': 'success', 'message': 'Payment saved successfully'})
+
         except CashOut.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'CashOut not found'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
-
 
 
 #     return render(request, 'bopo_admin/Superadmin/security_questions.html')
@@ -4721,16 +5167,35 @@ def get_award_point(request):
     return JsonResponse({'percentage': award.percentage if award else 0})
 
 
+# def update_award_point(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         new_percentage = int(data.get('percentage', 0))
+
+#         award, created = AwardPoints.objects.get_or_create(id=1)
+#         award.percentage = new_percentage
+#         award.save()
+#         return JsonResponse({'status': 'success', 'percentage': award.percentage})
+#     return JsonResponse({'status': 'error'}, status=400)
+
+
 def update_award_point(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         new_percentage = int(data.get('percentage', 0))
 
-        award, created = AwardPoints.objects.get_or_create(id=1)
-        award.percentage = new_percentage
-        award.save()
+        award = AwardPoints.objects.first()
+
+        if not award:
+            award = AwardPoints.objects.create(percentage=new_percentage)
+        else:
+            award.percentage = new_percentage
+            award.save()
+
         return JsonResponse({'status': 'success', 'percentage': award.percentage})
+
     return JsonResponse({'status': 'error'}, status=400)
+
 
 def save_superadmin_payment(request):
     if request.method == "POST":
@@ -4981,22 +5446,11 @@ def corporate_add_merchant(request):
                 return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
 
             # Fetch the corporate ID of the logged-in user
-            corporate = request.user.corporate  # Assuming user is a BopoAdmin and has a corporate field
-            corporate_id = corporate.corporate_id  # Get the corporate_id associated with the logged-in user
+            corporate = request.user.corporate  
+            corporate_id = corporate.corporate_id  
 
-            # # Generate Merchant ID
-            # project_name = corporate.project_name  # Assuming this is the project name you want to associate
-            # project_abbr = project_name[:4].upper()
-            # random_number = ''.join(random.choices(string.digits, k=11))
-            # merchant_id = f"{project_abbr}{random_number}"
-            
-            
-            # Generate merchant_id
-            last_merchant = Merchant.objects.order_by('-id').first()
-            next_id = 1 if not last_merchant else last_merchant.id + 1
-            # merchant_id = f"MID{str(next_id).zfill(11)}"
+            # Generate Merchant ID
             prefix = "MID"
-            
             merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
 
             # Create Merchant
@@ -5116,21 +5570,57 @@ def send_customer_credentials(request):
 
         try:
             if not customer_id:
-                return JsonResponse({'status': 'error', 'message': 'Customer ID is required'})
+                return JsonResponse({'status': 'error', 'message': 'Customer ID is required.'})
 
+            if not request.user.is_authenticated:
+                return JsonResponse({'status': 'error', 'message': 'You must be logged in.'})
+
+            # Attempt to fetch BopoAdmin linked to logged-in user
+            super_admin = None
+            try:
+                super_admin = BopoAdmin.objects.get(username=request.user.username)
+            except BopoAdmin.DoesNotExist:
+                try:
+                    super_admin = BopoAdmin.objects.get(email=request.user.email)
+                except BopoAdmin.DoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': 'Super admin not found.'})
+
+            # Debug print to verify values
+            print("Super Admin Debug:")
+            print("  Username:", super_admin.username)
+            print("  Role:", super_admin.role)
+            print("  Mobile:", super_admin.mobile)
+            # print("  Twilio Subscription:", super_admin.has_twilio_subscription)
+
+            # Safe check: role (case-insensitive) and Twilio subscription
+            # if super_admin.role.strip().lower() != 'super_admin':
+            #     return JsonResponse({
+            #         'status': 'error',
+            #         'message': 'Twilio plan not found for this super admin.',
+            #         'debug': {
+            #             'role': super_admin.role,
+            #             'twilio': super_admin.has_twilio_subscription,
+            #             'mobile': super_admin.mobile
+            #         }
+            #     })
+
+            # Get customer object
             customer = Customer.objects.get(customer_id=customer_id)
-            phone_number = customer.mobile
+
+            phone_number = customer.mobile.strip()
             if not phone_number.startswith('+'):
                 phone_number = f'+91{phone_number}'
 
+            # Compose message
             message_text = (
                 f"Dear {customer.first_name},\n\n"
-                f"Your BOPO login credentials:\n"
+                f"Your BBP login credentials:\n"
                 f"Customer ID: {customer.customer_id}\n"
                 f"Customer PIN: {customer.pin}\n\n"
-                f"Regards,\nBOPO Support Team"
+                f"Regards,\nBBP  Support Team"
             )
 
+            # Send SMS via Twilio
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
             client.messages.create(
                 body=message_text,
@@ -5141,18 +5631,24 @@ def send_customer_credentials(request):
             return JsonResponse({'status': 'success', 'message': 'Customer credentials sent successfully!'})
 
         except Customer.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Customer not found'})
-        except Exception as e:
-            print(f"Error: {e}")
-            return JsonResponse({'status': 'error', 'message': 'An error occurred while sending credentials'})
+            return JsonResponse({'status': 'error', 'message': 'Customer not found.'})
 
+        except TwilioRestException as e:
+            print(f"Twilio Error: {e}")
+            return JsonResponse({'status': 'error', 'message': 'Twilio error: Check twilio credentials or plan.'})
+
+        except Exception as e:
+            print("Unhandled Exception:", traceback.format_exc())
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    # For GET requests, render the page with customer list
     return render(request, 'bopo_admin/Customer/send_customer_credentials.html', {
         'customers': customers
     })
-    
-    
-    
-    
+   
+   
+   
+     
 def get_individual_merchants(request):
     merchants = Merchant.objects.filter(user_type='individual')
     data = {
@@ -5186,3 +5682,114 @@ def invalid_url_view(request, exception):
     print("⚠️ Custom 404 view hit")
     return render(request, 'bopo_admin/Helpdesk/invalid.html', status=404)
 
+
+def view_corporate_merchants(request, corporate_id):
+    # Get the corporate object
+    corporate = get_object_or_404(Corporate, corporate_id=corporate_id)
+    
+    # Fetch merchants linked to this corporate_id
+    merchants = Merchant.objects.filter(corporate_id=corporate_id, user_type='corporate')
+
+    return render(request, 'bopo_admin/Merchant/corporate_merchants_list.html', {
+        'corporate': corporate,
+        'merchants': merchants,
+    })
+    
+def corporate_merchants(request):
+  
+    return render(request, 'bopo_admin/Merchant/corporate_merchants.html')
+
+def corporate_under_merchant(request):
+    if request.method == "GET":
+        corporate_id = request.GET.get("corporate_id")
+        corporate = None
+        if corporate_id:
+            corporate = Corporate.objects.filter(corporate_id=corporate_id).first()
+        return render(request, "bopo_admin/Merchant/corporate_merchants.html", {"corporate": corporate})
+
+    elif request.method == "POST":
+        # print('asssssssssssssssssss')
+        try:
+            is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+            # Extract form data
+            print("POST data:", request.POST.get('corporate_id'))
+            corporate_id = request.POST.get("corporate_id")
+            corporate = get_object_or_404(Corporate, corporate_id=corporate_id)
+            # print("================corporate id", corporate_id)
+
+            # 🔽 Extract other form data
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")
+            email = request.POST.get("email")
+            mobile = request.POST.get("mobile")
+            aadhaar_number = request.POST.get("aadhaar_number")
+            pin = request.POST.get("pin")
+            gst_number = request.POST.get("gst_number")
+            shop_name = request.POST.get("shop_name")
+            pan_number = request.POST.get("pan_number")
+            address = request.POST.get("address")
+            legal_name = request.POST.get("legal_name")
+            pincode = request.POST.get("pincode")
+            city_id = request.POST.get("city")
+            state_id = request.POST.get("state")
+            country = request.POST.get("country", "India")
+            state = State.objects.get(id=state_id)
+            city = City.objects.get(id=city_id)
+
+            # ✅ Check for unique fields
+            if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+            if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
+                return JsonResponse({"success": False, "message": "Aadhaar number is already registered."})
+
+            # ✅ Generate merchant_id
+            merchant_id = f"MID{''.join(random.choices(string.digits, k=11))}"
+
+            # ✅ Create Merchant
+            merchant = Merchant.objects.create(
+                user_type='corporate',
+                merchant_id=merchant_id,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                mobile=mobile,
+                aadhaar_number=aadhaar_number,
+                pin=pin,
+                gst_number=gst_number,
+                pan_number=pan_number,
+                shop_name=shop_name,
+                legal_name=legal_name,
+                address=address,
+                pincode=pincode,
+                state=state,
+                city=city,
+                country=country,
+                corporate_id=corporate.corporate_id,
+                project_name=corporate  # assigning full corporate object
+            )
+
+            # ✅ Create Terminal
+            terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
+            tid_pin = random.randint(1000, 9999)
+
+            Terminal.objects.create(
+                terminal_id=terminal_id,
+                tid_pin=tid_pin,
+                merchant_id=merchant
+            )
+
+            return JsonResponse({
+                "success": True,
+                "message": "Merchant added successfully.",
+                "corporate_id": corporate.corporate_id
+            })
+
+        except Exception as e:
+            print("Error saving merchant:", e)
+            return JsonResponse({"success": False, "message": "Something went wrong. Please check your inputs."})
+
+    corporates = Corporate.objects.all()
+    return render(request, "bopo_admin/Merchant/corporate_merchants.html", {"corporates": corporates})

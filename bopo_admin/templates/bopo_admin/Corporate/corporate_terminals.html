@@ -23,18 +23,30 @@
 
   <div class="merchant-select-row">
     <label for="merchant_id">Select Merchant ID:</label>
-   <select name="merchant_id" id="merchant_id" class="select2" style="width: 900px;">
-    <option value="">-- Select Merchant --</option>
-    {% for merchant in merchants %}
-        <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }} - {{ merchant.first_name }} {{ merchant.last_name }} </option>
-    {% endfor %}
-</select>
-
+    <select id="merchant_id" name="merchant_id" style="width: 900px;" class="select2">
+      <option value="">--Select Merchant ID--</option>
+      {% for merchant in merchants %}
+        <option value="{{ merchant.merchant_id }}">{{ merchant.merchant_id }} - {{ merchant.first_name }} {{ merchant.last_name }}</option>
+      {% endfor %}
+    </select>
 
     <button id="add-terminal-btn" class="add-terminal-btn">
       Add Terminal
     </button>
   </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmationModal" class="custom-modal" style="display: none;">
+    <div class="custom-modal-content">
+      <span class="custom-close" id="closeModal">&times;</span>
+      <h3 id="confirmationMessage">Are you sure, you are creating another terminal?</h3>
+      <div class="custom-modal-buttons">
+        <button id="confirmAction" class="custom-btn" style="background-color: #4CAF50;">Yes</button>
+        <button id="cancelAction" class="custom-btn" style="background-color: #f44336;">No</button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- Empty State -->
   <div id="empty-state" style="text-align: center; margin-top: 120px; margin-left: -80px; color: #888; width: 400px;">
@@ -47,38 +59,54 @@
 
   <!-- Terminal Table -->
   <div id="terminal-info">
-    <table id="terminal-table" style="display: none; width: 100%; margin-top: 20px; border-collapse: collapse;">
+    <table id="terminal-table" style="display: none; width: 400%; margin-top: 20px; border-collapse: collapse;">
       <thead>
         <tr>
           <th>Terminal ID</th>
           <th>PIN</th>
           <th>Status</th>
-          <th style="width: 50%;">Action</th>
+          <th>Action</th>
         </tr>
       </thead>
-      <tbody id="terminal-body"> 
-        {% for terminal in terminals %}
-        <tr>
-            <td>{{ terminal.terminal_id }}</td>
-            <td>
-              <label class="switch">
-                <input type="checkbox" onchange="toggleStatus('{{ terminal.terminal_id }}', this)" {% if terminal.status == 'Active' %}checked{% endif %}>
-                <span class="slider round"></span>
-              </label>
-            </td>
-            <td>
-                <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="{{ terminal.id }}">✏️ Edit</button>
-            </td>
-        </tr>
-        {% endfor %}
-      </tbody>
+     <tbody id="terminal-body">
+  {% for terminal in terminals %}
+    <tr>
+      <td>{{ terminal.terminal_id }}</td>
+      <td>
+        <input type="text" value="{{ terminal.tid_pin }}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;">
+      </td>
+      <td>
+        <label class="switch">
+          <input type="checkbox" onchange="toggleStatus('{{ terminal.terminal_id }}', this)" {% if terminal.status == 'Active' %}checked{% endif %}>
+          <span class="slider round"></span>
+        </label>
+      </td>
+<td>
+  <div class="button-group">
+    <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="{{ terminal.terminal_id }}">✏️ Edit</button>
+
+    {% if terminal.show_delete %}
+      {% if terminal.disable_delete %}
+        <button class="btn btn-sm disabled-delete" disabled>🗑️ Delete</button>
+      {% else %}
+        <button class="btn btn-sm btn-danger delete-btn disabled-delete" data-terminal-id="{{ terminal.terminal_id }}">🗑️ Delete</button>
+      {% endif %}
+    {% endif %}
+
+    <button class="btn btn-sm btn-success save-btn" data-terminal-id="{{ terminal.terminal_id }}" style="display: none;">💾 Save</button>
+  </div>
+</td>
+
+    </tr>
+  {% endfor %}
+</tbody>
+
     </table>
   </div>
 </div>
 
 <script>
-  // Toggle status of terminal
- 
+  
 document.addEventListener('DOMContentLoaded', function () {
     const toggles = document.querySelectorAll('.terminal-status-toggle');
 
@@ -158,167 +186,322 @@ function showToast(message, type) {
   }, 3000);
 }
 
-
-
+// Initialize Select2 and handle merchant selection change
 $(document).ready(function() {
-  // Initialize Select2 for the merchant_id dropdown
   $('#merchant_id').select2({
-    placeholder: "Select Merchant",
-    allowClear: true
+    placeholder: "Select Merchant ID",
+    allowClear: true,
+    width: 'resolve'
   });
 
-  // Handle merchant selection and display terminals
   $('#merchant_id').on('change', function() {
     var merchantId = $(this).val();
-
     if (merchantId) {
       fetch(`/get_terminals/${merchantId}/`)
-        .then(response => response.json())
-        .then(data => {
-          var tableBody = document.getElementById('terminal-body');
-          tableBody.innerHTML = '';
+      .then(response => response.json())
+      .then(data => {
+        var tableBody = document.getElementById('terminal-body');
+        tableBody.innerHTML = '';
 
-          if (data.terminals.length > 0) {
-            data.terminals.forEach(function(terminal) {
-              var row = document.createElement('tr');
-              row.innerHTML = `
-                <td>${terminal.terminal_id}</td>
-                <td><input type="text" value="${terminal.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
-                   <td>
-        <label class="switch">
-          <input type="checkbox" onchange="toggleStatus('${terminal.terminal_id}', this)" ${terminal.status === 'Active' ? 'checked' : ''}>
-          <span class="slider round"></span>
-        </label>
-      </td>
-                <td>
-                   <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${terminal.terminal_id}">✏️ Edit</button>
-                   <button class="btn btn-sm btn-success save-btn" data-terminal-id="${terminal.terminal_id}" style="display: none;">💾 Save</button>
-                </td>
-              `;
-              tableBody.appendChild(row);
-            });
+        if (data.terminals.length > 0) {
+          data.terminals.forEach(function(terminal) {
+  const createdAt = new Date(terminal.created_at);
+  const now = new Date();
+  const diffMs = now - createdAt;
+  const showDelete = diffMs < 15 * 60 * 1000;  // 15 minutes
 
-            document.getElementById('empty-state').style.display = 'none';
-            document.getElementById('terminal-table').style.display = 'table';
-          } else {
-            document.getElementById('terminal-table').style.display = 'none';
-            document.getElementById('empty-state').style.display = 'block';
-          }
-        });
+  const deleteBtnId = `delete-${terminal.terminal_id}`;
+
+  const deleteButtonHTML = `
+    <button class="btn btn-sm btn-danger delete-btn"
+            id="${deleteBtnId}"
+            data-terminal-id="${terminal.terminal_id}"
+            ${showDelete ? '' : 'disabled title="Delete disabled after 15 minutes"'}
+    >🗑️ Delete</button>`;
+
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${terminal.terminal_id}</td>
+    <td><input type="text" value="${terminal.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
+    <td>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleStatus('${terminal.terminal_id}', this)" ${terminal.status === 'Active' ? 'checked' : ''}>
+        <span class="slider round"></span>
+      </label>
+    </td>
+    <td>
+      <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${terminal.terminal_id}">✏️ Edit</button>
+      ${deleteButtonHTML}
+      <button class="btn btn-sm btn-success save-btn" data-terminal-id="${terminal.terminal_id}" style="display: none;">💾 Save</button>
+    </td>
+  `;
+  tableBody.appendChild(row);
+
+  // Disable button after remaining time if still within 15 minutes
+  if (showDelete) {
+    const remainingMs = (15 * 60 * 1000) - diffMs;
+    setTimeout(() => {
+      const btn = document.getElementById(deleteBtnId);
+      if (btn) {
+        btn.disabled = true;
+        btn.title = "Delete disabled after 15 minutes";
+        btn.classList.add("disabled-delete");
+      }
+    }, remainingMs);
+  }
+});
+
+
+          $('#empty-state').hide();
+          $('#terminal-table').show();
+        } else {
+          $('#terminal-table').hide();
+          $('#empty-state').show();
+        }
+      });
     } else {
-      document.getElementById('terminal-table').style.display = 'none';
-      document.getElementById('empty-state').style.display = 'block';
+      $('#terminal-table').hide();
+      $('#empty-state').show();
     }
   });
+});
 
-  
+
 
 // Add new terminal button click handler
-document.getElementById('add-terminal-btn').addEventListener('click', function() {
-  var merchantId = document.getElementById('merchant_id').value;
-  if (merchantId) {
-    fetch(`/add_terminal/${merchantId}/`, {
+// document.getElementById('add-terminal-btn').addEventListener('click', function() {
+//   var merchantId = document.getElementById('merchant_id').value;
+//   if (merchantId) {
+//     fetch(`/add_terminal/${merchantId}/`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'X-CSRFToken': getCSRFToken(),
+//       },
+//       body: JSON.stringify({})
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//       if (data.error) {
+//         showToast(data.error, 'error');
+//       } else {
+//         showToast('Terminal added successfully!', 'success');
+//         // Refresh the terminal list
+//         $('#merchant_id').trigger('change');
+//       }
+//     });
+//   } else {
+//     showToast('Please select a merchant first.', 'warning');
+//   }
+// });
+
+
+// Handle Edit and Save button clicks with event delegation
+document.addEventListener('click', function(event) {
+  if (event.target.classList.contains('edit-btn')) {
+    var row = event.target.closest('tr');
+    var pinInput = row.querySelector('.pin-input');
+    var saveBtn = row.querySelector('.save-btn');
+    var editBtn = row.querySelector('.edit-btn');
+
+    pinInput.removeAttribute('readonly');
+    pinInput.style.border = '1px solid #ccc';
+    pinInput.style.background = '#fff';
+    pinInput.focus();
+
+    saveBtn.style.display = 'inline-block';
+    editBtn.style.display = 'none';
+  }
+
+  if (event.target.classList.contains('save-btn')) {
+    var row = event.target.closest('tr');
+    var pinInput = row.querySelector('.pin-input');
+    var saveBtn = row.querySelector('.save-btn');
+    var editBtn = row.querySelector('.edit-btn');
+
+    var terminalId = event.target.getAttribute('data-terminal-id');
+    var merchantId = document.getElementById('merchant_id').value;
+    var newPin = pinInput.value.trim();
+
+    if (!newPin) {
+      showToast('PIN cannot be empty.', 'warning');
+      return;
+    }
+
+    fetch(`/update_terminal_pin/${merchantId}/${terminalId}/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': getCSRFToken(),
       },
-      body: JSON.stringify({})
+      body: JSON.stringify({ tid_pin: newPin })
     })
     .then(response => response.json())
     .then(data => {
-      if (data.error) {
-        showToast(data.error, 'error');
+      if (data.success) {
+        pinInput.setAttribute('readonly', 'readonly');
+        pinInput.style.border = 'none';
+        pinInput.style.background = 'transparent';
+        saveBtn.style.display = 'none';
+        editBtn.style.display = 'inline-block';
+        showToast('PIN updated successfully.', 'success');
       } else {
-        var row = document.createElement('tr');
+        showToast('Error updating PIN.', 'error');
+      }
+    });
+  }
+});
+
+// Utility to get CSRF token from cookies
+function getCSRFToken() {
+  let cookieValue = null;
+  const cookies = document.cookie.split(';');
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i].trim();
+    if (cookie.startsWith('csrftoken=')) {
+      cookieValue = decodeURIComponent(cookie.substring('csrftoken='.length));
+      break;
+    }
+  }
+  return cookieValue;
+}
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const addTerminalBtn = document.getElementById("add-terminal-btn");
+  const confirmationModal = document.getElementById("confirmationModal");
+  const confirmationMessage = document.getElementById("confirmationMessage");
+  const confirmAction = document.getElementById("confirmAction");
+  const cancelAction = document.getElementById("cancelAction");
+  const closeModal = document.getElementById("closeModal");
+
+  let actionType = null;
+
+  // ✅ INSERT THIS CODE HERE ↓↓↓
+  addTerminalBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    const merchantId = document.getElementById("merchant_id").value;
+    if (!merchantId) {
+      showToast("Please select a merchant first.", "warning");
+      return;
+    }
+
+    confirmationMessage.textContent = "Are you sure, you are creating another terminal?";
+    confirmationModal.style.display = "flex";
+    actionType = "add_terminal";
+  });
+
+  confirmAction.addEventListener("click", function () {
+  if (actionType === "add_terminal") {
+    const merchantId = document.getElementById("merchant_id").value;
+
+    fetch(`/add_terminal/${merchantId}/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCSRFToken(),
+      },
+      body: JSON.stringify({ merchant_id: merchantId })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        showToast("Terminal added successfully!", "success");
+
+        // ✅ Insert row directly with delete button
+        const tableBody = document.getElementById("terminal-body");
+        const deleteButtonHTML = data.show_delete
+          ? `<button class="btn btn-sm btn-danger delete-btn" data-terminal-id="${data.terminal_id}">🗑️ Delete</button>`
+          : '';
+
+        const row = document.createElement("tr");
         row.innerHTML = `
           <td>${data.terminal_id}</td>
           <td><input type="text" value="${data.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
           <td>
             <label class="switch">
-              <input type="checkbox" onchange="toggleStatus('${data.id}', this)" ${data.status === 'Active' ? 'checked' : ''}>
+              <input type="checkbox" onchange="toggleStatus('${data.terminal_id}', this)" ${data.status === 'Active' ? 'checked' : ''}>
               <span class="slider round"></span>
             </label>
           </td>
           <td>
             <button class="btn btn-sm btn-warning edit-btn" data-terminal-id="${data.terminal_id}">✏️ Edit</button>
+            ${deleteButtonHTML}
             <button class="btn btn-sm btn-success save-btn" data-terminal-id="${data.terminal_id}" style="display: none;">💾 Save</button>
           </td>
         `;
-        document.getElementById('terminal-body').appendChild(row);
-        $('#empty-state').hide();
-        $('#terminal-table').show();
-        showToast('Terminal added successfully!', 'success');
-           // Refresh the terminal list
-        $('#merchant_id').trigger('change');
+        tableBody.prepend(row);
+        document.getElementById("empty-state").style.display = "none";
+        document.getElementById("terminal-table").style.display = "table";
+        // ⏱ Refresh terminal list after 15 minutes to reflect delete-disable state
+        setTimeout(() => {
+          document.getElementById("merchant_id").dispatchEvent(new Event("change"));
+        }, 15 * 60 * 1000); // 15 minutes
+
+
+      } else {
+        showToast(data.message || "Failed to add terminal.", "error");
       }
+    })
+    .catch((err) => {
+      console.error("Add Terminal Error:", err);
+      showToast("An error occurred while adding terminal.", "error");
     });
-  } else {
-    showToast('Please select a merchant first.', 'warning');
+
+    confirmationModal.style.display = "none";
+    actionType = null;
   }
 });
 
+  // Close modal on clicking "No"
+cancelAction.addEventListener("click", function () {
+  confirmationModal.style.display = "none";
+  actionType = null;
+});
 
-  // Handle Edit and Save button clicks
-  $(document).on('click', '.edit-btn', function() {
-    var row = $(this).closest('tr');
-    var pinInput = row.find('.pin-input');
-    var saveBtn = row.find('.save-btn');
-    var editBtn = row.find('.edit-btn');
+// Close modal on clicking the "×" icon
+closeModal.addEventListener("click", function () {
+  confirmationModal.style.display = "none";
+  actionType = null;
+});
 
-    pinInput.prop('readonly', false).css({'border': '1px solid #ccc', 'background': '#fff'}).focus();
-    saveBtn.show();
-    editBtn.hide();
-  });
-  
-$(document).on('click', '.save-btn', function() {
-  var row = $(this).closest('tr');
-  var pinInput = row.find('.pin-input');
-  var terminalId = $(this).data('terminal-id');
-  var merchantId = $('#merchant_id').val();
-  var newPin = pinInput.val().trim();
+});
 
-  if (!newPin) {
-    showToast('PIN cannot be empty', 'warning');
-    return;
-  }
+// ==========delete button===========
+document.addEventListener('click', function(event) {
+  if (event.target.classList.contains('delete-btn')) {
+    const terminalId = event.target.getAttribute('data-terminal-id');
+    const merchantId = document.getElementById('merchant_id').value;
 
-  fetch(`/update_terminal_pin/${merchantId}/${terminalId}/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': getCSRFToken(),
-    },
-    body: JSON.stringify({ tid_pin: newPin })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      showToast('PIN updated successfully!', 'success');
-
-      pinInput.prop('readonly', true).css({'border': 'none', 'background': 'transparent'});
-      $(this).hide(); // hide save button
-      row.find('.edit-btn').show(); // show edit button
-    } else {
-      showToast('Error updating PIN', 'error');
+    if (confirm("Are you sure you want to delete this terminal?")) {
+      fetch(`/delete_terminal/${merchantId}/${terminalId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken()
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showToast("Terminal deleted successfully", "success");
+          document.getElementById("merchant_id").dispatchEvent(new Event("change"));
+        } else {
+          showToast(data.message || "Failed to delete terminal", "error");
+        }
+      })
+      .catch(() => {
+        showToast("An error occurred while deleting terminal", "error");
+      });
     }
-  });
-});
-
-
-  // Get CSRF Token from cookies
-  function getCSRFToken() {
-    let cookieValue = null;
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.startsWith('csrftoken=')) {
-        cookieValue = decodeURIComponent(cookie.substring('csrftoken='.length));
-        break;
-      }
-    }
-    return cookieValue;
   }
 });
+
+
+
 </script>
+
+
 {% endblock %}

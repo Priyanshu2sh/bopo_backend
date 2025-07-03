@@ -44,12 +44,14 @@ class History(models.Model):
     TRANSACTION_TYPES = (
         ('redeem', 'Redeem'),
         ('award', 'Award'),
+        ('transferMToM', 'TransferMToM'),
+        ('transferCToC', 'TransferCToC'),
     )
 
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, null=True, blank=True)
     points = models.IntegerField()
-    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
+    transaction_type = models.CharField(max_length=50, choices=TRANSACTION_TYPES)
     created_at = models.DateTimeField(default=now)
 
     def __str__(self):
@@ -81,9 +83,7 @@ class MerchantToMerchant(models.Model):
     points = models.IntegerField()
     created_at = models.DateTimeField(default=now)
 
-    class Meta:
-        unique_together = ('sender_merchant', 'receiver_merchant')  # Ensures unique sender-receiver pair
-
+  
     def __str__(self):
         return f"{self.sender_merchant.merchant_id} -> {self.receiver_merchant.merchant_id}: {self.points} points"
     
@@ -129,6 +129,11 @@ class PaymentDetails(models.Model):
             existing_plan = existing.first().plan_type
             if existing_plan != self.plan_type:
                 raise ValidationError(f"This merchant already has a '{existing_plan}' plan. Duplicate plan types are not allowed.")
+            
+    # Property to return the top-up value
+    @property
+    def topup_amount(self):
+        return self.paid_amount
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -150,7 +155,7 @@ class BankDetail(models.Model):
     account_holder_name = models.CharField(max_length=255)
     bank_name = models.CharField(max_length=255)
     account_number = models.CharField(max_length=255, unique=True)
-    ifsc_code = models.CharField(max_length=11, null=True, blank=True)
+    ifsc_code = models.CharField(max_length=11)
     branch = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -219,5 +224,8 @@ class SuperAdminPayment(models.Model):
     
 class LastExpiryRun(models.Model):
     last_run = models.DateField(auto_now=True)
+    
+    
+
 
 

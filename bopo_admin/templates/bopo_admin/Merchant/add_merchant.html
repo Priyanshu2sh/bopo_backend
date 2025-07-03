@@ -27,7 +27,7 @@
         </a>
     </div>
 
-    <h2 class="heading">Add Corporate Merchant</h2>
+    <h2 class="heading">Add Corporate </h2>
     <div class="addmerchant-container">
 
     <form method="POST" action="{% url 'add_merchant' %}" id="copmerchantForm">
@@ -42,23 +42,28 @@
 
             
         <!-- Project Type Selection (Centered and Inline) -->
-            <div class="project-type-container">
-                <label>Select Project Type:</label>
-                <div class="addmerchant-radio-group">
-                    <label for="existing_project">
-                        <input type="radio" id="existing_project" name="project_type" value="Existing Project" required onclick="toggleProjectDropdown()">
-                        Existing Project
-                    </label>
+            <!-- Project Name Input Field -->
+<div id="project-name-container">
+    <label for="project_name">Project Name:</label>
+    <div class="addmerchant-input-container">
+        <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name" required>
+    </div>
+</div>
 
-                    <label for="new_project">
-                        <input type="radio" id="new_project" name="project_type" value="New Project" required onclick="toggleProjectDropdown()">
-                        New Project
-                    </label>
-                </div>
-            </div>
+
+
+<!-- Upload Logo -->
+<!-- <div id="upload-logo-container">
+    <label>Upload Logo</label>
+    <div class="addmerchant-input-container">
+        <i class="fas fa-image"></i>
+        <input type="file" name="logo" accept="image/*">
+    </div>
+</div> -->
+
 
             <!-- Select Project Dropdown (Hidden Initially) -->
-            <div id="select-project-container" class="hidden">
+            <!-- <div id="select-project-container" class="hidden">
                 <label for="select_project">Select Project:</label>
                 <div class="addmerchant-input-container">
                     <select id="select_project" name="select_project">
@@ -68,20 +73,20 @@
                         {% endfor %}
                     </select>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Project Name Input Field (Initially Hidden) -->
             
-            <div id="project-name-container" class="hidden">
+            <!-- <div id="project-name-container" class="hidden">
                 <label for="project_name">Project Name:</label>
                 <div class="addmerchant-input-container">
                     <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name">
                 </div>
-            </div>
+            </div> -->
 
 
 <!-- Account Type Selection (Initially Hidden) -->
-<div id="account-type-container" style="display:none;">
+<div id="account-type-container">
     <label for="account_type">Account Type:</label>
     <div class="addmerchant-input-container">
         <select id="account_type" name="account_type">
@@ -204,7 +209,7 @@
                         <input type="file" name="logo" accept="image/*">
                     </div> {% endcomment %}
 
-                    <div id="upload-logo-container" style="display: none;">
+                    <div id="upload-logo-container" >
                         <label>Upload Logo</label>
                         <div class="addmerchant-input-container">
                             <i class="fas fa-image"></i>
@@ -292,33 +297,47 @@
            if (value.length !== 12) return "Aadhaar number must be 12 digits";
            return "";
        },
-       pan_number: function(value) {
-           if (value.trim() === "") return "PAN number is required";
+    pan_number: function(value) {
+    const isNewProject = document.getElementById("new_project").checked;
+
+    // If "New Project" is selected, PAN is required
+    if (isNewProject) {
+        if (value.trim() === "") return "PAN number is required";
+    } else {
+        // If "Existing Project", PAN is optional
+        if (value.trim() === "") return "";
+    }
+
+    // Format validation (only if value is provided)
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+    if (!panRegex.test(value)) {
+        return "PAN must be 5 uppercase letters, 4 digits, 1 uppercase letter (e.g., ABCDE1234F)";
+    }
+
+    // Optional 4th character PAN type check
+    const panTypes = ['P', 'C', 'H', 'A', 'B', 'G', 'J', 'L', 'F', 'T'];
+    const fourthChar = value.charAt(3);
+    if (!panTypes.includes(fourthChar)) {
+        return "Invalid PAN holder type (4th character should be one of P/C/H/A/B/G/J/L/F/T)";
+    }
+
+    return "";
+},
+
        
-           // Real PAN format regex:
-           const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
-       
-           if (!panRegex.test(value)) {
-               return "PAN must be 5 uppercase letters, 4 digits, 1 uppercase letter (e.g., ABCDE1234F)";
-           }
-       
-           // Additional optional check: The 4th letter is the type of PAN holder (optional strict check)
-           const panTypes = ['P', 'C', 'H', 'A', 'B', 'G', 'J', 'L', 'F', 'T'];
-           const fourthChar = value.charAt(3);
-           if (!panTypes.includes(fourthChar)) {
-               return "Invalid PAN holder type (4th character should be one of P/C/H/A/B/G/J/L/F/T)";
-           }
-       
-           return "";
-       },
-       
-       gst_number: function (value) {
-           if (value === "") return "GST number is required";
-           if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value)) {
-               return "Enter a valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)";
-           }
-           return "";
-       },
+gst_number: function (value) {
+    // If value is provided, validate format
+    if (value.trim() !== "") {
+        const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+        if (!gstRegex.test(value)) {
+            return "Enter a valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)";
+        }
+    }
+
+    // If value is empty, that's acceptable (not required)
+    return "";
+},
+
        pin: function (value) {
         if (value === "") return "PIN is required";
         if (!/^\d{4}$/.test(value)) return "PIN must be exactly 4 digits";
@@ -456,7 +475,7 @@ function showToast(message, type) {
  
 
         function fetchStates() {
-            fetch("/bopo_admin/get-states/")
+            fetch("/get-states/")
                 .then(response => response.json())
                 .then(data => {
                     let stateDropdown = document.getElementById("state");
@@ -477,7 +496,7 @@ function showToast(message, type) {
             cityDropdown.innerHTML = '<option value="">Select City</option>';
 
             if (stateId) {
-                fetch(`/bopo_admin/get-cities/${stateId}/`)
+                fetch(`/get-cities/${stateId}/`)
                     .then(response => response.json())
                     .then(data => {
                         data.forEach(city => {
@@ -494,7 +513,7 @@ function showToast(message, type) {
 
     </script>
 
-<script>
+<!-- <script>
     document.addEventListener("DOMContentLoaded", function () {
         const existingProjectRadio = document.getElementById("existing_project");
         const newProjectRadio = document.getElementById("new_project");
@@ -527,7 +546,7 @@ function showToast(message, type) {
 
         toggleProjectFields(); // Initial check
     });
-</script>
+</script> -->
 
 
     

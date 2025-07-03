@@ -28,9 +28,9 @@ class MerchantPointsAdmin(admin.ModelAdmin):
     search_fields = ('merchant__id',)
     list_filter = ('created_at',)
     ordering = ('-created_at',)
-
 admin.site.register(CustomerPoints, CustomerPointsAdmin)
 admin.site.register(MerchantPoints, MerchantPointsAdmin)
+
 class PaymentDetailsAdmin(admin.ModelAdmin):
     list_display = ('merchant', 'paid_amount', 'transaction_id',  'payment_mode', 'created_at')
     search_fields = ('transaction_id', 'merchant__id')  # or 'merchant__name' if available
@@ -38,14 +38,24 @@ class PaymentDetailsAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
 
 admin.site.register(PaymentDetails, PaymentDetailsAdmin)
-admin.site.register(BankDetail)
+
+class BankDetailAdmin(admin.ModelAdmin):
+    list_display = ('merchant', 'customer', 'account_holder_name', 'bank_name', 'account_number', 'ifsc_code', 'branch', 'created_at')
+    search_fields = ('merchant__id', 'customer__id', 'account_holder_name')
+    list_filter = ('created_at',)
+    ordering = ('-created_at',)
+admin.site.register(BankDetail, BankDetailAdmin)
+
 admin.site.register(Help)
 admin.site.register(History)
 admin.site.register(ModelPlan)
 admin.site.register(CashOut)
 admin.site.register(AwardPoints)
 
-admin.site.register(GlobalPoints)
+class GlobalPointsAdmin(admin.ModelAdmin):
+    list_display = ('customer', 'points')
+admin.site.register(GlobalPoints, GlobalPointsAdmin)
+
 admin.site.register(SuperAdminPayment)
 
 

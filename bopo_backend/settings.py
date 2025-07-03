@@ -20,13 +20,14 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load .env file
-load_dotenv(os.path.join(BASE_DIR, '.env'))
+ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+load_dotenv(dotenv_path=ENV_PATH)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-fallback-secret-key")
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG=True
@@ -102,8 +103,10 @@ CSRF_TRUSTED_ORIGINS = [
     "https://test.biggbonuspoints.in:8001",
     "http://test.biggbonuspoints.in:8001",
     "https://biggbonuspoints.in:8001",
-    # "https://biggbonuspoints.prushal.com:8001",
-    # "http://biggbonuspoints.prushal.com:8001"
+    "https://test.biggbonuspoints.in",
+    "http://test.biggbonuspoints.in",
+    "https://biggbonuspoints.in",
+    "http://biggbonuspoints.in",
 ]
 
 # raw_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
@@ -170,7 +173,17 @@ EMAIL_HOST_PASSWORD = 'xjfybjccvkpmljmu'  # App password (not your Gmail passwor
 DEFAULT_FROM_EMAIL = 'BBP Team <006iipt@gmail.com>'
 # DEFAULT_DOMAIN = "127.0.0.1:8000"
 
+# ================================Shweta
 
+# Email settings for Gmail SMTP
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = '002iipt@gmail.com'       
+# EMAIL_HOST_PASSWORD = 'pnqhgteuanykydbj' 
+
+# ===================================
 # settings.py
 LOGGING = {
     'version': 1,
@@ -219,10 +232,10 @@ LOGIN_URL = '/login/'
 
 
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID")
-TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN")
-TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER")
-
+# Twilio Configuration
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
 
 # Internationalization

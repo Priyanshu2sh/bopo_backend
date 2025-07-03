@@ -68,9 +68,10 @@
 }
 
 #terminal-info table {
-  width: 100%;
+  width: 150%  !important;
   border-collapse: collapse;
   margin-top: 23%;
+  margin-left: -33%;
   background-color: #fff; /* Light background for the table */
   border-radius: 10px; /* Rounded corners for the table */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
@@ -233,3 +234,120 @@ input:checked + .slider:before {
   background-color: #ff4d4d;
 }
 
+
+/* Button Container */
+.custom-modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Common Button Style */
+.custom-btn {
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Confirm Button - Green */
+#confirmAction {
+  background-color: #4CAF50;
+}
+
+#confirmAction:hover {
+  background-color: #43a047;
+  transform: translateY(-2px);
+}
+
+/* Cancel Button - Red */
+#cancelAction {
+  background-color: #f44336;
+}
+
+#cancelAction:hover {
+  background-color: #e53935;
+  transform: translateY(-2px);
+}
+
+/* Close Icon (Optional Enhancements) */
+.custom-close {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.custom-close:hover {
+  color: #000;
+}
+
+/* Modal backdrop: full-screen, faint background */
+.custom-modal {
+  display: none; /* Only show on button click */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); /* Faint dark background */
+  backdrop-filter: blur(2px); /* Subtle blur */
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/* Modal content */
+.custom-modal-content {
+  background-color: #fff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  position: relative;
+  animation: fadeInScale 0.3s ease-in-out;
+}
+
+/* Modal entrance animation */
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+button.btn-danger:disabled,
+button.btn-danger.disabled-delete {
+  background-color: #b0b0b0 !important;
+  color: rgb(11, 11, 11) !important;
+  border: none;
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 1 !important;
+}
+
+
+
+.button-group {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important; /* spacing between buttons */
+  flex-wrap: wrap !important; /* handles responsiveness if needed */
+}

@@ -131,7 +131,7 @@ urlpatterns = [
         template_name='bopo_admin/ForgotPass/forgot_password.html',
         email_template_name='bopo_admin/ForgotPass/password_reset_email.html',
         subject_template_name='bopo_admin/ForgotPass/password_reset_subject.txt',
-        success_url='/bopo_admin/forgot-password/done/',
+        success_url='/portal/forgot-password/done/',
         form_class=CustomPasswordResetForm,
     ), name='forgot_password'),
 
@@ -165,7 +165,7 @@ urlpatterns = [
 
     # path('update-merchant-status/', update_merchant_status, name='update_merchant_status'),
     path("get-customer/<str:customer_id>/", views.get_customer, name="get_customer"),
-    path('bopo_admin/update-customer/<str:customer_id>/', views.update_customer, name='update_customer'),
+    path('update-customer/<str:customer_id>/', views.update_customer, name='update_customer'),
     path('delete-customer/<str:customer_id>/', views.delete_customer, name='delete_customer'),
     
     path('logout/', custom_logout_view, name='logout'),
@@ -236,14 +236,18 @@ urlpatterns = [
     path('send-customer-credentials/', views.send_customer_credentials, name='send_customer_credentials'),
 
     
- 
+
     path('create_notification/', create_notification_view, name='create_notification'),
     path("transaction_history/", views.transaction_history, name="transaction_history"),
     
 
-
-
     path('api/save-fcm-token/', views.save_fcm_token, name='save_fcm_token'),
+    
+    path('corporate/<str:corporate_id>/merchants/', views.view_corporate_merchants, name='view_corporate_merchants'),
+    path('corporate_merchants/', views.corporate_merchants, name='corporate_merchants'),
+    
+    path('corporate_under/add_merchant/', views.corporate_under_merchant, name='corporate_under_merchant'),
+    
 
 
 ]

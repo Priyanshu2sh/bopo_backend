@@ -65,6 +65,8 @@ class BopoAdmin(AbstractBaseUser, PermissionsMixin):
     city = models.CharField(max_length=100, null=True, blank=True)
     employee = models.ForeignKey('bopo_admin.Employee', on_delete=models.CASCADE, null=True, blank=True)
     corporate = models.ForeignKey('accounts.Corporate', on_delete=models.CASCADE, null=True, blank=True)
+    
+    has_twilio_subscription = models.BooleanField(default=False) 
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -87,6 +89,8 @@ class BopoAdmin(AbstractBaseUser, PermissionsMixin):
             self.email = self.corporate.email  
 
         super().save(*args, **kwargs)
+    
+    
     
 class AccountInfo(models.Model):
     accountNumber = models.CharField(max_length=200, blank=True, null=True)

@@ -501,7 +501,7 @@ function openEditModal(customerId) {
     document.getElementById("editCustomerId").value = customerId;
 
     // Fetch customer data from server
-    fetch(`/bopo_admin/get-customer/${customerId}/`)
+    fetch(`/get-customer/${customerId}/`)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -553,7 +553,7 @@ function closeEditModal() {
     
             let formData = new FormData(this);
     
-            fetch(`/bopo_admin/update-customer/${document.getElementById("editCustomerId").value}/`, {
+            fetch(`/update-customer/${document.getElementById("editCustomerId").value}/`, {
                 method: "POST",
                 headers: {
                     "X-CSRFToken": getCookie("csrftoken")
@@ -693,7 +693,7 @@ function closeEditModal() {
      {% endcomment %}
 
 function fetchStates() {
-    return fetch("/bopo_admin/get-states/")
+    return fetch("/get-states/")
         .then(response => response.json())
         .then(states => {
             const stateDropdown = document.getElementById("edit_state");
@@ -709,7 +709,7 @@ function fetchStates() {
 
 function fetchCities(state) {
     const stateId = state || document.getElementById("edit_state").value;
-    return fetch(`/bopo_admin/get-cities/${stateId}/`)
+    return fetch(`/get-cities/${stateId}/`)
         .then(res => res.json())
         .then(cities => {
             const cityDropdown = document.getElementById("edit_city");
