@@ -899,3 +899,22 @@ button {
   margin-right: 6px;
 }
 
+.pagination a, .pagination .current {
+    margin: 0 5px;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.pagination a:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.pagination .current {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}

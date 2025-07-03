@@ -13,6 +13,8 @@ from django.http import FileResponse, HttpResponse, HttpResponseRedirect, JsonRe
 from django.db.models.functions import Cast, Substr
 from django.shortcuts import get_object_or_404, render
 import openpyxl
+from django.core.paginator import Paginator
+
 from requests import Response
 from rest_framework import status
 from openpyxl.styles import Font
@@ -5451,6 +5453,22 @@ def view_corporate_merchants(request, corporate_id):
         'corporate': corporate,
         'merchants': merchants,
     })
+
+# def view_corporate_merchants(request, corporate_id):
+#     corporate = get_object_or_404(Corporate, corporate_id=corporate_id)
+    
+#     # Make sure this returns a queryset, not a function
+#     merchant_list = Merchant.objects.filter(corporate_id=corporate).order_by('id')
+    
+#     paginator = Paginator(merchant_list, 10)  # Show 10 merchants per page
+#     page_number = request.GET.get('page')
+#     page_obj = paginator.get_page(page_number)
+
+#     return render(request, 'bopo_admin/Merchant/corporate_merchants_list.html', {
+#         'corporate': corporate,
+#         'page_obj': page_obj,
+#     })
+
     
 def corporate_merchants(request):
   
