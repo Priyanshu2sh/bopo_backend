@@ -30,7 +30,7 @@
     <h2 class="heading">Add Corporate </h2>
     <div class="addmerchant-container">
 
-    <form method="POST" action="{% url 'add_merchant' %}" id="copmerchantForm">
+    <form method="POST" action="{% url 'add_merchant' %}" id="copmerchantForm" enctype="multipart/form-data">
         {% csrf_token %}
 
         {% if messages %}
@@ -374,6 +374,8 @@ gst_number: function (value) {
         });
     });
 
+    // Comment out or remove this block to allow normal form submission:
+    /*
     document.querySelector("form").addEventListener("submit", function (event) {
         event.preventDefault();
 
@@ -436,6 +438,7 @@ gst_number: function (value) {
             showToast("An unexpected error occurred in frontend.", "error");
         });
     });
+    */
 
     // Toast auto-hide if already visible
     const toast = document.getElementById("toast");

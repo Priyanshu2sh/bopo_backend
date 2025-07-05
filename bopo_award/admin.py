@@ -6,7 +6,9 @@
 
 
 from django.contrib import admin
-from .models import AwardPoints, BankDetail, CashOut, CustomerPoints, GlobalPoints, Help, History, MerchantPoints, ModelPlan, PaymentDetails, SuperAdminPayment
+
+
+from .models import AwardPoints, BankDetail, CashOut, CustomerPoints, CustomerToCustomer, GlobalPoints, Help, History, MerchantPoints, MerchantToMerchant, ModelPlan, PaymentDetails, SuperAdminPayment
 
 # class TransferPointAdmin(admin.ModelAdmin):
 #     list_display = ('customer_id', 'merchant_id', 'points', 'transaction_type', 'created_at')
@@ -45,6 +47,20 @@ class BankDetailAdmin(admin.ModelAdmin):
     list_filter = ('created_at',)
     ordering = ('-created_at',)
 admin.site.register(BankDetail, BankDetailAdmin)
+
+class CustomerToCustomerAdmin(admin.ModelAdmin):
+    list_display = ('sender_customer', 'receiver_customer', 'merchant', 'points', 'created_at')
+    search_fields = ('sender_customer', 'receiver_customer')
+    list_filter = ('created_at',)
+    ordering = ('-created_at',)
+admin.site.register(CustomerToCustomer, CustomerToCustomerAdmin)
+
+class MerchantToMerchantAdmin(admin.ModelAdmin):
+    list_display = ('sender_merchant', 'receiver_merchant', 'points', 'created_at')
+    search_fields = ('sender_merchant', 'receiver_merchants')
+    list_filter = ('created_at',)
+    ordering = ('-created_at',)
+admin.site.register(MerchantToMerchant, MerchantToMerchantAdmin)
 
 admin.site.register(Help)
 admin.site.register(History)

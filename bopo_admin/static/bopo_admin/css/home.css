@@ -5,6 +5,9 @@ body, html {
     padding: 0;
 }
 
+.title{
+    margin-top: 3%;
+}
 .dashboard-container {
     font-family: 'Poppins', sans-serif;
     padding: 20px;

@@ -27,7 +27,9 @@
 <div class="top-controls" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px;">
 
   <!-- Search box -->
-  <input type="text" class="search-box" id="search-customer" placeholder="Search merchants..." style="flex-grow: 1; max-width: 300px; padding: 6px;">
+  <form autocomplete="off" style="flex-grow:1; max-width:300px;">
+    <input type="text" class="search-box" id="search-customer" placeholder="Search merchants..." style="width:100%; padding:6px;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="search" onfocus="this.removeAttribute('autocomplete');">
+  </form>
 
   <!-- Buttons group -->
   <div class="buttons-group" style="display: flex; align-items: center; gap: 10px;">
@@ -209,10 +211,27 @@
     // Attach buttons container to your custom div
     table.buttons().container().appendTo('#custom-buttons');
 
-    // Custom search box filtering
+    // Only use keyup for search, do NOT use input event or any code that redraws table on input clear
     $('#search-customer').on('keyup', function () {
       table.search(this.value).draw();
     });
+
+    // Always show all rows on page load (fix for DataTables hiding rows after reload)
+    table.search('').draw(false);
+
+    // Re-attach click handlers after table redraw (for Approve/Reject buttons)
+    $('#payment-table').on('click', '.btn-success', function() {
+      const paymentId = $(this).attr('id').replace('approve-btn-', '');
+      const planType = $(this).closest('tr').find('td:nth-child(8)').text().trim().toLowerCase();
+      showApproveModal(paymentId, planType);
+    });
+    $('#payment-table').on('click', '.btn-danger', function() {
+      const paymentId = $(this).attr('id').replace('reject-btn-', '');
+      openRejectPasswordModal(paymentId);
+    });
+
+    // Remove this redundant redraw to avoid hiding rows after reload
+    // table.search('').draw();
 
     // Variable to store selected plan filter
     let selectedPlan = "";
@@ -512,7 +531,5 @@ function confirmReject() {
     });
 }
 
-
 </script>
-
 {% endblock %}
