@@ -980,6 +980,16 @@ import string
 #     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
 
 
+def redirect_with_error(request, message):
+    from django.contrib import messages
+    messages.error(request, message)
+    return redirect("add_merchant")
+
+def redirect_with_success(request, message):
+    from django.contrib import messages
+    messages.success(request, message)
+    return redirect("add_merchant")
+
 def add_merchant(request):
     if request.method == "POST":
         try:
@@ -1089,7 +1099,7 @@ def add_merchant(request):
             bopo_admin.save()
 
             success_message = "Merchant and corporate created successfully."
-            return JsonResponse({"success": True, "message": success_message, "corporate_id": corporate.corporate_id}) if is_ajax else redirect_with_success(success_message)
+            return JsonResponse({"success": True, "message": success_message, "corporate_id": corporate.corporate_id}) if is_ajax else redirect_with_success(request, success_message)
 
         except Exception as e:
             print("Error saving merchant:", e)
@@ -1100,15 +1110,7 @@ def add_merchant(request):
 
 
 
-def redirect_with_error(request, message):
-    from django.contrib import messages
-    messages.error(request, message)
-    return redirect("add_merchant")
 
-def redirect_with_success(request, message):
-    from django.contrib import messages
-    messages.success(request, message)
-    return redirect("add_merchant")
 
 
 def get_corporate(request, corporate_id):

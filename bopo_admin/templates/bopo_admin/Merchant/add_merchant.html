@@ -34,10 +34,15 @@
         {% csrf_token %}
 
         {% if messages %}
-        {% for message in messages %}
-          <div style="color: green; font-weight: bold;">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
+    {% for message in messages %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                showToast("{{ message|escapejs }}", "success");
+            });
+        </script>
+    {% endfor %}
+{% endif %}
+
   
 
             
@@ -229,10 +234,17 @@
   
 
     <!-- Toast Notification -->
-    <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+    <!-- <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
         <i class="fa fa-exclamation-circle"></i>
         <span class="toast-message">{{ message }}</span>
-    </div>
+    </div> -->
+
+    <!-- Toast Notification Container -->
+    <div id="toast" class="toast-container">
+        <i class="fa fa-exclamation-circle"></i>
+        <span class="toast-message"></span>
+    </div>  
+
 
   
       
