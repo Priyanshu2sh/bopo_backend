@@ -13,25 +13,28 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from decouple import config
 
-load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load .env file
+ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+load_dotenv(dotenv_path=ENV_PATH)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-5+1e)3&p(_v%xx@oaugfu&f51l=7l*=^#r0@*p*4%^vbilr0po'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG=True
 
-ALLOWED_HOSTS = [
-    '*',
-]
+
+ALLOWED_HOSTS = ['*']
+
 
 
 # Application definition
@@ -45,23 +48,26 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'bopo_admin',
-    'rest_framework',
+    'bopo_award',
+    'bopo',    # 'bopo_customer',
     'accounts',
+    'transaction_history',
+    'rest_framework',
+    'corsheaders',
+    'qr_store', 
+    'transfer',
+    'channels',
 ]
 
-TWILIO_ACCOUNT_SID = "ACe251c2593dcf301348462ad5ae819117"
-TWILIO_AUTH_TOKEN = "4de15e024307908945f9a3cf98e23962"
-TWILIO_PHONE_NUMBER = "+17657034202"
+CORS_ALLOW_ALL_ORIGINS = True
+APPEND_SLASH = True
 
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ),
-}
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -69,7 +75,43 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
+    'bopo_admin.login_required_middleware.LoginRequiredMiddleware',
+    'bopo_backend.middleware.Custom404Middleware', 
+    
+   
+    
+    
 ]
+
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'access-control-allow-origin',
+]
+
+# CSRF_TRUSTED_ORIGINS = [
+#     "https://8e09-103-211-60-165.ngrok-free.app",
+#     "https://3fb0-2401-4900-79d1-d74-6851-4650-8615-4650-8615-f92c.ngrok-free.app",
+#     "https://7a22-2401-4900-57c6-ae7c-e933-a11b-70e7-85f4.ngrok-free.app",
+# ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8001",
+    "http://103.186.132.186:8001",
+    "https://test.biggbonuspoints.in:8001",
+    "http://test.biggbonuspoints.in:8001",
+    "https://biggbonuspoints.in:8001",
+    "https://test.biggbonuspoints.in",
+    "http://test.biggbonuspoints.in",
+    "https://biggbonuspoints.in",
+    "http://biggbonuspoints.in",
+]
+
+# raw_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+# CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+
 
 ROOT_URLCONF = 'bopo_backend.urls'
 
@@ -80,76 +122,145 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'bopo_admin.context_processors.employee_permissions',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'accounts.context_processors.logo_context',  
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'bopo_backend.wsgi.application'
+# ASGI application
+ASGI_APPLICATION = "bopo_backend.routing.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            # "hosts": [("redis", 6379)],
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
+# Timezone settings
+USE_TZ = True
+TIME_ZONE = 'Asia/Kolkata'
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keeps session after browser is closed
+SESSION_COOKIE_AGE = 2592000  # 30 days in seconds (used if remember_me is checked)
 
 
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
+# EMAIL_HOST_PASSWORD = 'xjfy bjcc vkpm ljmu'  # App password from step above
+# DEFAULT_FROM_EMAIL = 'BOPO Team <006iipt@gmail.com>'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False 
+EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
+EMAIL_HOST_PASSWORD = 'xjfybjccvkpmljmu'  # App password (not your Gmail password)
+DEFAULT_FROM_EMAIL = 'BBP Team <006iipt@gmail.com>'
+# DEFAULT_DOMAIN = "127.0.0.1:8000"
+
+# ================================Shweta
+
+# Email settings for Gmail SMTP
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = '002iipt@gmail.com'       
+# EMAIL_HOST_PASSWORD = 'pnqhgteuanykydbj' 
+
+# ===================================
+# settings.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+
+# Database configuration from environment variables
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("DB_HOST"),
+        'PORT': os.getenv("DB_PORT"),
     }
 }
 
-
 # Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    # },
 ]
 
+AUTH_USER_MODEL = 'bopo_admin.BopoAdmin'
+LOGIN_URL = '/login/'
 
 
-# Twilio Credentials
+# Twilio Configuration
+# Twilio Configuration
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_TZ = True
-
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATIC_URL = 'static/'
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / 'bopo_admin/static/',
 ]
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Media files (Uploaded files)
+MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+

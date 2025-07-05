@@ -1,0 +1,13 @@
+{% block content %}
+<div style="min-height: 70vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #555; font-family: 'Arial', sans-serif; padding: 40px; text-align: center;">
+  <h1 style="font-size: 10rem; color: #d9534f; margin: 0;">404</h1>
+  <h2 style="font-size: 2rem; margin: 10px 0 20px;">Page Not Found</h2>
+  <p style="font-size: 1.2rem; max-width: 320px; margin-bottom: 30px;">
+    Sorry, the page you are looking for does not exist.
+  </p>
+  <a href="{% url 'home' %}" 
+     style="font-weight: 600; color: #007acc; text-decoration: none; border: 2px solid #007acc; padding: 10px 25px; border-radius: 4px; transition: background-color 0.3s, color 0.3s;">
+    ← Back to Home
+  </a>
+</div>
+{% endblock %}

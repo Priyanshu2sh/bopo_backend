@@ -1,0 +1,213 @@
+{% extends "bopo_admin/base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_status.css' %}">
+
+<div class="merchant_status-back-to-list-btn">
+    <a href="{% url 'reduce_limit' %}" class="merchant_status-btn-submit">
+        <i class="fa fa-arrow-left"></i> Back 
+    </a>
+</div>
+<h2>Merchant Status</h2>
+
+<div class="merchant_status-container">
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="merchant_status-form-group">
+            <label for="project-name">Project Name</label>
+            <div class="merchant_status-input-icon">
+                <i class="fa fa-folder merchant_status-icon"></i>
+                <select id="project-name" name="project_name" class="merchant_status-select" onchange="fetchMerchants()" required>
+                    <option value="">Select a project</option>
+                    {% for corporate in corporates %}
+                        <option value="{{ corporate.project_id }}">{{ corporate.project_name }} </option>
+                    {% endfor %}
+                
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="merchant">Select Merchant:</label>
+                <select id="merchant" name="merchant" class="merchant_status-select">
+                    <option value="">-- Select a Merchant --</option>
+                    <!-- Options will be loaded here -->
+                </select>
+            </div>
+        </div>
+
+       <!-- Merchant Name (Disabled) -->
+       <div class="merchant_status-form-group">
+        <label for="merchant_name">Merchant Name</label>
+        <div class="merchant_status-input-icon">
+            <i class="fa fa-user merchant_status-icon"></i>
+            <input type="text" id="merchant_name" name="merchant_name"
+                class="merchant_status-input" placeholder="Merchant Name" disabled>
+
+       
+
+        </div>
+    </div>
+    
+
+<div class="merchant_status-form-group">
+    <!-- Merchant ID for Verification -->
+    <div class="merchant_status-input-icon">
+        <i class="fa fa-barcode merchant_status-icon"></i>
+        <select id="terminal-id-dropdown" name="terminal_id_dropdown" class="merchant_status-select" required>
+            <option value="">-- Select a Terminal ID --</option>
+        </select>
+        
+    </div><br>
+    <button type="submit" class="merchant_status-submit-btn" onclick="showAlert()">Submit</button>
+</div>
+    </form>
+</div>
+    
+<!-- Toast Notification -->
+<div id="toast" class="toast-container">
+    <i class="fa fa-check-circle"></i>
+    <span class="toast-message">Status Change Successfully!</span>
+</div>
+
+
+
+<script>
+    function fetchMerchants() {
+        const projectId = document.getElementById("project-name").value;
+
+        fetch(`/get-merchants/?project_id=${projectId}`)
+            .then(response => response.json())
+            .then(data => {
+                const merchantDropdown = document.getElementById("merchant");
+                const merchantNameInput = document.getElementById("merchant_name");
+
+                // Clear dropdown
+                merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
+
+                // Populate dropdown
+                data.merchants.forEach(merchant => {
+                    const option = document.createElement("option");
+                    option.value = merchant.merchant_id;
+                    option.text = merchant.merchant_id;
+                    option.setAttribute("data-name", `${merchant.first_name} ${merchant.last_name || ""}`);
+                    merchantDropdown.appendChild(option);
+                });
+
+                // Clear name input
+                merchantNameInput.value = "";
+            })
+            .catch(error => {
+                console.error("Error fetching merchants:", error);
+            });
+    }
+
+    // Autofill merchant name on select
+    // document.addEventListener("DOMContentLoaded", () => {
+    //     document.getElementById("merchant").addEventListener("change", function () {
+    //         const selectedOption = this.options[this.selectedIndex];
+    //         const merchantName = selectedOption.getAttribute("data-name") || "";
+    //         document.getElementById("merchant_name").value = merchantName;
+    //     });
+    // });
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+    const merchantDropdown = document.getElementById("merchant");
+    const merchantNameInput = document.getElementById("merchant_name");
+    const terminalDropdown = document.getElementById("terminal-id-dropdown");
+
+    merchantDropdown.addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const merchantId = selectedOption.value;
+        const merchantName = selectedOption.getAttribute("data-name") || "";
+
+        // Set merchant name
+        merchantNameInput.value = merchantName;
+
+        // Clear Terminal ID dropdown
+        terminalDropdown.innerHTML = '<option value="">-- Select a Terminal ID --</option>';
+
+        // Fetch terminal IDs based on selected merchant
+        if (merchantId) {
+            fetch(`/get-terminal-ids/?merchant_id=${merchantId}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.terminal_ids.forEach(tid => {
+                        const option = document.createElement("option");
+                        option.value = tid;
+                        option.text = tid;
+                        terminalDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching terminal IDs:", error);
+                });
+        }
+    });
+});
+
+</script>
+    
+
+<!-- <script>
+
+
+function fetchMerchants() {
+    const projectId = document.getElementById("project-name").value;
+
+    fetch(`/get-merchants/?project_id=${projectId}`)
+        .then(response => response.json())
+        .then(data => {
+            const merchantDropdown = document.getElementById("merchant");
+            const merchantNameInput = document.getElementById("merchant_name");
+
+            // Clear old options
+            merchantDropdown.innerHTML = '<option value="">-- Select a Merchant --</option>';
+            merchantNameInput.value = ""; // Clear previous name
+
+            data.merchants.forEach(merchant => {
+                const option = document.createElement("option");
+                option.value = merchant.merchant_id;
+                option.text = merchant.merchant_id;  // Only show merchant ID
+                option.setAttribute("data-name", `${merchant.first_name} ${merchant.last_name}`);
+                merchantDropdown.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching merchants:", error);
+        });
+}
+        data.merchants.forEach(merchant => {
+    const option = document.createElement("option");
+    option.value = merchant.merchant_id;
+    option.text = merchant.merchant_id; // Only show ID in dropdown if you want
+    option.setAttribute("data-name", `${merchant.first_name} ${merchant.last_name}`); // Store full name
+    merchantDropdown.appendChild(option);
+});
+   
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("merchant").addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const fullName = selectedOption.getAttribute("data-name") || "";
+        document.getElementById("merchant_name").value = fullName;
+    });
+});
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let toast = document.getElementById("toast");
+            toast.classList.add("toast-show");
+
+            setTimeout(function () {
+                toast.classList.add("toast-hide");
+                setTimeout(() => {
+                    toast.classList.remove("toast-show", "toast-hide");
+                    document.querySelector("form").submit();
+                }, 500);
+            }, 3000);
+        });
+    });
+</script> -->
+{% endblock %}

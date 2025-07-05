@@ -1,0 +1,174 @@
+{% extends "bopo_admin/base.html" %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merchant Top-Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_topup.css' %}">
+</head>
+
+<body>
+    <div class="topup-back-btn">
+        <a href="{% url 'merchant_credentials' %}" class="topup-back-back-btn-submit">
+            <i class="fa fa-arrow-left"></i> Back 
+        </a>
+    </div>
+    <h1 class="heading">Merchant Top-Up Limit</h1>
+    <div class="merchant_topup">
+     
+        <form method="post" class="topup-form" action="{% url 'merchant_topup' %}">
+            {% csrf_token %}
+        
+            <!-- Merchant Dropdown -->
+            <div class="form-group center-align">
+                <label for="merchant">Select Merchant:</label>
+                <select id="merchant" name="merchant" onchange="fetchMerchantDetails()">
+                    <option value="">Select Merchant</option>
+                    {% for merchant in merchants %}
+                        <option value="{{ merchant.id }}" data-merchant-id="{{ merchant.merchant_id }}">
+                            {{ merchant.first_name }} {{ merchant.last_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+         
+            <div class="form-container">
+                <!-- Left Form -->
+                <div class="form-wrapper">
+                    <div class="form-group">
+                        <label for="merchant_id">Merchant ID:</label>
+                        <input type="text" id="merchant_id" name="merchant_id" readonly>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="topup_amount">Top-Up Paid Amount:</label>
+                        <input type="number" id="topup_amount" name="topup_amount" readonly>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="transaction_id">Transaction ID:</label>
+                        <input type="text" id="transaction_id" name="transaction_id" required>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="topup_points">Top-Up Points:</label>
+                        <input type="number" id="topup_points" name="topup_points" required>
+                    </div>
+                </div>
+        
+                <!-- Right Form -->
+                <div class="right-box">
+                    <div class="form-group">
+                        <label for="payment_mode">Payment Mode:</label>
+                        <select id="payment_mode" name="payment_mode" required onchange="showPaymentFields()">
+                            <option value="">-- Select Payment Method --</option>
+                            <option value="upi">UPI</option>
+                            <option value="net_banking">Net Banking</option>
+                            <option value="credit_card">Credit Card</option>
+                            <option value="debit_card">Debit Card</option>
+                        </select>
+                    </div>
+        
+                    <div id="upi_fields" class="payment-fields" style="display: none;">
+                        <div class="form-group">
+                            <label for="upi_id">UPI ID:</label>
+                            <input type="text" id="upi_id" name="upi_id">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <button type="submit" class="topup-btn-submit"><i class="fa fa-paper-plane"></i> Submit</button>
+        </form>
+        </div>
+
+
+
+ <!-- Toast Notification -->
+ <div id="toast" class="toast-container">
+    <i class="fa fa-check-circle"></i>
+    <span class="toast-message"> Submitted successfully!</span>
+</div>
+
+
+    <!-- JavaScript -->
+    <script>
+        function fetchMerchantDetails() {
+    const merchantSelect = document.getElementById("merchant");
+    const selectedOption = merchantSelect.options[merchantSelect.selectedIndex];
+    const merchantCode = selectedOption.getAttribute("data-merchant-id");
+
+    if (!merchantCode) {
+        document.getElementById("merchant_id").value = "";
+        document.getElementById("topup_amount").value = "";
+        return;
+    }
+
+    fetch(`/get-payment-details/?merchant_id=${merchantCode}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                document.getElementById("merchant_id").value = merchantCode;
+                document.getElementById("topup_amount").value = data.paid_amount || 0;
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching merchant details:", error);
+        });
+    }
+
+    </script>
+    
+    <script>
+        function showPaymentFields() {
+            let paymentMethod = document.getElementById("payment_mode").value;
+            
+            // Hide all payment-specific fields initially
+            document.getElementById("upi_fields").style.display = "none";
+           // document.getElementById("net_banking_fields").style.display = "none";
+           // document.getElementById("card_fields").style.display = "none";
+
+        // Show fields based on selection
+        if (paymentMethod === "upi") {
+            document.getElementById("upi_fields").style.display = "block";
+        //} else if (paymentMethod === "net_banking") {
+        //    document.getElementById("net_banking_fields").style.display = "block";
+       // } else if (paymentMethod === "credit_card" || paymentMethod === "debit_card") {
+        //    document.getElementById("card_fields").style.display = "block";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector(".topup-form");
+    if (!form) return;
+
+    form.addEventListener("submit", function (e) {
+        const paidAmount = parseInt(document.getElementById("topup_amount").value || 0);
+        const topupPoints = parseInt(document.getElementById("topup_points").value || 0);
+
+        if (paidAmount !== topupPoints) {
+            e.preventDefault();
+            alert("Top-Up Points must exactly match the Paid Amount.");
+        }
+    });
+});
+
+
+        function fillMerchantId() {
+            const merchantDropdown = document.getElementById("merchant");
+            const selectedOption = merchantDropdown.options[merchantDropdown.selectedIndex];
+            const merchantId = selectedOption.getAttribute("data-merchant-id");
+            document.getElementById("merchant_id").value = merchantId || "";
+        }
+</script>
+
+
+</body>
+</html>
+{% endblock %}

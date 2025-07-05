@@ -48,14 +48,7 @@
                         <td>{{ project.name }}</td>
                         <td>{{ project.manager }}</td>
                         <td>{{ project.status }}</td>
-                        <td>
-                            <a href="{% url 'edit_project_url_name' project.id %}" class="btn btn-warning btn-sm">
-                                <i class="fa fa-edit"></i> Edit
-                            </a>
-                            <a href="{% url 'delete_project_url_name' project.id %}" class="btn btn-danger btn-sm">
-                                <i class="fa fa-trash"></i> Delete
-                            </a>
-                        </td>
+                       
                     </tr>
                 {% endfor %}
             </tbody>

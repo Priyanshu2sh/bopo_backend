@@ -1,0 +1,353 @@
+.terminal-container {
+  width: 400px;
+  margin: 30px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-top: 10%;
+}
+
+.terminal-container h2 {
+  color: #004080;
+  font-size: 26px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  margin-top: -40%;
+  margin-left: -100%;
+}
+
+.merchant-select-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 17%;
+}
+
+.merchant-select-row label {
+  white-space: nowrap;
+  font-weight: bold;
+  color: #444;
+  margin: 0;
+  margin-left: -70%;
+}
+
+.merchant-select-row select {
+  width: 120%;  /* Adjust width of the dropdown */
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  
+ 
+}
+#merchant_id {
+  min-width: 250px;
+}
+
+
+.add-terminal-btn {
+  padding: 8px 15px;
+  font-weight: bold;
+  font-size: 16px;
+  color: white;
+  background: linear-gradient(178deg, #004080 0%, #2c3e50 100%);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  width: 60%; 
+  
+}
+
+.add-terminal-btn:hover {
+  background: #2c3e50; 
+}
+
+#terminal-info {
+  margin-left: -35%; /* Move the table 20px to the left */
+}
+
+#terminal-info table {
+  width: 150%  !important;
+  border-collapse: collapse;
+  margin-top: 23%;
+  margin-left: -33%;
+  background-color: #fff; /* Light background for the table */
+  border-radius: 10px; /* Rounded corners for the table */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+}
+
+#terminal-info th,
+#terminal-info td {
+  padding: 12px 15px;
+  text-align: center;
+  font-size: 16px;
+  color: #333; /* Dark color for text */
+  border: 1px solid #ddd; /* Light border */
+}
+
+#terminal-info th {
+  background-color:  #d3d2d2; /* Green background for header */
+  color: black; /* White text for header */
+  font-weight: bold;
+  text-transform: uppercase; /* Uppercase text for header */
+}
+
+#terminal-info tr:nth-child(even) {
+  background-color: #f9f9f9; /* Zebra striping */
+}
+
+#terminal-info tr:hover {
+  background-color: #f1f1f1; /* Slight hover effect */
+}
+
+#terminal-info td {
+  background-color: #fff;
+}
+
+#terminal-info td:hover {
+  background-color: #f0f0f0; /* Hover effect for table cells */
+}
+
+#terminal-info td, #terminal-info th {
+  transition: background-color 0.3s ease-in-out; /* Smooth transition for hover effects */
+}
+
+
+
+/* Back Button */
+.reduce-limit-back-btn a {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.3s ease;
+  margin-left: 87%;
+  width: 10%;
+  font-weight: bold;
+  margin-top: 7%;
+}
+
+.reduce-limit-back-btn a:hover {
+  background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
+
+
+button.save-btn {
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+
+  transition: background 0.3s ease;
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+button.save-btn {
+  background: linear-gradient(178deg, #004080 0%, #2c3e50 100%);
+  color: white;
+}
+
+/* Basic Toggle Switch Styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #4CAF50;
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+.toast {
+  position: fixed;
+  top: 20px; /* Move to top */
+  left: 40%; /* Align to right */
+  color: #fff ;
+  padding: 12px 20px;
+  border-radius: 8px;
+  opacity: 0;
+  pointer-events: none;
+  background-color: #28a745;
+  font-size: 17px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(-50%); /* Initial hidden position */
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+  z-index: 9999;
+  min-width: 400px;
+  font-weight: bo;
+}
+.toast.show {
+  opacity: 1;
+  pointer-events: auto;
+    transform: translateY(0);
+}
+.toast.success {
+  background-color: #28a745;
+}
+.toast.error ,.toast.warning {
+  background-color: #ff4d4d;
+}
+
+
+/* Button Container */
+.custom-modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Common Button Style */
+.custom-btn {
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Confirm Button - Green */
+#confirmAction {
+  background-color: #4CAF50;
+}
+
+#confirmAction:hover {
+  background-color: #43a047;
+  transform: translateY(-2px);
+}
+
+/* Cancel Button - Red */
+#cancelAction {
+  background-color: #f44336;
+}
+
+#cancelAction:hover {
+  background-color: #e53935;
+  transform: translateY(-2px);
+}
+
+/* Close Icon (Optional Enhancements) */
+.custom-close {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.custom-close:hover {
+  color: #000;
+}
+
+/* Modal backdrop: full-screen, faint background */
+.custom-modal {
+  display: none; /* Only show on button click */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); /* Faint dark background */
+  backdrop-filter: blur(2px); /* Subtle blur */
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/* Modal content */
+.custom-modal-content {
+  background-color: #fff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  position: relative;
+  animation: fadeInScale 0.3s ease-in-out;
+}
+
+/* Modal entrance animation */
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+button.btn-danger:disabled,
+button.btn-danger.disabled-delete {
+  background-color: #b0b0b0 !important;
+  color: rgb(11, 11, 11) !important;
+  border: none;
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 1 !important;
+}
+
+
+
+.button-group {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important; /* spacing between buttons */
+  flex-wrap: wrap !important; /* handles responsiveness if needed */
+}

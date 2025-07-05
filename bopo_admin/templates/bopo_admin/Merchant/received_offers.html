@@ -1,0 +1,146 @@
+{% extends "bopo_admin/base.html" %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/received_offers.css' %}">
+
+<div class="merchant-container">
+    <div class="merchant-header">
+        <h2>Received Offers</h2>
+    </div>
+
+    <div class="offer-list">
+        <!-- Pending Offers Section -->
+        <div class="offer-item">
+            <input type="checkbox" id="toggle-pending" class="toggle-checkbox">
+            <label for="toggle-pending" class="offer-label">
+                <span class="offer-icon">⏳</span>
+                <span>Pending Offers</span>
+            </label>
+            <div class="offer-table">
+                <input type="text" class="search-box" id="search-pending" onkeyup="filterTable('pending-table', 'search-pending')" placeholder="Search pending offers...">
+                <table id="pending-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Offer ID</th>
+                            <th>Offer Code</th>
+                            <th>Merchant ID</th>
+                            <th>Offer Title</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>1001</td>
+                            <td>ICDGV5</td>
+                            <td>101</td>
+                            <td>Demo Offer</td>
+                            <td>
+                                <button>✔️ </button>
+                                <button>❌ </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Approved Offers Section -->
+        <div class="offer-item">
+            <input type="checkbox" id="toggle-approved" class="toggle-checkbox">
+            <label for="toggle-approved" class="offer-label">
+                <span class="offer-icon">✅</span>
+                <span>Approved Offers</span>
+            </label>
+            <div class="offer-table">
+                <input type="text" class="search-box" id="search-approved" onkeyup="filterTable('approved-table', 'search-approved')" placeholder="Search approved offers...">
+                <table id="approved-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Offer ID</th>
+                            <th>Offer Code</th>
+                            <th>Merchant ID</th>
+                            <th>Offer Title</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>1002</td>
+                            <td>ICDGV5</td>
+                            <td>101</td>
+                            <td>Demo Offer</td>
+                            <td>
+                                <button>✔️ </button>
+                                <button>❌ </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Rejected Offers Section -->
+        <div class="offer-item">
+            <input type="checkbox" id="toggle-rejected" class="toggle-checkbox">
+            <label for="toggle-rejected" class="offer-label">
+                <span class="offer-icon">❌</span>
+                <span>Rejected Offers</span>
+            </label>
+            <div class="offer-table">
+                <input type="text" class="search-box" id="search-rejected" onkeyup="filterTable('rejected-table', 'search-rejected')" placeholder="Search rejected offers...">
+                <table id="rejected-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Offer ID</th>
+                            <th>Offer Code</th>
+                            <th>Merchant ID</th>
+                            <th>Offer Title</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>1003</td>
+                            <td>ICDGV5</td>
+                            <td>101</td>
+                            <td>Demo Offer</td>
+                            <td>
+                                <button>✔️ </button>
+                                <button>❌ </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- JavaScript for Search Filtering -->
+<script>
+function filterTable(tableId, searchBoxId) {
+    let input = document.getElementById(searchBoxId);
+    let filter = input.value.toLowerCase();
+    let table = document.getElementById(tableId);
+    let rows = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < rows.length; i++) { // Skip header row
+        let rowText = rows[i].innerText.toLowerCase();
+        if (rowText.includes(filter)) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+</script>
+
+{% endblock %}

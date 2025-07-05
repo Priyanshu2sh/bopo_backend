@@ -1,0 +1,269 @@
+.heading {
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    margin-top: 2%;
+    margin-left: -70%;
+}
+
+.merchant_topup {
+    width: 100%;
+    max-width: 1100px;
+    margin: 3% auto 20px;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.merchant_topup .form-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.merchant_topup .form-wrapper,
+.merchant_topup .right-box {
+    width: 50%;
+    height: 400px;
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    background: #f9f9f9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    text-align: left;
+}
+
+.payment-fields {
+    display: none;
+}
+
+.merchant_topup .topup-form {
+    padding: 20px;
+    width: 100%;
+}
+
+.merchant_topup .form-group {
+    margin-bottom: 15px;
+}
+
+.merchant_topup label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.merchant_topup input{
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background: #f9f9f9;
+}
+
+.merchant_topup select{
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background: #f9f9f9;
+}
+
+
+.center-align {
+    display: flex;
+    justify-content: center; /* Center the content horizontally */
+    align-items: center;     /* Align label and select vertically */
+    gap: 10px;               /* Space between label and dropdown */
+    margin-bottom: 20px;
+}
+
+.center-align label {
+    font-weight: bold;
+}
+
+.center-align select {
+    width: 30%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.input-icon {
+    display: flex;
+    align-items: center;
+}
+
+.input-icon .icon {
+    padding: 12px;
+    background: #ecf0f1;
+    border-radius: 5px 0 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+}
+
+.input-icon i {
+    color: black;
+}
+
+.input-icon input {
+    border-radius: 0 5px 5px 0;
+    flex: 1;
+    padding-left: 12px;
+}
+
+.topup-btn-submit {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 3% auto ;
+    margin-left: 40%;
+    width: 20%;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    background-color: #004080;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    font-weight: bold;
+}
+
+.topup-btn-submit:hover {
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
+
+.topup-back-btn a {
+    display: inline-block;
+    padding: 10px 20px;
+    width: 10%;
+    margin: 7% 0 0 87%;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+}
+
+.topup-back-btn a:hover {
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
+/* Toast Notification Styling */
+.toast-container {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #28a745;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast-show {
+    display: block;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-hide {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+}
+
+
+/* Toast Responsive */
+@media (max-width: 600px) {
+    .toast-container {
+        width: 75%;
+        left: 50%;
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 601px) and (max-width: 1024px) {
+    .toast-container {
+        width: 70%;
+        font-size: 16px;
+    }
+}
+
+@media (min-width: 1025px) {
+    .toast-container {
+        width: 25%;
+        font-size: 18px;
+    }
+}
+
+/* Mobile Styles */
+@media screen and (max-width: 768px) {
+    .merchant_topup {
+        width: 90%;
+        padding: 15px;
+        margin-top: 5%;
+    }
+
+    .heading {
+        margin-top: 10%;
+        margin-left: -20%;
+    }
+
+    .merchant_topup .form-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .merchant_topup .form-wrapper,
+    .merchant_topup .right-box {
+        width: 100%;
+        height: auto;
+    }
+
+    .merchant_topup .dropdown-container {
+        flex-direction: row;
+        margin-left: 30%;
+        gap: 10px;
+    }
+
+    .merchant_topup .dropdown-container .form-group,
+    .merchant_topup .dropdown-container select {
+        width: 50%;
+        margin-left: 0;
+    }
+
+    .topup-btn-submit {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .topup-back-btn a {
+        width: 30%;
+        margin-left: 65%;
+        margin-top: 20%;
+    }
+
+    .toast-container {
+        top: 20px;
+        width: 90%;
+        text-align: center;
+    }
+}

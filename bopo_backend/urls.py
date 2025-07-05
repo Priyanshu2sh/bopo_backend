@@ -16,9 +16,31 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('accounts.urls')),
     path('', include('bopo_admin.urls')),
+    path('api/point/', include('bopo.urls')),
+    path('api/redeemAwardPoints/', include('bopo_award.urls')),
+    path('api/transactionHistory/', include('transaction_history.urls')),
+    path('api/qr/', include('qr_store.urls')),
+    path('api/transfer/', include('transfer.urls')),
+    
+    # state , city
+    # path('bopo_admin/', include('bopo_admin.urls')), 
+    path('portal/', include('bopo_admin.urls')), 
+
+
+
+
+   
 ]
+
+# Place handler404 assignment here, outside urlpatterns list
+handler404 = 'bopo_admin.views.invalid_url_view'
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

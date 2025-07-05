@@ -1,0 +1,394 @@
+{% extends "bopo_admin/base.html" %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'bopo_admin/css/reduce_limit.css' %}">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+
+<style>
+    div.dataTables_filter { display: none !important; }
+
+    .top-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .search-box {
+        padding: 6px 10px;
+        width: 250px;
+    }
+
+    #custom-buttons {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .dataTables_paginate {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .dataTables_paginate .paginate_button {
+        background: linear-gradient(135deg, #ff7b54, #ff4e00);
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(52, 49, 48, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    }
+
+    .dataTables_paginate .paginate_button:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+        box-shadow: 0 6px 12px rgba(41, 39, 38, 0.4);
+    }
+
+    .dataTables_paginate .paginate_button.current {
+        background: linear-gradient(135deg, #333, #111);
+        color: #fff;
+        font-weight: bold;
+        border: 2px solid #ff4e00;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+    }
+</style>
+
+<div class="send-notification-container">
+    <div class="send-notification-header">
+        <h2>Reduce Merchant Points</h2>
+    </div>
+
+<!-- MERCHANT SECTION -->
+<div class="send-notification-item">
+    <input type="checkbox" id="toggle-all-merchants" class="toggle-checkbox"  checked>
+    <label for="toggle-all-merchants" class="send-notification-label">
+        <span class="send-notification-icon">🏢</span>
+        <span>Merchant</span>
+    </label>
+
+    <div class="send-notification-form">
+        <div class="customer-list">
+            <div class="customer-table">
+                <div class="top-controls">
+                    <input type="text" class="search-box" id="search-merchant" placeholder="Search Merchant...">
+                    <div id="custom-buttons-merchant"></div>
+                </div>
+
+                <table id="merchant-table" class="display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Merchant ID</th>
+                            <th>Contact Person</th>
+                            <th>Mobile Number</th>
+                            <th>Requested Amount (BBP)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cash_out in merchant_cash_outs %}
+                            {% if cash_out.merchant %} 
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{cash_out.merchant.merchant_id}}</td>
+                                <td>{{cash_out.merchant.first_name}} {{cash_out.merchant.last_name}}</td>
+                                <td>{{cash_out.merchant.mobile}}</td>
+                                <td>{{cash_out.amount}}</td>
+                                <td>
+                                    <button class="btn {% if cash_out.status == 'paid' %}btn-secondary{% else %}btn-success{% endif %} open-merchant-modal-btn"
+                                            data-id="{{ cash_out.id }}"
+                                            {% if cash_out.status == 'paid' %}disabled{% endif %}>
+                                        {% if cash_out.status == 'paid' %}✅ Paid{% else %}💸 Points Redeem{% endif %}
+                                    </button>
+                                 </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                    
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- MERCHANT MODAL -->
+<div class="modal-container" id="merchantCashOutModal" style="display: none;">
+    <div class="modal-content-box">
+        <span class="modal-close-btn" onclick="closeMerchantCashOutModal()">&times;</span>
+        <div class="modal-header">Payment Details</div>
+
+        <div class="input-group">
+            <label for="merchantTransactionId">Transaction ID</label>
+            <input type="text" id="merchantTransactionId" class="input-field" placeholder="Enter Transaction ID">
+        </div>
+
+        <div class="input-group">
+            <label for="merchantPaymentMethod">Payment Method</label>
+            <select id="merchantPaymentMethod" class="input-field">
+                <option value="">Select</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="UPI">UPI</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Debit Card">Debit Card</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="merchantPaymentDate">Payment Date</label>
+            <input type="date" id="merchantPaymentDate" class="input-field">
+        </div>
+
+        <button class="btn-save" onclick="submitCashOut()">Save</button>
+    </div>
+</div>
+        <!-- Toast -->
+        <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+            <i class="fa fa-exclamation-circle"></i>
+            <span class="toast-message">{{ message }}</span>
+        </div>
+  
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+
+
+
+
+<script>
+
+    const merchantTable = $('#merchant-table').DataTable({
+        dom: 'Bfrtip',
+        pageLength: 6,
+        lengthChange: false,
+        buttons: [
+            {
+                extend: 'colvis',
+                text: '<i class="fas fa-table"></i>',
+                className: 'btn btn-light'
+            }
+        ],
+        stripeClasses: []
+    });
+    
+    merchantTable.buttons().container().appendTo('#custom-buttons-merchant');
+    
+    $('#search-merchant').on('keyup', function () {
+        merchantTable.search(this.value).draw();
+    });
+
+    $('.open-merchant-modal-btn').click(function () {
+        const id = $(this).data('id');
+        openMerchantCashOutModal(id);
+    });
+  
+    function closeCashOutModal() {
+        $('#cashOutModal').fadeOut();
+    }
+    
+    function showToast(message) {
+        const toast = $('#toast');
+        toast.find('.toast-message').text(message);
+        toast.addClass('toast-show');
+        setTimeout(() => toast.removeClass('toast-show'), 3000);
+    }
+    
+   
+document.addEventListener("DOMContentLoaded", function () {
+    const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox");
+
+    toggleCheckboxes.forEach((checkbox) => {
+        // Show form if checkbox is already checked on load
+        const form = checkbox.closest(".send-notification-item").querySelector(".send-notification-form");
+        if (checkbox.checked) {
+            form.style.display = "block";
+        } else {
+            form.style.display = "none";
+        }
+
+        checkbox.addEventListener("change", function () {
+            const form = this.closest(".send-notification-item").querySelector(".send-notification-form");
+
+            // Close all other forms and uncheck their toggles
+            document.querySelectorAll(".send-notification-form").forEach((otherForm) => {
+                if (otherForm !== form) {
+                    otherForm.style.display = "none";
+                    otherForm.closest(".send-notification-item").querySelector(".toggle-checkbox").checked = false;
+                }
+            });
+
+            // Toggle this form based on checkbox
+            form.style.display = this.checked ? "block" : "none";
+        });
+    });
+});
+
+
+      
+
+    $(document).ready(function () {
+        $('#merchantTable').DataTable();
+        $('#customerTable').DataTable();
+
+        $('.open-modal-btn').click(function () {
+            const id = $(this).data('id');
+            $('#cashOutModal').data('cashOutId', id).fadeIn();
+        });
+
+        $('.open-merchant-modal-btn').click(function () {
+            const id = $(this).data('id');
+            openMerchantCashOutModal(id);
+        });
+    });
+
+    function closeCashOutModal() {
+        $('#cashOutModal').fadeOut();
+    }
+
+    function openMerchantCashOutModal(id) {
+        console.log("Opening Merchant Modal for ID:", id);
+        $('#merchantCashOutModal').data('cashOutId', id).fadeIn();
+        $('#merchantTransactionId').val('');
+        $('#merchantPaymentMethod').val('');
+        $('#merchantPaymentDate').val('');
+    }
+
+    function closeMerchantCashOutModal() {
+        $('#merchantCashOutModal').fadeOut();
+    }
+
+    function submitCashOut() {
+        const isMerchant = $('#merchantCashOutModal').is(':visible');
+        let id, transactionId, paymentMethod, paymentDate;
+
+        if (isMerchant) {
+            id = $('#merchantCashOutModal').data('cashOutId');
+            transactionId = $('#merchantTransactionId').val();
+            paymentMethod = $('#merchantPaymentMethod').val();
+            paymentDate = $('#merchantPaymentDate').val();
+        } else {
+            id = $('#cashOutModal').data('cashOutId');
+            transactionId = $('#transactionId').val();
+            paymentMethod = $('#paymentMethod').val();
+            paymentDate = $('#paymentDate').val();
+        }
+
+        console.log("Submitting for ID:", id);
+        console.log("Transaction ID:", transactionId);
+        console.log("Payment Method:", paymentMethod);
+        console.log("Payment Date:", paymentDate);
+
+        // TODO: Use AJAX to send this data to your Django view
+
+        if (isMerchant) {
+            closeMerchantCashOutModal();
+        } else {
+            closeCashOutModal();
+        }
+
+        // Show toast message
+        $('#toast .toast-message').text("Payment submitted successfully!");
+        $('#toast').addClass('toast-show');
+
+        setTimeout(() => {
+            $('#toast').removeClass('toast-show');
+
+        }, 3000);
+    }
+
+     function submitCashOut() {
+        const isMerchant = $('#merchantCashOutModal').is(':visible');
+        let id, transactionId, paymentMethod, paymentDate;
+
+    if (isMerchant) {
+        id = $('#merchantCashOutModal').data('cashOutId');
+        transactionId = $('#merchantTransactionId').val();
+        paymentMethod = $('#merchantPaymentMethod').val();
+        paymentDate = $('#merchantPaymentDate').val();  // Already in your code
+
+    } else {
+        id = $('#cashOutModal').data('cashOutId');
+        transactionId = $('#transactionId').val();
+        paymentMethod = $('#paymentMethod').val();
+        paymentDate = $('#PaymentDate').val();  // Already in your code
+
+    }
+
+    fetch('/save-cash-out/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            cashout_id: id,
+            transaction_id: transactionId,
+            payment_method: paymentMethod,
+            payment_date: paymentDate 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            setTimeout(() => {
+            $('#toast').removeClass('toast-show');
+
+        }, 3000);
+            showToast("Payment saved successfully!");
+
+                const button = document.querySelector(`.open-merchant-modal-btn[data-id="${id}"]`);
+                if (button) {
+                    button.disabled = true;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-secondary');
+                    button.textContent = '✅ Paid';
+                }
+
+                if (isMerchant) {
+                    closeMerchantCashOutModal();
+                }
+            } else {
+                showToast("Error: " + data.message);
+            }
+        })
+        .catch(err => {
+            showToast("Error: " + err.message);
+        });
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    </script>
+
+{% endblock %}

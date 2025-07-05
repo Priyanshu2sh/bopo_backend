@@ -1,0 +1,641 @@
+{% extends "bopo_admin/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'bopo_admin/css/corporate_merchant.css' %}">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    background-color: #28a745;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transition: all 0.5s ease-in-out;
+    transform: translateY(-30px);
+    pointer-events: none;
+}
+
+.toast-container.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.toast-container.error {
+    background-color: #dc3545;
+}
+</style>
+
+
+    <div class="card">
+
+    {% if request.user.role == 'corporate_admin' %}
+    <div class="reduce-limit-back-btn">
+        <a href="{% url 'corporate_add_merchant' %}?corporate_id={{ corporate.corporate_id }}" class="reduce-limit-back-btn-submit">
+            + Add Merchants
+    {% else %}
+    <div class="reduce-limit-back-btn">
+        <a href="{% url 'corporate_merchants' %}?corporate_id={{ corporate.corporate_id }}" class="reduce-limit-back-btn-submit">
+            + Add Merchants
+        </a>
+    {% endif %}
+
+    <!-- <div class="reduce-limit-back-btn"> -->
+        <a href="{% url 'corporate_list' %}" class="reduce-limit-back-btn-submit">
+            <i class="fa fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+   <div class="outside-div">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <b><h5 class="mb-0">Merchants under Corporate: {{ corporate.corporate_id }}</h5></b>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="merchant-table" class="table table-bordered table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sr.No.</th>
+                        <th>Merchant ID</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Shop Name</th>
+                        <th>City</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for merchant in merchants %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ merchant.merchant_id }}</td>
+                        <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
+                        <td>{{ merchant.mobile }}</td>
+                        <td>{{ merchant.shop_name }}</td>
+                        <td>{{ merchant.city }}</td>
+                        <td>
+                                            <label class="switch">
+                                                <input type="checkbox"
+                                                    {% if merchant.status == "Active" %}checked{% endif %}
+                                                    data-id="{{ merchant.merchant_id }}"
+                                                    data-type="merchant"
+                                                    class="status-toggle">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ merchant.id }}', 'merchant')">✏️ Edit</button>
+
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No merchants found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+    </div>
+
+
+<div id="confirmationModal" class="custom-modal" style="display: none;">
+  <div class="custom-modal-content">
+    <span class="custom-close" id="closeModal">&times;</span>
+    <h3 id="confirmationMessage">Are you sure you want to change the status?</h3>
+    <div class="custom-modal-buttons">
+      <button id="confirmAction" class="custom-btn">Yes</button>
+      <button id="cancelAction" class="custom-btn">No</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Edit Merchant Modal -->
+<div id="editCorporateModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+
+        <h2 id="modalTitle">Edit Merchant</h2>
+        <form id="editCorporateForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="corporate_id" id="edit_corporate_id">
+            <input type="hidden" name="merchant_id" id="edit_merchant_id">
+
+            <!-- Project Name Input Field (Initially Hidden) -->
+            <div id="project-name-container" class="hidden">
+                <label for="project_name">Project Name:</label>
+                <div class="addmerchant-input-container">
+                    <input type="text" id="edit_project_name" name="project_name" placeholder="Enter Project Name">
+                </div>
+            </div>
+
+            <!-- Form Fields (Left & Right Columns) -->
+            <div class="addmerchant-form-container">
+                <!-- Left Column -->
+                <div class="addmerchant-form-group">
+                    <label>First Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="first_name" id='edit_first_name' disabled>
+                    </div>
+                    <label>Email ID</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" id="edit_email" required>
+                    </div>
+                    <label>Aadhaar Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="aadhaar_number" id ="edit_aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" disabled>
+                    </div>
+                    <label>Shop Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-store"></i>
+                        <input type="text" name="shop_name" id="edit_shop_name" disabled>
+                    </div>
+                    <label>Address</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" name="address" id="edit_address" disabled>
+                    </div>
+                     <label>State</label>
+                        <div class="addmerchant-input-container">
+                                <i class="fas fa-map"></i>
+                                <input type="text" name="state" id="edit_state" disabled>
+                        </div>
+
+                             <label>City</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-city"></i>
+                        <input type="text" name="city" id="edit_city" disabled>
+                    </div>
+                                
+                    <label>Country</label>
+                    <div class="addmerchant-input-container">
+                        <input type="text" name="country" value="India" disabled>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="addmerchant-form-group">
+                    <label>Last Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="last_name" id ="edit_last_name" disabled>
+                    </div>
+                    <label>Mobile Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-mobile-alt"></i>
+                        <input type="text" name="mobile" id="edit_mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
+                    </div>
+                    <label>Pin</label>
+                        <div class="addmerchant-input-container">
+                            <i class="fas fa-thumbtack"></i>
+                            <input type="text" name="pin" id="edit_pin"  disabled>
+                        </div>
+
+                    <label>GST Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-file-invoice"></i>
+                        <input type="text" name="gst_number" id="edit_gst_number" placeholder="Enter GST Number" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)" maxlength="15" disabled>
+                    </div>
+                    <div id="gst_error" style="display: none; margin-top: 10px;">
+                        <div style="background-color: #ffe6e6; border: 1px solid #ff4d4d; color: #d8000c; padding: 10px; border-radius: 5px; font-size: 14px; display: flex; align-items: center;">
+                            <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
+                            Please enter a valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)
+                        </div>
+                    </div>
+
+                    <label>Pan Number</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" disabled>
+                    </div>
+                    <label>Legal Name</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-building"></i>
+                        <input type="text" name="legal_name" id="edit_legal_name" disabled>
+                    </div>
+
+                      <label>Pincode</label>
+                    <div class="addmerchant-input-container">
+                        <i class="fas fa-home"></i>
+                        <input type="text" name="pincode" id="edit_pincode" disabled>
+
+                    </div>
+                </div>
+            </div><br>
+
+            <button type="submit" class="addmerchant-btn-submit">Submit</button>
+        </form>
+    </div>
+</div>
+
+
+<!-- <button onclick="showToast('Testing toast', 'success')" style="margin: 20px;">Test Toast</button> -->
+
+<!-- Toast Notification -->
+<div id="toast" class="toast-container success">
+    <i id="toast-icon" class="fa fa-exclamation-circle"></i>
+    <span id="toast-message" class="toast-message"></span>
+</div>
+
+
+
+
+<!-- Place this container at the end of your body or just before </body> -->
+<!-- <div id="toast-container"></div> -->
+
+
+<script>
+// document.addEventListener('DOMContentLoaded', function () {
+//   const toggles = document.querySelectorAll('.status-toggle');
+//   let currentToggle = null;
+//   let intendedState = null;
+
+//   toggles.forEach(toggle => {
+//     toggle.addEventListener('change', function (e) {
+//       e.preventDefault(); // Prevent the toggle action until confirmed
+//       currentToggle = this;
+//       intendedState = this.checked;
+
+//       // Show confirmation modal
+//       document.getElementById("confirmationModal").style.display = "flex";
+//     });
+//   });
+
+//   // On confirm
+//   document.getElementById("confirmAction").addEventListener("click", function () {
+//     if (!currentToggle) return;
+
+//     const id = currentToggle.getAttribute('data-id');
+//     const type = currentToggle.getAttribute('data-type');
+//     const isActive = intendedState;
+
+//     const url = `/toggle-status/${type}/${id}/`;
+
+//     fetch(url, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'X-CSRFToken': getCookie('csrftoken'),
+//       },
+//       body: JSON.stringify({ is_active: isActive })
+//     })
+//     .then(response => {
+//       if (!response.ok) throw new Error('Network response was not ok');
+//       return response.json();
+//     })
+//     .then(data => {
+//       if (data.success) {
+//         showToast(`Status updated successfully to "${data.status}"`, 'success');
+
+//         // ✅ Update affected merchant toggles
+//         if (data.affected_merchants && Array.isArray(data.affected_merchants)) {
+//           data.affected_merchants.forEach(id => {
+//             const toggle = document.querySelector(`.status-toggle[data-id="${id}"]`);
+//             if (toggle) {
+//               toggle.checked = isActive;
+//               toggle.closest('tr')?.classList.add('highlight');
+//               setTimeout(() => toggle.closest('tr')?.classList.remove('highlight'), 1000);
+//             }
+//           });
+
+//           // ✅ Delay reload for visual feedback
+//           setTimeout(() => {
+//             location.reload();
+//           }, 1200);
+//         }
+
+//       } else {
+//         showToast('Failed to update status', 'error');
+//         currentToggle.checked = !isActive;
+//       }
+//     })
+//     .catch(error => {
+//       console.error('Error:', error);
+//       showToast('Failed to update status', 'error');
+//       currentToggle.checked = !isActive;
+//     });
+
+
+//     // Hide modal
+//     document.getElementById("confirmationModal").style.display = "none";
+//   });
+
+//   // On cancel or close
+//   function cancelModal() {
+//     if (currentToggle) {
+//       currentToggle.checked = !intendedState; // Revert toggle
+//     }
+//     document.getElementById("confirmationModal").style.display = "none";
+//   }
+
+//   document.getElementById("cancelAction").addEventListener("click", cancelModal);
+//   document.getElementById("closeModalBtn")?.addEventListener("click", cancelModal);
+//   document.getElementById("closeModal")?.addEventListener("click", cancelModal);
+// });
+
+// // Helper: CSRF token
+// function getCookie(name) {
+//   let cookieValue = null;
+//   if (document.cookie && document.cookie !== '') {
+//     const cookies = document.cookie.split(';');
+//     for (let cookie of cookies) {
+//       cookie = cookie.trim();
+//       if (cookie.startsWith(name + '=')) {
+//         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+//         break;
+//       }
+//     }
+//   }
+//   return cookieValue;
+// }
+
+// document.getElementById("closeModal").addEventListener("click", function() {
+//   document.getElementById("confirmationModal").style.display = "none";
+// });
+
+// // Handle modal button clicks
+// $('#confirmDelete').click(function () {
+//     if (deleteId && deleteType) {
+//         deleteItem(deleteId, deleteType);
+//     }
+//     $('#confirmationModal').fadeOut();  // Close the modal
+// });
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  const toggles = document.querySelectorAll('.status-toggle');
+  let currentToggle = null;
+  let intendedState = null;
+
+  toggles.forEach(toggle => {
+    toggle.addEventListener('change', function (e) {
+      // Save the toggle and intended state, but revert UI until confirmed
+      currentToggle = this;
+      intendedState = this.checked;
+      this.checked = !this.checked; // revert
+
+      // Set confirmation message
+      const confirmationMessage = document.getElementById("confirmationMessage");
+      confirmationMessage.textContent = intendedState
+        ? "Are you sure you want to activate this merchant?"
+        : "Are you sure you want to deactivate this merchant?";
+
+      // Show confirmation modal
+      document.getElementById("confirmationModal").style.display = "flex";
+    });
+  });
+
+  // Handle modal confirm (YES)
+  document.getElementById("confirmAction").addEventListener("click", function () {
+    if (!currentToggle) return;
+    const entityId = currentToggle.getAttribute('data-id');
+    const entityType = currentToggle.getAttribute('data-type');
+    fetch(`/toggle-status/${entityType}/${entityId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify({ is_active: intendedState })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        currentToggle.checked = intendedState; // Only change if confirmed and success
+        showToast(
+          intendedState
+            ? "Merchant activated successfully"
+            : "Merchant deactivated successfully",
+          "success"
+        );
+      } else {
+        showToast("Failed to update status.", "error");
+        currentToggle.checked = !intendedState; // revert if failed
+      }
+    })
+    .catch(() => {
+      showToast("Something went wrong.", "error");
+      currentToggle.checked = !intendedState;
+    })
+    .finally(() => {
+      document.getElementById("confirmationModal").style.display = "none";
+      currentToggle = null;
+    });
+  });
+
+  // Handle modal cancel (NO)
+  document.getElementById("cancelAction").addEventListener("click", function () {
+    if (currentToggle) {
+      currentToggle.checked = !intendedState; // revert to original
+    }
+    document.getElementById("confirmationModal").style.display = "none";
+    currentToggle = null;
+  });
+
+  // Handle modal close icon
+  document.getElementById("closeModal").addEventListener("click", function () {
+    if (currentToggle) {
+      currentToggle.checked = !intendedState;
+    }
+    document.getElementById("confirmationModal").style.display = "none";
+    currentToggle = null;
+  });
+
+  // Optional: click outside the modal to close it
+  window.addEventListener("mousedown", function (event) {
+    const modal = document.getElementById("confirmationModal");
+    if (event.target === modal) {
+      if (currentToggle) {
+        currentToggle.checked = !intendedState;
+      }
+      modal.style.display = "none";
+      currentToggle = null;
+    }
+  });
+});
+
+// CSRF helper function
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+document.getElementById("closeModal").addEventListener("click", function() {
+  document.getElementById("confirmationModal").style.display = "none";
+});
+
+
+function openEditCorporateModal(id, type = 'corporate') {
+    const url = type === 'merchant' ? `/get-copmerchant/${id}/` : `/get-corporate/${id}/`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                showToast(data.error);
+                return;
+            }
+
+            const modalTitle = type === 'merchant' ? "Edit Merchant" : "Edit Corporate";
+            document.getElementById('modalTitle').textContent = modalTitle;
+
+            document.getElementById('edit_corporate_id').value = type === 'corporate' ? data.corporate_id : '';
+            document.getElementById('edit_merchant_id').value = type === 'merchant' ? data.merchant_id : '';
+
+            document.getElementById('edit_first_name').value = data.first_name || '';
+            document.getElementById('edit_last_name').value = data.last_name || '';
+            document.getElementById('edit_email').value = data.email || '';
+            document.getElementById('edit_mobile').value = data.mobile || '';
+            document.getElementById('edit_address').value = data.address || '';
+            document.getElementById('edit_shop_name').value = data.shop_name || '';
+            document.getElementById('edit_aadhaar_number').value = data.aadhaar_number || '';
+            document.getElementById('edit_gst_number').value = data.gst_number || '';
+            document.getElementById('edit_pan').value = data.pan_number || '';
+             document.getElementById('edit_pin').value = data.pin || '';
+            document.getElementById('edit_legal_name').value = data.legal_name || '';
+            document.getElementById('edit_pincode').value = data.pincode || '';
+            document.getElementById('edit_project_name').value = data.project_name || '';
+
+            // Set prefilled state and city (not as dropdowns)
+            document.getElementById("edit_state").value = data.state || '';
+            document.getElementById("edit_city").value = data.city || '';
+
+            console.log("Pincode value being sent:", document.getElementById('edit_pincode').value);
+
+            // Show the modal
+            document.getElementById("editCorporateModal").style.display = "block";
+        })
+        .catch(error => {
+            console.error("Error loading data:", error);
+            showToast("Error loading data, please try again.");
+        });
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editCorporateModal');
+    if (modal) modal.style.display = 'none';
+}
+
+
+window.onclick = function (event) {
+    let modal = document.getElementById("editCorporateModal");
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+};
+
+// Toast function for #toast-container (top-right)
+function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    const messageSpan = document.getElementById("toast-message");
+    const icon = document.getElementById("toast-icon");
+
+    if (!toast || !messageSpan || !icon) {
+        // fallback: alert if toast elements not found
+        alert(message);
+        return;
+    }
+
+    // Set content and icon
+    messageSpan.textContent = message;
+    icon.className = "fa " + (type === "success" ? "fa-check-circle" : "fa-exclamation-circle");
+
+    // Remove all type classes first
+    toast.classList.remove("error", "success", "show");
+    // Add correct type and show classes
+    if (type === "error") {
+        toast.classList.add("error");
+    } else {
+        toast.classList.add("success");
+    }
+    toast.classList.add("show");
+
+    // Make sure toast is visible (for your CSS)
+    toast.style.opacity = "1";
+    toast.style.pointerEvents = "auto";
+    toast.style.visibility = "visible";
+
+    // Hide toast after 2.5s
+    setTimeout(() => {
+        toast.classList.remove("show");
+        toast.style.opacity = "0";
+        toast.style.pointerEvents = "none";
+        toast.style.visibility = "hidden";
+    }, 2500);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const editForm = document.getElementById('editCorporateForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(editForm);
+            const merchantId = formData.get('merchant_id');
+            const url = `/update-copmerchant/${merchantId}/`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast("Merchant updated successfully", "success");
+                    closeEditModal();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1800);
+                } else {
+                    showToast(data.message || "Update failed", "error");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("An error occurred during update", "error");
+            });
+        });
+    }
+});
+
+
+
+</script>
+
+
+
+
+{% endblock %}

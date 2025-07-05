@@ -1,0 +1,334 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+
+.merchant_status-container {
+    background: #fff;
+    border-radius: 10px;
+    width: 60%;
+    margin: auto;
+    margin-top: 5%;
+    padding: 25px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    margin-top: -2%;
+    margin-left: -70%;
+}
+
+label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 8px;
+    color: #34495e;
+    font-size: 16px;
+}
+
+
+.merchant_status-form-group {
+    margin-bottom: 20px;
+}
+
+.merchant_status-select,
+.merchant_status-input {
+    width: 100%;
+    padding: 10px 10px 10px 40px; /* Extra left padding for icon */
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #f8f9fa;
+}
+
+.merchant_status-button-group {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.merchant_status-cancel-btn {
+    background:  #ccc;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: 0.3s;
+    width: 20%;
+}
+
+.merchant_status-cancel-btn:hover {
+    background: #c0392b;
+}
+
+.merchant_status-submit-btn  {
+    background: #2c3e50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: 0.3s;
+    margin-left: 0%;
+    width: 20%;
+}
+
+.merchant_status-submit-btn:hover {
+    background: #1a252f;
+}
+
+.merchant_status-back-to-list-btn a {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+    margin-left: 87%;
+    width: 10%;
+    font-weight: bold;
+    margin-top: 7%;
+}
+/* Container for icon + input/select */
+.merchant_status-input-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Icon styling */
+.merchant_status-icon {
+    position: absolute;
+    left: 10px;
+    color: black;
+    font-size: 16px;
+}
+
+/* Styling for select elements */
+.merchant_status-select {
+    width: 100%;
+    padding: 10px 10px 10px 40px; /* Extra left padding for icon */
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #f8f9fa;
+}
+/* Toggle switch wrapper */
+.merchant_status-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 20px; /* Add spacing if needed */
+  }
+  
+  /* Toggle switch base */
+  .merchant_status-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+    margin-left: 80%;
+  }
+  
+  .merchant_status-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .merchant_status-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px;
+  }
+  
+  .merchant_status-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+  }
+  
+  .merchant_status-toggle-switch input:checked + .merchant_status-slider {
+    background-color: #28a745;
+  }
+  
+  .merchant_status-toggle-switch input:checked + .merchant_status-slider:before {
+    transform: translateX(24px);
+  }
+  
+  /* ON/OFF label styling */
+  .merchant_status-toggle-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+
+
+/* Toast Notification Styling */
+.toast-container {
+    position: fixed;
+    top: 30px;
+    left: 58%;
+    transform: translateX(-50%);
+    background-color: #28a745;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: none; /* Hidden by default */
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.toast-show {
+    display: block;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-hide {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+}
+
+/* ✅📱 Responsive Adjustments for Smaller Screens */
+@media (max-width: 768px) {
+    .merchant_status-container {
+        width: 90%; /* Increase width for smaller screens */
+        padding: 15px;
+    }
+
+    h2 {
+        font-size: 22px;
+    }
+
+    .merchant_status-button-group {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .merchant_status-cancel-btn,
+    .merchant_status-submit-btn {
+        width: 80%; /* Full-width buttons for mobile */
+    }
+
+    .merchant_status-back-to-list-btn a {
+        width: 100%;
+        text-align: center;
+    }
+   
+   
+}
+
+/* ✅📱 Extra Small Screens (Mobile) */
+@media (max-width: 480px) {
+    .merchant_status-container {
+        width: 95%;
+        padding: 10px;
+    }
+
+    h2 {
+        font-size: 20px;
+        margin-top: 10%;
+        margin-left: -60%;
+    }
+
+    .merchant_status-select,
+    .merchant_status-input {
+        padding: 8px 8px 8px 35px; /* Reduce padding on small screens */
+    }
+
+    .merchant_status-icon {
+        font-size: 14px;
+    }
+
+    .merchant_status-button-group {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .merchant_status-cancel-btn,
+    .merchant_status-submit-btn {
+        width: 50%; /* Full width */
+    }
+    .merchant_status-back-to-list-btn a{
+        width: 40%;
+        text-align: center;
+        font-size: 14px;
+        margin-top: 20%;
+        margin-left: 57%;
+    }
+    .toast-container {
+        width: 80%;
+        font-size: 14px;
+
+    }
+    .merchant_status-toggle-wrapper {
+        flex-direction: row;
+        align-items: flex-start;
+        margin-left: 70%;
+        margin-top: -2px;
+    }
+
+    .merchant_status-toggle-switch {
+        margin-left: 0;
+        width: 45px;
+        height: 24px;
+    }
+
+    .merchant_status-slider:before {
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+    }
+
+    .merchant_status-toggle-label {
+        font-size: 14px;
+        margin-left: 0;
+        margin-top: 5px;
+    }
+
+    .merchant_status-container {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .merchant_status-back-to-list-btn a {
+        width: auto;
+        margin-left: 70%;
+    }
+
+}

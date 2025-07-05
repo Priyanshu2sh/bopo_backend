@@ -1,0 +1,94 @@
+{% extends "bopo_admin/base.html" %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'bopo_admin/css/merchant_limit_list.css' %}">
+
+<div class="limit-container">
+    <div class="limit-list-back-btn">
+        <a href="{% url 'merchant_topup' %}" class="limit-list-back-btn-submit">
+            <i class="fa fa-arrow-left"></i> Back 
+        </a>
+    </div>
+    <div class="limit-header">
+      
+        <h2> Merchant Limit List</h2>
+ 
+    </div>
+
+    <div class="limit-list">
+        <!-- Limit List Section -->
+        <div class="limit-item">
+            <div class="limit-table">
+                <input type="text" class="search-box" id="search-limit" onkeyup="filterTable('limit-table', 'search-limit')" placeholder="Search limits...">
+        
+                <table id="limit-table">
+                    <thead>
+                        <tr>
+                            <th>Sr.No.</th>
+                            <th>Merchant ID</th>
+                            <th>Merchant Limit</th>
+                            <!-- <th>Due Date</th> -->
+                            <th>Created At</th>
+                            <th>Updated At</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for topup in topups %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ topup.merchant.merchant_id }}</td>  <!-- Access merchant's ID -->
+                            <td>{{ topup.topup_amount }}</td>
+                            <!-- <td>{{ topup.due_date|date:"d-m-Y" }}</td> -->
+                            <td>{{ topup.created_at|date:"Y-m-d H:i:s" }}</td>
+                            <td>{{ topup.updated_at|date:"Y-m-d H:i:s" }}</td>
+                            <td>{{ topup.merchant.status }}</td>  <!-- Access merchant's status -->
+                            <td>
+                                <button class="btn btn-sm btn-warning">✏️ Edit</button>
+                                <button class="btn btn-sm btn-danger">🗑️ Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    
+                    
+                </table>
+            </div>
+        </div>
+
+
+
+        
+<script>
+    function filterTable() {
+        var input, filter, table, tr, td, i, j, txtValue;
+        input = document.getElementById("search-limit");
+        filter = input.value.toLowerCase();
+        table = document.getElementById("limit-table");
+        tr = table.getElementsByTagName("tr");
+    
+        for (i = 1; i < tr.length; i++) { // Start from 1 to skip the header row
+            tr[i].style.display = "none"; // Hide the row initially
+            td = tr[i].getElementsByTagName("td");
+    
+            for (j = 0; j < td.length; j++) {
+                if (td[j]) {
+                    txtValue = td[j].textContent || td[j].innerText;
+                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                        tr[i].style.display = ""; // Show the row if match found
+                        break; // Break to avoid unnecessary checks
+                    }
+                }
+            }
+        }
+    }
+    </script>
+        
+    </div>
+</div>
+
+
+
+{% endblock %}

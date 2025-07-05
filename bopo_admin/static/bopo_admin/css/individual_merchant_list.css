@@ -1,0 +1,841 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+.merchant-container {
+     background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 1300px;
+    margin: auto;
+    margin-top: 5%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.merchant-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: black;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.add-merchant-btn {
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    margin-left: 86%;
+    margin-top: -2%;
+    transition: background 0.3s ease-in-out;
+}
+
+.add-merchant-btn:hover {
+    background-color: #a14a3f;
+}
+
+.merchant-list {
+    margin-top: 20px;
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.merchant-item {
+    background: #f8f9fa;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.merchant-label {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    background: #edeeef;
+    border-radius: 5px;
+    transition: background 0.3s ease-in-out;
+}
+
+.merchant-label:hover {
+    background: #edeeef;
+}
+
+.merchant-icon {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.toggle-checkbox {
+    display: none;
+}
+
+.merchant-table {
+    background-color: white;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, padding 0.3s ease-in-out;
+}
+
+/* Keep the first table open by default */
+.merchant-table.open {
+    max-height: 500px;
+    padding: 15px;
+}
+
+/* Ensure the checkbox remains checked by default */
+.toggle-checkbox:checked + .merchant-label + .merchant-table {
+    max-height: 500px;
+    padding: 15px;
+}
+
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    table-layout: auto;
+}
+
+th {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    
+}
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    font-weight: normal;
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
+.search-box {
+    width: 20%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.pagination-controls button {
+    background: linear-gradient(135deg, #ff7b54, #ff4e00);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(255, 78, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+.pagination-controls button:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+    box-shadow: 0 6px 12px rgba(255, 78, 0, 0.4);
+}
+
+.pagination-controls .active-page {
+    background: linear-gradient(135deg, #333, #111);
+    color: #fff;
+    font-weight: bold;
+    border: 2px solid #ff4e00;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+
+.modal-content h2 {
+    margin-bottom: 20px; /* Adjust the value as needed */
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.modal {
+
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 120%;
+    height: 120%;
+    margin-left: -5%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+    align-items: center;    /* Vertically center */
+    justify-content: center; /* Horizontally center */
+}
+    
+    .modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 40%;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .close {
+        margin-left: 95%;
+        font-size: 28px;
+        cursor: pointer;
+    }
+    .close:hover {
+        color: red;
+        font-weight: bold;
+    }
+
+
+    .add_individual_merchant-form-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+    }
+    
+    .add_individual_merchant-form-group {
+        width: 48%;
+        height:70vh;
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .add_individual_merchant-form-group label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 5px;
+        color: #555;
+    }
+    
+    .add_individual_merchant-input-container {
+        display: flex;
+        align-items: center;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .add_individual_merchant-input-container i {
+        color: #555;
+        margin-right: 10px;
+    }
+    
+    .add_individual_merchant-input-container input, select {
+        border: none;
+        outline: none;
+        flex: 1;
+        font-size: 14px;
+    }
+    
+    .add_individual_merchant-btn-submit {
+        display: inline-block;
+        padding: 10px 20px;
+        margin-top: 7%;
+        width: 20%;
+        font-size: 16px;
+        color: white;
+        background-color: #004080; /* Primary Blue */
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        transition: background 0.3s ease;
+        margin-left: 40%;
+    }
+    
+    .add_individual_merchant-btn-submit:hover {
+        background: linear-gradient(178deg, red 0%, #85060c 100%);
+    }
+  /* Toast Notification Styling */
+.toast-container {
+    visibility: hidden;
+    max-width: 90vw;
+    width: fit-content;
+    min-width: 250px;
+    background-color: #28a745;
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    padding: 1rem 1.5rem;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    font-size: 1rem;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    z-index: 9999;
+}
+
+.toast-success {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.toast-error {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+/* Show Toast */
+.toast-show {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Fade Out Animation */
+.toast-hide {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+}
+
+/* Toast Icon */
+.toast-container i {
+    font-size: 1.25rem;
+    color: white;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+    .toast-container {
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .toast-container i {
+        font-size: 1rem;
+    }
+}
+
+
+
+
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-selection--single {
+    height: 38px !important;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-selection__rendered {
+    font-size: 14px;
+    color: #555;
+    line-height: 26px;
+}
+
+.select2-selection__arrow {
+    height: 100%;
+}
+/* Modal Background */
+.custom-modal {
+    display: none;  /* Hidden by default */
+    position: fixed;  /* Stay in place */
+    z-index: 1;  /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;  /* Full width */
+    height: 100%;  /* Full height */
+    background-color: rgba(0, 0, 0, 0.5);  /* Black with opacity */
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Modal Content */
+  .custom-modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 80%;
+
+  }
+
+  /* Modal Header Text (Message) */
+#confirmationMessage {
+    font-size: 20px;  /* Reduced font size */
+    color: #333;
+    font-weight: bold;
+  }
+  
+  /* Modal Buttons */
+  .custom-modal-buttons {
+    margin-top: 20px;
+  }
+  
+  .custom-btn {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+  }
+  
+  .custom-btn:hover {
+    background-color: #80af83;
+  }
+  
+  #cancelDelete {
+    background-color: #f44336; /* Red */
+  }
+  
+  #cancelDelete:hover {
+    background-color: #e53935;
+  }
+  .terminal-info-container {
+    margin-top: 30px;
+}
+
+.terminal-info-container h4 {
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #333;
+}
+
+.terminal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.terminal-table th,
+.terminal-table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ccc;
+}
+
+.terminal-table input[type="text"],
+.terminal-table input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+/* Smaller Toggle Button */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;  /* Reduced width */
+    height: 20px;  /* Reduced height */
+    margin-left: 12%;
+  }
+  
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;  /* Smaller circle */
+    width: 16px;   /* Smaller circle */
+    border-radius: 50%;
+    left: 2px;  /* Adjusted for smaller size */
+    bottom: 2px;  /* Adjusted for smaller size */
+    background-color: white;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #4CAF50;
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(20px);  /* Adjusted for smaller size */
+  }
+  /* Toast container */
+#toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+/* Toast message */
+.toast {
+  min-width: 250px;
+  margin-bottom: 10px;
+  padding: 12px 20px;
+  border-radius: 5px;
+  color: white;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  opacity: 0.95;
+  animation: slideIn 0.3s ease forwards;
+}
+
+/* Success style */
+.toast.success {
+  background-color: #4caf50; /* green */
+}
+
+/* Error style */
+.toast.error {
+  background-color: #f44336; /* red */
+}
+
+/* Slide in animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 0.95;
+  }
+}
+
+/* Modal Background */
+.custom-modal {
+    display: none;  /* Hidden by default */
+    position: fixed;  /* Stay in place */
+    z-index: 1;  /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;  /* Full width */
+    height: 100%;  /* Full height */
+    background-color: rgba(0, 0, 0, 0.5);  /* Black with opacity */
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Modal Content */
+  .custom-modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 80%;
+    position: relative; 
+
+  }
+
+  /* Modal Header Text (Message) */
+#confirmationMessage {
+    font-size: 20px;  /* Reduced font size */
+    color: #333;
+    font-weight: bold;
+  }
+  
+  /* Modal Buttons */
+  .custom-modal-buttons {
+    margin-top: 20px;
+  }
+  
+  .custom-btn {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+  }
+  
+  .custom-btn:hover {
+    background-color: #80af83;
+  }
+  
+  #cancelDelete,#cancelAction {
+    background-color: #f44336; /* Red */
+  }
+  
+  #cancelDelete:hover,  #cancelAction:hover {
+    background-color: #e53935;
+  }
+
+#confirmAction {
+     background-color: #4CAF50;
+  }
+#confirmAction:hover {
+        background-color: #80af83;
+  
+  }
+  .custom-close {
+  position: absolute;
+  top: -1%;
+  right: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #000;
+}
+
+.custom-close:hover {
+  color: red;
+}
+
+
+/* RESPONSIVE DESIGN */
+
+/* Tablets */
+@media (max-width: 1024px) {
+    .merchant-container {
+        padding: 15px;
+        margin-top: 3%;
+    }
+
+    .merchant-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .add-merchant-btn {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+}
+
+/* Mobile Devices */
+@media (max-width: 768px) {
+    .merchant-container {
+        max-width: 95%;
+        padding: 15px;
+        margin-top: -80%;
+    }
+
+    .merchant-header {
+        font-size: 18px;
+    }
+
+    .merchant-label {
+        font-size: 14px;
+    }
+
+    .merchant-icon {
+        font-size: 16px;
+    }
+
+    .search-box {
+        width: 100%;
+        max-width: 100%;
+        font-size: 12px;
+    }
+
+    /* Table becomes scrollable */
+    .merchant-table {
+        overflow-x: auto;
+    }
+
+    table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    /* Adjust buttons */
+    button {
+        font-size: 14px;
+    }
+     .modal {
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        margin: 0;
+    }
+
+    .modal-content {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .addmerchant-form-container {
+        flex-direction: column;
+    }
+
+    .addmerchant-form-group {
+        width: 100%;
+    }
+
+    .addmerchant-btn-submit {
+        width: 30%;
+        margin: 15px auto 0;
+        display: block;
+    }
+
+    #toast-container {
+        top: 10px;
+        margin-left: 5%;
+    }
+
+    .merchant-container {
+        max-width: 95%;
+        padding: 15px;
+        margin-top: 5%;
+        margin-left: 1%;
+    }
+
+    .merchant-header {
+        font-size: 18px;
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+        margin-top: -2%
+    }
+
+    .merchant-label {
+        font-size: 14px;
+    }
+
+    .merchant-icon {
+        font-size: 16px;
+    }
+
+    .search-box {
+        width: 100%;
+        max-width: 100%;
+        font-size: 12px;
+    }
+
+    .merchant-table {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    button {
+        font-size: 14px;
+    }
+    
+    .add-merchant-btn {
+    
+        width: 30%;
+    }
+    
+}
+
+
+
+
+/* 🔹 Tablets (1024px and below) */
+@media (max-width: 1024px) {
+    .merchant-container {
+        padding: 15px;
+        margin-top: 24%;
+    }
+
+    .merchant-header {
+        flex-direction: column; /* Stack header elements */
+        text-align: center;
+    }
+
+    .add-merchant-btn {
+        font-size: 14px;
+        padding: 8px 12px;
+        margin-left: 20%;
+        width: 10%;
+      
+    }
+}
+
+/* 🔹 Mobile Devices (768px and below) */
+@media (max-width: 768px) {
+    .merchant-header {
+        flex-direction: column; /* Stack header elements */
+        text-align: center;
+    }
+
+    /* Move the button more below */
+    .add-merchant-btn {
+        font-size: 14px;
+        padding: 12px;
+        width: 30%;
+        max-width: 250px;
+        margin-top: -10%; 
+        margin-left: 75%;
+        
+       
+    }
+}

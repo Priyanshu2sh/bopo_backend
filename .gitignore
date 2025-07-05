@@ -10,7 +10,7 @@ __pycache__/
 # Django-specific files
 media/
 staticfiles/
-db.sqlite3  # Ignore SQLite database file (if used locally)
+db.sqlite3
 
 # Ignore migrations if you prefer to generate them on the server
 */migrations/*
@@ -50,4 +50,10 @@ Thumbs.db
 # Ignore SSH and history files
 .bash_history
 .bashrc
-.zsh_history
+serviceAccountKey.json
+
+
+# *.yml
+# .docker-compose.yml
+# docker-compose.yml
+# Ignore Docker-related files

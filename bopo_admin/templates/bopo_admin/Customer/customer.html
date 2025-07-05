@@ -1,0 +1,732 @@
+{% extends "bopo_admin/base.html" %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'bopo_admin/css/customer.css' %}">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+ <!-- jQuery (required for Select2) -->
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+ <!-- Select2 CSS & JS -->
+ <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+ <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+ 
+<!-- DataTables & Buttons CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    /* Hide default DataTables search box */
+    div.dataTables_filter {
+        display: none !important;
+    }
+
+    /* Top controls styling */
+    .top-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .search-box {
+        padding: 6px 10px;
+        width: 250px;
+    }
+
+    #custom-buttons {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    /* Custom Pagination Styling (Like .pagination-controls) */
+    .dataTables_paginate {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .dataTables_paginate .paginate_button {
+        background: linear-gradient(135deg, #ff7b54, #ff4e00);
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(52, 49, 48, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    }
+
+    .dataTables_paginate .paginate_button:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+        box-shadow: 0 6px 12px rgba(41, 39, 38, 0.4);
+    }
+
+    .dataTables_paginate .paginate_button.current {
+        background: linear-gradient(135deg, #333, #111);
+        color: #fff;
+        font-weight: bold;
+        border: 2px solid #ff4e00;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+    }
+ 
+</style>
+
+<div class="customer-container">
+    <div class="customer-header">
+        <h2>Customer List</h2>
+      
+            {% if request.user.role == 'super_admin' %}
+            <button class="add-customer-btn" onclick="window.location.href='{% url 'add_customer' %}'">
+                + Add Customer
+            </button>
+            {% endif %}
+            {% comment %} {% if request.user.role == 'super_admin' or role_permissions.customer_send_notification == True %}
+            <button class="send-customer-btn" onclick="window.location.href='{% url 'send_customer_notifications' %}'">
+                + Send Notifications
+            </button>
+            {% endif %} {% endcomment %}
+       
+    </div>
+
+    <div class="customer-list">
+        <div class="customer-table">
+
+            <!-- Custom Search & Column Toggle Button -->
+            <div class="top-controls">
+                <input type="text" class="search-box" id="search-customer" placeholder="Search customers...">
+                <div id="custom-buttons"></div>
+            </div>
+
+            <!-- DataTable -->
+            <table id="customer-table" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Customer ID</th>
+                        <th>Contact Person</th>
+                        <th>Mobile Number</th>
+                        <th>City</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ customer.customer_id }}</td>
+                        <td>{{ customer.first_name }} {{ customer.last_name }}</td>
+                        <td>{{ customer.mobile }}</td>
+                        <td>{{ customer.city }}</td>
+                        <td>
+                            <label class="switch">
+                               <input type="checkbox"
+                                {% if customer.status == "Active" %}checked{% endif %}
+                                data-id="{{ customer.customer_id }}"
+                                data-entity-type="customer"
+                                class="status-toggle">
+
+
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ customer.customer_id }}')">✏️ Edit</button>
+                            {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteCustomer('{{ customer.customer_id}}')">🗑️ Delete</button> {% endcomment %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- DataTables & Buttons JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+
+<script>
+
+    $(document).ready(function () {
+        
+        const table = $('#customer-table').DataTable({
+            dom: 'Bfrtip',
+            pageLength: 6,         // Only 6 rows per page
+            paging: true,          // Enables pagination
+            lengthChange: false,
+            {% comment %} pagingType: "full_numbers", {% endcomment %}
+            buttons: [
+                {
+                    extend: 'colvis',
+                    text: '<i class="fas fa-table"></i>',
+                    className: 'btn btn-light'
+                }
+            ],
+            stripeClasses: [] ,// No row striping
+            
+            
+        });
+
+        // Move buttons to the right
+        table.buttons().container().appendTo('#custom-buttons');
+
+        // Custom search box binding
+        $('#search-customer').on('keyup', function () {
+            table.search(this.value).draw();
+        });
+    });
+</script>
+
+    <div id="editCustomerModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Edit Customer</h2>
+        <form id="editCustomerForm" method="POST" >
+            {% csrf_token %}
+            <input type="hidden" id="editCustomerId" name="edit_customer_id">
+
+
+            <div class="addcustomer-form-container">
+             <!-- Left Column -->
+                <div class="addcustomer-form-group">
+
+
+                   <label for="first_name">First Name</label>
+                    <div class="addcustomer-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text"  id="edit_first_name" name="first_name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" disabled>
+                    </div>
+
+                    <label for="email">Email ID</label>
+                    <div class="addcustomer-input-container">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="edit_email" name="email" >
+                    </div>
+
+                    <label for="age">Age</label>
+                    <div class="addcustomer-input-container">
+                        <i class="fas fa-calendar"></i>
+                        <input type="number" id="edit_age" name="age" min="1" max="120" title="Enter age between 1 and 120" disabled>
+                    </div>
+
+                    <label for="aadhaar">Aadhaar Number</label>
+                    <div class="addcustomer-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" id="edit_aadhaar" name="aadhar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" disabled>
+                    </div>
+
+                    <label for="address">Address</label>
+                    <div class="addcustomer-input-container">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" id="edit_address" name="address" disabled>
+                    </div>
+
+                    <label for="edit_city">City</label>
+                    <div class="addcustomer-input-container">
+                        <i class="fas fa-city"></i>  <!-- City icon -->
+                    <input type="text" id="edit_city" name="city" disabled />
+                    </div>
+
+                   
+                    <label for="country">Country</label>
+                    <div class="addcustomer-input-container">
+                        <input type="text" name="country" value="India" disabled>
+                    </div><br>
+                </div>
+
+                <!-- Right Column -->
+                <div class="addcustomer-form-group">
+
+                    <label for="last_name">Last Name</label>
+                    <div class="addcustomer-input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="edit_last_name" name="last_name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" disabled>
+                    </div>
+
+                    <label for="mobile">Mobile Number</label>
+                    <div class="addcustomer-input-container">
+                        <i class="fas fa-mobile-alt"></i>
+                        <input type="tel" id="edit_mobile" name="mobile" pattern="\d{10}" maxlength="10" title="Enter a 10-digit mobile number" required>
+                    </div>
+
+               <label for="gender">Gender</label>
+                <div class="addcustomer-input-container">
+                    <i class="fas fa-venus-mars"></i>
+                    <select name="gender_disabled" id="edit_gender">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <!-- Hidden input to submit the selected gender -->
+                    <input type="hidden" id="hidden_gender" name="gender" value="" />
+                </div>
+
+ 
+                   
+                    <label for="pan">Pan Number</label>
+                    <div class="addcustomer-input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" name="pan_number" id="edit_pan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Enter valid PAN (e.g., ABCDE1234F)" disabled>
+                    </div>
+
+                    <label for="edit_state">State</label>
+                        <div class="addcustomer-input-container">
+                            <i class="fas fa-map"></i>  <!-- State/location icon -->
+                        <input type="text" id="edit_state" name="state" disabled />
+                    </div>
+                 
+                    <label for="pincode">Pincode</label>
+                    <div class="addcustomer-input-container">
+                        <i class="fas fa-home"></i>
+                        <input type="text" id="edit_pincode" name="pincode" pattern="\d{6}" maxlength="6" title="Enter a 6-digit pincode" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="addcustomer-btn-submit">Update</button>
+        </form>
+    </div>
+</div>
+<div>
+
+
+   <!-- Toast Notification -->
+   <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
+    <i class="fa fa-exclamation-circle"></i>
+    <span class="toast-message">{{ message }}</span>
+</div>
+
+<!-- Custom Confirmation Modal -->
+{% comment %} <div id="confirmationModal" class="custom-modal" style="display: none;">
+    <div class="custom-modal-content">
+      <h3 id="confirmationMessage">Are you sure you want to delete this customer?</h3>
+      <div class="custom-modal-buttons">
+        <button id="confirmDelete" class="custom-btn">Yes</button>
+        <button id="cancelDelete" class="custom-btn">No</button>
+      </div>
+    </div>
+  </div>
+   {% endcomment %}
+<!-- Custom Confirmation Modal -->
+<div id="confirmationModal" class="custom-modal" style="display: none;">
+  <div class="custom-modal-content">
+    <span class="custom-close" id="closeModal">&times;</span>
+    <h3 id="confirmationMessage">Are you sure you want to change the status?</h3>
+    <div class="custom-modal-buttons">
+      <button id="confirmAction" class="custom-btn">Yes</button>
+      <button id="cancelAction" class="custom-btn">No</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- JavaScript for Search Filtering and Modal -->
+<script>
+
+  const validators = {
+                email: function (value) {
+                    if (value === "") return "Email is required";
+                    if (value.includes(" ")) return "Email must not contain spaces";
+                    if (!value.includes("@")) return "Email must contain '@'";
+                    
+                    const parts = value.split("@");
+                    if (parts.length !== 2) return "Email must contain only one '@' symbol";
+                    
+                    const [local, domain] = parts;
+            
+                    if (local.trim() === "") return "Email must have a name before '@'";
+                    if (domain.trim() === "") return "Email must have a domain after '@'";
+                    if (!domain.includes(".")) return "Email domain must contain a '.' (e.g., gmail.com)";
+                    
+                    const domainParts = domain.split(".");
+                    if (domainParts.some(part => part.trim() === "")) return "Email domain must not have empty sections (e.g., 'example..com' is invalid)";
+                    if (domainParts[domainParts.length - 1].length < 2) return "Email domain extension must be at least 2 characters (e.g., '.com', '.in')";
+            
+                    return ""; // All good
+                },
+                
+                mobile: function (value) {
+                    if (value === "") return "Mobile number is required";
+                    if (!/^\d+$/.test(value)) return "Mobile number must contain only digits";
+                    if (value.length !== 10) return "Mobile number must be 10 digits";
+                    return "";
+                }
+            }
+
+              Object.keys(validators).forEach(id => {
+                const input = document.getElementById(id);
+                if (!input) return;
+    
+                input.addEventListener("input", () => {
+                    const value = input.value.trim();
+                    const errorMessage = validators[id](value);
+                    input.setCustomValidity(errorMessage);
+                    input.reportValidity();
+                });
+            });
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+  const toggles = document.querySelectorAll('.status-toggle');
+  const modal = document.getElementById('confirmationModal');
+  const confirmBtn = document.getElementById('confirmAction');
+  const cancelBtn = document.getElementById('cancelAction');
+  const message = document.getElementById('confirmationMessage');
+
+  let currentToggle = null;
+  let desiredStatus = null;
+
+  toggles.forEach(toggle => {
+    toggle.addEventListener('change', function () {
+      currentToggle = this;
+      desiredStatus = currentToggle.checked;
+
+      console.log('Toggle clicked:', currentToggle, 'Desired status:', desiredStatus);
+
+      // Show modal
+      modal.style.display = 'flex';
+
+      // Update message
+      message.textContent = `Are you sure you want to change status to "${desiredStatus ? 'Active' : 'Inactive'}"?`;
+
+      // Revert toggle immediately so status change waits for confirmation
+      currentToggle.checked = !desiredStatus;
+    });
+  });
+
+  confirmBtn.onclick = function () {
+    console.log('Confirm clicked');
+    modal.style.display = 'none';
+
+    if (!currentToggle) {
+      console.error('No toggle selected!');
+      return;
+    }
+
+    // AJAX call
+    fetch(`/toggle-status/customer/${currentToggle.getAttribute('data-id')}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify({ is_active: desiredStatus })
+    })
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      console.log('AJAX response:', data);
+      if (data.success) {
+        showToast(`Status updated successfully to "${data.status}"`, 'success');
+        currentToggle.checked = desiredStatus;
+      } else {
+        showToast('Failed to update status: ' + (data.error || 'Unknown error'), 'error');
+        currentToggle.checked = !desiredStatus; // revert
+      }
+    })
+    .catch(error => {
+      console.error('Fetch error:', error);
+      alert("Something went wrong");
+      currentToggle.checked = !desiredStatus; // revert
+    });
+  };
+
+  cancelBtn.onclick = function () {
+    console.log('Cancel clicked');
+    modal.style.display = 'none';
+    if (currentToggle) {
+      currentToggle.checked = !desiredStatus;  // revert toggle
+    }
+  };
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+}); 
+
+document.getElementById("closeModal").addEventListener("click", function() {
+  document.getElementById("confirmationModal").style.display = "none";
+});
+
+
+function setGenderReadOnly(genderValue) {
+    const select = document.getElementById('edit_gender');
+    const hidden = document.getElementById('hidden_gender');
+
+    // Set select's selected option
+    select.value = genderValue;
+
+    // Log for debugging
+    console.log('Set gender:', genderValue, 'Selected:', select.value);
+
+    // Set hidden input's value
+    hidden.value = genderValue;
+
+    // Disable select to make it readonly
+    select.disabled = true;
+}
+
+
+function openEditModal(customerId) {
+    console.log('Opening modal for customer:', customerId);
+
+    // Set the hidden input value with the customer ID
+    document.getElementById("editCustomerId").value = customerId;
+
+    // Fetch customer data from server
+    fetch(`/get-customer/${customerId}/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(customer => {
+            // Fill the modal form fields with customer data
+            document.getElementById("edit_first_name").value = customer.first_name || "";
+            document.getElementById("edit_last_name").value = customer.last_name || "";
+            document.getElementById("edit_email").value = customer.email || "";
+            document.getElementById("edit_mobile").value = customer.mobile || "";
+            document.getElementById("edit_age").value = customer.age || "";
+            document.getElementById("edit_aadhaar").value = customer.aadhar_number || "";
+            document.getElementById("edit_address").value = customer.address || "";
+            document.getElementById("edit_city").value = customer.city || "";
+            document.getElementById("edit_state").value = customer.state || "";
+            document.getElementById("edit_pincode").value = customer.pincode || "";
+            document.getElementById("edit_pan").value = customer.pan_number || "";
+
+            // Set gender select readonly with hidden input
+            setGenderReadOnly(customer.gender || "");
+
+            // Show the modal after data is loaded
+            document.getElementById("editCustomerModal").style.display = "block";
+        })
+        .catch(err => {
+            console.error("Error loading customer data", err);
+            alert("Failed to load customer data");
+        });
+}
+
+function closeEditModal() {
+    document.getElementById("editCustomerModal").style.display = "none";
+}
+
+    
+
+    window.onclick = function(event) {
+        let modal = document.getElementById("editCustomerModal");
+        if (event.target == modal) {
+            closeEditModal();
+        }
+    };
+    
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("editCustomerForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+    
+            let formData = new FormData(this);
+    
+            fetch(`/update-customer/${document.getElementById("editCustomerId").value}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Server response:", data);
+                if (data.success === true) {
+                    showToast(data.message, "success");
+                    closeEditModal();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3000);
+                } else {
+                    showToast(data.message || "Update failed", "error");
+                }
+            })
+            .catch(error => {
+                showToast("Error occurred: " + error.message, "error");
+            });
+
+        });
+    });
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+    
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+
+    function filterTable(tableId, searchBoxId) {
+        let input = document.getElementById(searchBoxId);
+        let filter = input.value.toLowerCase();
+        let table = document.getElementById(tableId);
+        let rows = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < rows.length; i++) {
+            let rowText = rows[i].innerText.toLowerCase();
+            if (rowText.includes(filter)) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
+    }
+
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        fetchStates();
+        paginateTable();
+    
+        $('.select2').select2({
+            placeholder: "Select an option",
+            allowClear: true,
+            width: '100%'
+        });
+    });
+
+  
+    
+    function showToast(message, type) {
+        const toast = document.getElementById("toast");
+        const toastMessage = toast.querySelector(".toast-message");
+        toastMessage.textContent = message;
+    
+        toast.classList.add("toast-show");
+    
+        setTimeout(() => {
+            toast.classList.add("toast-hide");
+            setTimeout(() => {
+                toast.classList.remove("toast-show", "toast-hide");
+            }, 500);
+        }, 3000);
+    }
+    
+{% comment %} 
+    function deleteCustomer(customerId) {
+  
+        document.getElementById("confirmationModal").style.display = "flex";
+    
+        document.getElementById("confirmationMessage").textContent = "Are you sure you want to delete this customer?";
+    
+        document.getElementById("confirmDelete").onclick = function() {
+            fetch(`/bopo_admin/delete-customer/${customerId}/`, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken")  
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Response from server:", data);  
+    
+                if (data.status === "success") {
+                    showToast("Customer deleted successfully!");
+                   
+                    document.querySelector(`button[onclick="deleteCustomer('${customerId}')"]`).closest("tr").remove();  // Use customerId here
+    
+                    setTimeout(() => {
+                        console.log("Reloading page...");
+                        location.reload();  
+                    }, 3000);  
+                } else {
+                    showToast("Failed to delete customer!");  
+                }
+    
+                document.getElementById("confirmationModal").style.display = "none";
+            })
+            .catch(error => {
+                console.error("Error deleting customer:", error);
+                showToast("Something went wrong!");
+           
+                document.getElementById("confirmationModal").style.display = "none";
+            });
+        };
+    
+        // When user clicks "No"
+        document.getElementById("cancelDelete").onclick = function() {
+         
+            document.getElementById("confirmationModal").style.display = "none";
+        };
+    }
+     {% endcomment %}
+
+function fetchStates() {
+    return fetch("/get-states/")
+        .then(response => response.json())
+        .then(states => {
+            const stateDropdown = document.getElementById("edit_state");
+            stateDropdown.innerHTML = '<option value="">Select State</option>';
+            states.forEach(state => {
+                let option = document.createElement("option");
+                option.value = state.id;
+                option.textContent = state.name;
+                stateDropdown.appendChild(option);
+            });
+        });
+}
+
+function fetchCities(state) {
+    const stateId = state || document.getElementById("edit_state").value;
+    return fetch(`/get-cities/${stateId}/`)
+        .then(res => res.json())
+        .then(cities => {
+            const cityDropdown = document.getElementById("edit_city");
+            cityDropdown.innerHTML = '<option value="">Select City</option>';
+            cities.forEach(city => {
+                let option = document.createElement("option");
+                option.value = city.id;
+                option.textContent = city.name;
+                cityDropdown.appendChild(option);
+            });
+        });
+}
+
+
+
+    
+</script>
+
+
+{% endblock %}

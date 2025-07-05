@@ -1,0 +1,380 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main Rental Plan Container */
+.rental_plan-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 1300px;
+    margin: auto;
+    margin-top: 5%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+.rental_plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Buttons */
+.add-rental_plan-btn, .send-rental_plan-btn {
+    height: 50px; /* Increased size */
+    width: 180px; /* Increased width */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.add-rental_plan-btn {
+    background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+}
+.add-rental_plan-btn:hover { 
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
+
+/* .send-rental_plan-btn { background-color: #1c3a72; } */
+.send-rental_plan-btn { background: linear-gradient(178deg, #004080 0%, #2c3e50 100%); }
+.send-rental_plan-btn:hover { background-color: #7486b7; }
+
+
+.modal-content h2 {
+    margin-bottom: 20px; /* Adjust the value as needed */
+    text-align: center;
+    color: #004080;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Rental Plan List */
+.rental_plan-list {
+    margin-top: 20px;
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Rental Plan Table */
+.rental_plan-table {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+}
+.rental_plan-buttons {
+    display: flex;
+    gap: 10px; /* Adds space between buttons */
+    align-items: center; /* Aligns buttons in the center */
+}
+
+.add-rental_plan-btn, .send-rental_plan-btn {
+    height: 50px; /* Increased height */
+    width: 200px; /* Increased width */
+    color: white;
+    border: none;
+    padding: 12px 20px; /* Adjusted padding */
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.send-rental_plan-btn {
+    background-color: #1c3a72;
+    font-size: 18px; /* Increased font size */
+    width: 220px; /* Increased button width */
+}
+
+.send-rental_plan-btn:hover { 
+    background-color: #7486b7;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
+/* Search box */
+.search-box {
+    width: 20%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* Action buttons */
+button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* Toast Notification Styling */
+.toast-container {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #28a745; /* Green Color */
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    padding: 16px;
+    position: fixed;
+    top: 20px; /* Move to top */
+    left: 50%; /* Align to right */
+    font-size: 17px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(-50%); /* Initial hidden position */
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+/* Show Toast */
+.toast-show {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Fade Out Animation */
+.toast-hide {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+/* Toast Icon */
+.toast-container i {
+    font-size: 20px;
+    color: white;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .rental_plan-container {
+        padding: 10px;
+        max-width: 100%;
+        margin-top: 10px;
+    }
+
+    /* Adjust header */
+    .rental_plan-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .rental_plan-buttons {
+        display: flex;
+        flex-direction: row;
+        width: 90%;
+    }
+
+    .add-rental_plan-btn, .send-rental_plan-btn {
+        width: 100%;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    /* Make table responsive */
+    .rental_plan-table {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .search-box {
+        width: 70%;
+    }
+
+    .form-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group {
+        width: 100%;
+    }
+
+    .input-container {
+        display: flex;
+        align-items: center;
+    }
+
+    /* Adjust Close Button */
+    .close {
+        top: 5px;
+        right: 10px;
+        font-size: 20px;
+    }
+}
+
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-selection--single {
+    height: 38px !important;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-selection__rendered {
+    font-size: 14px;
+    color: #555;
+    line-height: 26px;
+}
+
+.select2-selection__arrow {
+    height: 100%;
+}
+
+/* Smaller Toggle Button */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;  /* Reduced width */
+    height: 20px;  /* Reduced height */
+    margin-left: 12%;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;  /* Smaller circle */
+    width: 16px;   /* Smaller circle */
+    border-radius: 50%;
+    left: 2px;  /* Adjusted for smaller size */
+    bottom: 2px;  /* Adjusted for smaller size */
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #4CAF50;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);  /* Adjusted for smaller size */
+}
+
+/* Modal Background */
+.custom-modal {
+    display: none;  /* Hidden by default */
+    position: fixed;  /* Stay in place */
+    z-index: 1;  /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;  /* Full width */
+    height: 100%;  /* Full height */
+    background-color: rgba(0, 0, 0, 0.5);  /* Black with opacity */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal Content */
+.custom-modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 80%;
+}
+
+/* Modal Header Text (Message) */
+#confirmationMessage {
+    font-size: 20px;  /* Reduced font size */
+    color: #333;
+    font-weight: bold;
+}
+
+/* Modal Buttons */
+.custom-modal-buttons {
+    margin-top: 20px;
+}
+
+.custom-btn {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.custom-btn:hover {
+    background-color: #80af83;
+}
+
+#cancelDelete {
+    background-color: #f44336; /* Red */
+}
+
+#cancelDelete:hover {
+    background-color: #e53935;
+}
