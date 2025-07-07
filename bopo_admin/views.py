@@ -5716,29 +5716,25 @@ def view_corporate_merchants(request, corporate_id):
 
     
 def corporate_merchants(request):
-  
-    return render(request, 'bopo_admin/Merchant/corporate_merchants.html')
-
-def corporate_under_merchant(request):
     if request.method == "GET":
         corporate_id = request.GET.get("corporate_id")
-        corporate = None
-        if corporate_id:
-            corporate = Corporate.objects.filter(corporate_id=corporate_id).first()
+        if not corporate_id:
+            return HttpResponse("Corporate ID missing in URL", status=400)
+
+        corporate = get_object_or_404(Corporate, corporate_id=corporate_id)
         return render(request, "bopo_admin/Merchant/corporate_merchants.html", {"corporate": corporate})
 
     elif request.method == "POST":
-        # print('asssssssssssssssssss')
         try:
             is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
-            # Extract form data
-            print("POST data:", request.POST.get('corporate_id'))
             corporate_id = request.POST.get("corporate_id")
-            corporate = get_object_or_404(Corporate, corporate_id=corporate_id)
-            # print("================corporate id", corporate_id)
+            if not corporate_id:
+                return JsonResponse({"success": False, "message": "Corporate ID is missing from the form."})
 
-            # 🔽 Extract other form data
+            corporate = get_object_or_404(Corporate, corporate_id=corporate_id)
+
+            # Extract form data
             first_name = request.POST.get("first_name")
             last_name = request.POST.get("last_name")
             email = request.POST.get("email")
@@ -5754,10 +5750,11 @@ def corporate_under_merchant(request):
             city_id = request.POST.get("city")
             state_id = request.POST.get("state")
             country = request.POST.get("country", "India")
+
             state = State.objects.get(id=state_id)
             city = City.objects.get(id=city_id)
 
-            # ✅ Check for unique fields
+            # Uniqueness checks
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
                 return JsonResponse({"success": False, "message": "Email is already registered."})
             if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
@@ -5765,10 +5762,12 @@ def corporate_under_merchant(request):
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
                 return JsonResponse({"success": False, "message": "Aadhaar number is already registered."})
 
-            # ✅ Generate merchant_id
+            # Generate IDs
             merchant_id = f"MID{''.join(random.choices(string.digits, k=11))}"
+            terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
+            tid_pin = random.randint(1000, 9999)
 
-            # ✅ Create Merchant
+            # Create Merchant
             merchant = Merchant.objects.create(
                 user_type='corporate',
                 merchant_id=merchant_id,
@@ -5788,13 +5787,10 @@ def corporate_under_merchant(request):
                 city=city,
                 country=country,
                 corporate_id=corporate.corporate_id,
-                project_name=corporate  # assigning full corporate object
+                project_name=corporate
             )
 
-            # ✅ Create Terminal
-            terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
-            tid_pin = random.randint(1000, 9999)
-
+            # Create Terminal
             Terminal.objects.create(
                 terminal_id=terminal_id,
                 tid_pin=tid_pin,
@@ -5811,5 +5807,101 @@ def corporate_under_merchant(request):
             print("Error saving merchant:", e)
             return JsonResponse({"success": False, "message": "Something went wrong. Please check your inputs."})
 
-    corporates = Corporate.objects.all()
-    return render(request, "bopo_admin/Merchant/corporate_merchants.html", {"corporates": corporates})
+  
+    return render(request, 'bopo_admin/Merchant/corporate_merchants.html')
+
+
+def corporate_under_merchant(request):
+    if request.method == "GET":
+        corporate_id = request.GET.get("corporate_id")
+        if not corporate_id:
+            return HttpResponse("Corporate ID missing in URL", status=400)
+
+        corporate = get_object_or_404(Corporate, corporate_id=corporate_id)
+        return render(request, "bopo_admin/Merchant/corporate_merchants.html", {"corporate": corporate})
+
+    elif request.method == "POST":
+        try:
+            is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+            corporate_id = request.POST.get("corporate_id")
+            if not corporate_id:
+                return JsonResponse({"success": False, "message": "Corporate ID is missing from the form."})
+
+            corporate = get_object_or_404(Corporate, corporate_id=corporate_id)
+
+            # Extract form data
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")
+            email = request.POST.get("email")
+            mobile = request.POST.get("mobile")
+            aadhaar_number = request.POST.get("aadhaar_number")
+            pin = request.POST.get("pin")
+            gst_number = request.POST.get("gst_number")
+            shop_name = request.POST.get("shop_name")
+            pan_number = request.POST.get("pan_number")
+            address = request.POST.get("address")
+            legal_name = request.POST.get("legal_name")
+            pincode = request.POST.get("pincode")
+            city_id = request.POST.get("city")
+            state_id = request.POST.get("state")
+            country = request.POST.get("country", "India")
+
+            state = State.objects.get(id=state_id)
+            city = City.objects.get(id=city_id)
+
+            # Uniqueness checks
+            if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
+                return JsonResponse({"success": False, "message": "Email is already registered."})
+            if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
+                return JsonResponse({"success": False, "message": "Mobile number is already registered."})
+            if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
+                return JsonResponse({"success": False, "message": "Aadhaar number is already registered."})
+
+            # Generate IDs
+            merchant_id = f"MID{''.join(random.choices(string.digits, k=11))}"
+            terminal_id = "TID" + ''.join(random.choices(string.digits, k=8))
+            tid_pin = random.randint(1000, 9999)
+
+            # Create Merchant
+            merchant = Merchant.objects.create(
+                user_type='corporate',
+                merchant_id=merchant_id,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                mobile=mobile,
+                aadhaar_number=aadhaar_number,
+                pin=pin,
+                gst_number=gst_number,
+                pan_number=pan_number,
+                shop_name=shop_name,
+                legal_name=legal_name,
+                address=address,
+                pincode=pincode,
+                state=state,
+                city=city,
+                country=country,
+                corporate_id=corporate.corporate_id,
+                project_name=corporate
+            )
+
+            # Create Terminal
+            Terminal.objects.create(
+                terminal_id=terminal_id,
+                tid_pin=tid_pin,
+                merchant_id=merchant
+            )
+
+            return JsonResponse({
+                "success": True,
+                "message": "Merchant added successfully.",
+                "corporate_id": corporate.corporate_id
+            })
+
+        except Exception as e:
+            print("Error saving merchant:", e)
+            return JsonResponse({"success": False, "message": "Something went wrong. Please check your inputs."})
+
+    # Fallback for safety
+    return HttpResponse("Invalid request method", status=405)

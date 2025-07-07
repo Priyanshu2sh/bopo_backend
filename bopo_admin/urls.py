@@ -246,7 +246,8 @@ urlpatterns = [
     path('corporate/<str:corporate_id>/merchants/', views.view_corporate_merchants, name='view_corporate_merchants'),
     path('corporate_merchants/', views.corporate_merchants, name='corporate_merchants'),
     
-    path('corporate_under/add_merchant/', views.corporate_under_merchant, name='corporate_under_merchant'),
+ path('corporate_under/add_merchant/', views.corporate_under_merchant, name='corporate_under_merchant')
+
     
 
 
