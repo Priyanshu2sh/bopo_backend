@@ -552,8 +552,7 @@ def get_customer(request, customer_id):
         "email": customer.email,
         "mobile": customer.mobile,
         "age": customer.age,
-        "aadhar_number": customer.aadhar_number,
-        "pin": customer.pin,
+        "aadhaar_number": customer.aadhaar_number,
         "address": customer.address,
         "pincode": customer.pincode,
         "gender": customer.gender,
@@ -2793,7 +2792,7 @@ def add_customer(request):
         mobile = request.POST.get('mobile')
         age = request.POST.get('age')
         gender = request.POST.get('gender')
-        aadhar_number = request.POST.get('aadhaar')
+        aadhaar_number = request.POST.get('aadhaar_number')
         pin = request.POST.get('pin') 
         pan_number = request.POST.get('pan_number')
         address = request.POST.get('address')
@@ -2828,7 +2827,7 @@ def add_customer(request):
         if Customer.objects.filter(mobile=mobile).exists():
             return JsonResponse({"success": False, "message": "Mobile number already exists!"})
 
-        if Customer.objects.filter(aadhar_number=aadhar_number).exists():
+        if Customer.objects.filter(aadhaar_number=aadhaar_number).exists():
             return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
 
         if Customer.objects.filter(pan_number=pan_number).exists():
@@ -2843,7 +2842,7 @@ def add_customer(request):
             mobile=mobile,
             age=age,
             gender=gender,
-            aadhar_number=aadhar_number,
+            aadhaar_number=aadhaar_number,
             pin=pin,
             pan_number=pan_number,
             address=address,
@@ -5747,12 +5746,34 @@ def corporate_merchants(request):
             address = request.POST.get("address")
             legal_name = request.POST.get("legal_name")
             pincode = request.POST.get("pincode")
-            city_id = request.POST.get("city")
-            state_id = request.POST.get("state")
+            city= request.POST.get("city")
+            state = request.POST.get("state")
             country = request.POST.get("country", "India")
 
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
+            # state = State.objects.get(id=state_id)
+            # city = City.objects.get(id=city_id)
+            
+              # ✅ Validate State and City selection
+            if not state:
+                message = "Please select a state."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            if not city:
+                message = "Please select a city."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            try:
+                state = State.objects.get(id=state)
+            except State.DoesNotExist:
+                message = "Selected state is invalid."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            try:
+                city = City.objects.get(id=city)
+            except City.DoesNotExist:
+                message = "Selected city is invalid."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
 
             # Uniqueness checks
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
@@ -5843,12 +5864,34 @@ def corporate_under_merchant(request):
             address = request.POST.get("address")
             legal_name = request.POST.get("legal_name")
             pincode = request.POST.get("pincode")
-            city_id = request.POST.get("city")
-            state_id = request.POST.get("state")
+            city= request.POST.get("city")
+            state= request.POST.get("state")
             country = request.POST.get("country", "India")
 
-            state = State.objects.get(id=state_id)
-            city = City.objects.get(id=city_id)
+            # state = State.objects.get(id=state)
+            # city = City.objects.get(id=city)
+            
+              # ✅ Validate State and City selection
+            if not state:
+                message = "Please select a state."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            if not city:
+                message = "Please select a city."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            try:
+                state = State.objects.get(id=state)
+            except State.DoesNotExist:
+                message = "Selected state is invalid."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
+            try:
+                city = City.objects.get(id=city)
+            except City.DoesNotExist:
+                message = "Selected city is invalid."
+                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+
 
             # Uniqueness checks
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():

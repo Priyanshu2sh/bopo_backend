@@ -51,20 +51,20 @@
                     <label>First Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="first_name" id="first_name" >
+                        <input type="text" name="first_name" id="first_name" required>
                     </div>
 
                                           
                     <label>Email ID</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" name="email" id="email" >
+                        <input type="email" name="email" id="email" required>
                     </div>
     
                     <label>Aadhaar Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar_number"  id="aadhaar_number" maxlength="12">
+                        <input type="text" name="aadhaar_number"  id="aadhaar_number" maxlength="12" required>
                     </div>
     
                     <label>GST Number</label>
@@ -75,13 +75,13 @@
                     <label>Shop Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-store"></i>
-                        <input type="text" name="shop_name" >
+                        <input type="text" name="shop_name" required>
                     </div>
 
                     <label>Address</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-map-marker-alt"></i>
-                        <input type="text" name="address" >
+                        <input type="text" name="address" required>
                     </div>
                                       
                       
@@ -102,19 +102,19 @@
                 <label>Last Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="last_name"  id="last_name">
+                        <input type="text" name="last_name"  id="last_name" required>
                     </div>
 
                     <label>Mobile Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-mobile-alt"></i>
-                        <input type="text" name="mobile" id="mobile" maxlength="10">
+                        <input type="text" name="mobile" id="mobile" maxlength="10" required>
                     </div>
 
                     <label>PIN</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-lock"></i>
-                        <input type="password" name="pin" id="pin" maxlength="4" placeholder="Enter 4-digit pin" >
+                        <input type="password" name="pin" id="pin" maxlength="4" placeholder="Enter 4-digit pin" required >
                         <span class="password-toggle" onclick="togglePassword('pin')">
                             <i class="fas fa-eye-slash"></i> <!-- Closed eye by default -->
                         </span>
@@ -132,7 +132,7 @@
                     <label>Legal Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-building"></i>
-                        <input type="text" name="legal_name" >
+                        <input type="text" name="legal_name" required>
                     </div>
     
                     <label>Select City</label>
@@ -144,7 +144,7 @@
                     <label>Pincode</label>
                         <div class="addmerchant-input-container">
                             <i class="fas fa-home"></i>
-                            <input type="text" name="pincode" id="pincode"  maxlength="6" >
+                            <input type="text" name="pincode" id="pincode"  maxlength="6" required >
                   </div>
 
                   {% comment %} <label>Upload Logo</label>

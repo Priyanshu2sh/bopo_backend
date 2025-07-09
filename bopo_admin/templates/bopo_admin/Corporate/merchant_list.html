@@ -9,6 +9,96 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
+ <!-- Select2 CSS & JS -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- DataTables & Buttons CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+    /* Hide default DataTables search box */
+    div.dataTables_filter {
+        display: none !important;
+    }
+
+    /* Top controls styling */
+    .top-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .search-box {
+        padding: 6px 10px;
+        width: 250px;
+    }
+
+    #custom-buttons {
+        display: flex;
+        justify-content: flex-end; /* Align buttons to the right */
+        margin-top: 10px;
+    }
+
+    #individual-table tbody tr:hover {
+        background-color: #f8f8f8; /* Light color for whole row */
+        transition: background-color 0.3s ease;
+    }
+
+    /* Bright highlight only for first column (#) on hover */
+    #individual-table tbody tr:hover td:first-child {
+        background-color: #f0f0f0; /* Highlight only '#' column */
+        font-weight: bold;
+        color: #333;
+        transition: background-color 0.3s ease;
+    }
+    /* Custom Pagination Styling (Like .pagination-controls) */
+    .dataTables_paginate {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .dataTables_paginate .paginate_button {
+        background: linear-gradient(135deg, #ff7b54, #ff4e00);
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(52, 49, 48, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    }
+
+    .dataTables_paginate .paginate_button:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #ff9a76, #ff6a2d);
+        box-shadow: 0 6px 12px rgba(41, 39, 38, 0.4);
+    }
+
+    .dataTables_paginate .paginate_button.current {
+        background: linear-gradient(135deg, #333, #111);
+        color: #fff;
+        font-weight: bold;
+        border: 2px solid #ff4e00;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+       
+    }
+    .dataTables_paginate .ellipsis {
+    padding: 0 8px;
+    color: #888;
+    font-size: 16px;
+}
+
+</style>
+
 <div class="merchant-container">
     <div class="merchant-header">
 
@@ -32,8 +122,11 @@
 
             <!-- Section to toggle -->
             <div class="merchant-table" id="merchant-table-section">
-                <input type="text" class="search-box" id="search-corporate" onkeyup="filterTable('corporate-table', 'search-corporate')" placeholder="Search merchants...">
-                
+                  <!-- Custom Search & Column Toggle Button -->
+            <div class="top-controls">
+                <input type="text" class="search-box" id="search-customer" placeholder="Search merchants...">
+                <div id="custom-buttons"></div>
+            </div>
                 <table id="corporate-table">
                     <thead>
                         <tr>
@@ -85,6 +178,47 @@
 </div>
 
 
+ <!-- DataTables & Buttons JS --> 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+
+   <script>
+    $(document).ready(function () {
+        // Show 5 pagination numbers (like 1 2 3 … 9 10)
+        $.fn.DataTable.ext.pager.numbers_length = 5;
+
+        const table = $('#corporate-table').DataTable({
+            dom: 'Bfrtip',
+            pageLength: 1, // Or any value you prefer
+            pagingType: "simple_numbers",  // Only Prev, numbers, Next
+            order: [],
+            buttons: [
+                {
+                    extend: 'colvis',
+                    text: '<i class="fas fa-table"></i>',
+                    className: 'btn btn-success',
+                    columns: ':not(.noVis)'
+                }
+            ],
+            columnDefs: [
+                { targets: 0, className: 'noVis' }
+            ],
+            stripeClasses: []
+        });
+
+        // Append buttons container to your custom div
+        table.buttons().container().appendTo('#custom-buttons');
+
+        // Bind search input to DataTable
+        $('#search-customer').on('keyup', function () {
+            table.search(this.value).draw();
+        });
+    });
+</script>
+
+</div>
 
 
 
@@ -470,3 +604,5 @@ function filterTable(tableId, searchBoxId) {
 </script>
 
 {% endblock %}
+
+

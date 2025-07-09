@@ -132,12 +132,12 @@
 
         <div class="input-group">
             <label for="merchantTransactionId">Transaction ID</label>
-            <input type="text" id="merchantTransactionId" class="input-field" placeholder="Enter Transaction ID">
+            <input type="text" id="merchantTransactionId" class="input-field" placeholder="Enter Transaction ID" required>
         </div>
 
         <div class="input-group">
             <label for="merchantPaymentMethod">Payment Method</label>
-            <select id="merchantPaymentMethod" class="input-field">
+            <select id="merchantPaymentMethod" class="input-field" required>
                 <option value="">Select</option>
                 <option value="Bank Transfer">Bank Transfer</option>
                 <option value="UPI">UPI</option>
@@ -148,7 +148,7 @@
 
         <div class="input-group">
             <label for="merchantPaymentDate">Payment Date</label>
-            <input type="date" id="merchantPaymentDate" class="input-field">
+            <input type="date" id="merchantPaymentDate" class="input-field" required>
         </div>
 
         <button class="btn-save" onclick="submitCashOut()">Save</button>
@@ -177,7 +177,7 @@
 
     const merchantTable = $('#merchant-table').DataTable({
         dom: 'Bfrtip',
-        pageLength: 6,
+        pageLength: 2,
         lengthChange: false,
         buttons: [
             {

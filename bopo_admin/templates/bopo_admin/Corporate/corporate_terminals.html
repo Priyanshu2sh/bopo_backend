@@ -36,7 +36,7 @@
   </div>
 
   <!-- Confirmation Modal -->
-  <div id="confirmationModal" class="custom-modal" style="display: none;">
+<div id="confirmationModal" class="custom-modal" style="display: none;">
     <div class="custom-modal-content">
       <span class="custom-close" id="closeModal">&times;</span>
       <h3 id="confirmationMessage">Are you sure, you are creating another terminal?</h3>
@@ -45,7 +45,19 @@
         <button id="cancelAction" class="custom-btn" style="background-color: #f44336;">No</button>
       </div>
     </div>
+  </div> 
+
+<div id="confirmationModall" class="custom-modal" style="display: none;">
+  <div class="custom-modal-content">
+    <span class="custom-close" id="closeStatusModal">&times;</span>
+    <h3>Are you sure you want to change the status?</h3>
+    <div class="custom-modal-buttons">
+      <button id="confirmStatusChange" class="custom-btn">Yes</button>
+      <button id="cancelStatusChange" class="custom-btn">No</button>
+    </div>
   </div>
+</div>
+
 
 
   <!-- Empty State -->
@@ -77,7 +89,12 @@
       </td>
       <td>
         <label class="switch">
-          <input type="checkbox" onchange="toggleStatus('{{ terminal.terminal_id }}', this)" {% if terminal.status == 'Active' %}checked{% endif %}>
+<input type="checkbox"
+       class="status-toggle"
+       data-id="{{ terminal.terminal_id }}"
+       data-type="terminal"
+       {% if terminal.status == 'Active' %}checked{% endif %}>
+
           <span class="slider round"></span>
         </label>
       </td>
@@ -135,6 +152,49 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  let currentToggle = null;
+  let intendedState = null;
+
+  document.querySelectorAll('.status-toggle').forEach(toggle => {
+    toggle.addEventListener('click', function (e) {
+      // Store the checkbox and its intended state
+      currentToggle = this;
+      intendedState = !this.checked; // Will change if confirmed
+
+      // Prevent immediate toggle
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      // Show confirmation modal
+      document.getElementById("confirmationModall").style.display = "flex";
+    });
+  });
+
+  document.getElementById('confirmStatusChange').addEventListener('click', function () {
+    if (currentToggle) {
+      currentToggle.checked = intendedState;
+      const terminalId = currentToggle.getAttribute("data-id");
+      toggleStatus(terminalId, currentToggle);
+    }
+    document.getElementById("confirmationModall").style.display = "none";
+    currentToggle = null;
+  });
+
+  document.getElementById('cancelStatusChange').addEventListener('click', function () {
+    document.getElementById("confirmationModall").style.display = "none";
+    currentToggle = null;
+  });
+
+  document.getElementById('closeStatusModal').addEventListener('click', function () {
+    document.getElementById("confirmationModall").style.display = "none";
+    currentToggle = null;
+  });
+});
+
+// toggleStatus function (already defined by you)
 function toggleStatus(terminalId, checkbox) {
   const isActive = checkbox.checked;
   const csrfToken = '{{ csrf_token }}';
@@ -150,9 +210,9 @@ function toggleStatus(terminalId, checkbox) {
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      showToast(`Status updated successfully to "${data.status}"`);
+      showToast(`Status updated successfully to "${data.status}"`, 'success');
     } else {
-      showToast("Failed to update status: " + (data.error || ""));
+      showToast("Failed to update status: " + (data.error || ""), 'error');
     }
   })
   .catch(() => {
@@ -225,7 +285,11 @@ $(document).ready(function() {
     <td><input type="text" value="${terminal.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
     <td>
       <label class="switch">
-        <input type="checkbox" onchange="toggleStatus('${terminal.terminal_id}', this)" ${terminal.status === 'Active' ? 'checked' : ''}>
+<input type="checkbox"
+       class="status-toggle"
+       data-id="${terminal.terminal_id}"
+       ${terminal.status === 'Active' ? 'checked' : ''}>
+
         <span class="slider round"></span>
       </label>
     </td>
@@ -422,7 +486,11 @@ document.addEventListener("DOMContentLoaded", function () {
           <td><input type="text" value="${data.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
           <td>
             <label class="switch">
-              <input type="checkbox" onchange="toggleStatus('${data.terminal_id}', this)" ${data.status === 'Active' ? 'checked' : ''}>
+             <input type="checkbox"
+       class="status-toggle"
+       data-id="${terminal.terminal_id}"
+       ${terminal.status === 'Active' ? 'checked' : ''}>
+
               <span class="slider round"></span>
             </label>
           </td>
