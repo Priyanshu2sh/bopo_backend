@@ -21,11 +21,12 @@
 </head>
 <body>
 
-    <div class="back-to-list-btn">
-        <a href="{% url 'corporate_list' %}" class="addmerchant-btn-submit">
-            <i class="fa fa-arrow-left"></i> Back to List
-        </a>
-    </div>
+ <div class="back-to-list-btn">
+    <a href="javascript:history.back()" class="addmerchant-btn-submit">
+        <i class="fa fa-arrow-left"></i> Back to List
+    </a>
+</div>
+
 
     <h2 class="heading">Add Corporate Merchant</h2>
     {% comment %} <p style="color:red;">Corporate ID in Template: {{ corporate.corporate_id }}</p> {% endcomment %}
