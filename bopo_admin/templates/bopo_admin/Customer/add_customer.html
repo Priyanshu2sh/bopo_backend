@@ -42,13 +42,14 @@
                    <label for="first_name">First Name</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="first_name" id="first_name" required>
+                        <input type="text" name="first_name" id="first_name" required autocomplete="off">
                     </div>
 
                     <label for="email">Email ID</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" name="email" id="email">
+                        <input type="email" name="email" id="email" autocomplete="off"
+>
                     </div>
 
                     <label for="age">Age</label>
@@ -94,7 +95,7 @@
                     <label for="last_name">Last Name</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="last_name" id="last_name" required>
+                        <input type="text" name="last_name" id="last_name" required autocomplete="off">
                     </div>
 
                     <label for="mobile">Mobile Number</label>
@@ -107,7 +108,7 @@
                     <label>PIN</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-lock"></i>
-                        <input type="password" name="pin" id="pin" maxlength="4" placeholder="Enter 4-digit pin" required>
+                        <input type="password" name="pin" id="pin" maxlength="4" placeholder="Enter 4-digit pin" required autocomplete="new-password">
                         <span class="password-toggle" onclick="togglePassword('pin')">
                             <i class="fas fa-eye-slash"></i> <!-- Closed eye by default -->
                         </span>

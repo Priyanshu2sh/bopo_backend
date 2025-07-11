@@ -225,7 +225,7 @@
                     <label for="aadhaar">Aadhaar Number</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" id="edit_aadhaar" name="aadhar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" disabled>
+                        <input type="text" id="edit_aadhaar" name="aadhaar_number" pattern="\d{12}" maxlength="12" title="Enter a 12-digit Aadhaar number" disabled>
                     </div>
 
                     <label for="address">Address</label>
@@ -515,7 +515,7 @@ function openEditModal(customerId) {
             document.getElementById("edit_email").value = customer.email || "";
             document.getElementById("edit_mobile").value = customer.mobile || "";
             document.getElementById("edit_age").value = customer.age || "";
-            document.getElementById("edit_aadhaar").value = customer.aadhar_number || "";
+            document.getElementById("edit_aadhaar").value = customer.aadhaar_number || "";
             document.getElementById("edit_address").value = customer.address || "";
             document.getElementById("edit_city").value = customer.city || "";
             document.getElementById("edit_state").value = customer.state || "";

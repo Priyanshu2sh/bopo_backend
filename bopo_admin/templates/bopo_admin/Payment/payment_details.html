@@ -3,7 +3,7 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'bopo_admin/css/payment_details.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<!-- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"> -->
 
 <div class="payment_details-container">
     <div class="payment_details-back-to-list-btn">
@@ -133,16 +133,18 @@
                             <div class="d-flex gap-2">
                                 <button 
                                     id="approve-btn-{{ payment.id }}" 
-                                    class="btn btn-sm btn-success" 
-                                    onclick="showApproveModal('{{ payment.id }}', '{{ payment.plan_type }}')">
+                                    data-id="{{ payment.id }}" 
+                                    data-plan="{{ payment.plan_type|default_if_none:''|lower }}" 
+                                    class="btn btn-sm btn-success" aria-label="Approve Payment">
                                     <i class="fas fa-check-circle"></i> Approve
                                 </button>
                                 <button 
                                     id="reject-btn-{{ payment.id }}" 
-                                    class="btn btn-sm btn-danger" 
-                                    onclick="openRejectPasswordModal('{{ payment.id }}')">
+                                    data-id="{{ payment.id }}" 
+                                    class="btn btn-sm btn-danger" aria-label="Reject Payment">
                                     <i class="fas fa-times-circle"></i> Reject
                                 </button>
+
 
                             </div>
                         {% endif %}
@@ -158,16 +160,22 @@
     <div class="modal-content">
       <div class="modal-header bg-danger text-white">
         <h5 class="modal-title" id="rejectPasswordModalLabel">Confirm Rejection</h5>
-        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal('rejectPasswordModal', true)"></button>
+
       </div>
       <div class="modal-body">
         <p>Please enter your password to reject this top-up:</p>
-        <input type="password" id="rejectPasswordInput" class="form-control" placeholder="Enter password">
+        <div class="position-relative">
+        <input type="password" id="rejectPasswordInput" class="form-control" placeholder="Enter password" autocomplete="off">
+        <i class="fa-solid fa-eye-slash position-absolute" id="togglePassword"
+            style="top: 55%; right: 20px; transform: translateY(-50%); cursor: pointer; opacity: 0.4;"></i>
+            </div>
         <input type="hidden" id="rejectPaymentId">
         <div id="rejectError" class="text-danger mt-2" style="display: none;">Incorrect password. Try again.</div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="closeModal('rejectPasswordModal', true)">Cancel</button>
+
         <button type="button" class="btn btn-danger" onclick="confirmReject()">Reject</button>
       </div>
     </div>
@@ -190,23 +198,55 @@
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
 <script>
- $(document).ready(function() {
-    const table = $('#payment-table').DataTable({
-      dom: 'Bfrtip',
-      pageLength: 6,
-      paging: true,
-      responsive: true,
-      lengthChange: false,
-      searching: true,
-      buttons: [
-        {
-          extend: 'colvis',
-          text: '<i class="fas fa-table"></i>',
-          className: 'btn btn-light'
-        }
-      ],
-      stripeClasses: [],
+
+const togglePassword = document.querySelector("#togglePassword");
+const passwordInput = document.querySelector("#rejectPasswordInput");
+
+togglePassword.addEventListener("click", function () {
+    const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+    passwordInput.setAttribute("type", type);
+
+    if (this.classList.contains("fa-eye-slash")) {
+        this.classList.remove("fa-eye-slash");
+        this.classList.add("fa-eye");
+    } else {
+        this.classList.remove("fa-eye");
+        this.classList.add("fa-eye-slash");
+    }
+});
+
+
+const table = $('#payment-table').DataTable({
+  dom: 'Bfrtip',
+  pageLength: 6,
+  paging: true,
+  responsive: true,
+  lengthChange: false,
+  searching: true,
+  buttons: [
+    {
+      extend: 'colvis',
+      text: '<i class="fas fa-table"></i>',
+      className: 'btn btn-light'
+    }
+  ],
+  stripeClasses: [],
+  drawCallback: function() {
+    // ✅ Attach Approve button event
+    $('.btn-success').off('click').on('click', function () {
+        const paymentId = $(this).data('id');
+        const planType = $(this).data('plan');
+        showApproveModal(paymentId, planType);
     });
+
+    // ✅ Attach Reject button event
+    $('.btn-danger').off('click').on('click', function () {
+        const paymentId = $(this).data('id');
+        openRejectPasswordModal(paymentId);
+    });
+  }
+});
+
 
     // Attach buttons container to your custom div
     table.buttons().container().appendTo('#custom-buttons');
@@ -219,28 +259,31 @@
     // Always show all rows on page load (fix for DataTables hiding rows after reload)
     table.search('').draw(false);
 
-    // Re-attach click handlers after table redraw (for Approve/Reject buttons)
-    $('#payment-table').on('click', '.btn-success', function() {
-      const paymentId = $(this).attr('id').replace('approve-btn-', '');
-      const planType = $(this).closest('tr').find('td:nth-child(8)').text().trim().toLowerCase();
-      showApproveModal(paymentId, planType);
-    });
-    $('#payment-table').on('click', '.btn-danger', function() {
-      const paymentId = $(this).attr('id').replace('reject-btn-', '');
-      openRejectPasswordModal(paymentId);
-    });
+   // Re-attach click handlers after table redraw
+    // $('#payment-table').on('click', '.btn-success', function () {
+    //     const paymentId = $(this).data('id');
+    //     const planType = $(this).data('plan');
+    //     showApproveModal(paymentId, planType);
+    // });
+
+    // $('#payment-table').on('click', '.btn-danger', function () {
+    //     const paymentId = $(this).data('id');
+    //     openRejectPasswordModal(paymentId);
+    // });
+
+
 
     // Remove this redundant redraw to avoid hiding rows after reload
     // table.search('').draw();
 
     // Variable to store selected plan filter
     let selectedPlan = "";
-
+ 
     // Custom filter for plan type column (index 7)
     $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
       let planType = data[7].toLowerCase().trim();
-      console.log('Plan Type Column:', data[7]);
-      console.log("Plan Type Raw Value:", data[7]);
+        console.log('Plan Type Column:', data[7]);
+        console.log("Plan Type Raw Value:", data[7]);
         console.log('Selected Plan:', selectedPlan);
 
 
@@ -277,14 +320,8 @@
 
       table.draw();
     });
-  });
+  
 </script>
-
-
-
-
-
-
 
 <!-- Approve Modal -->
 <div id="approveModal" class="custom-modal">
@@ -318,7 +355,8 @@
         <input type="number" id="rentalValidityInput" min="1" placeholder="e.g. 30" class="validity-input" />
         <div class="custom-modal-buttons">
             <button id="rentalApproveConfirmBtn" class="custom-btn green-btn">Approve</button>
-            <button class="custom-btn red-btn" onclick="closeModal('rentalValidityModal')">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="closeModal('rejectPasswordModal', true)">Cancel</button>
+
         </div>
     </div>
 </div>
@@ -356,8 +394,16 @@ function showRejectModal(paymentId) {
     document.getElementById('rejectModal').style.display = "flex";
 }
 
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = "none";
+function closeModal(modalId, refresh = false) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = "none";
+
+    if (refresh) {
+        // Reload the page after 300ms (optional smoothness)
+        setTimeout(() => {
+            location.reload();
+        }, 300);
+    }
 }
 
 function showToast(message, iconClass = "fas fa-check-circle", bgColor = "#28a745") {
@@ -376,8 +422,6 @@ function showToast(message, iconClass = "fas fa-check-circle", bgColor = "#28a74
         toast.classList.remove('show');
     }, 3000);
 }
-
-
 
 function approvePayment(paymentId, planType, validity = null) {
     let bodyData = "payment_id=" + encodeURIComponent(paymentId) +
@@ -448,25 +492,25 @@ function rejectPayment(paymentId) {
     closeModal('rejectModal');
 }
 
-function filterTable(tableId, searchBoxId) {
-    let input = document.getElementById(searchBoxId);
-    let filter = input.value.toLowerCase();
-    let table = document.getElementById(tableId);
-    let rows = table.getElementsByTagName("tr");
+// function filterTable(tableId, searchBoxId) {
+//     let input = document.getElementById(searchBoxId);
+//     let filter = input.value.toLowerCase();
+//     let table = document.getElementById(tableId);
+//     let rows = table.getElementsByTagName("tr");
 
-    for (let i = 1; i < rows.length; i++) {
-        let cells = rows[i].getElementsByTagName("td");
-        let rowMatch = false;
+//     for (let i = 1; i < rows.length; i++) {
+//         let cells = rows[i].getElementsByTagName("td");
+//         let rowMatch = false;
 
-        for (let j = 0; j < cells.length; j++) {
-            if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                rowMatch = true;
-                break;
-            }
-        }
-        rows[i].style.display = rowMatch ? "" : "none";
-    }
-}
+//         for (let j = 0; j < cells.length; j++) {
+//             if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
+//                 rowMatch = true;
+//                 break;
+//             }
+//         }
+//         rows[i].style.display = rowMatch ? "" : "none";
+//     }
+// }
 
 function getCookie(name) {
     let cookieValue = null;
@@ -509,7 +553,7 @@ function confirmReject() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast(data.message, "fas fa-times-circle", "#dc3545");
+            showToast(data.message, "fas fa-times-circle", "#4CAF50");
 
             const approveBtn = document.getElementById("approve-btn-" + paymentId);
             if (approveBtn) {
@@ -520,6 +564,11 @@ function confirmReject() {
 
             document.getElementById("reject-btn-" + paymentId).style.display = "none";
             bootstrap.Modal.getInstance(document.getElementById('rejectPasswordModal')).hide();
+
+            // ✅ Refresh after toast (3 seconds)
+            setTimeout(() => {
+                location.reload();
+            }, 3000);  // Wait for toast to disappear
         } else {
             document.getElementById("rejectError").textContent = data.message || "Incorrect password.";
             document.getElementById("rejectError").style.display = "block";

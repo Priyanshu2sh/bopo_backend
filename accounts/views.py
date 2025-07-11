@@ -499,6 +499,7 @@ class LoginAPIView(APIView):
                     "message": "Login successful",
                     "first_name": user.first_name,
                     "last_name": user.last_name,
+                    "mobile": user.mobile,
                     "pin": user.pin,
                     "user_category": "customer",
                     "customer_id": user.customer_id,
@@ -551,6 +552,7 @@ class LoginAPIView(APIView):
                     "message": "Login successful",
                     "first_name": user.first_name,
                     "last_name": user.last_name,
+                    "mobile": user.mobile,
                     "pin": user.pin,
                     "user_category": "merchant",
                     "merchant_id": user.merchant_id,
@@ -575,13 +577,29 @@ class LoginAPIView(APIView):
                 if not terminal.tid_pin or str(terminal.tid_pin) != str(pin):
                     return Response({"error": "Invalid Terminal PIN."}, status=status.HTTP_400_BAD_REQUEST)
 
+                merchant = terminal.merchant_id  # assuming ForeignKey to Merchant
+
+                # Ensure merchant has a logo; assign default if missing
+                if not merchant.logo:
+                    default_logo = Logo.objects.filter(id=1).first()
+                    if default_logo:
+                        merchant.logo = default_logo
+                        merchant.save(update_fields=["logo"])
+
+                # Generate logo URL and base64
+                logo = request.build_absolute_uri(merchant.logo.logo.url) if merchant.logo and merchant.logo.logo else None
+                logo_base64 = self.get_logo_base64(merchant.logo) if merchant.logo else None
+
                 response_data = {
                     "message": "Login successful",
                     "user_category": "terminal",
                     "terminal_id": terminal.terminal_id,
                     "tid_pin": terminal.tid_pin,
-                    "merchant_id": terminal.merchant_id.merchant_id  # Assuming ForeignKey to Merchant
+                    "merchant_id": merchant.merchant_id,
+                    "merchant_logo": logo,
+                    "merchant_logo_base64": logo_base64
                 }
+
 
             else:
                 return Response({"error": "Invalid user category."}, status=status.HTTP_400_BAD_REQUEST)

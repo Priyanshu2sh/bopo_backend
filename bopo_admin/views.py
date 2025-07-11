@@ -552,7 +552,7 @@ def get_customer(request, customer_id):
         "email": customer.email,
         "mobile": customer.mobile,
         "age": customer.age,
-        "aadhar_number": customer.aadhar_number,
+        "aadhaar_number": customer.aadhaar_number,
         "pin": customer.pin,
         "address": customer.address,
         "pincode": customer.pincode,
@@ -598,7 +598,7 @@ def get_customer(request, customer_id):
 
 
 @csrf_exempt
-def update_customer(request, customer_id):
+def update_customer(request, customer_id):  
     if request.method == "POST":
         try:
             customer = Customer.objects.get(customer_id=customer_id)
@@ -993,82 +993,121 @@ def redirect_with_success(request, message):
 def add_merchant(request):
     if request.method == "POST":
         try:
-            is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+            form_data = request.POST.copy()
+            state_id = form_data.get("state")
+            city_id = form_data.get("city")
 
-            # Extract form data
-            project_name = request.POST.get("project_name", "")
-            first_name = request.POST.get("first_name")
-            last_name = request.POST.get("last_name")
-            email = request.POST.get("email")
-            mobile = request.POST.get("mobile")
-            aadhaar_number = request.POST.get("aadhaar_number")
-            pin = request.POST.get("pin")
-            gst_number = request.POST.get("gst_number")
-            shop_name = request.POST.get("shop_name")
-            pan_number = request.POST.get("pan_number")
-            address = request.POST.get("address")
-            legal_name = request.POST.get("legal_name")
-            pincode = request.POST.get("pincode")
-            account_type = request.POST.get("account_type", "normal")
-            city = request.POST.get("city")
-            state = request.POST.get("state")
-            country = request.POST.get("country", "India")
+            # ✅ Validate required fields
+            if not state_id:
+                messages.error(request, "State is required.")
+                return render(request, "bopo_admin/Merchant/add_merchant.html", {
+                    "corporates": Corporate.objects.all(),
+                    "form_data": form_data,
+                    "states": State.objects.all(),
+                    "cities": []
+                })
 
-            # ✅ Validate State and City selection
-            if not state:
-                message = "Please select a state."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
-
-            if not city:
-                message = "Please select a city."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+            if not city_id:
+                messages.error(request, "City is required.")
+                return render(request, "bopo_admin/Merchant/add_merchant.html", {
+                    "corporates": Corporate.objects.all(),
+                    "form_data": form_data,
+                    "states": State.objects.all(),
+                    "cities": City.objects.filter(state_id=state_id)
+                })
 
             try:
-                state = State.objects.get(id=state)
+                state = State.objects.get(id=state_id)
             except State.DoesNotExist:
-                message = "Selected state is invalid."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+                messages.error(request, "Invalid state selected.")
+                return render(request, "bopo_admin/Merchant/add_merchant.html", {
+                    "corporates": Corporate.objects.all(),
+                    "form_data": form_data,
+                    "states": State.objects.all(),
+                    "cities": []
+                })
 
             try:
-                city = City.objects.get(id=city)
+                city = City.objects.get(id=city_id)
             except City.DoesNotExist:
-                message = "Selected city is invalid."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+                messages.error(request, "Invalid city selected.")
+                return render(request, "bopo_admin/Merchant/add_merchant.html", {
+                    "corporates": Corporate.objects.all(),
+                    "form_data": form_data,
+                    "states": State.objects.all(),
+                    "cities": City.objects.filter(state_id=state_id)
+                })
 
-          
-         # ✅ Require logo upload
+            # Extract data
+            project_name = form_data.get("project_name", "")
+            first_name = form_data.get("first_name")
+            last_name = form_data.get("last_name")
+            email = form_data.get("email")
+            mobile = form_data.get("mobile")
+            aadhaar_number = form_data.get("aadhaar_number")
+            pin = form_data.get("pin")
+            gst_number = form_data.get("gst_number")
+            shop_name = form_data.get("shop_name")
+            pan_number = form_data.get("pan_number")
+            address = form_data.get("address")
+            legal_name = form_data.get("legal_name")
+            pincode = form_data.get("pincode")
+            account_type = form_data.get("account_type", "normal")
+            country = form_data.get("country", "India")
+
             logo_file = request.FILES.get("logo")
             logo_instance = None
             if logo_file:
                 logo_instance = Logo.objects.create(logo=logo_file)
 
-            # Validate uniqueness
+            # ✅ Check uniqueness
             if Merchant.objects.filter(email=email).exists() or Corporate.objects.filter(email=email).exists():
-                return JsonResponse({"success": False, "message": "Email is already registered."}) if is_ajax else redirect_with_error("Email is already registered.")
+                messages.error(request, "Email is already registered.")
+                return render(request, "bopo_admin/Merchant/add_merchant.html", {
+                    "corporates": Corporate.objects.all(),
+                    "form_data": form_data,
+                    "states": State.objects.all(),
+                    "cities": City.objects.filter(state_id=state_id)
+                })
 
             if Merchant.objects.filter(mobile=mobile).exists() or Corporate.objects.filter(mobile=mobile).exists():
-                return JsonResponse({"success": False, "message": "Mobile number is already registered."}) if is_ajax else redirect_with_error("Mobile number is already registered.")
+                messages.error(request, "Mobile number is already registered.")
+                return render(request, "bopo_admin/Merchant/add_merchant.html", {
+                    "corporates": Corporate.objects.all(),
+                    "form_data": form_data,
+                    "states": State.objects.all(),
+                    "cities": City.objects.filter(state_id=state_id)
+                })
 
             if Merchant.objects.filter(aadhaar_number=aadhaar_number).exists() or Corporate.objects.filter(aadhaar_number=aadhaar_number).exists():
-                return JsonResponse({"success": False, "message": "Aadhaar number is already registered."}) if is_ajax else redirect_with_error("Aadhaar number is already registered.")
+                messages.error(request, "Aadhaar number is already registered.")
+                return render(request, "bopo_admin/Merchant/add_merchant.html", {
+                    "corporates": Corporate.objects.all(),
+                    "form_data": form_data,
+                    "states": State.objects.all(),
+                    "cities": City.objects.filter(state_id=state_id)
+                })
 
-            # Only require project_name if user is adding a new project (optional logic)
-            # For example, if a checkbox or flag like "include_project" is passed
-            include_project = request.POST.get("include_project") == "true"
-
+            include_project = form_data.get("include_project") == "true"
             if include_project and not project_name:
-                return JsonResponse({"success": False, "message": "Project name is required."}) if is_ajax else redirect_with_error("Project name is required.")
+                messages.error(request, "Project name is required.")
+                return render(request, "bopo_admin/Merchant/add_merchant.html", {
+                    "corporates": Corporate.objects.all(),
+                    "form_data": form_data,
+                    "states": State.objects.all(),
+                    "cities": City.objects.filter(state_id=state_id)
+                })
 
-            # Generate corporate ID and project ID
-            last_corporate = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
-            new_corporate_id = 1 if not last_corporate else int(last_corporate.corporate_id[6:]) + 1
-            corporate_id = f"CORP{new_corporate_id:06d}"
+            # Generate IDs
+            last_corp = Corporate.objects.exclude(corporate_id=None).order_by("-corporate_id").first()
+            corp_id_num = 1 if not last_corp else int(last_corp.corporate_id[6:]) + 1
+            corporate_id = f"CORP{corp_id_num:06d}"
 
-            last_project = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
-            new_project_id = 1 if not last_project else int(last_project.project_id[4:]) + 1
-            project_id = f"PROJ{new_project_id:06d}"
+            last_proj = Corporate.objects.exclude(project_id=None).order_by("-project_id").first()
+            proj_id_num = 1 if not last_proj else int(last_proj.project_id[4:]) + 1
+            project_id = f"PROJ{proj_id_num:06d}"
 
-            # Create new corporate
+            # ✅ Create corporate and admin
             corporate = Corporate.objects.create(
                 corporate_id=corporate_id,
                 project_name=project_name,
@@ -1093,23 +1132,29 @@ def add_merchant(request):
                 logo=logo_instance
             )
 
-            # Create BopoAdmin user
             bopo_admin = BopoAdmin(username=corporate_id, role="corporate_admin", corporate=corporate)
             bopo_admin.set_password(pin)
             bopo_admin.save()
 
-            success_message = "Merchant and corporate created successfully."
-            return JsonResponse({"success": True, "message": success_message, "corporate_id": corporate.corporate_id}) if is_ajax else redirect_with_success(request, success_message)
+            messages.success(request, "Corporate created successfully.")
+            return redirect('corporate_list')
 
         except Exception as e:
             print("Error saving merchant:", e)
-            return JsonResponse({"success": False, "message": "Something went wrong from backend."})
+            messages.error(request, "Something went wrong from backend.")
+            return render(request, "bopo_admin/Merchant/add_merchant.html", {
+                "corporates": Corporate.objects.all(),
+                "form_data": request.POST,
+                "states": State.objects.all(),
+                "cities": []
+            })
 
-    corporates = Corporate.objects.all()
-    return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})
-
-
-
+    # GET method
+    return render(request, "bopo_admin/Merchant/add_merchant.html", {
+        "corporates": Corporate.objects.all(),
+        "states": State.objects.all(),
+        "cities": [],
+    })
 
 
 
@@ -2521,10 +2566,11 @@ def create_notification_view(request):
         description = request.POST.get("description")
         to_all_ind_merch = request.POST.get("to_all_ind_merch") == "true"
         to_all_customer = request.POST.get("to_all_customer") == "true"
-        
+
         print(f"Project ID: {project_id}, Merchant ID: {merchant_id}, Customer ID: {customer_id}")
+        print(f"to_all_customer: {to_all_customer}")
 
-
+        # Call the notification sender
         create_notification(
             project_id=project_id,
             merchant_id=merchant_id,
@@ -2536,17 +2582,21 @@ def create_notification_view(request):
             to_all_customer=to_all_customer
         )
 
-        
-        if customer_id:
-            messages.success(request, "Notification sent successfully to customer.")
+        # ✅ Handle redirects based on who received the notification
+        if to_all_customer:
+            messages.success(request, "Notification sent successfully to all customers.")
             return redirect('send_customer_notifications')
+
+        elif customer_id:
+            messages.success(request, "Notification sent successfully to the selected customer.")
+            return redirect('send_customer_notifications')
+
         else:
-            messages.success(request, "Notification sent successfully to Merchant.")
+            messages.success(request, "Notification sent successfully to merchant(s).")
             return redirect('send_notifications')
 
-    messages.error(request, "Notification sent failed.")
+    messages.error(request, "Notification send failed.")
     return redirect('send_notifications')
-
 
 
 
@@ -2793,7 +2843,7 @@ def add_customer(request):
         mobile = request.POST.get('mobile')
         age = request.POST.get('age')
         gender = request.POST.get('gender')
-        aadhar_number = request.POST.get('aadhaar')
+        aadhaar_number = request.POST.get('aadhaar')
         pin = request.POST.get('pin') 
         pan_number = request.POST.get('pan_number')
         address = request.POST.get('address')
@@ -2828,7 +2878,7 @@ def add_customer(request):
         if Customer.objects.filter(mobile=mobile).exists():
             return JsonResponse({"success": False, "message": "Mobile number already exists!"})
 
-        if Customer.objects.filter(aadhar_number=aadhar_number).exists():
+        if Customer.objects.filter(aadhaar_number=aadhaar_number).exists():
             return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
 
         if Customer.objects.filter(pan_number=pan_number).exists():
@@ -2843,7 +2893,7 @@ def add_customer(request):
             mobile=mobile,
             age=age,
             gender=gender,
-            aadhar_number=aadhar_number,
+            aadhaar_number=aadhaar_number,
             pin=pin,
             pan_number=pan_number,
             address=address,
@@ -3274,7 +3324,6 @@ def payment_details(request):
         payment = get_object_or_404(PaymentDetails, id=payment_id)
 
         if action == "approve":
-
             existing_payment = PaymentDetails.objects.filter(
                 merchant=payment.merchant,
                 status="approved"
@@ -3312,22 +3361,24 @@ def payment_details(request):
             return JsonResponse({"success": True, "message": "Payment approved successfully"})
 
         elif action == "reject":
-            # ✅ Only allow superusers to reject with password confirmation
-            if not request.user.is_superuser:
+            # ✅ Allow rejection by superadmin or employee with correct password
+            if not password:
+                return JsonResponse({"success": False, "message": "Password is required."})
+
+            if request.user.is_superuser or hasattr(request.user, 'employee'):
+                if request.user.check_password(password):
+                    payment.status = "rejected"
+                    payment.save()
+                    return JsonResponse({"success": True, "message": "Payment has been rejected."})
+                else:
+                    return JsonResponse({"success": False, "message": "Incorrect password."})
+            else:
                 return JsonResponse({"success": False, "message": "Unauthorized access."})
-
-            if not password or not request.user.check_password(password):
-                return JsonResponse({"success": False, "message": "Incorrect password."})
-
-            payment.status = "rejected"
-            payment.save()
-            return JsonResponse({"success": True, "message": "Payment has been rejected."})
 
         return JsonResponse({"success": False, "message": "Invalid action."})
 
     topups = PaymentDetails.objects.all().order_by('-created_at')
     return render(request, 'bopo_admin/Payment/payment_details.html', {'topups': topups})
-
 
 
 # def account_info(request):
@@ -5277,6 +5328,20 @@ def corporate_terminals(request):
         'merchants': merchants,
         'terminals': terminals
     })
+    
+    
+
+def delete_terminal(request, merchant_id, terminal_id):
+    if request.method == "POST":
+        try:
+            terminal = Terminal.objects.get(merchant_id__merchant_id=merchant_id, terminal_id=terminal_id)
+            terminal.delete()
+            return JsonResponse({"success": True})
+        except Terminal.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Terminal not found"})
+    return JsonResponse({"success": False, "message": "Invalid request method"})
+
+
 
 
 def get_admin_merchant(request, merchant_id):
@@ -5736,7 +5801,7 @@ def corporate_under_merchant(request):
             print("POST data:", request.POST.get('corporate_id'))
             corporate_id = request.POST.get("corporate_id")
             corporate = get_object_or_404(Corporate, corporate_id=corporate_id)
-            # print("================corporate id", corporate_id)
+            print("================corporate id", corporate_id)
 
             # 🔽 Extract other form data
             first_name = request.POST.get("first_name")

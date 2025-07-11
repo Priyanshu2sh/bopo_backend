@@ -234,6 +234,7 @@ urlpatterns = [
     # path('upload_logo/', views.upload_logo, name='upload_logo'),
     path('upload-logo/',views.upload_logo, name='upload_logo'),
     path('send-customer-credentials/', views.send_customer_credentials, name='send_customer_credentials'),
+    path('delete_terminal/<str:merchant_id>/<str:terminal_id>/', views.delete_terminal, name='delete_terminal'),
 
     
 

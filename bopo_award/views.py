@@ -1491,39 +1491,54 @@ class BankDetailByUserAPIView(APIView):
     def put(self, request, id, user_type):
         data = request.data.copy()
 
-        # Fetch existing bank details based on the user type and ID
-        if user_type == "merchant":
-            try:
+        try:
+            if user_type == "merchant":
                 merchant = Merchant.objects.get(merchant_id=id)
                 bank_detail = BankDetail.objects.filter(merchant=merchant).first()
                 if not bank_detail:
                     return Response({"error": "Bank details not found for this merchant"}, status=status.HTTP_404_NOT_FOUND)
-            except Merchant.DoesNotExist:
-                return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
+                instance = bank_detail
 
-            data['merchant'] = merchant.id
-            data['customer'] = None
-
-
-        elif user_type == "customer":
-            try:
+            elif user_type == "customer":
                 customer = Customer.objects.get(customer_id=id)
                 bank_detail = BankDetail.objects.get(customer=customer)
-            except Customer.DoesNotExist:
-                return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
-            except BankDetail.DoesNotExist:
-                return Response({"error": "Bank details not found for this customer"}, status=status.HTTP_404_NOT_FOUND)
-            
-            # Use customer database ID for updating
-            data['customer'] = customer.customer_id
+                instance = bank_detail
+
+            else:
+                return Response(
+                    {"error": "Invalid user_type. Must be 'merchant' or 'customer'."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except (Merchant.DoesNotExist, Customer.DoesNotExist):
+            return Response({"error": f"{user_type.capitalize()} not found"}, status=status.HTTP_404_NOT_FOUND)
+        except BankDetail.DoesNotExist:
+            return Response({"error": f"Bank details not found for this {user_type}"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Ensure correct foreign key IDs
+        data.pop('merchant', None)
+        data.pop('customer', None)
+
+        if user_type == "merchant":
+            data['merchant'] = merchant.pk
+            data['customer'] = None
+        else:
+            data['customer'] = customer.pk
             data['merchant'] = None
 
-        else:
-            return Response({"error": "Invalid user_type. Must be 'merchant' or 'customer'."},
-                            status=status.HTTP_400_BAD_REQUEST)
+        # 🔍 Duplicate account number check
+        account_number = data.get("account_number")
+        if account_number:
+            duplicate_qs = BankDetail.objects.filter(account_number=account_number)
+            if instance:
+                duplicate_qs = duplicate_qs.exclude(pk=instance.pk)
+            if duplicate_qs.exists():
+                return Response(
+                    {"error": "This account number is already in use by another user."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        # Important: Partial update if not all fields are provided
-        serializer = BankDetailSerializer(bank_detail, data=data, partial=True)
+        serializer = BankDetailSerializer(instance, data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
@@ -1533,8 +1548,6 @@ class BankDetailByUserAPIView(APIView):
             }, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 
     
 class HelpAPIView(APIView):

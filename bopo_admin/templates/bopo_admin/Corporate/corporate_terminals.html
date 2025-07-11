@@ -47,6 +47,32 @@
     </div>
   </div>
 
+  <!-- Status Confirmation Modal -->
+<div id="statusConfirmationModal" class="custom-modal" style="display: none;">
+  <div class="custom-modal-content">
+    <span class="custom-close" id="closeStatusModal">&times;</span>
+    <h3 id="statusConfirmationMessage">Are you sure you want to change the status?</h3>
+    <div class="custom-modal-buttons">
+      <button id="confirmStatusAction" class="custom-btn">Yes</button>
+      <button id="cancelStatusAction" class="custom-btn">No</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmationModal" class="custom-modal" style="display: none;">
+  <div class="custom-modal-content">
+    <span class="custom-close" id="closeDeleteModal">&times;</span>
+    <h3 id="deleteConfirmationMessage">Are you sure you want to delete this terminal?</h3>
+    <div class="custom-modal-buttons">
+      <button id="confirmDeleteAction" class="custom-btn" style="background-color: #f44336;">Yes</button>
+      <button id="cancelDeleteAction" class="custom-btn" style="background-color: #aaa;">No</button>
+    </div>
+  </div>
+</div>
+
+
+
 
   <!-- Empty State -->
   <div id="empty-state" style="text-align: center; margin-top: 120px; margin-left: -80px; color: #888; width: 400px;">
@@ -135,29 +161,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-function toggleStatus(terminalId, checkbox) {
-  const isActive = checkbox.checked;
-  const csrfToken = '{{ csrf_token }}';
+let pendingTerminalId = null;
+let pendingCheckbox = null;
 
-  fetch(`/toggle-terminal-status/${terminalId}/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrfToken,
-    },
-    body: JSON.stringify({ is_active: isActive })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      showToast(`Status updated successfully to "${data.status}"`);
-    } else {
-      showToast("Failed to update status: " + (data.error || ""));
-    }
-  })
-  .catch(() => {
-    showToast('Error occurred while updating status', 'error');
-  });
+function toggleStatus(terminalId, checkbox) {
+  // Save values for later
+  pendingTerminalId = terminalId;
+  pendingCheckbox = checkbox;
+
+  // Set confirmation message
+  const isActive = checkbox.checked;
+  const statusText = isActive ? 'active' : 'inactive';
+  document.getElementById("statusConfirmationMessage").textContent = `Are you sure you want to ${statusText} this terminal?`;
+
+  // Show the modal
+  document.getElementById("statusConfirmationModal").style.display = "flex";
 }
 
 // Toast notification function
@@ -354,17 +372,17 @@ document.addEventListener('click', function(event) {
 
 // Utility to get CSRF token from cookies
 function getCSRFToken() {
-  let cookieValue = null;
+  const name = 'csrftoken';
   const cookies = document.cookie.split(';');
-  for (let i = 0; i < cookies.length; i++) {
-    const cookie = cookies[i].trim();
-    if (cookie.startsWith('csrftoken=')) {
-      cookieValue = decodeURIComponent(cookie.substring('csrftoken='.length));
-      break;
+  for (let cookie of cookies) {
+    const trimmed = cookie.trim();
+    if (trimmed.startsWith(name + '=')) {
+      return decodeURIComponent(trimmed.substring(name.length + 1));
     }
   }
-  return cookieValue;
+  return null;
 }
+
 
 
 
@@ -470,38 +488,177 @@ closeModal.addEventListener("click", function () {
 });
 
 // ==========delete button===========
-document.addEventListener('click', function(event) {
-  if (event.target.classList.contains('delete-btn')) {
-    const terminalId = event.target.getAttribute('data-terminal-id');
-    const merchantId = document.getElementById('merchant_id').value;
+let pendingDeleteTerminalId = null;
 
-    if (confirm("Are you sure you want to delete this terminal?")) {
-      fetch(`/delete_terminal/${merchantId}/${terminalId}/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCSRFToken()
-        }
+document.addEventListener("DOMContentLoaded", function () {
+  const deleteModal = document.getElementById("deleteConfirmationModal");
+  const confirmDeleteAction = document.getElementById("confirmDeleteAction");
+  const cancelDeleteAction = document.getElementById("cancelDeleteAction");
+  const closeDeleteModal = document.getElementById("closeDeleteModal");
+
+  // ✅ Handle click on delete buttons (delegated)
+  document.addEventListener('click', function (event) {
+    if (event.target.classList.contains('delete-btn')) {
+      pendingDeleteTerminalId = event.target.getAttribute('data-terminal-id');
+      deleteModal.style.display = "flex";
+    }
+  });
+
+  // ✅ Cancel or close modal
+  function closeDeleteModalHandler() {
+    deleteModal.style.display = "none";
+    pendingDeleteTerminalId = null;
+  }
+
+  cancelDeleteAction?.addEventListener("click", closeDeleteModalHandler);
+  closeDeleteModal?.addEventListener("click", closeDeleteModalHandler);
+
+  // ✅ Confirm delete
+  confirmDeleteAction?.addEventListener("click", function () {
+    if (!pendingDeleteTerminalId) return;
+
+    const merchantSelect = document.getElementById("merchant_id");
+    const merchantId = merchantSelect?.value;
+
+    if (!merchantId) {
+      showToast("Merchant ID not found.", "error");
+      return;
+    }
+
+    console.log("Deleting terminal:", merchantId, pendingDeleteTerminalId); // DEBUG
+
+    fetch(`/delete_terminal/${merchantId}/${pendingDeleteTerminalId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken()
+      }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        return res.json();
       })
-      .then(res => res.json())
       .then(data => {
         if (data.success) {
           showToast("Terminal deleted successfully", "success");
-          document.getElementById("merchant_id").dispatchEvent(new Event("change"));
+          merchantSelect.dispatchEvent(new Event("change")); // Refresh terminal list
         } else {
           showToast(data.message || "Failed to delete terminal", "error");
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("Delete Error:", error); // DEBUG
         showToast("An error occurred while deleting terminal", "error");
       });
+
+    closeDeleteModalHandler();
+  });
+});
+
+
+// document.addEventListener("DOMContentLoaded", function () {
+//   const confirmDeleteAction = document.getElementById("confirmDeleteAction");
+//   const cancelDeleteAction = document.getElementById("cancelDeleteAction");
+//   const closeDeleteModal = document.getElementById("closeDeleteModal");
+
+//   function closeDeleteModalHandler() {
+//     document.getElementById("deleteConfirmationModal").style.display = "none";
+//     pendingDeleteTerminalId = null;
+//   }
+
+//   cancelDeleteAction.addEventListener("click", function () {
+//     showToast("Terminal deletion cancelled", "error");
+//     closeDeleteModalHandler();
+//   });
+
+//   closeDeleteModal.addEventListener("click", closeDeleteModalHandler);
+
+//   confirmDeleteAction.addEventListener("click", function () {
+//     if (!pendingDeleteTerminalId) return;
+//     const merchantId = document.getElementById('merchant_id').value;
+
+//     fetch(`/delete_terminal/${merchantId}/${pendingDeleteTerminalId}/`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'X-CSRFToken': getCSRFToken()
+//       }
+//     })
+//       .then(res => res.json())
+//       .then(data => {
+//         if (data.success) {
+//           showToast("Terminal deleted successfully", "success");
+//           document.getElementById("merchant_id").dispatchEvent(new Event("change"));
+//         } else {
+//           showToast(data.message || "Failed to delete terminal", "error");
+//         }
+//       })
+//       .catch(() => {
+//         showToast("An error occurred while deleting terminal", "error");
+//       });
+
+//     closeDeleteModalHandler();
+//   });
+// });
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const statusModal = document.getElementById("statusConfirmationModal");
+  const confirmStatusAction = document.getElementById("confirmStatusAction");
+  const cancelStatusAction = document.getElementById("cancelStatusAction");
+  const closeStatusModal = document.getElementById("closeStatusModal");
+
+  confirmStatusAction.addEventListener("click", function () {
+    if (!pendingTerminalId || !pendingCheckbox) return;
+
+    const isActive = pendingCheckbox.checked;
+    const csrfToken = getCSRFToken();
+
+    fetch(`/toggle-terminal-status/${pendingTerminalId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken,
+      },
+      body: JSON.stringify({ is_active: isActive })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showToast(`Status updated successfully to "${data.status}"`, 'success');
+      } else {
+        showToast("Failed to update status: " + (data.error || ""), 'error');
+        pendingCheckbox.checked = !isActive;
+      }
+    })
+    .catch(() => {
+      showToast('Error occurred while updating status', 'error');
+      pendingCheckbox.checked = !isActive;
+    });
+
+    statusModal.style.display = "none";
+    pendingTerminalId = null;
+    pendingCheckbox = null;
+  });
+
+  function closeStatusModalHandler() {
+    if (pendingCheckbox) {
+      pendingCheckbox.checked = !pendingCheckbox.checked;  // Revert
     }
+    statusModal.style.display = "none";
+    pendingTerminalId = null;
+    pendingCheckbox = null;
   }
+
+  cancelStatusAction.addEventListener("click", closeStatusModalHandler);
+  closeStatusModal.addEventListener("click", closeStatusModalHandler);
 });
 
 
 
 </script>
+
+
 
 
 {% endblock %}

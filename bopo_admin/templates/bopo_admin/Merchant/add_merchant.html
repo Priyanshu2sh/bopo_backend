@@ -33,27 +33,17 @@
     <form method="POST" action="{% url 'add_merchant' %}" id="copmerchantForm" enctype="multipart/form-data">
         {% csrf_token %}
 
-        {% if messages %}
-    {% for message in messages %}
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                showToast("{{ message|escapejs }}", "success");
-            });
-        </script>
-    {% endfor %}
-{% endif %}
-
-  
-
+    
             
         <!-- Project Type Selection (Centered and Inline) -->
             <!-- Project Name Input Field -->
-<div id="project-name-container">
-    <label for="project_name">Project Name:</label>
-    <div class="addmerchant-input-container">
-        <input type="text" id="project_name" name="project_name" placeholder="Enter Project Name" required>
-    </div>
-</div>
+        <div id="project-name-container">
+            <label for="project_name">Project Name:</label>
+            <div class="addmerchant-input-container">
+                <input type="text" id="project_name" name="project_name" value="{{ form_data.project_name }}" placeholder="Enter Project Name" required>
+            </div>
+        </div>
+
 
 
 
@@ -90,17 +80,17 @@
             </div> -->
 
 
-<!-- Account Type Selection (Initially Hidden) -->
-<div id="account-type-container">
-    <label for="account_type">Account Type:</label>
-    <div class="addmerchant-input-container">
-        <select id="account_type" name="account_type">
-            <option value="">Select Account Type</option>
-            <option value="global">Global</option>
-            <option value="normal">Normal</option>
-        </select>
-    </div>
-</div>
+            <!-- Account Type Selection (Initially Hidden) -->
+            <div id="account-type-container">
+                <label for="account_type">Account Type:</label>
+                <div class="addmerchant-input-container">
+                    <select id="account_type" name="account_type" value="{{ form_data.account_type }}">
+                        <option value="">Select Account Type</option>
+                        <option value="global">Global</option>
+                        <option value="normal">Normal</option>
+                    </select>
+                </div>
+            </div>
 
                 
             <!-- Form Fields (Left & Right Columns) -->
@@ -112,43 +102,48 @@
                     <label>First Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="first_name" id="first_name" >
+                        <input type="text" name="first_name" value="{{ form_data.first_name }}" id="first_name" autocomplete="off" required>
                     </div>
 
                                           
                     <label>Email ID</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" name="email" id="email" >
+                        <input type="email" name="email" value="{{ form_data.email}}" id="email" autocomplete="off">
                     </div>
     
                     <label>Aadhaar Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar_number"  id="aadhaar_number" maxlength="12">
+                        <input type="text" name="aadhaar_number"  id="aadhaar_number" value="{{ form_data.aadhaar_number }}" maxlength="12">
                     </div>
     
                     <label>GST Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-file-invoice"></i>
-                        <input type="text" name="gst_number" id="gst_number" maxlength="15">
+                        <input type="text" name="gst_number" id="gst_number" value="{{ form_data.gst_number }}" maxlength="15">
                     </div>
                     <label>Shop Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-store"></i>
-                        <input type="text" name="shop_name" >
+                        <input type="text" name="shop_name" value="{{ form_data.shop_name }}" >
                     </div>
 
                     <label>Address</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-map-marker-alt"></i>
-                        <input type="text" name="address" >
+                        <input type="text" name="address" value="{{ form_data.address }}" >
                     </div>
                                       
                       
                     <label>Select State</label>
                         <select id="state" name="state" class="select2" onchange="fetchCities()">
                             <option value="">Select State</option>
+                            {% for s in states %}
+                                <option value="{{ s.id }}" {% if form_data.state == s.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ s.name }}
+                                </option>
+                            {% endfor %}
                         </select>
 
                     <label>Country</label>
@@ -163,19 +158,19 @@
                 <label>Last Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-user"></i>
-                        <input type="text" name="last_name"  id="last_name">
+                        <input type="text" name="last_name" value="{{ form_data.last_name }}"  id="last_name" autocomplete="off" >
                     </div>
 
                     <label>Mobile Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-mobile-alt"></i>
-                        <input type="text" name="mobile" id="mobile" maxlength="10">
+                        <input type="text" name="mobile" value="{{ form_data.mobile }}" id="mobile" maxlength="10">
                     </div>
 
                     <label>PIN</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-lock"></i>
-                        <input type="password" name="pin" id="pin" maxlength="4" placeholder="Enter 4-digit pin" >
+                        <input type="password" name="pin" value="{{ form_data.pin }}" id="pin" maxlength="4" placeholder="Enter 4-digit pin" autocomplete="new-password" >
                         <span class="password-toggle" onclick="togglePassword('pin')">
                             <i class="fas fa-eye-slash"></i> <!-- Closed eye by default -->
                         </span>
@@ -185,7 +180,7 @@
                     <label>Pan Number</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="pan_number" id="pan" maxlength="10" >
+                        <input type="text" name="pan_number" value="{{ form_data.pan_number }}" id="pan" maxlength="10" >
                         
                     </div>
                   
@@ -193,19 +188,22 @@
                     <label>Legal Name</label>
                     <div class="addmerchant-input-container">
                         <i class="fas fa-building"></i>
-                        <input type="text" name="legal_name" >
+                        <input type="text" name="legal_name" value="{{ form_data.legal_name }}" >
                     </div>
     
                     <label>Select City</label>
                     <select id="city" name="city" class="select2">
-                         <option value="">Select City</option>
-                     </select>
+                        <option value="">Select City</option>
+                            {% for city in cities %}
+                                <option value="{{ city.id }}" {% if form_data.city == city.id|stringformat:"s" %}selected{% endif %}>{{ city.name }}</option>
+                            {% endfor %}
+                    </select>
                  
 
                     <label>Pincode</label>
                         <div class="addmerchant-input-container">
                             <i class="fas fa-home"></i>
-                            <input type="text" name="pincode" id="pincode"  maxlength="6" >
+                            <input type="text" name="pincode" value="{{ form_data.pincode }}" id="pincode"  maxlength="6" >
                   </div>
 
                   {% comment %} <label>Upload Logo</label>
@@ -228,6 +226,18 @@
             </div>
             <button type="submit" class="addmerchant-btn-submit"><i class="fa fa-paper-plane"></i> Submit</button>
         </form>
+
+        {% if messages %}
+            {% for message in messages %}
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        showToast("{{ message|escapejs }}", "success");
+                    });
+                </script>
+            {% endfor %}
+        {% endif %}
+        
+
     </div>
     
 
@@ -247,9 +257,9 @@
 
 
   
-      
-    
+        
     <script>
+    
 
  // Toggle password visibility
  function togglePassword(id) {
@@ -387,25 +397,77 @@ gst_number: function (value) {
     });
 
     // Comment out or remove this block to allow normal form submission:
-    /*
-    document.querySelector("form").addEventListener("submit", function (event) {
-        event.preventDefault();
+    
+    // document.querySelector("form").addEventListener("submit", function (event) {
+    //     event.preventDefault();
 
-        const form = this;
-        let isValid = true;
+    //     const form = this;
+    //     let isValid = true;
 
-        Object.keys(validators).forEach(name => {
-            const input = document.getElementsByName(name)[0];
-            const value = input.value.trim();
-            const errorMessage = validators[name](value);
-            input.setCustomValidity(errorMessage);
-            if (errorMessage) {
-                input.reportValidity();
-                isValid = false;
+    //     Object.keys(validators).forEach(name => {
+    //         const input = document.getElementsByName(name)[0];
+    //         const value = input.value.trim();
+    //         const errorMessage = validators[name](value);
+    //         input.setCustomValidity(errorMessage);
+    //         if (errorMessage) {
+    //             input.reportValidity();
+    //             isValid = false;
+    //         }
+    //     });
+
+    //     if (!isValid) return;
+
+    document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("copmerchantForm");
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();  // ⛔ Prevent normal form submission
+
+        const formData = new FormData(form);
+
+        // ✅ Basic frontend check for state and city
+        const state = formData.get("state");
+        const city = formData.get("city");
+
+        if (!state) {
+            showToast("State is required", "error");
+            return;
+        }
+        if (!city) {
+            showToast("City is required", "error");
+            return;
+        }
+
+        fetch(form.action, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
             }
+        })
+        .then(response => {
+            if (response.redirected) {
+                // ✅ Success redirect
+                window.location.href = response.url;
+                return;
+            }
+            return response.text();  // We expect HTML on error
+        })
+        .then(html => {
+            if (html) {
+                // Show HTML in current page (optional: update part of the DOM)
+                document.open();
+                document.write(html);
+                document.close();
+            }
+        })
+        .catch(error => {
+            console.error("AJAX submit error:", error);
+            showToast("An error occurred while submitting.", "error");
         });
+    });
+});
 
-        if (!isValid) return;
 
         const formData = new FormData(form);
 
@@ -449,8 +511,8 @@ gst_number: function (value) {
             console.error("Error submitting form:", error);
             showToast("An unexpected error occurred in frontend.", "error");
         });
-    });
-    */
+    // });
+    
 
     // Toast auto-hide if already visible
     const toast = document.getElementById("toast");
@@ -460,7 +522,7 @@ gst_number: function (value) {
             setTimeout(() => {
                 toast.classList.remove("toast-show", "toast-hide");
             }, 500);
-        }, 3000);
+        }, 2500);
     }
 });
 
@@ -484,7 +546,7 @@ function showToast(message, type) {
         setTimeout(() => {
             toast.classList.remove("toast-show", "toast-hide");
         }, 500);
-    }, 3000);
+    }, 2500);
 }
 
  
