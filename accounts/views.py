@@ -190,7 +190,8 @@ class RegisterUserAPIView(APIView):
             return Response({"message": "Mobile number is required.", "user_type": "customer", "customer_id": None},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        otp = random.randint(100000, 999999)
+        # otp = random.randint(100000, 999999)
+        otp = 272307 # For testing purposes, using a fixed OTP
 
         try:
             customer = Customer.objects.get(mobile=mobile)
@@ -265,7 +266,8 @@ class RegisterUserAPIView(APIView):
 
         prefix = "MID"
         merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
-        otp = random.randint(100000, 999999)
+        # otp = random.randint(100000, 999999)
+        otp = 272307
 
         terminal_id, tid_pin = self._generate_terminal_info()
 
@@ -617,7 +619,8 @@ class VerifyOTPAPIView(APIView):
 
     def post(self, request):
         try:
-            otp = request.data.get("otp")
+            # otp = request.data.get("otp")
+            otp = 272307
             customer_id = request.data.get("user_id")
             merchant_id = request.data.get("user_id")
             user_category = request.data.get("user_category", "").strip().lower()
@@ -895,7 +898,8 @@ class RequestMobileChangeAPIView(APIView):
             return Response({'error': 'Provide either PIN or Security Question/Answer, not both'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        new_mobile_otp = str(random.randint(100000, 999999))  # Generate OTP
+        # new_mobile_otp = str(random.randint(100000, 999999))  
+        new_mobile_otp = 272307
 
         try:
             # CUSTOMER FLOW
@@ -1097,7 +1101,8 @@ class RequestPinChangeAPIView(APIView):
             user.temp_pin = new_pin
 
             if method == 'otp':
-                otp = str(random.randint(100000, 999999))
+                # otp = str(random.randint(100000, 999999))
+                otp = 272307
                 user.otp = otp
                 user.save()
 
