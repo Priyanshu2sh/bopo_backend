@@ -225,7 +225,7 @@ class RegisterUserAPIView(APIView):
             return Response({"message": message, "user_type": "customer", "user_id": customer.customer_id},
                             status=status.HTTP_200_OK)
         else:
-            return Response({"message": "Failed to send OTP.", "user_type": "customer", "customer_id": None},
+            return Response({"error": "Failed to send OTP.", "user_type": "customer", "customer_id": None},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def update_customer(self, request, mobile):
@@ -317,12 +317,13 @@ class RegisterUserAPIView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({
-                "message": "Failed to send OTP.",
+                "error": "Failed to send OTP.",
                 "user_type": "merchant",
                 "user_id": merchant.merchant_id,
                 "terminal_id": terminal_id,
                 "tid_pin": tid_pin
             }, status=status.HTTP_400_BAD_REQUEST)
+            # return Response({error: "Failed to send OTP."}, status=status.)
             
     def _generate_terminal_info(self):
         """Generates a unique terminal ID and PIN"""
