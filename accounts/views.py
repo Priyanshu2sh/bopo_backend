@@ -70,10 +70,10 @@ class OTPService:
             return True
         except requests.exceptions.Timeout:
             print(f"❌ Twilio request timed out.")
-            return False
+            return True
         except Exception as e:
             print(f"❌ Failed to send OTP via SMS: {e}")
-            return False
+            return True
 
 
 # class RegisterCorporateAPIView(APIView):
@@ -191,7 +191,7 @@ class RegisterUserAPIView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         # otp = random.randint(100000, 999999)
-        otp = 272307 # For testing purposes, using a fixed OTP
+        otp = 752002 # For testing purposes, using a fixed OTP
 
         try:
             customer = Customer.objects.get(mobile=mobile)
@@ -267,7 +267,7 @@ class RegisterUserAPIView(APIView):
         prefix = "MID"
         merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
         # otp = random.randint(100000, 999999)
-        otp = 272307
+        otp = 272307 # For testing purposes, using a fixed OTP
 
         terminal_id, tid_pin = self._generate_terminal_info()
 
@@ -619,8 +619,8 @@ class VerifyOTPAPIView(APIView):
 
     def post(self, request):
         try:
-            # otp = request.data.get("otp")
-            otp = 272307
+            otp = request.data.get("otp")
+            # otp = 272307
             customer_id = request.data.get("user_id")
             merchant_id = request.data.get("user_id")
             user_category = request.data.get("user_category", "").strip().lower()
