@@ -77,7 +77,8 @@ sshpass -p "$SERVER_PASSWORD" ssh -tt -p "$SERVER_PORT" -o StrictHostKeyChecking
   echo "✅ .env updated with IMAGE=$IMAGE"
   grep "^IMAGE=" .env
 
-
+ ./deploy.sh
+ 
   exit
 EOF
 
