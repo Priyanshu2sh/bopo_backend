@@ -1290,7 +1290,7 @@ class ActiveTerminalsByMerchantView(APIView):
             merchant_id=merchant
         ).exclude(
             is_admin=True
-        ).values("terminal_id", "status")
+        ).values("terminal_id", "status", "is_login")
 
         return Response({
             "merchant_id": merchant_id,
@@ -1313,7 +1313,7 @@ class LogoutTerminalAPIView(APIView):
             return Response({"error": "Invalid Terminal ID."}, status=status.HTTP_404_NOT_FOUND)
 
         terminal.is_login = False
-        terminal.status = "Inactive"  # Optionally set status to inactive
+        # terminal.status = "Inactive"  # Optionally set status to inactive
         terminal.save(update_fields=["is_login", "status"])
 
         # Send logout event to WebSocket group
