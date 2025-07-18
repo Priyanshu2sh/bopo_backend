@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 set -e  # Exit on error
 
 # Timestamped log file
@@ -31,28 +30,20 @@ if [[ -z "$DOCKER_HUB_USERNAME" || -z "$DOCKER_HUB_TOKEN" ]]; then
 fi
 
 echo "📦 Building Docker image: $IMAGE"
-
-# Start build timer
 BUILD_START=$(date +%s)
-
-# Build the Docker image
 sudo docker build -t "$IMAGE" .
-
 BUILD_END=$(date +%s)
 echo "✅ Build complete (⏱️ $((BUILD_END - BUILD_START)) seconds)"
 
-# Authenticate with Docker Hub using access token
 echo "🔐 Logging into Docker Hub..."
 echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
 
-# Start push timer
 echo "🚀 Pushing image to Docker Hub..."
 PUSH_START=$(date +%s)
-
 sudo docker push "$IMAGE"
-
 PUSH_END=$(date +%s)
 echo "✅ Push complete (⏱️ $((PUSH_END - PUSH_START)) seconds)"
 echo "🎉 Image $IMAGE successfully built and pushed!"
 echo "🧹 Cleaning up dangling images..."
 sudo docker image prune -f
+echo "✅ Cleanup complete. 🚀 Done!"
