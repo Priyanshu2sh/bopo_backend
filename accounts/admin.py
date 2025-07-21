@@ -7,7 +7,7 @@ admin.site.register(Customer)
 admin.site.register(Corporate)
 
 class TerminalAdmin(admin.ModelAdmin):
-    list_display = ('terminal_id', 'tid_pin', 'merchant_id', 'status', 'created_at')
+    list_display = ('terminal_id', 'tid_pin', 'merchant_id', 'is_admin', 'is_login', 'status', 'created_at')
     search_fields = ('terminal_id', 'status')
   
 admin.site.register(Terminal, TerminalAdmin)

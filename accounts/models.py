@@ -180,10 +180,12 @@ class Terminal(models.Model):
     ]
      
     terminal_id = models.CharField(max_length=20, unique=True)
-    tid_pin = models.IntegerField(unique=True)
+    tid_pin = models.IntegerField()
     merchant_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='terminals')
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Active')
+    is_login = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)  
     
    
 

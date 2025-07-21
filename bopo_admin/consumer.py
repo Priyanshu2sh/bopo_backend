@@ -2,7 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from django.db.models import F
-from accounts.models import Merchant, Customer
+from accounts.models import Merchant, Customer, Terminal
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -77,3 +77,51 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 await self.send(text_data=json.dumps({
                     "unread_count": event["unread_count"]
                 }))
+                
+                
+class TerminalLoginLogoutConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.terminal_id = self.scope["url_route"]["kwargs"]["terminal_id"]
+
+        # Group name can be terminal-specific
+        self.group_name = f"terminal_{self.terminal_id}"
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+
+        # Set is_login = True on connect
+        await self.set_terminal_login_status(True)
+
+        # Optional: Notify successful login
+        await self.send(text_data=json.dumps({
+            "message": f"Terminal {self.terminal_id} logged in via WebSocket.",
+            "status": "true"
+        }))
+
+    async def disconnect(self, close_code):
+        # Set is_login = False on disconnect
+        await self.set_terminal_login_status(False)
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def receive(self, text_data):
+        # You can handle any incoming messages if needed
+        pass
+    
+    async def terminal_force_logout(self, event):
+        await self.send(text_data=json.dumps({
+            "message": event["message"],
+            "status": "false"
+        }))
+        await self.close()
+
+    @sync_to_async
+    def set_terminal_login_status(self, status):
+        try:
+            terminal = Terminal.objects.get(terminal_id=self.terminal_id)
+            terminal.is_login = status
+            terminal.save(update_fields=["is_login"])
+        except Terminal.DoesNotExist:
+            pass
+    
+    
+
+

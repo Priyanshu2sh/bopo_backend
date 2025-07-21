@@ -3310,8 +3310,6 @@ def get_employee_roles(request):
 #     })
 
 
-
-
 def payment_details(request):
     if request.method == "POST":
         payment_id = request.POST.get("payment_id")

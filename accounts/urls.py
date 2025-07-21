@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CreateTerminalAPIView, RegisterUserAPIView, LoginAPIView, RequestMobileChangeAPIView, RequestPinChangeAPIView,  VerifyMobileChangeAPIView, VerifyOTPAPIView, FetchAllUsersAPIView, VerifyPinChangeAPIView, VerifySecurityQuestionAPIView
+from .views import ActiveTerminalsByMerchantView, CreateTerminalAPIView, LogoutTerminalAPIView, RegisterUserAPIView, LoginAPIView, RequestMobileChangeAPIView, RequestPinChangeAPIView, TerminalStatusAPIView,  VerifyMobileChangeAPIView, VerifyOTPAPIView, FetchAllUsersAPIView, VerifyPinChangeAPIView, VerifySecurityQuestionAPIView
 
 urlpatterns = [
     # path('register-corporate/', RegisterCorporateAPIView.as_view(), name="register_corporate"),
@@ -15,6 +15,12 @@ urlpatterns = [
     path('request-pin-change/',RequestPinChangeAPIView.as_view(), name='request-pin-change'),
     path('verify-pin-otp/', VerifyPinChangeAPIView.as_view(), name='verify-pin-otp'),
     path('verify-pin-security/', VerifySecurityQuestionAPIView.as_view(), name='verify-pin-security'),
+    
+    path('terminals/active/', ActiveTerminalsByMerchantView.as_view(), name='active-terminals'),
+    path('terminal/logout/', LogoutTerminalAPIView.as_view(), name='logout-terminal'),
+    path('terminal-status/', TerminalStatusAPIView.as_view(), name='terminal-status'),
+
+    
     
 
     # path('security-question/', SecurityQueAPIView.as_view(), name='add_security_question'),

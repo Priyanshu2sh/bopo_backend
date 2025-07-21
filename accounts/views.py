@@ -4,6 +4,7 @@ import string
 import requests
 from twilio.rest import Client
 from django.core.mail import send_mail
+
 from twilio.http.http_client import TwilioHttpClient
 import random
 from rest_framework.views import APIView
@@ -16,6 +17,9 @@ import base64
 from django.core.files.storage import default_storage
 from rest_framework import status
 from django.utils.timezone import now
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 from bopo_backend import settings
 
 from .models import  Customer, Logo, Merchant, Terminal, User, Corporate
@@ -49,8 +53,8 @@ class OTPService:
     """ Helper class to handle OTP sending via Twilio """
 
     @staticmethod
-    def send_sms_otp(mobile_number, otp):
-        """ Sends OTP via SMS using Twilio """
+    def send_sms_otp(mobile_number, otp, message):
+        """ Sends OTP or notification via SMS using Twilio """
         try:
             if not all([settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN, settings.TWILIO_PHONE_NUMBER]):
                 raise ValueError("Twilio credentials are not configured in settings.")
@@ -61,18 +65,18 @@ class OTPService:
             http_client.session.request = lambda *args, **kwargs: requests.request(*args, timeout=5, **kwargs)
 
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN, http_client=http_client)
-            message = client.messages.create(
-                body=f'BBP OTP for verification is {otp}',
+            sms_message = client.messages.create(
+                body=message,
                 from_=settings.TWILIO_PHONE_NUMBER,
                 to=f'+91{mobile_number}'
             )
-            print(f"✅ SMS sent successfully: {message.sid}")
+            print(f"✅ SMS sent successfully: {sms_message.sid}")
             return True
         except requests.exceptions.Timeout:
             print(f"❌ Twilio request timed out.")
             return True
         except Exception as e:
-            print(f"❌ Failed to send OTP via SMS: {e}")
+            print(f"❌ Failed to send SMS: {e}")
             return True
 
 
@@ -222,7 +226,7 @@ class RegisterUserAPIView(APIView):
                                  "customer_id": None}, status=status.HTTP_400_BAD_REQUEST)
 
         # Send OTP via SMS
-        if OTPService.send_sms_otp(mobile, otp):
+        if OTPService.send_sms_otp(mobile, otp, message):
             return Response({"message": message, "user_type": "customer", "user_id": customer.customer_id},
                             status=status.HTTP_200_OK)
         else:
@@ -269,7 +273,8 @@ class RegisterUserAPIView(APIView):
         # otp = random.randint(100000, 999999)
         otp = 272307 # For testing purposes, using a fixed OTP
 
-        terminal_id, tid_pin = self._generate_terminal_info()
+        terminal_id, _ = self._generate_terminal_info()
+        
 
         try:
             merchant = Merchant.objects.get(mobile=mobile)
@@ -279,11 +284,15 @@ class RegisterUserAPIView(APIView):
                     "user_type": "merchant",
                     "user_id": merchant.merchant_id
                 }, status=status.HTTP_400_BAD_REQUEST)
+                
+                
 
             merchant.otp = otp
             merchant.save()
             message = "Merchant exists but not verified. OTP resent successfully."
 
+            tid_pin = request.data.get("pin") or merchant.pin
+            
         except Merchant.DoesNotExist:
             serializer = MerchantSerializer(data={
                 **request.data,
@@ -304,18 +313,19 @@ class RegisterUserAPIView(APIView):
         # ✅ Save terminal info
         Terminal.objects.create(
             terminal_id=terminal_id,
-            tid_pin=tid_pin,
-            merchant_id=merchant
+            tid_pin=merchant.pin,
+            merchant_id=merchant,
+            is_admin=True
         )
 
         # ✅ Send OTP
-        if OTPService.send_sms_otp(mobile, otp):
+        if OTPService.send_sms_otp(mobile, otp, message):
             return Response({
                 "message": message,
                 "user_type": "merchant",
                 "user_id": merchant.merchant_id,
                 "terminal_id": terminal_id,
-                "tid_pin": tid_pin
+                "tid_pin": merchant.pin
             }, status=status.HTTP_200_OK)
         else:
             return Response({
@@ -337,12 +347,12 @@ class RegisterUserAPIView(APIView):
             if not Terminal.objects.filter(terminal_id=terminal_id).exists():
                 break
 
-        while True:
-            tid_pin = random.randint(1000, 9999)
-            if not Terminal.objects.filter(tid_pin=tid_pin).exists():
-                break
+        # while True:
+        #     tid_pin = random.randint(1000, 9999)
+        #     if not Terminal.objects.filter(tid_pin=tid_pin).exists():
+        #         break
 
-        return terminal_id, tid_pin
+        return terminal_id, None
          
     def update_merchant(self, request, mobile):
         """Update merchant details"""
@@ -559,6 +569,7 @@ class LoginAPIView(APIView):
                     "pin": user.pin,
                     "user_category": "merchant",
                     "merchant_id": user.merchant_id,
+                    "terminal_id": terminal.terminal_id if hasattr(terminal, 'terminal_id') else None,
                     "is_profile_updated": user.is_profile_updated,
                     "user_type": user.user_type,
                     "logo": logo,
@@ -569,40 +580,69 @@ class LoginAPIView(APIView):
                     response_data["corporate_id"] = user.corporate_id if user.corporate_id else None
 
             elif user_category == "terminal":
-                terminal = Terminal.objects.filter(terminal_id=identifier).first()
+                terminal_id = request.data.get("terminal_id")
+                merchant_id_input = request.data.get("merchant_id")
+                pin = request.data.get("pin")
+
+                if not terminal_id:
+                    return Response({"error": "Terminal ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+                terminal = Terminal.objects.filter(terminal_id=terminal_id).first()
+
                 if not terminal:
                     return Response({"error": "Invalid Terminal ID."}, status=status.HTTP_400_BAD_REQUEST)
                 
-                # Check for terminal status
+                merchant = terminal.merchant_id
+
+                if not merchant_id_input or str(terminal.merchant_id.merchant_id) != str(merchant_id_input):
+                    return Response({"error": "Please enter a valid Merchant ID."}, status=status.HTTP_400_BAD_REQUEST)
+
                 if str(terminal.status).strip().lower() != "active":
                     return Response({"error": "Your terminal is inactive. Please contact the merchant."}, status=status.HTTP_400_BAD_REQUEST)
 
-                if not terminal.tid_pin or str(terminal.tid_pin) != str(pin):
-                    return Response({"error": "Invalid Terminal PIN."}, status=status.HTTP_400_BAD_REQUEST)
+                if terminal.is_admin:
+                    # Admin terminal: validate using merchant pin
+                    if not merchant.pin or str(merchant.pin) != str(pin):
+                        return Response({"error": "Invalid Merchant PIN."}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    # Non-admin terminal: validate using terminal pin
+                    if not terminal.tid_pin or str(terminal.tid_pin) != str(pin):
+                        return Response({"error": "Invalid Terminal PIN."}, status=status.HTTP_400_BAD_REQUEST)
 
-                merchant = terminal.merchant_id  # assuming ForeignKey to Merchant
+                # ✅ Check if terminal is admin
+                # if not terminal.is_admin:
+                #     return Response({"error": "This terminal is not allowed to login. Admin access required."}, status=status.HTTP_403_FORBIDDEN)
 
-                # Ensure merchant has a logo; assign default if missing
+                # ✅ Set terminal as logged in
+                terminal.is_login = True
+                terminal.save(update_fields=["is_login"])
+
+                
+
                 if not merchant.logo:
                     default_logo = Logo.objects.filter(id=1).first()
                     if default_logo:
                         merchant.logo = default_logo
                         merchant.save(update_fields=["logo"])
 
-                # Generate logo URL and base64
                 logo = request.build_absolute_uri(merchant.logo.logo.url) if merchant.logo and merchant.logo.logo else None
                 logo_base64 = self.get_logo_base64(merchant.logo) if merchant.logo else None
 
                 response_data = {
                     "message": "Login successful",
-                    "user_category": "terminal",
+                    "user_category": "merchant",  #terminal
                     "terminal_id": terminal.terminal_id,
                     "tid_pin": terminal.tid_pin,
+                    "is_admin": terminal.is_admin,
                     "merchant_id": merchant.merchant_id,
+                    "first_name": merchant.first_name,
+                    "last_name": merchant.last_name,
+                    "mobile": merchant.mobile,
+                    "is_profile_updated": self.is_merchant_profile_complete(merchant),
                     "merchant_logo": logo,
                     "merchant_logo_base64": logo_base64
                 }
-
+                return Response(response_data, status=status.HTTP_200_OK)
 
             else:
                 return Response({"error": "Invalid user category."}, status=status.HTTP_400_BAD_REQUEST)
@@ -683,6 +723,31 @@ class VerifyOTPAPIView(APIView):
                 "user_category": user_category,
                 "status": "Active",
             }
+            
+            # ✅ Send SMS only for merchant
+            if user_category == "merchant":
+                try:
+                   # Fetch terminal(s) linked to the merchant (excluding admin)
+                    terminals = Terminal.objects.filter(merchant_id=user, is_admin=False)
+
+                    if terminals.exists():
+                        terminal = terminals.first()  # Get the first terminal
+                        terminal_id = terminal.terminal_id
+                    else:
+                        terminal_id = "N/A"
+
+                    pin = user.pin if hasattr(user, "pin") else "N/A"
+
+                    message = f"Welcome to BBP!\nMerchant ID: {user.merchant_id}\nTerminal ID: {terminal_id}\nPIN: {pin}"
+
+                    try:
+                        OTPService.send_sms_otp(user.mobile, otp, message)
+                    except Exception as sms_error:
+                        logger.warning(f"SMS send failed after verification: {sms_error}")
+
+                except Exception as sms_error:
+                    logger.warning(f"SMS send failed after verification: {sms_error}")
+
 
             if user_category == "merchant":
                 response_data["merchant_id"] = user.merchant_id
@@ -694,6 +759,8 @@ class VerifyOTPAPIView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}", exc_info=True)
             return Response({"error": f"Internal Server Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -1197,7 +1264,89 @@ class VerifySecurityQuestionAPIView(APIView):
 
         except (Customer.DoesNotExist, Merchant.DoesNotExist):
             return Response({'error': 'User not found.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+import json
+
+class ActiveTerminalsByMerchantView(APIView):
+    def post(self, request):
+        try:
+            data = request.data
+            if isinstance(data, str):  # If request.data is a raw string, parse it
+                data = json.loads(data)
+        except Exception:
+            return Response({"error": "Invalid JSON format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        merchant_id = data.get("merchant_id")
+        if not merchant_id:
+            return Response({"error": "Merchant ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            merchant = Merchant.objects.get(merchant_id=merchant_id)
+        except Merchant.DoesNotExist:
+            return Response({"error": "Merchant not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        terminals = Terminal.objects.filter(
+            merchant_id=merchant
+        ).exclude(
+            is_admin=True
+        ).values("terminal_id", "status", "is_login")
+
+        return Response({
+            "merchant_id": merchant_id,
+            "active_terminals": list(terminals)
+        }, status=status.HTTP_200_OK)
 
 
+class LogoutTerminalAPIView(APIView):
+    """
+    API to logout a terminal by terminal_id
+    """
+    def post(self, request):
+        terminal_id = request.data.get("terminal_id")
 
+        if not terminal_id:
+            return Response({"error": "Terminal ID is required."}, status=status.HTTP_400_BAD_REQUEST)
 
+        terminal = Terminal.objects.filter(terminal_id=terminal_id).first()
+        if not terminal:
+            return Response({"error": "Invalid Terminal ID."}, status=status.HTTP_404_NOT_FOUND)
+
+        terminal.is_login = False
+        # terminal.status = "Inactive"  # Optionally set status to inactive
+        terminal.save(update_fields=["is_login", "status"])
+
+        # Send logout event to WebSocket group
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"terminal_{terminal_id}",
+            {
+                "type": "terminal.force_logout",
+                "message": "You have been logged out by admin/API."
+            }
+        )
+
+        return Response({
+            "message": "Terminal logged out successfully.",
+            "terminal_id": terminal_id,
+            "is_login": terminal.is_login
+        }, status=status.HTTP_200_OK)
+        
+
+class TerminalStatusAPIView(APIView):
+    def post(self, request):
+        terminal_id = request.data.get("terminal_id")
+
+        if not terminal_id:
+            return Response({"error": "Terminal ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            terminal = Terminal.objects.get(terminal_id=terminal_id)
+        except Terminal.DoesNotExist:
+            return Response({"error": "Terminal not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({
+            "terminal_id": terminal.terminal_id,
+            "status": terminal.status == "Active",
+            "is_login": terminal.is_login
+        }, status=status.HTTP_200_OK)
