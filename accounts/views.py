@@ -994,16 +994,16 @@ class RequestMobileChangeAPIView(APIView):
                     customer.save()
 
                     # Send OTP via SMS
-                    try:
-                        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-                        client.messages.create(
-                            body=f"Your BOPO OTP is: {new_mobile_otp}",
-                            from_=settings.TWILIO_PHONE_NUMBER,
-                            to=f'+91{new_mobile}'
-                        )
-                    except Exception as e:
-                        return Response({'error': f'Failed to send OTP: {str(e)}'},
-                                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    # try:
+                    #     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                    #     client.messages.create(
+                    #         body=f"Your BOPO OTP is: {new_mobile_otp}",
+                    #         from_=settings.TWILIO_PHONE_NUMBER,
+                    #         to=f'+91{new_mobile}'
+                    #     )
+                    # except Exception as e:
+                    #     return Response({'error': f'Failed to send OTP: {str(e)}'},
+                    #                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
                     return Response({
                         'message': 'OTP sent successfully',
@@ -1039,16 +1039,16 @@ class RequestMobileChangeAPIView(APIView):
                     merchant.save()
 
                     # Send OTP via SMS
-                    try:
-                        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-                        client.messages.create(
-                            body=f"Your BOPO OTP is: {new_mobile_otp}",
-                            from_=settings.TWILIO_PHONE_NUMBER,
-                            to=f'+91{new_mobile}'
-                        )
-                    except Exception as e:
-                        return Response({'error': f'Failed to send OTP: {str(e)}'},
-                                        status=status.HTTP_400_BAD_REQUEST)
+                    # try:
+                    #     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                    #     client.messages.create(
+                    #         body=f"Your BOPO OTP is: {new_mobile_otp}",
+                    #         from_=settings.TWILIO_PHONE_NUMBER,
+                    #         to=f'+91{new_mobile}'
+                    #     )
+                    # except Exception as e:
+                    #     return Response({'error': f'Failed to send OTP: {str(e)}'},
+                    #                     status=status.HTTP_400_BAD_REQUEST)
 
                     return Response({
                         'message': 'OTP sent successfully',
@@ -1325,7 +1325,6 @@ class LogoutTerminalAPIView(APIView):
                 "message": "You have been logged out by admin/API."
             }
         )
-
         return Response({
             "message": "Terminal logged out successfully.",
             "terminal_id": terminal_id,
