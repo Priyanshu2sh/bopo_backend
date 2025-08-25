@@ -117,14 +117,18 @@
                         <th>Mobile Number</th>
                         <th>City</th>
                         <th>Status</th>
-                        <th>Action</th>
+                        <!-- <th>Action</th> -->
                     </tr>
                 </thead>
                 <tbody>
                     {% for customer in customers %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        <td>{{ customer.customer_id }}</td>
+                        <td>
+                            <a href="#" class="customer-id-link" data-id="{{ customer.customer_id }}">
+                                {{ customer.customer_id }}
+                            </a>
+                        </td>
                         <td>{{ customer.first_name }} {{ customer.last_name }}</td>
                         <td>{{ customer.mobile }}</td>
                         <td>{{ customer.city }}</td>
@@ -140,10 +144,10 @@
                                 <span class="slider round"></span>
                             </label>
                         </td>
-                        <td>
+                        <!-- <td>
                             <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ customer.customer_id }}')">✏️ Edit</button>
                             {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteCustomer('{{ customer.customer_id}}')">🗑️ Delete</button> {% endcomment %}
-                        </td>
+                        </td> -->
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -189,6 +193,87 @@
         });
     });
 </script>
+
+<!-- View Customer Modal -->
+<div id="viewCustomerModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeViewModal()">&times;</span>
+        <h2>Customer Details</h2>
+        <div class="viewcustomer-form-container">
+            <!-- Left Column -->
+            <div class="viewcustomer-form-group">
+                <!-- <div class="viewcustomer-field">
+                    <label>Customer ID:</label>
+                    <span id="view_customer_id"></span>
+                </div> -->
+                <div class="viewcustomer-field">
+                    <label>First Name:</label>
+                    <span id="view_first_name"></span>
+                </div>
+                <div class="viewcustomer-field">
+                    <label>Email:</label>
+                    <span id="view_email"></span>
+                </div>
+                <div class="viewcustomer-field">
+                    <label>Age:</label>
+                    <span id="view_age"></span>
+                </div>
+                <div class="viewcustomer-field">
+                    <label>Aadhaar:</label>
+                    <span id="view_aadhaar"></span>
+                </div>
+                <div class="viewcustomer-field">
+                    <label>Address:</label>
+                    <span id="view_address"></span>
+                </div>
+                <div class="viewcustomer-field">
+                    <label>City:</label>
+                    <span id="view_city"></span>
+                </div>
+                <div class="viewcustomer-field">
+                    <label>Country:</label>
+                    <span id="view_country"></span>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="viewcustomer-form-group">
+                <!-- <div class="viewcustomer-field">
+                    <label>Status:</label>
+                    <span id="view_status"></span>
+                </div> -->
+                <div class="viewcustomer-field">
+                    <label>Last Name:</label>
+                    <span id="view_last_name"></span>
+                </div>
+                <div class="viewcustomer-field">
+                    <label>Mobile:</label>
+                    <span id="view_mobile"></span>
+                </div>
+                <div class="viewcustomer-field">
+                    <label>Gender:</label>
+                    <span id="view_gender"></span>
+                </div>
+                <div class="viewcustomer-field">
+                    <label>PAN:</label>
+                    <span id="view_pan"></span>
+                </div>
+                <div class="viewcustomer-field">
+                    <label>State:</label>
+                    <span id="view_state"></span>
+                </div>
+                <div class="viewcustomer-field">
+                    <label>Pincode:</label>
+                    <span id="view_pincode"></span>
+                </div>
+            </div>
+        </div>
+        <div class="viewcustomer-actions">
+            <button class="viewcustomer-btn-edit" onclick="openEditFromView()">Edit</button>
+            <button class="viewcustomer-btn-close" onclick="closeViewModal()">Close</button>
+        </div>
+    </div>
+</div>
 
     <div id="editCustomerModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
@@ -336,6 +421,73 @@
 
 <!-- JavaScript for Search Filtering and Modal -->
 <script>
+
+    // Function to open view modal
+function openViewModal(customerId) {
+    console.log('Opening view modal for customer:', customerId);
+     // Close edit modal if open
+    closeEditModal();
+
+    // Fetch customer data from server
+    fetch(`/get-customer/${customerId}/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(customer => {
+            // Fill the view modal fields with customer data
+            // document.getElementById("view_customer_id").textContent = customer.customer_id || "N/A";
+            document.getElementById("view_first_name").textContent = customer.first_name || "N/A";
+            document.getElementById("view_last_name").textContent = customer.last_name || "N/A";
+            document.getElementById("view_email").textContent = customer.email || "N/A";
+            document.getElementById("view_mobile").textContent = customer.mobile || "N/A";
+            document.getElementById("view_age").textContent = customer.age || "N/A";
+            document.getElementById("view_aadhaar").textContent = customer.aadhaar_number || "N/A";
+            document.getElementById("view_address").textContent = customer.address || "N/A";
+            document.getElementById("view_city").textContent = customer.city || "N/A";
+            document.getElementById("view_state").textContent = customer.state || "N/A";
+            document.getElementById("view_pincode").textContent = customer.pincode || "N/A";
+            document.getElementById("view_pan").textContent = customer.pan_number || "N/A";
+            document.getElementById("view_gender").textContent = customer.gender || "N/A";
+            document.getElementById("view_country").textContent = "India"; // Hardcoded as per your form
+            // document.getElementById("view_status").textContent = customer.status || "N/A";
+
+            // Store the customer ID for the edit button
+            document.getElementById("viewCustomerModal").dataset.customerId = customerId;
+
+            // Show the modal after data is loaded
+            document.getElementById("viewCustomerModal").style.display = "block";
+        })
+        .catch(err => {
+            console.error("Error loading customer data", err);
+            alert("Failed to load customer data");
+        });
+}
+
+// Function to close view modal
+function closeViewModal() {
+    document.getElementById("viewCustomerModal").style.display = "none";
+}
+
+// Function to open edit modal from view modal
+function openEditFromView() {
+    const customerId = document.getElementById("viewCustomerModal").dataset.customerId;
+    closeViewModal();
+    openEditModal(customerId);
+}
+
+// Add click event listeners to customer ID links
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.customer-id-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const customerId = this.getAttribute('data-id');
+            openViewModal(customerId);
+        });
+    });
+});
 
   const validators = {
                 email: function (value) {
@@ -496,6 +648,8 @@ function setGenderReadOnly(genderValue) {
 
 function openEditModal(customerId) {
     console.log('Opening modal for customer:', customerId);
+     // Close view modal if open
+    closeViewModal();
 
     // Set the hidden input value with the customer ID
     document.getElementById("editCustomerId").value = customerId;

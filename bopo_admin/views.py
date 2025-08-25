@@ -2,6 +2,7 @@ from datetime import date, datetime, timezone
 from io import BytesIO
 import json
 
+import logging
 import os
 import random
 import string
@@ -18,6 +19,7 @@ from django.core.paginator import Paginator
 from requests import Response
 from rest_framework import status
 from openpyxl.styles import Font
+from schedule import logger
 from twilio.rest import Client
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
@@ -71,6 +73,9 @@ from django.contrib.auth.forms import AuthenticationForm
 #     return render(request, 'login.html', {'form': form})
 
 from django.contrib.auth import logout
+
+logger = logging.getLogger('debug_logger')
+
 def custom_logout_view(request):
     logout(request)
     return redirect('login')
@@ -1547,6 +1552,7 @@ def delete_corporate(request, id):
         except Corporate.DoesNotExist:
             return JsonResponse({'error': 'Corporate not found'}, status=404)
         except Exception as e:
+            logger.error(f"Error deleting corporate: {e}")
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
@@ -1561,21 +1567,21 @@ from django.http import JsonResponse
 from accounts.models import Merchant
 
 def edit_merchants(request, merchant_id):
-    merchant = get_object_or_404(Merchant, id=merchant_id)
-
-    # Retrieve the state object by its name
-    state_obj = State.objects.get(name=merchant.state)  # Assuming state is a string, get State object by name
-
-    # Retrieve cities based on selected state
-    cities = City.objects.filter(state=state_obj)  # Now we use the State object
-
-    # Convert cities to a dictionary for use in the frontend
-    city_data = [{"id": city.id, "name": city.name} for city in cities]
+    merchant = get_object_or_404(Merchant, merchant_id=merchant_id)
     
+    # Get state and cities data
+    state_obj = None
+    cities = []
+    if merchant.state:
+        try:
+            state_obj = State.objects.get(name__iexact=merchant.state)
+            cities = City.objects.filter(state=state_obj)
+        except State.DoesNotExist:
+            pass
 
-    # Data to send to the frontend
     data = {
         "id": merchant.id,
+        "merchant_id": merchant.merchant_id,
         "first_name": merchant.first_name,
         "last_name": merchant.last_name,
         "email": merchant.email,
@@ -1583,18 +1589,16 @@ def edit_merchants(request, merchant_id):
         "shop_name": merchant.shop_name,
         "address": merchant.address,
         "aadhaar_number": merchant.aadhaar_number,
-        "pin": merchant.pin,
         "gst_number": merchant.gst_number,
         "pan_number": merchant.pan_number,
         "legal_name": merchant.legal_name,
         "state": merchant.state,
         "city": merchant.city,
         "pincode": merchant.pincode,
+        "cities": [{"id": city.id, "name": city.name} for city in cities],
+        "state_id": state_obj.id if state_obj else None,
     }
     return JsonResponse(data)
-
-
-
 # def update_merchant(request): 
 #     if request.method == "POST":
 #         merchant_id = request.POST.get('merchant_id')
@@ -1744,8 +1748,6 @@ def add_individual_merchant(request):
             prefix = "MID"
             merchant_id = f"{prefix}{''.join(random.choices(string.digits, k=11))}"
             
-            
-
             # Generate Terminal ID and TID PIN
             def generate_terminal_id():
                 return "TID" + ''.join(random.choices(string.digits, k=8))
@@ -1754,8 +1756,8 @@ def add_individual_merchant(request):
             while Terminal.objects.filter(terminal_id=terminal_id).exists():
                 terminal_id = generate_terminal_id()
 
-            tid_pin = random.randint(1000, 9999)
-
+            # tid_pin = random.randint(1000, 9999)
+            
             # ✅ Create the merchant
             merchant = Merchant.objects.create(
                 merchant_id=merchant_id,
@@ -1781,7 +1783,7 @@ def add_individual_merchant(request):
             # ✅ Save terminal info
             Terminal.objects.create(
                 terminal_id=terminal_id,
-                tid_pin=tid_pin,
+                tid_pin=pin,
                 merchant_id=merchant
             )
 
@@ -2183,7 +2185,34 @@ def get_merchants(request):
     print(list(merchants))
     return JsonResponse({'merchants': list(merchants)})
 
-
+def get_merchant(request, merchant_id):
+    try:
+        merchant = get_object_or_404(Merchant, merchant_id=merchant_id)
+        
+        merchant_data = {
+            'merchant_id': merchant.merchant_id,
+            'first_name': merchant.first_name,
+            'last_name': merchant.last_name,
+            'email': merchant.email,
+            'mobile': merchant.mobile,
+            'shop_name': merchant.shop_name,
+            'aadhaar_number': merchant.aadhaar_number,
+            'address': merchant.address,
+            'city': merchant.city,
+            'state': merchant.state,
+            'pincode': merchant.pincode,
+            'pan_number': merchant.pan_number,
+            'gst_number': merchant.gst_number,
+            'status': merchant.status,
+        }
+        
+        return JsonResponse(merchant_data)
+    
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e),
+            'success': False
+        }, status=400)
 
 
 
@@ -3321,6 +3350,17 @@ def payment_details(request):
 
         payment = get_object_or_404(PaymentDetails, id=payment_id)
 
+        # Password verification for both approve and reject actions
+        if action in ["approve", "reject"]:
+            if not password:
+                return JsonResponse({"success": False, "message": "Password is required."})
+
+            if not (request.user.is_superuser or hasattr(request.user, 'employee')):
+                return JsonResponse({"success": False, "message": "Unauthorized access."})
+
+            if not request.user.check_password(password):
+                return JsonResponse({"success": False, "message": "Incorrect password."})
+
         if action == "approve":
             existing_payment = PaymentDetails.objects.filter(
                 merchant=payment.merchant,
@@ -3359,25 +3399,14 @@ def payment_details(request):
             return JsonResponse({"success": True, "message": "Payment approved successfully"})
 
         elif action == "reject":
-            # ✅ Allow rejection by superadmin or employee with correct password
-            if not password:
-                return JsonResponse({"success": False, "message": "Password is required."})
-
-            if request.user.is_superuser or hasattr(request.user, 'employee'):
-                if request.user.check_password(password):
-                    payment.status = "rejected"
-                    payment.save()
-                    return JsonResponse({"success": True, "message": "Payment has been rejected."})
-                else:
-                    return JsonResponse({"success": False, "message": "Incorrect password."})
-            else:
-                return JsonResponse({"success": False, "message": "Unauthorized access."})
+            payment.status = "rejected"
+            payment.save()
+            return JsonResponse({"success": True, "message": "Payment has been rejected."})
 
         return JsonResponse({"success": False, "message": "Invalid action."})
 
     topups = PaymentDetails.objects.all().order_by('-created_at')
     return render(request, 'bopo_admin/Payment/payment_details.html', {'topups': topups})
-
 
 # def account_info(request):
 #     account = AccountInfo.objects.first()  # Get the first account (modify as per your logic)
@@ -5016,6 +5045,7 @@ def security_questions_view(request):
                 return JsonResponse({'id': question.id, 'question': question.question})
             return JsonResponse({'error': 'Invalid question'}, status=400)
         except Exception as e:
+            logger.error(f"Error adding security question: {str(e)}")
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -5121,6 +5151,7 @@ def save_deduct_settings(request):
             return JsonResponse({'status': 'success','message': 'Deduct percentages saved successfully!.'})
 
         except Exception as e:
+            logger.error(f"Error saving deduct settings: {str(e)}")
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid method.'}, status=405)
@@ -5279,6 +5310,7 @@ def save_superadmin_payment(request):
         except CashOut.DoesNotExist:
             return JsonResponse({"error": "CashOut record not found"}, status=404)
         except Exception as e:
+            logger.error(f"Error saving superadmin payment: {str(e)}")
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=400)

@@ -44,6 +44,7 @@ class History(models.Model):
     TRANSACTION_TYPES = (
         ('redeem', 'Redeem'),
         ('award', 'Award'),
+        ('global', 'Global'),
         ('transferMToM', 'TransferMToM'),
         ('transferCToC', 'TransferCToC'),
     )

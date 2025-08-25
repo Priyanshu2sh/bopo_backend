@@ -1,4 +1,5 @@
 from datetime import timedelta, timezone
+import logging
 import random
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -26,6 +27,8 @@ from .models import CustomerPoints, CustomerToCustomer, MerchantPoints, History
 
 from django.utils.timezone import localtime
 from datetime import date
+
+logger = logging.getLogger('debug_logger')
 
 class RedeemPointsAPIView(APIView):
     """
@@ -203,207 +206,6 @@ class RedeemPointsAPIView(APIView):
                     transaction_type='expired'
                 )
                 
-    # def run_global_point_inactivity_deduction():
-    #     """
-    #     Deduct GlobalPoints if customer hasn't received points in GlobalPoints table in last 6 months.
-    #     Runs once daily at midnight.
-    #     """
-
-    #     six_months_ago = timezone.now() - timedelta(days=180)
-
-    #     # Customers who have not had any updates in GlobalPoints in the last 6 months
-    #     inactive_global_points = GlobalPoints.objects.filter(
-    #         updated_at__lt=six_months_ago,
-    #         points__gt=0
-    #     )
-
-    #     with transaction.atomic():
-    #         for gp in inactive_global_points.select_for_update():
-    #             customer = gp.customer
-    #             original_points = gp.points
-
-    #             # Set global points to 0 (deduct all)
-    #             gp.points = 0
-    #             gp.save(update_fields=['points', 'updated_at'])
-
-    #             # Log in history
-    #             History.objects.create(
-    #                 customer=customer,
-    #                 merchant=None,  # No merchant involved
-    #                 points=original_points,
-    #                 transaction_type='global_expired'
-    #             )
-
-
-
-# class RedeemPointsAPIView(APIView):
-#     """
-#     API for Customer to Merchant point transfer.
-#     Also moves expired CustomerPoints (older than 6 months) to GlobalPoints with no deduction.
-#     """
-
-#     def post(self, request):
-#         customer_id = request.data.get('customer_id', '').strip()
-#         customer_mobile = request.data.get('customer_mobile', '').strip()
-#         merchant_id = request.data.get('merchant_id', '').strip()
-#         merchant_mobile = request.data.get('merchant_mobile', '').strip()
-#         pin = request.data.get('pin')
-#         points = int(request.data.get('points', 0))
-
-#         if points <= 0:
-#             return Response({'error': 'Points must be greater than zero'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # ✅ Fetch customer
-#         try:
-#             if customer_id:
-#                 customer = Customer.objects.get(customer_id__iexact=customer_id)
-#             elif customer_mobile:
-#                 customer = Customer.objects.get(mobile=customer_mobile)
-#             else:
-#                 return Response({'error': 'Customer ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
-#         except Customer.DoesNotExist:
-#             return Response({'error': 'Customer not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-#         # ✅ Validate PIN
-#         if str(customer.pin) != str(pin):
-#             return Response({'error': 'Please enter the correct PIN.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-       
-
-#         # ✅ Fetch or create merchant
-#         merchant = None
-#         if merchant_id:
-#             try:
-#                 merchant = Merchant.objects.get(merchant_id__iexact=merchant_id)
-#             except Merchant.DoesNotExist:
-#                 return Response({'error': f'Merchant not found for ID {merchant_id}'}, status=status.HTTP_404_NOT_FOUND)
-#         elif merchant_mobile:
-#             merchant, created = Merchant.objects.get_or_create(
-#                 mobile=merchant_mobile,
-#                 defaults={'merchant_id': f"M{random.randint(100000, 999999)}"}
-#             )
-#         else:
-#             return Response({'error': 'Merchant ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         if merchant.user_type.lower() == 'corporate':
-#             return Response(
-#                 {'error': 'Points redeem is only allowed to Individual merchants. Please choose another option for Corporate merchants.'},
-#                 status=status.HTTP_400_BAD_REQUEST
-#             )
-
-#         # ✅ Fetch deduction settings
-#         try:
-#             setting = DeductSetting.objects.get(id=1)
-#             cust_merch_deduct = setting.cust_merch
-#         except DeductSetting.DoesNotExist:
-#             cust_merch_deduct = 5.0  # default 5%
-
-#         cust_merch_factor = (100 - cust_merch_deduct) / 100
-#         merchant_points_to_credit = round(points * cust_merch_factor, 2)
-
-#         # ✅ Move expired points to GlobalPoints without deduction
-#         six_months_ago = timezone.now() - timedelta(minutes=180)
-
-#         expired_entries = CustomerPoints.objects.filter(
-#             customer=customer,
-#             updated_at__lt=six_months_ago,
-#             points__gt=0
-#         )
-        
-#         with transaction.atomic():
-#             total_expired_points = 0
-
-#             for expired in expired_entries:
-#                 original_points = expired.points
-#                 if original_points <= 0:
-#                     continue
-
-#                 # Decrease expired points
-#                 expired.points = 0
-#                 expired.save(update_fields=['points', 'updated_at'])
-
-#                 total_expired_points += original_points
-
-#                 # Optional: log this in history
-#                 History.objects.create(
-#                     customer=customer,
-#                     merchant=expired.merchant,
-#                     points=original_points,
-#                     transaction_type='expired'
-#                 )
-                
-
-#             if total_expired_points > 0:
-#                 global_point_entry, created = GlobalPoints.objects.get_or_create(
-#                     customer=customer,
-#                     defaults={'points': total_expired_points}
-#                 )
-#                 if not created:
-#                     global_point_entry.points += total_expired_points
-#                     global_point_entry.save(update_fields=['points', 'updated_at'])
-
-#         # ✅ Check active CustomerPoints for this merchant
-#         total_customer_points = CustomerPoints.objects.filter(
-#             customer=customer,
-#             merchant=merchant
-#         ).aggregate(total=Sum('points'))['total'] or 0
-
-#         if total_customer_points < points:
-#             return Response({'error': 'Insufficient points. Transfer not allowed.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # ✅ Redeem active points
-#         with transaction.atomic():
-#             points_to_deduct = points
-#             customer_point_entries = CustomerPoints.objects.filter(
-#                 customer=customer,
-#                 merchant=merchant
-#             ).order_by('-points').select_for_update()
-
-#             for entry in customer_point_entries:
-#                 if points_to_deduct <= 0:
-#                     break
-
-#                 available = entry.points
-#                 if available <= points_to_deduct:
-#                     points_to_deduct -= available
-#                     entry.points = 0
-#                 else:
-#                     entry.points = available - points_to_deduct
-#                     points_to_deduct = 0
-
-#                 entry.save(update_fields=['points'])
-
-#             # ✅ Credit to merchant
-#             merchant_points, created = MerchantPoints.objects.get_or_create(
-#                 merchant=merchant,
-#                 defaults={'points': merchant_points_to_credit}
-#             )
-#             if not created:
-#                 merchant_points.points += merchant_points_to_credit
-#                 merchant_points.save(update_fields=['points'])
-
-#             # ✅ History log
-#             History.objects.create(
-#                 customer=customer,
-#                 merchant=merchant,
-#                 points=points,
-#                 transaction_type="redeem"
-#             )
-
-#         return Response({
-#             'message': 'Points redeemed successfully.',
-#             'merchant_id': merchant.merchant_id,
-#             'merchant_mobile': merchant.mobile,
-#             'points_entered_by_customer': points,
-#             'points_deducted_from_customer': points,
-#             'points_credited_to_merchant': merchant_points_to_credit,
-#             'deduction_percentage_applied': cust_merch_deduct,
-#             'user_type': merchant.user_type
-#         }, status=status.HTTP_200_OK)
-        
-    
-           
-
        
 class AwardPointsAPIView(APIView):
     """
@@ -436,7 +238,7 @@ class AwardPointsAPIView(APIView):
         # ✅ Get award percentage (default to 0 if not found)
         award_config = AwardPoints.objects.first()
         if not award_config:
-            return Response({'error': 'Award percentage not configured.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': 'Award percentage not configured.'}, status=status.HTTP_400_BAD_REQUEST)
 
         award_percentage = award_config.percentage
         # Enforce minimum purchase amount of ₹5
@@ -705,6 +507,10 @@ class CustomerToCustomerTransferAPIView(APIView):
         try:
             sender_customer = Customer.objects.get(customer_id=sender_customer_id)
             receiver_customer = Customer.objects.get(customer_id=receiver_customer_id)
+            
+            if sender_customer_id == receiver_customer_id:
+                return Response({"error": "Cannot scan own QR code"}, status=status.HTTP_400_BAD_REQUEST)
+            
             merchant = Merchant.objects.get(merchant_id=merchant_id)
             if merchant.user_type.lower() == 'individual' or merchant.plan_type == 'rental':
                 return Response({"error": "individual merchants and rental plan cannot transfer points."}, status=status.HTTP_400_BAD_REQUEST)
@@ -810,6 +616,10 @@ class MerchantToMerchantTransferAPIView(APIView):
         try:
             sender_merchant = Merchant.objects.get(merchant_id=sender_merchant_id)
             receiver_merchant = Merchant.objects.get(merchant_id=receiver_merchant_id)
+            
+            if sender_merchant == receiver_merchant:
+                return Response({"error": "Cannot transfer points to the same merchant"}, status=status.HTTP_400_BAD_REQUEST)
+            
         except Merchant.DoesNotExist:
             return Response({"error": "Invalid sender or receiver merchant ID"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1924,9 +1734,14 @@ class GlobalRedeemPointsAPIView(APIView):
         else:
             return Response({'error': 'Merchant ID or mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # ✅ Validate merchant type and plan
+    #    # ✅ Validate merchant type and plan
+    #     if merchant.user_type.lower() == 'corporate':
+    #         return Response({'error': 'Redeem only allowed to Individual merchants.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
         if merchant.user_type.lower() != 'individual':
-            return Response({'error': 'Redeem only allowed to Individual merchants.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Redemption not allowed to corporate Merchant Program.'}, status=status.HTTP_400_BAD_REQUEST)
+
         if merchant.plan_type.lower() != 'prepaid':
             return Response({'error': 'Only prepaid merchants are eligible for global redeem.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1958,7 +1773,7 @@ class GlobalRedeemPointsAPIView(APIView):
                 customer=customer,
                 merchant=merchant,
                 points=points,
-                transaction_type="redeem"
+                transaction_type="global"
             )
 
         return Response({
@@ -2052,6 +1867,7 @@ class GetGlobalCustomerPointsAPIView(APIView):
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
+            logger.error(f"Error fetching global points for customer {customer_id}: {str(e)}")
             return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class GetPrepaidMerchantAPIView(APIView):

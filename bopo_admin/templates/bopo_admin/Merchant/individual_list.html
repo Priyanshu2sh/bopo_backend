@@ -119,19 +119,27 @@
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>Merchant ID</th>
                                 <th>Contact Person</th>
                                 <th>Mobile Number</th>
                                 <th>Shop Name</th>
                                 <th>City</th>
                                 <th>BBP</th>
                                 <th>Status</th>
-                                <th>Action</th>
+                                <!-- <th>Action</th> -->
                             </tr>
                         </thead>
                         <tbody id="individual-table-body">
                             {% for merchant in merchants %}
                             <tr class="merchant-row">
                                 <td>{{ forloop.counter }}</td>
+                                <td>
+                                <a href="#" class="merchant-id-link" data-id="{{ merchant.merchant_id }}">
+                                    {{ merchant.merchant_id }}
+                                </a>
+                                </td>
+
+
                                 <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
                                 <td>{{ merchant.mobile }}</td>
                                 <td>{{ merchant.shop_name }}</td>
@@ -148,10 +156,10 @@
                                 <span class="status-label {% if merchant.status == 'Active' %}text-success{% else %}text-danger{% endif %}" id="status-label-{{ merchant.id }}"></span>
                             </td>
 
-                                <td>
+                                <!-- <td>
                                     <button class="btn btn-sm btn-warning" onclick="openEditModal('{{ merchant.id }}')">✏️ Edit</button>
                                    {% comment %} <button class="btn btn-sm btn-danger" onclick="deleteMerchant('{{ merchant.id }}')">🗑️ Delete</button> {% endcomment %}
-                                </td>
+                                </td> -->
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -197,6 +205,87 @@ $.fn.DataTable.ext.pager.numbers_length = 5;
     });
         });
     </script>
+</div>
+
+<!-- View Merchant Modal -->
+<div id="viewMerchantModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeViewModal()">&times;</span>
+        <h2>Merchant Details</h2>
+        <div class="viewmerchant-form-container">
+            <!-- Left Column -->
+            <div class="viewmerchant-form-group">
+                <div class="viewmerchant-field">
+                    <label>Merchant ID:</label>
+                    <span id="view_merchant_id" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>First Name:</label>
+                    <span id="view_first_name" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>Email:</label>
+                    <span id="view_email" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>Aadhaar:</label>
+                    <span id="view_aadhaar" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>Shop Name:</label>
+                    <span id="view_shop_name" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>Address:</label>
+                    <span id="view_address" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>State:</label>
+                    <span id="view_state" class="viewmerchant-value"></span>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="viewmerchant-form-group">
+                <div class="viewmerchant-field">
+                    <label>Status:</label>
+                    <span id="view_status" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>Last Name:</label>
+                    <span id="view_last_name" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>Mobile:</label>
+                    <span id="view_mobile" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>GST:</label>
+                    <span id="view_gst" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>PAN:</label>
+                    <span id="view_pan" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>City:</label>
+                    <span id="view_city" class="viewmerchant-value"></span>
+                </div>
+                <div class="viewmerchant-field">
+                    <label>Pincode:</label>
+                    <span id="view_pincode" class="viewmerchant-value"></span>
+                </div>
+            </div>
+        </div>
+        <div class="viewmerchant-actions">
+            <button class="viewmerchant-btn-edit" onclick="openEditFromView()">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="viewmerchant-btn-close" onclick="closeViewModal()">
+                <i class="fas fa-times"></i> Close
+            </button>
+        </div>
+    </div>
 </div>
 
 
@@ -317,6 +406,7 @@ $.fn.DataTable.ext.pager.numbers_length = 5;
                           
                         </div>
                         <button type="submit" class="add_individual_merchant-btn-submit">Update</button>
+                        
                     </div>  
                                     
                     </form>
@@ -361,6 +451,70 @@ $.fn.DataTable.ext.pager.numbers_length = 5;
 
 <!-- JavaScript -->
 <script>
+
+  
+// Function to open view modal
+function openViewModal(merchantId) {
+    console.log('Opening view modal for merchant:', merchantId);
+
+    // Fetch merchant data from server
+    fetch(`/get-merchant/${merchantId}/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(merchant => {
+            // Fill the view modal fields with merchant data
+            document.getElementById("view_merchant_id").textContent = merchant.merchant_id || "N/A";
+            document.getElementById("view_first_name").textContent = merchant.first_name || "N/A";
+            document.getElementById("view_last_name").textContent = merchant.last_name || "N/A";
+            document.getElementById("view_email").textContent = merchant.email || "N/A";
+            document.getElementById("view_mobile").textContent = merchant.mobile || "N/A";
+            document.getElementById("view_shop_name").textContent = merchant.shop_name || "N/A";
+            document.getElementById("view_aadhaar").textContent = merchant.aadhaar_number || "N/A";
+            document.getElementById("view_address").textContent = merchant.address || "N/A";
+            document.getElementById("view_city").textContent = merchant.city || "N/A";
+            document.getElementById("view_state").textContent = merchant.state || "N/A";
+            document.getElementById("view_pincode").textContent = merchant.pincode || "N/A";
+            document.getElementById("view_pan").textContent = merchant.pan_number || "N/A";
+            document.getElementById("view_gst").textContent = merchant.gst_number || "N/A";
+            document.getElementById("view_status").textContent = merchant.status || "N/A";
+
+            // Store the merchant ID for the edit button
+            document.getElementById("viewMerchantModal").dataset.merchantId = merchantId;
+
+            // Show the modal after data is loaded
+            document.getElementById("viewMerchantModal").style.display = "block";
+        })
+        .catch(err => {
+            console.error("Error loading merchant data", err);
+            showToast("Failed to load merchant data", "error");
+        });
+}
+// Function to close view modal
+function closeViewModal() {
+    document.getElementById("viewMerchantModal").style.display = "none";
+}
+
+// Function to open edit modal from view modal
+function openEditFromView() {
+    const merchantId = document.getElementById("viewMerchantModal").dataset.merchantId;
+    closeViewModal();
+    openEditModal(merchantId);
+}
+
+// Add click event listeners to merchant ID links
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.merchant-id-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const merchantId = this.getAttribute('data-id');
+            openViewModal(merchantId);
+        });
+    });
+});
 
  const validators = {
                 email: function (value) {
@@ -415,6 +569,8 @@ function filterTable() {
 }
 
 function openEditModal(merchantId) {
+    // Close view modal if open
+    closeViewModal();
     fetch(`/edit-merchants/${merchantId}/`)
 
         .then(res => res.json())

@@ -1,7 +1,7 @@
 from django.urls import path, include
 
 from bopo_admin.forms import CustomPasswordResetForm
-from .views import  CustomPasswordResetCompleteView, CustomPasswordResetConfirmView, create_notification_view, add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, delete_security_question,  home, about, merchant,customer, password_reset_invalid, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_deduct_settings, save_superadmin_payment, security_questions_view,send_notifications,received_offers, toggle_status, update_security_question,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
+from .views import  CustomPasswordResetCompleteView, CustomPasswordResetConfirmView, create_notification_view, add_security_question, assign_employee_role, corporate_add_merchant, custom_logout_view, delete_security_question, get_merchant,  home, about, merchant,customer, password_reset_invalid, project_onboarding,merchant_list,add_customer,add_merchant,project_list,merchant_credentials,merchant_topup,map_bonus_points,merchant_limit_list,reduce_limit,merchant_status,login_page_info, save_deduct_settings, save_superadmin_payment, security_questions_view,send_notifications,received_offers, toggle_status, update_security_question,uploads,modify_customer_details,send_customer_notifications,customer_uploads,employee_list,add_employee,payment_details,account_info,reports,corporate_list,individual_list,add_individual_merchant,get_states, get_cities,get_employee,delete_employee,edit_merchants,delete_merchant
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -77,6 +77,7 @@ urlpatterns = [
     path("get-states/", views.get_states, name="get_states"),
     path("get-cities/<int:state_id>/", views.get_cities, name="get_cities"),
 
+    path('get-merchant/<str:merchant_id>/', get_merchant, name='get_merchant'),
     path('get-merchants/', views.get_merchants_by_project, name='get_merchants_by_project'),
     path('get-merchants/', views.get_merchants, name='get_merchants'),
     path('get-individual-merchants/', views.get_individual_merchants, name='get_individual_merchants'),
@@ -87,7 +88,7 @@ urlpatterns = [
     path('update-employee/', views.update_employee, name='update_employee'),
     path('delete-employee/<str:employee_id>/', delete_employee, name='delete_employee'),
     
-    path('edit-merchants/<int:merchant_id>/', views.edit_merchants, name='edit_merchants'),
+    path('edit-merchants/<str:merchant_id>/', views.edit_merchants, name='edit_merchants'),
     path('update-merchant/', views.update_merchant, name='update_merchant'),
     path('delete-merchant/<int:merchant_id>/', views.delete_merchant, name='delete_merchant'),
     

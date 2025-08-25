@@ -154,6 +154,32 @@
             </tbody>
         </table>
 
+        <!-- Approve Password Confirmation Modal -->
+<div class="modal fade" id="approvePasswordModal" tabindex="-1" aria-labelledby="approvePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="approvePasswordModalLabel">Confirm Approval</h5>
+        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal('approvePasswordModal', true)"></button>
+      </div>
+      <div class="modal-body">
+        <p>Please enter your password to approve this top-up:</p>
+        <div class="position-relative">
+          <input type="password" id="approvePasswordInput" class="form-control" placeholder="Enter password" autocomplete="off">
+          <i class="fa-solid fa-eye-slash position-absolute" id="toggleApprovePassword"
+              style="top: 55%; right: 20px; transform: translateY(-50%); cursor: pointer; opacity: 0.4;"></i>
+        </div>
+        <input type="hidden" id="approvePaymentId">
+        <div id="approveError" class="text-danger mt-2" style="display: none;">Incorrect password. Try again.</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="closeModal('approvePasswordModal', true)">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="confirmApprove()">Approve</button>
+      </div>
+    </div>
+  </div>
+</div>
+
         <!-- Password Confirmation Modal -->
 <div class="modal fade" id="rejectPasswordModal" tabindex="-1" aria-labelledby="rejectPasswordModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -368,23 +394,37 @@ const table = $('#payment-table').DataTable({
 </div>
 
 <script>
+// function showApproveModal(paymentId, planType) {
+//     if (planType === "rental") {
+//         document.getElementById("rentalValidityModal").style.display = "flex";
+//         document.getElementById("rentalApproveConfirmBtn").onclick = function () {
+//             let validity = document.getElementById("rentalValidityInput").value;
+//             if (!validity || parseInt(validity) <= 0) {
+//                 alert("Please enter a valid number of days.");
+//                 return;
+//             }
+//             approvePayment(paymentId, "rental", validity);
+//         };
+//     } else {
+//         document.getElementById('approveConfirmBtn').onclick = function () {
+//             approvePayment(paymentId, "prepaid");
+//         };
+//         document.getElementById('approveModal').style.display = "flex";
+//     }
+// }
+
 function showApproveModal(paymentId, planType) {
-    if (planType === "rental") {
-        document.getElementById("rentalValidityModal").style.display = "flex";
-        document.getElementById("rentalApproveConfirmBtn").onclick = function () {
-            let validity = document.getElementById("rentalValidityInput").value;
-            if (!validity || parseInt(validity) <= 0) {
-                alert("Please enter a valid number of days.");
-                return;
-            }
-            approvePayment(paymentId, "rental", validity);
-        };
-    } else {
-        document.getElementById('approveConfirmBtn').onclick = function () {
-            approvePayment(paymentId, "prepaid");
-        };
-        document.getElementById('approveModal').style.display = "flex";
-    }
+    // Store payment info for later use
+    window.pendingApproval = {
+        paymentId: paymentId,
+        planType: planType
+    };
+    
+    // Show password modal first
+    document.getElementById("approvePaymentId").value = paymentId;
+    document.getElementById("approvePasswordInput").value = "";
+    document.getElementById("approveError").style.display = "none";
+    new bootstrap.Modal(document.getElementById('approvePasswordModal')).show();
 }
 
 function showRejectModal(paymentId) {
@@ -577,6 +617,69 @@ function confirmReject() {
     .catch(error => {
         console.error("Error rejecting payment:", error);
         showToast("Error rejecting payment", "fas fa-exclamation-triangle", "#dc3545");
+    });
+}
+
+// Add this near your other toggle password code
+const toggleApprovePassword = document.querySelector("#toggleApprovePassword");
+const approvePasswordInput = document.querySelector("#approvePasswordInput");
+
+toggleApprovePassword.addEventListener("click", function () {
+    const type = approvePasswordInput.getAttribute("type") === "password" ? "text" : "password";
+    approvePasswordInput.setAttribute("type", type);
+
+    if (this.classList.contains("fa-eye-slash")) {
+        this.classList.remove("fa-eye-slash");
+        this.classList.add("fa-eye");
+    } else {
+        this.classList.remove("fa-eye");
+        this.classList.add("fa-eye-slash");
+    }
+});
+
+function confirmApprove() {
+    const enteredPassword = document.getElementById("approvePasswordInput").value;
+    const paymentId = document.getElementById("approvePaymentId").value;
+    const { planType } = window.pendingApproval;
+
+    fetch("{% url 'payment_details' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: "payment_id=" + encodeURIComponent(paymentId) + 
+              "&action=approve" + 
+              "&password=" + encodeURIComponent(enteredPassword) +
+              (planType === "rental" ? "&validity=" + encodeURIComponent(document.getElementById("rentalValidityInput").value) : "")
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, "fas fa-check-circle", "#28a745");
+
+            const approveBtn = document.getElementById("approve-btn-" + paymentId);
+            if (approveBtn) {
+                approveBtn.className = "btn btn-sm approved-disabled";
+                approveBtn.disabled = true;
+                approveBtn.innerHTML = `Approved`;
+            }
+
+            document.getElementById("reject-btn-" + paymentId).style.display = "none";
+            bootstrap.Modal.getInstance(document.getElementById('approvePasswordModal')).hide();
+
+            // Refresh after toast (3 seconds)
+            setTimeout(() => {
+                location.reload();
+            }, 3000);
+        } else {
+            document.getElementById("approveError").textContent = data.message || "Incorrect password.";
+            document.getElementById("approveError").style.display = "block";
+        }
+    })
+    .catch(error => {
+        console.error("Error approving payment:", error);
+        showToast("Error approving payment", "fas fa-exclamation-triangle", "#dc3545");
     });
 }
 

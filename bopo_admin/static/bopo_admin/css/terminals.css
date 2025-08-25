@@ -200,11 +200,13 @@ input:checked + .slider:before {
   transform: translateX(22px);
 }
 
+/* Toast Notification Styles */
 .toast {
   position: fixed;
-  top: 20px; /* Move to top */
-  left: 40%; /* Align to right */
-  color: #fff ;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  color: #fff;
   padding: 12px 20px;
   border-radius: 8px;
   opacity: 0;
@@ -215,23 +217,31 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   gap: 10px;
-  opacity: 0;
-  transform: translateY(-50%); /* Initial hidden position */
   transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
   z-index: 9999;
   min-width: 400px;
-  font-weight: bo;
+  max-width: 80%;
+  /* font-weight: bold; */
+  text-align: center;
 }
+
 .toast.show {
   opacity: 1;
   pointer-events: auto;
-    transform: translateY(0);
+  transform: translateX(-50%) translateY(0);
 }
+
 .toast.success {
   background-color: #28a745;
 }
-.toast.error ,.toast.warning {
+
+.toast.error,
+.toast.warning {
   background-color: #ff4d4d;
+}
+
+.toast i {
+  font-size: 20px;
 }
 
 
@@ -387,4 +397,22 @@ button.btn-danger.disabled-delete {
   align-items: center !important;
   gap: 8px !important; /* spacing between buttons */
   flex-wrap: wrap !important; /* handles responsiveness if needed */
+}
+
+/* Terminal search styling */
+.terminal-search-container {
+  margin-left: -80px;
+}
+
+#terminal-search {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+#terminal-search:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
 }

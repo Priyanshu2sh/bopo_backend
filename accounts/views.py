@@ -1,4 +1,5 @@
 from datetime import timezone
+import json
 import logging
 import string
 import requests
@@ -27,7 +28,13 @@ from .serializers import   CustomerSerializer, MerchantSerializer,  TerminalSeri
 
 
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
+# logger = logging.getLogger('bopo_backend')
+logger = logging.getLogger('debug_logger')
+# logger = logging.getLogger('error_logger')
+
+
+
 
 def generate_terminal_id():
     return 'TID' + ''.join(random.choices(string.digits, k=8))
@@ -35,9 +42,14 @@ def generate_terminal_id():
 class CreateTerminalAPIView(APIView):
     def post(self, request):
         merchant_id = request.data.get('merchant_id')
+        logger.debug(f"Received request to create terminal for merchant_id: {merchant_id}")
+        
         try:
+            logger.debug(f"Fetching merchant with ID: {merchant_id}")
             merchant = Merchant.objects.get(id=merchant_id)
+            
         except Merchant.DoesNotExist:
+            logger.error(f"Merchant with ID {merchant_id} not found.")
             return Response({'error': 'Merchant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         # Keep generating until unique terminal_id is found
@@ -46,6 +58,7 @@ class CreateTerminalAPIView(APIView):
             terminal_id = generate_terminal_id()
 
         terminal = Terminal.objects.create(terminal_id=terminal_id, merchant_id=merchant)
+        logger.debug(f"Created terminal with ID: {terminal.terminal_id} for merchant: {merchant.merchant_id}")
         serializer = TerminalSerializer(terminal)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -149,11 +162,13 @@ class RegisterUserAPIView(APIView):
 
         # Validate mobile number
         if not mobile:
+            logger.error("Mobile number is required for registration.")
             return Response({"message": "Mobile number is required.", "user_type": None, "customer_id": None},
                             status=status.HTTP_400_BAD_REQUEST)
 
         # Validate user category
         if user_category not in ["customer", "merchant"]:
+            logger.error(f"Invalid user category: {user_category}")
             return Response({"message": "Invalid user category.", "user_type": None, "customer_id": None},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -167,11 +182,12 @@ class RegisterUserAPIView(APIView):
         user_category = request.data.get("user_category")
         mobile = request.data.get("mobile")
 
-        if user_category == "customer":
+        if user_category == "customer":          
             return self.update_customer(request, mobile)
         elif user_category == "merchant":
             return self.update_merchant(request, mobile)
         else:
+            logger.error(f"Invalid user category: {user_category}")
             return Response({"message": "Invalid user category."}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
@@ -191,6 +207,7 @@ class RegisterUserAPIView(APIView):
         mobile = request.data.get("mobile")
 
         if not mobile:
+            logger.error("Mobile number is required for customer registration.")
             return Response({"message": "Mobile number is required.", "user_type": "customer", "customer_id": None},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -201,12 +218,14 @@ class RegisterUserAPIView(APIView):
             customer = Customer.objects.get(mobile=mobile)
 
             if customer.verified_at:
+                logger.error("Customer is already registered and verified.")
                 return Response({"message": "Customer is already registered and verified.",
                                  "user_type": "customer", "customer_id": customer.customer_id},
                                 status=status.HTTP_400_BAD_REQUEST)
 
             customer.otp = otp
             customer.save()
+            logger.info("Customer exists but not verified. OTP resent successfully.")
             message = "Customer exists but not verified. OTP resent successfully."
 
         except Customer.DoesNotExist:
@@ -220,41 +239,53 @@ class RegisterUserAPIView(APIView):
                 if age is None:
                     request.data["age"] = None 
                 customer = serializer.save()
+                logger.info("Customer registered & OTP sent successfully.")
                 message = "Customer registered & OTP sent successfully."
             else:
+                logger.error("Validation error during customer registration.")
                 return Response({"message": "Validation error", "errors": serializer.errors, "user_type": "customer",
                                  "customer_id": None}, status=status.HTTP_400_BAD_REQUEST)
 
         # Send OTP via SMS
         if OTPService.send_sms_otp(mobile, otp, message):
+            logger.info("OTP sent successfully.")
             return Response({"message": message, "user_type": "customer", "user_id": customer.customer_id},
                             status=status.HTTP_200_OK)
         else:
+            logger.error("Failed to send OTP.")
             return Response({"error": "Failed to send OTP.", "user_type": "customer", "customer_id": None},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                            status=status.HTTP_400_BAD_REQUEST)
 
     def update_customer(self, request, mobile):
         """Update customer details"""
         customer = get_object_or_404(Customer, mobile=mobile)
 
         if customer.verified_at:
+            logger.error("Verified customers cannot be updated.")
             return Response({"message": "Verified customers cannot be updated."}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = CustomerSerializer(customer, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            logger.info("Customer updated successfully.")
             return Response({"message": "Customer updated successfully.", "customer_id": customer.customer_id},
                             status=status.HTTP_200_OK)
+            
+        logger.error("Update failed due to validation errors.")
         return Response({"message": "Update failed.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    
+    
 
     def delete_customer(self, request, mobile):
         """Delete a customer if not verified"""
         customer = get_object_or_404(Customer, mobile=mobile)
 
         if customer.verified_at:
+            logger.error("Verified customers cannot be deleted.")
             return Response({"message": "Verified customers cannot be deleted."}, status=status.HTTP_400_BAD_REQUEST)
 
         customer.delete()
+        logger.debug("Customer deleted successfully.")
         return Response({"message": "Customer deleted successfully."}, status=status.HTTP_200_OK)
     
 
@@ -262,6 +293,7 @@ class RegisterUserAPIView(APIView):
         """Handles merchant registration"""
 
         if user_type != "individual":
+            logger.error("Invalid user type for merchant registration, only individual merchant can register here")
             return Response({
                 "message": "Invalid user type, only individual merchant can register here",
                 "user_type": "merchant",
@@ -303,6 +335,7 @@ class RegisterUserAPIView(APIView):
                 merchant = serializer.save()
                 message = "Merchant registered & OTP sent successfully."
             else:
+                logger.error("Validation error during merchant registration.")
                 return Response({
                     "message": "Validation error",
                     "errors": serializer.errors,
@@ -328,6 +361,7 @@ class RegisterUserAPIView(APIView):
                 "tid_pin": merchant.pin
             }, status=status.HTTP_200_OK)
         else:
+            logger.error("Failed to send OTP.")
             return Response({
                 "error": "Failed to send OTP.",
                 "user_type": "merchant",
@@ -359,12 +393,14 @@ class RegisterUserAPIView(APIView):
         merchant = get_object_or_404(Merchant, mobile=mobile)
 
         if merchant.verified_at:
+            logger.error("Verified merchants cannot be updated.")
             return Response({"message": "Verified merchants cannot be updated."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = MerchantSerializer(merchant, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Merchant updated successfully.", "merchant_id": merchant.merchant_id},
                             status=status.HTTP_200_OK)
+        logger.error("Update failed due to validation errors.")
         return Response({"message": "Update failed.", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete_merchant(self, request, mobile):
@@ -372,6 +408,7 @@ class RegisterUserAPIView(APIView):
         merchant = get_object_or_404(Merchant, mobile=mobile)
 
         if merchant.verified_at:
+            logger.error("Verified merchants cannot be deleted.")
             return Response({"message": "Verified merchants cannot be deleted."}, status=status.HTTP_400_BAD_REQUEST)
 
         merchant.delete()
@@ -466,6 +503,7 @@ class LoginAPIView(APIView):
             logger.info(f"Login attempt - Identifier: {identifier}, User Category: {user_category}")
 
             if not identifier or not pin or not user_category:
+                logger.error("Missing required fields: identifier, pin, and user_category.")
                 return Response({
                     "error": "Identifier, PIN, and user_category are required."
                 }, status=status.HTTP_400_BAD_REQUEST)
@@ -475,8 +513,10 @@ class LoginAPIView(APIView):
             if user_category == "customer":
                 user = Customer.objects.filter(mobile=str(identifier)).first()
                 if not user :
+                    logger.error(f"Customer with mobile {identifier} not found.")
                     return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
                 if str(user.status).strip().lower() != "active":
+                    logger.error(f"Customer account {user.customer_id} is inactive.")
                     return Response({"error": "Your account is inactive. Please contact support."}, status=status.HTTP_400_BAD_REQUEST)
                 
                 # Check if user is verified
@@ -497,6 +537,7 @@ class LoginAPIView(APIView):
                         user.save(update_fields=["verified_at"])
 
                 if not user.pin or str(user.pin) != str(pin):
+                    logger.error(f"Invalid PIN for customer {user.customer_id}.")
                     return Response({"error": "Invalid PIN."}, status=status.HTTP_400_BAD_REQUEST)
                 
                 # ----> Always assign Logo with ID = 1 for customers
@@ -529,8 +570,10 @@ class LoginAPIView(APIView):
                     user = Merchant.objects.filter(merchant_id=identifier).first()
 
                 if not user:
+                    logger.error(f"Merchant with identifier {identifier} not found.")
                     return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
                 if str(user.status).strip().lower() != "active":
+                    logger.error(f"Merchant account {user.merchant_id} is inactive.")
                     return Response({"error": "Your account is inactive. Please contact support."}, status=status.HTTP_400_BAD_REQUEST)
 
                 if not user.verified_at and user.user_type != "corporate":
@@ -585,24 +628,29 @@ class LoginAPIView(APIView):
                 pin = request.data.get("pin")
 
                 if not terminal_id:
+                    logger.error("Terminal ID is required for terminal login.")
                     return Response({"error": "Terminal ID is required."}, status=status.HTTP_400_BAD_REQUEST)
 
                 terminal = Terminal.objects.filter(terminal_id=terminal_id).first()
 
                 if not terminal:
+                    logger.error(f"Terminal with ID {terminal_id} not found.")
                     return Response({"error": "Invalid Terminal ID."}, status=status.HTTP_400_BAD_REQUEST)
                 
                 merchant = terminal.merchant_id
 
                 if not merchant_id_input or str(terminal.merchant_id.merchant_id) != str(merchant_id_input):
+                    logger.error(f"Invalid Merchant ID: {merchant_id_input} for Terminal ID: {terminal_id}.")
                     return Response({"error": "Please enter a valid Merchant ID."}, status=status.HTTP_400_BAD_REQUEST)
 
                 if str(terminal.status).strip().lower() != "active":
+                    logger.error(f"Terminal {terminal.terminal_id} is inactive.")
                     return Response({"error": "Your terminal is inactive. Please contact the merchant."}, status=status.HTTP_400_BAD_REQUEST)
 
                 if terminal.is_admin:
                     # Admin terminal: validate using merchant pin
                     if not merchant.pin or str(merchant.pin) != str(pin):
+                        logger.error(f"Invalid Merchant PIN for Terminal ID: {terminal_id}.")
                         return Response({"error": "Invalid Merchant PIN."}, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     # Non-admin terminal: validate using terminal pin
@@ -645,6 +693,7 @@ class LoginAPIView(APIView):
                 return Response(response_data, status=status.HTTP_200_OK)
 
             else:
+                logger.error(f"Invalid user category: {user_category}")
                 return Response({"error": "Invalid user category."}, status=status.HTTP_400_BAD_REQUEST)
 
             logger.info("Login successful")
@@ -668,14 +717,18 @@ class VerifyOTPAPIView(APIView):
             logger.info(f"Received OTP verification request: {request.data}")
 
             if not otp:
+                logger.error("OTP is required")
                 return Response({"error": "OTP is required."}, status=status.HTTP_400_BAD_REQUEST)
 
             if not user_category:
+                logger.error("User category is required")
                 return Response({"error": "User category is required."}, status=status.HTTP_400_BAD_REQUEST)
 
             if user_category == "customer" and not customer_id:
+                logger.error("Customer ID is required")
                 return Response({"error": "Customer ID is required."}, status=status.HTTP_400_BAD_REQUEST)
             elif user_category == "merchant" and not merchant_id:
+                logger.error("Merchant ID is required")
                 return Response({"error": "Merchant ID is required."}, status=status.HTTP_400_BAD_REQUEST)
 
             user = None
@@ -685,6 +738,7 @@ class VerifyOTPAPIView(APIView):
                 user = Merchant.objects.filter(merchant_id=merchant_id).first()
 
             if not user:
+                logger.error(f"User not found for category {user_category} with ID {customer_id or merchant_id}")
                 return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 
             # Log stored OTP for debugging
@@ -693,6 +747,7 @@ class VerifyOTPAPIView(APIView):
 
             # Check if OTP is already verified
             if user.otp is None:
+                logger.warning(f"OTP already verified for {user_category} ({customer_id or merchant_id})")
                 return Response({
                     "error": "OTP already verified.",
                     "status": user.status,
@@ -701,6 +756,7 @@ class VerifyOTPAPIView(APIView):
 
             # Validate OTP
             if str(user.otp) != str(otp):
+                logger.warning(f"Invalid OTP for {user_category} ({customer_id or merchant_id})")
                 return Response({
                     "error": "Invalid OTP.",
                     "status": user.status,
@@ -958,10 +1014,12 @@ class RequestMobileChangeAPIView(APIView):
         answer = request.data.get('answer')
 
         if not new_mobile:
+            logger.error("New mobile number is required")
             return Response({'error': 'New mobile number is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Prevent mixed verification
         if pin and (security_question or answer):
+            logger.error("Both PIN and Security Question/Answer provided")
             return Response({'error': 'Provide either PIN or Security Question/Answer, not both'},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -1030,6 +1088,7 @@ class RequestMobileChangeAPIView(APIView):
                             'message': 'Using security question successfully change mobile number.'
                         }, status=status.HTTP_200_OK)
                     else:
+                        logger.error("Security Question/Answer does not match for merchant")
                         return Response({'error': 'Security Question/Answer does not match for merchant'},
                                         status=status.HTTP_400_BAD_REQUEST)
 
@@ -1061,10 +1120,12 @@ class RequestMobileChangeAPIView(APIView):
                                     status=status.HTTP_400_BAD_REQUEST)
 
             else:
+                logger.error("Either customer or merchant ID must be provided")
                 return Response({'error': 'Either customer or merchant ID must be provided'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
         except (Customer.DoesNotExist, Merchant.DoesNotExist):
+            logger.error("Invalid customer or merchant ID")
             return Response({'error': 'Invalid customer or merchant ID'}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -1079,6 +1140,7 @@ class VerifyMobileChangeAPIView(APIView):
         answer = request.data.get('answer')
 
         if not new_mobile:
+            logger.error("New mobile number is required")
             return Response({'error': 'new_mobile is required'}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -1107,9 +1169,11 @@ class VerifyMobileChangeAPIView(APIView):
                         customer.save()
                         return Response({'message': 'Mobile number updated successfully via security question'}, status=status.HTTP_200_OK)
                     else:
+                        logger.error("Security question or answer incorrect for customer")
                         return Response({'error': 'Security question or answer incorrect for customer'}, status=status.HTTP_400_BAD_REQUEST)
 
                 else:
+                    logger.error("Either OTP or Security Question/Answer is required")
                     return Response({'error': 'Either OTP or Security Question/Answer is required'}, status=status.HTTP_400_BAD_REQUEST)
 
             elif merchant_id:
@@ -1123,6 +1187,7 @@ class VerifyMobileChangeAPIView(APIView):
                         merchant.save()
                         return Response({'message': 'Mobile number updated successfully via OTP'}, status=status.HTTP_200_OK)
                     else:
+                        logger.error("Invalid OTP for merchant")
                         return Response({'error': 'Invalid OTP for merchant'}, status=status.HTTP_400_BAD_REQUEST)
 
                 # Security question verification path
@@ -1133,17 +1198,21 @@ class VerifyMobileChangeAPIView(APIView):
                         merchant.save()
                         return Response({'message': 'Mobile number updated successfully via security question'}, status=status.HTTP_200_OK)
                     else:
+                        logger.error("Security question or answer incorrect for merchant")
                         return Response({'error': 'Security question or answer incorrect for merchant'}, status=status.HTTP_400_BAD_REQUEST)
 
                 else:
+                    logger.error("Either OTP or Security Question/Answer is required")
                     return Response({'error': 'Either OTP or Security Question/Answer is required'}, status=status.HTTP_400_BAD_REQUEST)
 
             else:
+                logger.error("Either customer_id or merchant_id must be provided")
                 return Response({'error': 'customer_id or merchant_id must be provided'}, status=status.HTTP_400_BAD_REQUEST)
 
         except (Customer.DoesNotExist, Merchant.DoesNotExist):
+            logger.error("Invalid customer or merchant ID")
             return Response({'error': 'Invalid customer or merchant ID'}, status=status.HTTP_400_BAD_REQUEST)
-
+           
      
 # Logic for change or forgot Pin
 class RequestPinChangeAPIView(APIView):
@@ -1162,6 +1231,7 @@ class RequestPinChangeAPIView(APIView):
             elif user_category == 'merchant':
                 user = Merchant.objects.get(mobile=mobile)
             else:
+                logger.error("Invalid user category")
                 return Response({'error': 'Invalid user category.'}, status=status.HTTP_400_BAD_REQUEST)
 
             # Save PIN in temporary field only
@@ -1188,9 +1258,11 @@ class RequestPinChangeAPIView(APIView):
                 return Response({'message': 'Answer the security question to change PIN.'}, status=status.HTTP_200_OK)
 
             else:
+                logger.error("Invalid method for PIN change")           
                 return Response({'error': 'Invalid method. Use "otp" or "security_question".'}, status=status.HTTP_400_BAD_REQUEST)
 
         except (Customer.DoesNotExist, Merchant.DoesNotExist):
+            logger.error("User with given mobile not found")
             return Response({'error': 'User with given mobile not found.'}, status=status.HTTP_400_BAD_REQUEST)
         
         
@@ -1222,6 +1294,7 @@ class VerifyPinChangeAPIView(APIView):
                 return Response({'error': 'Invalid OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
         except (Customer.DoesNotExist, Merchant.DoesNotExist):
+            logger.error("User with given mobile not found")
             return Response({'error': 'User not found.'}, status=status.HTTP_400_BAD_REQUEST)
      
         
@@ -1242,6 +1315,7 @@ class VerifySecurityQuestionAPIView(APIView):
             elif user_category == 'merchant':
                 user = Merchant.objects.get(mobile=mobile)
             else:
+                logger.error("Invalid user category")
                 return Response({'error': 'Invalid user category.'}, status=status.HTTP_400_BAD_REQUEST)
 
             user_question = str(user.security_question).strip().lower()
@@ -1259,6 +1333,7 @@ class VerifySecurityQuestionAPIView(APIView):
 
                 return Response({'message': 'PIN updated successfully using security question.'}, status=status.HTTP_200_OK)
             else:
+                logger.error("Incorrect security question or answer")
                 return Response({'error': 'Incorrect security question or answer.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -1266,8 +1341,6 @@ class VerifySecurityQuestionAPIView(APIView):
             return Response({'error': 'User not found.'}, status=status.HTTP_400_BAD_REQUEST)
         
         
-import json
-
 class ActiveTerminalsByMerchantView(APIView):
     def post(self, request):
         try:
@@ -1335,13 +1408,17 @@ class LogoutTerminalAPIView(APIView):
 class TerminalStatusAPIView(APIView):
     def post(self, request):
         terminal_id = request.data.get("terminal_id")
+        logger.debug(f"Received terminal_id: {terminal_id}")
 
         if not terminal_id:
+            logger.error("Terminal ID is required but not provided.")
             return Response({"error": "Terminal ID is required."}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         try:
             terminal = Terminal.objects.get(terminal_id=terminal_id)
+            logger.debug(f"Terminal found: {terminal.terminal_id}, Status: {terminal.status}, Is Login: {terminal.is_login}")
         except Terminal.DoesNotExist:
+            logger.error(f"Terminal with ID {terminal_id} not found.")
             return Response({"error": "Terminal not found."}, status=status.HTTP_404_NOT_FOUND)
 
         return Response({

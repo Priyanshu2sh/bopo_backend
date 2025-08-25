@@ -14,6 +14,9 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from decouple import config
+from datetime import datetime
+# from logging.handlers import TimedRotatingFileHandler
+# import logging
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -79,6 +82,8 @@ MIDDLEWARE = [
     'bopo_admin.middleware.CorporateStatusCheckMiddleware', 
     'bopo_admin.login_required_middleware.LoginRequiredMiddleware',
     'bopo_backend.middleware.Custom404Middleware', 
+    
+    # 'accounts.middleware.AccessLogMiddleware',
     
    
     
@@ -185,17 +190,84 @@ DEFAULT_FROM_EMAIL = 'BBP Team <006iipt@gmail.com>'
 
 # ===================================
 # settings.py
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'root': {
+#         'handlers': ['console'],
+#         'level': 'INFO',
+#     },
+# }
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+os.makedirs(LOG_DIR, exist_ok=True)
+
+today = datetime.now().strftime("%Y-%m-%d")
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'simple': {
+            'format': '%(levelname)s %(asctime)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
+
+    'handlers': {
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOG_DIR, f'django_errors_{today}.log'),
+            'when': 'midnight',
+            'backupCount': 30,
+            'formatter': 'verbose',
+        },
+        'debug_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOG_DIR, f'django_debug_{today}.log'),
+            'when': 'midnight',
+            'backupCount': 30,
+            'formatter': 'simple',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+
+    'loggers': {
+        'django': {
+            'handlers': ['error_file', 'debug_file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['error_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['error_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'debug_logger': {
+            'handlers': ['debug_file', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     },
 }
 
