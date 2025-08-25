@@ -137,7 +137,7 @@
                                       
                       
                     <label>Select State</label>
-                        <select id="state" name="state" class="select2" onchange="fetchCities()">
+                        <select id="state" name="state" class="select2" onchange="fetchCities()" required>
                             <option value="">Select State</option>
                             {% for s in states %}
                                 <option value="{{ s.id }}" {% if form_data.state == s.id|stringformat:"s" %}selected{% endif %}>
@@ -216,7 +216,7 @@
                         <label>Upload Logo</label>
                         <div class="addmerchant-input-container">
                             <i class="fas fa-image"></i>
-                            <input type="file" name="logo" accept="image/*">
+                            <input type="file" name="logo" accept="image/*" required>
                         </div>
                     </div>
 
@@ -240,9 +240,6 @@
 
     </div>
     
-
-  
-
     <!-- Toast Notification -->
     <!-- <div id="toast" class="toast-container {% if message %}toast-show{% endif %}">
         <i class="fa fa-exclamation-circle"></i>

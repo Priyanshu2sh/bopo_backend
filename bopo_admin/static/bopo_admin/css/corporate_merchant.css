@@ -9,16 +9,23 @@ body {
     background-color: #fff;
     padding: 20px;
     border-radius: 10px;
-    max-width: 1300px;
+    max-width: 1900px;
     margin: auto;
     margin-top: 5%;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 
-/* 🟢 Responsive Add Merchant Button */
+/* Parent container to align both buttons to the right */
+.merchant-header.right-buttons {
+    display: flex;
+    justify-content: flex-end; /* Align to right */
+    align-items: center;
+    gap: 10px; /* Add 10px gap between buttons */
+}
+
+/* Add Merchants button */
 .add-merchant-btn {
-     background: -webkit-linear-gradient(178deg, #e12503 0%, #85060c 100%);
     background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
     color: white;
     border: none;
@@ -27,13 +34,33 @@ body {
     cursor: pointer;
     font-size: 16px;
     font-weight: bold;
-    margin-left: 86%;
-    margin-top: -2%;
     transition: background 0.3s ease-in-out;
+    margin: 0;
 }
-.add-merchant-btn:hover {
-    background-color: #a14a3f;
+
+/* Back button */
+.back-to-list-btn {
+    display: inline-block;
+    padding: 10px 15px;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s ease;
+    margin: 0;
 }
+
+/* Hover states */
+.add-merchant-btn:hover,
+.back-to-list-btn:hover {
+    background: linear-gradient(178deg, red 0%, #85060c 100%);
+}
+
 
 /* Merchant List */
 .merchant-list {
@@ -41,6 +68,7 @@ body {
     background: #e3f2fd;
     padding: 15px;
     border-radius: 8px;
+    max-height: 90vh;
 }
 
 /* Merchant Items */
@@ -48,6 +76,7 @@ body {
     background: #f8f9fa;
     padding: 12px;
     margin-bottom: 10px;
+    min-height: 40vh;
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     font-weight: bold;
@@ -82,15 +111,20 @@ body {
     display: none;
 }
 
-/* Merchant Table */
 .merchant-table {
     background-color: white;
     padding: 0;
     border-radius: 8px;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-    max-height: 0;
+    max-height: 72vh;
     overflow: hidden;
     transition: max-height 0.4s ease-in-out, padding 0.3s ease-in-out;
+}
+
+.merchant-table.open {
+    max-height: none;
+    overflow: visible;
+    padding: 15px;
 }
 
 /* Show Merchant Table when Checkbox is Checked */
@@ -104,6 +138,7 @@ table {
     border-collapse: collapse;
     margin-top: 10px;
     table-layout: auto;
+    height: auto;
 }
 
 th {
@@ -460,7 +495,6 @@ button {
 .select2-selection__arrow {
     height: 100%;
 }
-
 /* Modal Background */
 .custom-modal {
     display: none;  /* Hidden by default */
@@ -483,6 +517,7 @@ button {
     text-align: center;
     max-width: 400px;
     width: 80%;
+    position: relative; 
 
   }
 
@@ -719,6 +754,7 @@ button {
         width: 100%;
         white-space: normal; /* ✅ Allow wrapping */
     }
+   
 /*     
     .modal{
         width: 150%;
@@ -814,107 +850,3 @@ button {
 }
 
 
-
-/* Back Button */
-.reduce-limit-back-btn {
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-  justify-content: flex-end;
-  align-items: center;
-  margin-top: 7%;
-  margin-bottom: 20px;
-  margin-right: 2%;
-}
-
-.reduce-limit-back-btn a {
-  display: inline-block;
-  padding: 10px 20px;
-  font-size: 16px;
-  color: white;
-  background: linear-gradient(178deg, #e12503 0%, #85060c 100%);
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none;
-  transition: background 0.3s ease;
-  font-weight: bold;
-  /* Remove margin-left and width for side-by-side layout */
-}
-
-.reduce-limit-back-btn a:hover {
-  background: linear-gradient(178deg, red 0%, #85060c 100%);
-}
-
-@media (max-width: 1024px) {
-  .reduce-limit-back-btn {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    margin-top: 4%;
-  }
-  .reduce-limit-back-btn a {
-    display: block;
-    width: 100%;
-    margin: 0;
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 576px) {
-  .reduce-limit-back-btn a {
-    width: 100%;
-    font-size: 14px;
-    padding: 10px;
-  }
-}
-
- #toast-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
-}
-.toast {
-  background-color: #333;
-  color: white;
-  padding: 12px 18px;
-  margin-top: 10px;
-  border-radius: 6px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  opacity: 1;
-  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
-}
-.toast.success {
-  background-color: #28a745;
-}
-.toast.error {
-  background-color: #dc3545;
-}
-.toast i {
-  margin-right: 6px;
-}
-
-.pagination a, .pagination .current {
-    margin: 0 5px;
-    text-decoration: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    background-color: #f0f0f0;
-    color: #333;
-}
-
-.pagination a:hover {
-    background-color: #007bff;
-    color: #fff;
-}
-
-.pagination .current {
-    background-color: #007bff;
-    color: white;
-    font-weight: bold;
-}

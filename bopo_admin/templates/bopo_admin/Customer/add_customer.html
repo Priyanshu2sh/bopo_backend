@@ -117,7 +117,7 @@
                     <label for="aadhaar">Aadhaar Number</label>
                     <div class="addcustomer-input-container">
                         <i class="fas fa-id-card"></i>
-                        <input type="text" name="aadhaar" id="aadhaar" maxlength="12">
+                        <input type="text" name="aadhaar_number" id="aadhaar_number" maxlength="12">
                     </div>
                 
 
@@ -242,7 +242,7 @@
                     if (value.length !== 10) return "Mobile number must be 10 digits";
                     return "";
                 },
-                aadhaar: function (value) {
+                aadhaar_number: function (value) {
                     if (value === "") return "";
                     if (!/^\d+$/.test(value)) return "Aadhaar must contain only digits";
                     if (value.length !== 12) return "Aadhaar number must be 12 digits";

@@ -27,7 +27,7 @@ body {
     cursor: pointer;
     font-size: 16px;
     font-weight: bold;
-    margin-left: 86%;
+    margin-left: 82%;
     margin-top: -2%;
     transition: background 0.3s ease-in-out;
 }
@@ -41,7 +41,7 @@ body {
     background: #e3f2fd;
     padding: 15px;
     border-radius: 8px;
-    max-height: 70vh;
+    max-height: 90vh;
 }
 
 /* Merchant Items */
@@ -49,7 +49,7 @@ body {
     background: #f8f9fa;
     padding: 12px;
     margin-bottom: 10px;
-    min-height: 40vh;
+    min-height: 60vh;
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     font-weight: bold;
@@ -727,13 +727,9 @@ button {
         width: 100%;
         white-space: normal; /* ✅ Allow wrapping */
     }
-   
-/*     
-    .modal{
-        width: 150%;
-        margin-left: -9%;
-    
-    } */
+   /* .merchant-list{
+
+   } */
 }
    
 /* ✅ Tablets & Mobiles (≤1023px) — Enable scroll for overflow */
@@ -823,3 +819,16 @@ button {
 }
 
 
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+    padding-bottom: 10px; /* Space for pagination */
+}
+#corporate-table {
+    min-width: 1200px; /* Adjust as needed for your columns */
+    height: auto;
+    width: 100%;
+    table-layout: auto;
+    border-collapse: collapse;
+}

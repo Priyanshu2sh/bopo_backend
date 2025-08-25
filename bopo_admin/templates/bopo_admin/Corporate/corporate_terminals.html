@@ -36,7 +36,7 @@
   </div>
 
   <!-- Confirmation Modal -->
-  <div id="confirmationModal" class="custom-modal" style="display: none;">
+<div id="confirmationModal" class="custom-modal" style="display: none;">
     <div class="custom-modal-content">
       <span class="custom-close" id="closeModal">&times;</span>
       <h3 id="confirmationMessage">Are you sure, you are creating another terminal?</h3>
@@ -45,7 +45,7 @@
         <button id="cancelAction" class="custom-btn" style="background-color: #f44336;">No</button>
       </div>
     </div>
-  </div>
+  </div> 
 
   <!-- Status Confirmation Modal -->
 <div id="statusConfirmationModal" class="custom-modal" style="display: none;">
@@ -103,7 +103,12 @@
       </td>
       <td>
         <label class="switch">
-          <input type="checkbox" onchange="toggleStatus('{{ terminal.terminal_id }}', this)" {% if terminal.status == 'Active' %}checked{% endif %}>
+<input type="checkbox"
+       class="status-toggle"
+       data-id="{{ terminal.terminal_id }}"
+       data-type="terminal"
+       {% if terminal.status == 'Active' %}checked{% endif %}>
+
           <span class="slider round"></span>
         </label>
       </td>
@@ -243,7 +248,11 @@ $(document).ready(function() {
     <td><input type="text" value="${terminal.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
     <td>
       <label class="switch">
-        <input type="checkbox" onchange="toggleStatus('${terminal.terminal_id}', this)" ${terminal.status === 'Active' ? 'checked' : ''}>
+<input type="checkbox"
+       class="status-toggle"
+       data-id="${terminal.terminal_id}"
+       ${terminal.status === 'Active' ? 'checked' : ''}>
+
         <span class="slider round"></span>
       </label>
     </td>
@@ -440,7 +449,11 @@ document.addEventListener("DOMContentLoaded", function () {
           <td><input type="text" value="${data.tid_pin}" class="pin-input" readonly style="border: none; background: transparent; text-align: center;"></td>
           <td>
             <label class="switch">
-              <input type="checkbox" onchange="toggleStatus('${data.terminal_id}', this)" ${data.status === 'Active' ? 'checked' : ''}>
+             <input type="checkbox"
+       class="status-toggle"
+       data-id="${terminal.terminal_id}"
+       ${terminal.status === 'Active' ? 'checked' : ''}>
+
               <span class="slider round"></span>
             </label>
           </td>
