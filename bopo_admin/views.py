@@ -1015,24 +1015,20 @@ def add_merchant(request):
 
             # ✅ Validate State and City selection
             if not state:
-                message = "Please select a state."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
-
+                return JsonResponse({"success": False, "message": "Please select a state."})
             if not city:
-                message = "Please select a city."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+                return JsonResponse({"success": False, "message": "Please select a city."})
 
+            # ✅ Convert IDs to model instances
             try:
                 state = State.objects.get(id=state)
             except State.DoesNotExist:
-                message = "Selected state is invalid."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+                return JsonResponse({"success": False, "message": "Invalid state selected."})
 
             try:
                 city = City.objects.get(id=city)
             except City.DoesNotExist:
-                message = "Selected city is invalid."
-                return JsonResponse({"success": False, "message": message}) if is_ajax else redirect_with_error(message)
+                return JsonResponse({"success": False, "message": "Invalid city selected."})
 
           
          # ✅ Require logo upload
@@ -1102,7 +1098,7 @@ def add_merchant(request):
 
         except Exception as e:
             print("Error saving merchant:", e)
-            return JsonResponse({"success": False, "message": "Something went wrong from backend."})
+            return JsonResponse({"success": False, "message": "Something went wrong."})
 
     corporates = Corporate.objects.all()
     return render(request, "bopo_admin/Merchant/add_merchant.html", {"corporates": corporates})

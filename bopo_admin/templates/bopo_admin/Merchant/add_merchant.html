@@ -147,7 +147,7 @@
                                       
                       
                     <label>Select State</label>
-                        <select id="state" name="state" class="select2" onchange="fetchCities()">
+                        <select id="state" name="state" class="select2" onchange="fetchCities()" required>
                             <option value="">Select State</option>
                         </select>
 
@@ -197,7 +197,7 @@
                     </div>
     
                     <label>Select City</label>
-                    <select id="city" name="city" class="select2">
+                    <select id="city" name="city" class="select2" required>
                          <option value="">Select City</option>
                      </select>
                  
@@ -218,7 +218,7 @@
                         <label>Upload Logo</label>
                         <div class="addmerchant-input-container">
                             <i class="fas fa-image"></i>
-                            <input type="file" name="logo" accept="image/*">
+                            <input type="file" name="logo" accept="image/*" required>
                         </div>
                     </div>
 

@@ -113,7 +113,7 @@
     </div>
     <br>
 
-        <div class="merchant-item">
+        {% comment %} <div class="merchant-item"> {% endcomment %}
             <!-- Set checkbox as checked by default to keep it open -->
             <input type="checkbox" id="toggle-corporate" class="toggle-checkbox" checked>
             <label for="toggle-corporate" class="merchant-label">
@@ -161,6 +161,7 @@
                                                     class="status-toggle">
                                                 <span class="slider round"></span>
                                             </label>
+                        </td>
                                         
                         <td>
                             <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ merchant.id }}', 'merchant')">✏️ Edit</button>
@@ -178,7 +179,7 @@
                     </table>
                       </div>
             </div>
-        </div>
+        {% comment %} </div> {% endcomment %}
 </div>
 
          <!-- DataTables & Buttons JS --> 
@@ -188,34 +189,38 @@
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
 <script>
- $(document).ready(function () {
-    const table = $('#corporate-table').DataTable({
-         dom: 'Bfrtip',
+  $(document).ready(function () {
+    const hasMerchants = $('#corporate-table tbody tr td').text().trim() !== "No merchants found.";
+
+    if (hasMerchants) {
+      const table = $('#corporate-table').DataTable({
+        dom: 'Bfrtip',
         pageLength: 5,
-         pagingType: "simple_numbers", // Enables pagination like 1 … 4 5 6 … 10
+        pagingType: "simple_numbers",
         order: [],
         buttons: [
-            {
-                extend: 'colvis',
-                text: '<i class="fas fa-table"></i>',
-                className: 'btn btn-success',
-                columns: ':not(.noVis)'
-            }
+          {
+            extend: 'colvis',
+            text: '<i class="fas fa-table"></i>',
+            className: 'btn btn-success',
+            columns: ':not(.noVis)'
+          }
         ],
         columnDefs: [
-            { targets: 0, className: 'noVis' }
+          { targets: 0, className: 'noVis' }
         ],
         stripeClasses: []
-    });
+      });
 
-    table.buttons().container().appendTo('#custom-buttons');
+      table.buttons().container().appendTo('#custom-buttons');
 
-    $('#search-corporate').on('keyup', function () {
+      $('#search-corporate').on('keyup', function () {
         table.search(this.value).draw();
-    });
-});
-
+      });
+    }
+  });
 </script>
+
 
 
 <!-- Edit Merchant Modal -->

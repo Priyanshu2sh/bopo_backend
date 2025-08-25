@@ -98,23 +98,19 @@
     </div>
 
     <div class="merchant-list">
-        {% comment %} <h2>Corporate Merchants List</h2> {% endcomment %}
-        <div class="merchant-item">
-            <!-- Set checkbox as checked by default to keep it open -->
+         {% comment %} <div class="merchant-item"> {% endcomment %}
             <input type="checkbox" id="toggle-corporate" class="toggle-checkbox" checked>
             <label for="toggle-corporate" class="merchant-label">
                 <span class="merchant-icon">🏢</span>
                 <span>Corporate List</span>
             </label>
-            <div class="merchant-table open">  <!-- Add 'open' class here -->
+            <div class="merchant-table open">
                                
                 <div class="top-controls">
     <input type="text" class="search-box" id="search-corporate" placeholder="Search corporate merchants...">
     <div id="custom-buttons"></div>
 </div>
-
-               
-               
+    
                 <div class="table-wrapper">
                     <table id="corporate-table">
                         <thead>
@@ -167,36 +163,12 @@
                                         <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ data.corporate.corporate_id }}', 'corporate')">✏️ Edit</button>
                                     </td>
                                 </tr>
-                                <!-- {% for merchant in data.merchants %}
-                                    <tr>
-                                        <td>-</td>
-                                        <td>-</td>
-                                        <td>{{ merchant.merchant_id }}</td>
-                                        <td>{{ merchant.first_name }} {{ merchant.last_name }}</td>
-                                        <td>{{ merchant.mobile }}</td>
-                                        <td>{{ merchant.shop_name }}</td>
-                                        <td>{{ merchant.city }}</td>
-                                        <td>
-                                            <label class="switch">
-                                                <input type="checkbox"
-                                                    {% if merchant.status == "Active" %}checked{% endif %}
-                                                    data-id="{{ merchant.merchant_id }}"
-                                                    data-type="merchant"
-                                                    class="status-toggle">
-                                                <span class="slider round"></span>
-                                            </label>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-warning" onclick="openEditCorporateModal('{{ merchant.id }}', 'merchant')">✏️ Edit</button>
-                                        </td>
-                                    </tr>
-                                {% endfor %} -->
-                            {% endfor %}
+                                  {% endfor %}
                         </tbody>
 
                     </table>
                       </div>
-            </div>
+            {% comment %} </div> {% endcomment %}
         </div>
 </div>
 
@@ -211,7 +183,7 @@
     const table = $('#corporate-table').DataTable({
          dom: 'Bfrtip',
         pageLength: 5,
-         pagingType: "simple_numbers", // Enables pagination like 1 … 4 5 6 … 10
+         pagingType: "simple_numbers", 
         order: [],
         buttons: [
             {
@@ -236,8 +208,6 @@
 
 </script>
 
-
-<!-- Edit Merchant Modal -->
 <div id="editCorporateModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeEditModal()">&times;</span>
@@ -247,16 +217,12 @@
             {% csrf_token %}
             <input type="hidden" name="corporate_id" id="edit_corporate_id">
             <input type="hidden" name="merchant_id" id="edit_merchant_id">
-
-            <!-- Project Name Input Field (Initially Hidden) -->
             <div id="project-name-container" class="hidden">
                 <label for="project_name">Project Name:</label>
                 <div class="addmerchant-input-container">
                     <input type="text" id="edit_project_name" name="project_name" placeholder="Enter Project Name">
                 </div>
             </div>
-
-            <!-- Form Fields (Left & Right Columns) -->
             <div class="addmerchant-form-container">
                 <!-- Left Column -->
                 <div class="addmerchant-form-group">
@@ -364,19 +330,7 @@
     <span class="toast-message">{{ message }}</span>
 </div>
 
-{% comment %} <!-- Custom Confirmation Modal -->
-<div id="confirmationModal" class="custom-modal">
-    <div class="custom-modal-content">
-      <h3 id="confirmationMessage">Are you sure you want to delete this merchant?</h3>
-      <div class="custom-modal-buttons">
-        <button id="confirmDelete" class="custom-btn">Yes</button>
-        <button id="cancelDelete" class="custom-btn">No</button>
-      </div>
-    </div>
-</div> {% endcomment %}
-
-
-   <div id="confirmationModal" class="custom-modal" style="display: none;">
+<div id="confirmationModal" class="custom-modal" style="display: none;">
   <div class="custom-modal-content">
     <span class="custom-close" id="closeModal">&times;</span>
     <h3 id="confirmationMessage">Are you sure you want to change the status?</h3>
@@ -387,9 +341,7 @@
   </div>
 </div>
 
-
 <script>
-
      const validators = {
                 email: function (value) {
                     if (value === "") return "Email is required";
@@ -431,8 +383,6 @@
                     input.reportValidity();
                 });
             });
-
-
     // Create toast container if it doesn't exist
 if (!document.getElementById('toast-container')) {
   const container = document.createElement('div');
@@ -447,8 +397,7 @@ function showToast(message, type = 'success', duration = 3000) {
   toast.textContent = message;
   
   container.appendChild(toast);
-  
-  // Remove toast after duration
+
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(100%)';
@@ -458,7 +407,6 @@ function showToast(message, type = 'success', duration = 3000) {
   }, duration);
 }
 
-
 document.addEventListener('DOMContentLoaded', function () {
   const toggles = document.querySelectorAll('.status-toggle');
   let currentToggle = null;
@@ -466,8 +414,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   toggles.forEach(toggle => {
     toggle.addEventListener('change', function (e) {
-      e.preventDefault(); // Prevent the toggle action until confirmed
-      currentToggle = this;
+      e.preventDefault();       currentToggle = this;
       intendedState = this.checked;
 
       // Show confirmation modal
@@ -529,12 +476,9 @@ document.addEventListener('DOMContentLoaded', function () {
       currentToggle.checked = !isActive;
     });
 
-
     // Hide modal
     document.getElementById("confirmationModal").style.display = "none";
   });
-
-  // On cancel or close
   function cancelModal() {
     if (currentToggle) {
       currentToggle.checked = !intendedState; // Revert toggle
@@ -562,16 +506,6 @@ function getCookie(name) {
   }
   return cookieValue;
 }
-
-{% comment %} const closeModalBtn = document.getElementById("closeModal");
-if (closeModalBtn) {
-  closeModalBtn.addEventListener("click", function () {
-    document.getElementById("confirmationModal").style.display = "none";
-  });
-} {% endcomment %}
-
-
-
 function openEditCorporateModal(id, type = 'corporate') {
     const url = type === 'merchant' ? `/get-copmerchant/${id}/` : `/get-corporate/${id}/`;
 
@@ -602,16 +536,12 @@ function openEditCorporateModal(id, type = 'corporate') {
             document.getElementById('edit_legal_name').value = data.legal_name || '';
             document.getElementById('edit_pincode').value = data.pincode || '';
             document.getElementById('edit_project_name').value = data.project_name || '';
-
             // Set prefilled state and city (not as dropdowns)
             document.getElementById("edit_state").value = data.state || '';
             document.getElementById("edit_city").value = data.city || '';
 
             console.log("Pincode value being sent:", document.getElementById('edit_pincode').value);
-
-            
-
-            // Show the modal
+         
             document.getElementById("editCorporateModal").style.display = "block";
         })
         .catch(error => {
@@ -624,15 +554,12 @@ function closeEditModal() {
     const modal = document.getElementById('editCorporateModal');
     if (modal) modal.style.display = 'none';
 }
-
-
 window.onclick = function (event) {
     let modal = document.getElementById("editCorporateModal");
     if (event.target == modal) {
         modal.style.display = "none";
     }
 };
-
 function showToast(message) {
     const toast = document.createElement('div');
     toast.classList.add('toast');
@@ -642,7 +569,6 @@ function showToast(message) {
         toast.remove();
     }, 3000);
 }
-
 // ✅ Submit form using AJAX
 $('#editCorporateForm').submit(function (e) {
     e.preventDefault();
@@ -687,9 +613,7 @@ $('#editCorporateForm').submit(function (e) {
             showToast("An error occurred during update");
         });
 });
-
    
-    
     function getCookie(name) {
         var cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -805,18 +729,6 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-
-{% comment %} document.addEventListener("DOMContentLoaded", function () {
-  fetchStates();
-   paginateTable(); 
-
-    $('.select2').select2({
-        placeholder: "Select an option",
-        allowClear: true,
-        width: '100%'
-    });
-});  {% endcomment %}
-
 function fetchStates() {
     return fetch("/get-states/")
         .then(response => response.json())
