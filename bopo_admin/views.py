@@ -2909,7 +2909,7 @@ def add_customer(request):
             return JsonResponse({"success": False, "message": "Mobile number already exists!"})
 
         if Customer.objects.filter(aadhaar_number=aadhaar_number).exists():
-        if Customer.objects.filter(aadhaar_number=aadhaar_number).exists():
+        # if Customer.objects.filter(aadhaar_number=aadhaar_number).exists():
             return JsonResponse({"success": False, "message": "Aadhaar number already exists!"})
 
         if Customer.objects.filter(pan_number=pan_number).exists():
@@ -2924,7 +2924,6 @@ def add_customer(request):
             mobile=mobile,
             age=age,
             gender=gender,
-            aadhaar_number=aadhaar_number,
             aadhaar_number=aadhaar_number,
             pin=pin,
             pan_number=pan_number,
