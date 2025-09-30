@@ -3,6 +3,10 @@ import logging
 import random
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+            
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -16,8 +20,11 @@ from datetime import timedelta
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.serializers import CustomerSerializer, MerchantSerializer
+from accounts.views import OTPService
 from bopo_admin.models import DeductSetting, Notification, SecurityQuestion
 from django.db import transaction
+
+from bopo_backend import settings
 
 from .serializers import BankDetailSerializer, CashOutSerializer, CorporateProjectSerializer, CustomerCashOutSerializer, CustomerToCustomerSerializer, HelpSerializer, MerchantCashOutSerializer, MerchantToMerchantSerializer, NotificationSerializer, PaymentDetailsSerializer
 
@@ -213,10 +220,13 @@ class AwardPointsAPIView(APIView):
     """
 
     def generate_unique_customer_id(self):
-        while True:
-            customer_id = f"CUST{random.randint(100000, 999999)}"
-            if not Customer.objects.filter(customer_id=customer_id).exists():
-                return customer_id
+        last_customer = Customer.objects.order_by('-customer_id').first()
+        if last_customer and last_customer.customer_id.startswith('CUST'):
+            last_id_num = int(last_customer.customer_id[4:])  # Extract numeric part
+            new_id_num = last_id_num + 1
+        else:
+            new_id_num = 1
+        return f"CUST{new_id_num:06d}"
 
     def generate_unique_pin(self):
         while True:
@@ -489,35 +499,90 @@ class HistoryAPIView(APIView):
             response_data["merchant_balance"] = merchant_balance
 
         return Response(response_data, status=status.HTTP_200_OK)
- 
+
+
+from django.core.mail import send_mail
+from django.conf import settings
+from django.db.models import Sum, F
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+import random
+
+# Assuming OTPService is already imported
+# from your_app.services import OTPService
+
 
 class CustomerToCustomerTransferAPIView(APIView):
     """
     API for transferring points from one customer to another with dynamic deduction percentage (as set by Super Admin).
-    only corporate merchant and plan type prepaid transfer points
+    Only corporate merchant and plan type prepaid transfer points.
+    Supports transfer by receiver_customer_id or receiver_phone.
+    If receiver phone not found, a new customer is created automatically.
     """
+
+    def generate_unique_customer_id(self):
+        last_customer = Customer.objects.order_by('-customer_id').first()
+        if last_customer and last_customer.customer_id.startswith('CUST'):
+            last_id_num = int(last_customer.customer_id[4:])  # Extract numeric part
+            new_id_num = last_id_num + 1
+        else:
+            new_id_num = 1
+        return f"CUST{new_id_num:06d}"
+
+    def generate_unique_pin(self):
+        while True:
+            pin = random.randint(1000, 9999)
+            if not Customer.objects.filter(pin=pin).exists():
+                return pin
 
     def post(self, request):
         sender_customer_id = request.data.get("sender_customer_id")
         receiver_customer_id = request.data.get("receiver_customer_id")
+        receiver_phone = request.data.get("receiver_phone")
         merchant_id = request.data.get("merchant_id")
         points = int(request.data.get("points", 0))
 
-        # Fetch sender, receiver, and merchant
+        # Fetch sender
         try:
             sender_customer = Customer.objects.get(customer_id=sender_customer_id)
-            receiver_customer = Customer.objects.get(customer_id=receiver_customer_id)
-            
-            if sender_customer_id == receiver_customer_id:
-                return Response({"error": "Cannot scan own QR code"}, status=status.HTTP_400_BAD_REQUEST)
-            
+        except Customer.DoesNotExist:
+            return Response({"error": "Sender customer not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch or create receiver
+        receiver_customer = None
+        created = False
+        if receiver_customer_id:
+            try:
+                receiver_customer = Customer.objects.get(customer_id=receiver_customer_id)
+            except Customer.DoesNotExist:
+                return Response({"error": "Receiver customer not found"}, status=status.HTTP_404_NOT_FOUND)
+        elif receiver_phone:
+            receiver_customer, created = Customer.objects.get_or_create(
+                mobile=receiver_phone,
+                defaults={
+                    "customer_id": self.generate_unique_customer_id(),
+                    "pin": self.generate_unique_pin(),
+                    "first_name": "New",
+                    "last_name": "Customer",
+                    "status": "Active",
+                    # "email": f"{receiver_phone}@bbp.com"  # fallback email
+                }
+            )
+        else:
+            return Response({"error": "Receiver customer_id or receiver_phone is required"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Prevent self-transfer
+        if sender_customer.customer_id == receiver_customer.customer_id:
+            return Response({"error": "Cannot scan own QR code"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch merchant
+        try:
             merchant = Merchant.objects.get(merchant_id=merchant_id)
             if merchant.user_type.lower() == 'individual' or merchant.plan_type == 'rental':
-                return Response({"error": "individual merchants and rental plan cannot transfer points."}, status=status.HTTP_400_BAD_REQUEST)
-            # elif Merchant.DoesNotExist:
-            #     return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Customer.DoesNotExist:
-            return Response({"error": "Sender or receiver customer not found"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Individual merchants and rental plan cannot transfer points."},
+                                status=status.HTTP_400_BAD_REQUEST)
         except Merchant.DoesNotExist:
             return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -534,18 +599,17 @@ class CustomerToCustomerTransferAPIView(APIView):
                 "requested_points": points
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Fetch dynamic deduction percentage from the DeductSetting table
+        # Fetch dynamic deduction percentage
         try:
-            setting = DeductSetting.objects.get(id=1)  # Assuming only one setting exists
+            setting = DeductSetting.objects.get(id=1)
             deduct_percentage = setting.cust_cust
         except DeductSetting.DoesNotExist:
-            deduct_percentage = 5.0  # Default fallback if no setting found
+            deduct_percentage = 5.0
 
-        # Apply dynamic deduction
-        deduction_factor = (100 - deduct_percentage) / 100  # e.g., 5% means 95%
-        points_after_deduction = int(points * deduction_factor)
+        # Apply deduction
+        points_after_deduction = int(points * (100 - deduct_percentage) / 100)
 
-        # Deduct points from sender safely
+        # Deduct points from sender
         sender_entry, _ = CustomerPoints.objects.get_or_create(
             customer=sender_customer, merchant=merchant, defaults={"points": 0}
         )
@@ -553,7 +617,7 @@ class CustomerToCustomerTransferAPIView(APIView):
         sender_entry.save(update_fields=['points'])
         sender_entry.refresh_from_db()
 
-        # Add points to receiver safely
+        # Add points to receiver
         receiver_entry, _ = CustomerPoints.objects.get_or_create(
             customer=receiver_customer, merchant=merchant, defaults={"points": 0}
         )
@@ -561,38 +625,46 @@ class CustomerToCustomerTransferAPIView(APIView):
         receiver_entry.save(update_fields=['points'])
         receiver_entry.refresh_from_db()
 
-        # Save transaction record
+        # Save transaction
         CustomerToCustomer.objects.create(
             sender_customer=sender_customer,
             receiver_customer=receiver_customer,
             merchant=merchant,
             points=points_after_deduction
         )
-        # History entry for sender (as transferCToC - deduction side)
-        # History.objects.create(
-        #     sender_customer=sender_customer,
-        #     receiver_customer=receiver_customer,
-        #     merchant=merchant,
-        #     points=points,
-        #     transaction_type='transferCToC'
-        # )
 
-        # # History entry for receiver (as transferCToC - after deduction)
-        # History.objects.create(
-        #     customer=receiver_customer,
-        #     merchant=merchant,
-        #     points=points_after_deduction,
-        #     transaction_type='transferCToC'
-        # )
+        # 🚀 Send email & SMS if new customer created
+        if created:
+            # Send Email
+            if receiver_customer.email:
+                subject = "Welcome to BBP!"
+                message = (
+                    f"Hello {receiver_customer.first_name},\n\n"
+                    f"You are now a new customer of BBP.\n"
+                    f"You have received {points_after_deduction} points.\n\n"
+                    f"Please download the BBP app to use your points.\n\n"
+                    f"Thank you,\nBBP Team"
+                )
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [receiver_customer.email], fail_silently=True)
+
+            # Send SMS
+            if receiver_customer.mobile:
+                sms_message = (
+                    f"Welcome to BBP! \n"
+                    f"You have received {points_after_deduction} points.\n"
+                    f"Download the BBP app now to use your points!"
+                )
+                OTPService.send_sms_otp(receiver_customer.mobile, None, sms_message)
 
         return Response({
             "message": f"Points transferred successfully with {deduct_percentage}% deduction.",
             "points_transferred": points_after_deduction,
             "sender_balance": sender_entry.points,
-            "receiver_balance": receiver_entry.points
+            "receiver_balance": receiver_entry.points,
+            "receiver_phone": receiver_customer.mobile,
+            "receiver_created": created
         }, status=status.HTTP_200_OK)
-        
-        
+  
 
 class MerchantToMerchantTransferAPIView(APIView):
     """
@@ -2015,9 +2087,7 @@ def auto_deduct_inactive_global_points():
             # print(f"[{now}] Deducted {deducted_amount} from customer {customer.id}. Remaining: {gp.points}")
             
             # ----------------
-            
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
+
 class NotificationListAPIView(APIView):
     def get(self, request):
         customer_id_param = request.GET.get("customer_id")

@@ -168,15 +168,23 @@ SESSION_COOKIE_AGE = 2592000  # 30 days in seconds (used if remember_me is check
 # EMAIL_HOST_PASSWORD = 'xjfy bjcc vkpm ljmu'  # App password from step above
 # DEFAULT_FROM_EMAIL = 'BOPO Team <006iipt@gmail.com>'
 
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# # EMAIL_USE_SSL = False 
+# EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
+# EMAIL_HOST_PASSWORD = 'xjfybjccvkpmljmu'  # App password (not your Gmail password)
+# DEFAULT_FROM_EMAIL = 'BBP Team <006iipt@gmail.com>'
+# DEFAULT_DOMAIN = "127.0.0.1:8000"
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-# EMAIL_USE_SSL = False 
-EMAIL_HOST_USER = '006iipt@gmail.com'  # Your Gmail
-EMAIL_HOST_PASSWORD = 'xjfybjccvkpmljmu'  # App password (not your Gmail password)
-DEFAULT_FROM_EMAIL = 'BBP Team <006iipt@gmail.com>'
-# DEFAULT_DOMAIN = "127.0.0.1:8000"
+EMAIL_HOST_USER = '002iipt@gmail.com'       
+EMAIL_HOST_PASSWORD = 'pnqhgteuanykydbj'
+DEFAULT_FROM_EMAIL = 'BBP Team <002iipt@gmail.com>'
 
 # ================================Shweta
 
