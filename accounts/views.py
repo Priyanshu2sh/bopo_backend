@@ -1215,6 +1215,57 @@ class VerifyMobileChangeAPIView(APIView):
            
      
 # Logic for change or forgot Pin
+# class RequestPinChangeAPIView(APIView):
+#     def post(self, request):
+#         user_category = request.data.get('user_category')
+#         new_pin = request.data.get('pin')
+#         method = request.data.get('method')
+#         mobile = request.data.get('mobile')
+
+#         if not new_pin or not method or not mobile or not user_category:
+#             return Response({'error': 'Mobile, user_category, new PIN, and method are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             if user_category == 'customer':
+#                 user = Customer.objects.get(mobile=mobile)
+#             elif user_category == 'merchant':
+#                 user = Merchant.objects.get(mobile=mobile)
+#             else:
+#                 logger.error("Invalid user category")
+#                 return Response({'error': 'Invalid user category.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#             # Save PIN in temporary field only
+#             user.temp_pin = new_pin
+
+#             if method == 'otp':
+#                 # otp = str(random.randint(100000, 999999))
+#                 otp = 272307
+#                 user.otp = otp
+#                 user.save()
+
+#                 # Send OTP via SMS
+#                 client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+#                 client.messages.create(
+#                     body=f"Your BOPO OTP to update PIN is: {otp}",
+#                     from_=settings.TWILIO_PHONE_NUMBER,
+#                     to=f'+91{user.mobile}'
+#                 )
+
+#                 return Response({'message': 'OTP sent to registered mobile.'}, status=status.HTTP_200_OK)
+
+#             elif method == 'security':
+#                 user.save()
+#                 return Response({'message': 'Answer the security question to change PIN.'}, status=status.HTTP_200_OK)
+
+#             else:
+#                 logger.error("Invalid method for PIN change")           
+#                 return Response({'error': 'Invalid method. Use "otp" or "security_question".'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         except (Customer.DoesNotExist, Merchant.DoesNotExist):
+#             logger.error("User with given mobile not found")
+#             return Response({'error': 'User with given mobile not found.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+      
 class RequestPinChangeAPIView(APIView):
     def post(self, request):
         user_category = request.data.get('user_category')
@@ -1223,7 +1274,10 @@ class RequestPinChangeAPIView(APIView):
         mobile = request.data.get('mobile')
 
         if not new_pin or not method or not mobile or not user_category:
-            return Response({'error': 'Mobile, user_category, new PIN, and method are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Mobile, user_category, new PIN, and method are required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             if user_category == 'customer':
@@ -1234,38 +1288,45 @@ class RequestPinChangeAPIView(APIView):
                 logger.error("Invalid user category")
                 return Response({'error': 'Invalid user category.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Save PIN in temporary field only
+            # Save PIN temporarily
             user.temp_pin = new_pin
 
             if method == 'otp':
-                # otp = str(random.randint(100000, 999999))
+                # ✅ Use static OTP for testing
                 otp = 272307
                 user.otp = otp
                 user.save()
 
-                # Send OTP via SMS
-                client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-                client.messages.create(
-                    body=f"Your BOPO OTP to update PIN is: {otp}",
-                    from_=settings.TWILIO_PHONE_NUMBER,
-                    to=f'+91{user.mobile}'
-                )
+                # 🚫 Skip Twilio SMS sending (for testing)
+                # You can log or print instead
+                logger.info(f"Static OTP {otp} set for user {user.mobile}")
 
-                return Response({'message': 'OTP sent to registered mobile.'}, status=status.HTTP_200_OK)
+                return Response(
+                    {'message': 'Static OTP set successfully.', 'otp': otp},
+                    status=status.HTTP_200_OK
+                )
 
             elif method == 'security':
                 user.save()
-                return Response({'message': 'Answer the security question to change PIN.'}, status=status.HTTP_200_OK)
+                return Response(
+                    {'message': 'Answer the security question to change PIN.'},
+                    status=status.HTTP_200_OK
+                )
 
             else:
-                logger.error("Invalid method for PIN change")           
-                return Response({'error': 'Invalid method. Use "otp" or "security_question".'}, status=status.HTTP_400_BAD_REQUEST)
+                logger.error("Invalid method for PIN change")
+                return Response(
+                    {'error': 'Invalid method. Use "otp" or "security_question".'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         except (Customer.DoesNotExist, Merchant.DoesNotExist):
             logger.error("User with given mobile not found")
-            return Response({'error': 'User with given mobile not found.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        
+            return Response(
+                {'error': 'User with given mobile not found.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+  
 
 class VerifyPinChangeAPIView(APIView):
     def post(self, request):
