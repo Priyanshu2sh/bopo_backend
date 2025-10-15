@@ -2873,7 +2873,7 @@ def add_customer(request):
         mobile = request.POST.get('mobile')
         age = request.POST.get('age')
         gender = request.POST.get('gender')
-        aadhaar_number = request.POST.get('aadhaar')
+        aadhaar_number = request.POST.get('aadhaar_number')
         pin = request.POST.get('pin') 
         pan_number = request.POST.get('pan_number')
         address = request.POST.get('address')
